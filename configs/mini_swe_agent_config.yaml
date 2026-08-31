@@ -1,0 +1,8 @@
+agent:
+  step_limit: 25
+model:
+  cost_tracking: ignore_errors
+  model_kwargs:
+    temperature: 0
+    drop_params: true
+
