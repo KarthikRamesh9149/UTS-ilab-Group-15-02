@@ -1,0 +1,15 @@
+harness: uts-qwen-harness
+implementation: scripts.custom_harness:QwenCustomHarness
+model: openai/qwen2.5-coder:3b
+model_base_url: http://127.0.0.1:11434/v1
+model_server_identity: same Ollama process and digest used by container harnesses
+api_key: ollama
+temperature: 0
+context_length: 32768
+max_steps: 25
+max_output_tokens_per_step: 800
+command_timeout_seconds: 120
+context_policy: deterministic rolling window with command-status summary
+n_concurrent: 1
+k: 1
+

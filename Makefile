@@ -3,9 +3,9 @@ MODEL := qwen2.5-coder:3b
 OLLAMA := .tools/ollama/Ollama.app/Contents/Resources/ollama
 MODEL_STORE := $(CURDIR)/.cache/ollama/models
 HARBOR := $(CURDIR)/.tools/bin/harbor
-PYTHON := $(CURDIR)/.tools/python/cpython-3.12.13-macos-aarch64-none/bin/python3.12
+PYTHON := $(CURDIR)/.tools/uv-tools/harbor/bin/python
 
-.PHONY: preflight model-pull model-start model-test oracle mini-swe openhands collect report test stop all
+.PHONY: preflight model-pull model-start model-test oracle mini-swe openhands custom collect report test stop all
 
 preflight:
 	./scripts/preflight.sh
@@ -29,6 +29,9 @@ mini-swe:
 openhands:
 	$(PYTHON) ./scripts/run_baselines.py --harness openhands
 
+custom:
+	$(PYTHON) ./scripts/run_baselines.py --harness custom
+
 collect:
 	$(PYTHON) ./scripts/collect_results.py
 
@@ -41,4 +44,4 @@ test:
 stop:
 	./scripts/stop_model.sh
 
-all: preflight model-pull model-test oracle mini-swe openhands collect report test stop
+all: preflight model-pull model-test oracle mini-swe openhands custom collect report test stop

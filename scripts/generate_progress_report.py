@@ -15,7 +15,7 @@ def truth(value):
 
 def summarize(rows):
     output = {}
-    for harness in ("mini-swe-agent", "openhands"):
+    for harness in ("mini-swe-agent", "openhands", "uts-qwen-harness"):
         group = [r for r in rows if r["harness"] == harness]
         valid = [r for r in group if truth(r["valid_trial"])]
         passed = [r for r in valid if truth(r["pass"])]
@@ -67,7 +67,7 @@ def main():
 
 Harbor 0.22.0 and the 89-task Terminal-Bench 2.1 dataset were configured on an Apple M5 MacBook Air. Qwen2.5-Coder-3B-Instruct was hosted locally through Ollama 0.33.2 as the Q4_K_M `qwen2.5-coder:3b` package (digest `f72c60cabf62`, 3.1B parameters, 32,768-token context). Host and container checks confirmed that Ollama's OpenAI-compatible endpoint was reachable at the same local address used by both harnesses.
 
-Mini-SWE-Agent and OpenHands were each assigned the same frozen three-task subset, deterministic temperature setting, model digest, context length, `k=1`, and concurrency of one. Across the six intended trial rows, {total_valid} produced valid verifier results and {total_passed} passed. Recorded compatibility or infrastructure statuses were: {issue_text}. Missing token fields remain unavailable rather than being reported as zero; local monetary API cost is zero because no paid endpoint was used.
+Mini-SWE-Agent, OpenHands, and the custom UTS Qwen harness were each assigned the same frozen three-task subset, deterministic temperature setting, model digest, context length, `k=1`, and concurrency of one. Across the nine intended trial rows, {total_valid} produced valid verifier results and {total_passed} passed. Recorded compatibility or infrastructure statuses were: {issue_text}. Missing token fields remain unavailable rather than being reported as zero; local monetary API cost is zero because no paid endpoint was used.
 
 The purpose of this run was to validate model serving, Harbor task resolution, harness installation, trajectory capture, verification, and result parsing. It is not a full benchmark estimate and must not be interpreted as Terminal-Bench 2.1 accuracy. Next steps are deployment on suitable HPC infrastructure, evaluation of a stronger fixed local model, a frozen 20-task engineering subset, and eventually a controlled 89-task evaluation with repeated trials.
 """
@@ -77,4 +77,3 @@ The purpose of this run was to validate model serving, Harbor task resolution, h
 
 if __name__ == "__main__":
     main()
-
