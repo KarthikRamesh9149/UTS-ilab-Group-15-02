@@ -43,3 +43,11 @@ make test
 ## Results
 
 The completed run artifacts live under `results/progress_smoke_20260831_133343/`. Read `summary.md` for the six-condition comparison, `results.csv` for all intended trial rows, `limitations.md` before interpreting the numbers, and `terminal_evidence/` for per-condition output captures.
+
+## Parallel experiment (separate from the 21-task matrix)
+
+A second teammate is testing a **different** custom harness (markdown bash loop vs Terminus-2, hosted gpt-4o-mini, not the local 3B/7B matrix).
+
+Start here: [`experiments/itsha-bash-react/README.md`](experiments/itsha-bash-react/README.md)
+
+Do not mix those scores with the Ollama 3B/7B rows. That work is on branch `experiment/itsha-bash-react` and is not a replacement for this README.
