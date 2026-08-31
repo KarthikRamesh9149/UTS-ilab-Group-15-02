@@ -8,7 +8,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET = ROOT / ".cache/datasets/terminal-bench-2-1"
-MODEL = "openai/qwen2.5-coder:3b"
+DEFAULT_MODEL = "openai/qwen2.5-coder:3b"
+EXPECTED_TASK_COUNT = 21
+SUPPORTED_MODELS = {
+    "openai/qwen2.5-coder:3b": "3b",
+    "openai/qwen2.5-coder:7b": "7b",
+}
 BASE_URL = "http://host.docker.internal:11434/v1"
 
 
@@ -18,16 +23,19 @@ def selected_tasks():
         line = line.strip()
         if line and not line.startswith("#"):
             values.append(line)
-    if len(values) != 3:
-        raise RuntimeError("frozen subset must contain exactly three task IDs")
+    if len(values) != EXPECTED_TASK_COUNT:
+        raise RuntimeError(
+            "frozen subset must contain exactly %d task IDs, found %d"
+            % (EXPECTED_TASK_COUNT, len(values))
+        )
     return values
 
 
-def command(harness, task, jobs_dir):
+def command(harness, task, jobs_dir, model, model_tag):
     cmd = [
         "harbor", "run", "-p", str(DATASET / task), "-a", harness,
-        "-m", MODEL, "-n", "1", "-k", "1", "-o", str(jobs_dir),
-        "--job-name", "%s-%s" % (harness, task), "--yes",
+        "-m", model, "-n", "1", "-k", "1", "-o", str(jobs_dir),
+        "--job-name", "%s-%s-%s" % (harness, model_tag, task), "--yes",
         "--allow-agent-host", "host.docker.internal",
     ]
     if harness == "mini-swe-agent":
@@ -39,7 +47,7 @@ def command(harness, task, jobs_dir):
         for value in (
             "disable_tool_calls=true", "reasoning_effort=none", "temperature=0",
             "max_iterations=25", "drop_params=true", "disable_vision=true",
-            "num_retries=2",
+            "num_retries=2", "version=0.61.0", "python_version=3.12",
         ):
             cmd += ["--ak", value]
         cmd += [
@@ -53,6 +61,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--harness", choices=("oracle", "mini-swe-agent", "openhands", "custom"), required=True)
     parser.add_argument("--task", help="Run only one frozen task as a compatibility probe")
+    parser.add_argument("--model", choices=tuple(SUPPORTED_MODELS), default=DEFAULT_MODEL)
     args = parser.parse_args()
     if args.harness == "oracle":
         return subprocess.call([sys.executable, str(ROOT / "scripts/validate_oracle.py"), "--execute"], cwd=ROOT)
@@ -62,12 +71,14 @@ def main():
             raise SystemExit("probe task is not in frozen subset")
         tasks = [args.task]
     run_dir = Path(os.environ.get("RUN_DIR") or (ROOT / ".current_run").read_text().strip())
-    jobs_dir = run_dir / ("raw/%s-jobs" % args.harness)
+    model_tag = SUPPORTED_MODELS[args.model]
+    jobs_dir = run_dir / ("raw/%s-%s-jobs" % (args.harness, model_tag))
     jobs_dir.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
     env.update({
         "OPENAI_API_KEY": "ollama", "LLM_API_KEY": "ollama",
         "OPENAI_BASE_URL": BASE_URL, "OPENAI_API_BASE": BASE_URL, "LLM_BASE_URL": BASE_URL,
+        "PYTHONPATH": str(ROOT) + os.pathsep + env.get("PYTHONPATH", ""),
     })
     # Harbor's Mini-SWE adapter checks MSWEA_API_KEY first, but LiteLLM's
     # OpenAI-compatible path needs the canonical OPENAI_API_KEY. Do not set the
@@ -78,16 +89,16 @@ def main():
         if args.harness == "custom":
             custom_cmd = [
                 "harbor", "run", "-p", str(DATASET / task),
-                "-a", "scripts.custom_harness:QwenCustomHarness", "-m", MODEL,
+                "-a", "scripts.custom_harness:QwenCustomHarness", "-m", args.model,
                 "-n", "1", "-k", "1", "-o", str(jobs_dir),
-                "--job-name", "uts-qwen-harness-%s" % task, "--yes",
+                "--job-name", "uts-qwen-harness-v22-%s-%s" % (model_tag, task), "--yes",
                 "--ak", "api_base=http://127.0.0.1:11434/v1", "--ak", "api_key=ollama",
                 "--ak", "temperature=0", "--ak", "max_steps=25",
-                "--ak", "max_output_tokens=800", "--ak", "command_timeout_sec=120",
+                "--ak", "max_output_tokens=1200", "--ak", "command_timeout_sec=120",
             ]
             subprocess.run(custom_cmd, cwd=ROOT, env=env, check=False)
         else:
-            subprocess.run(command(args.harness, task, jobs_dir), cwd=ROOT, env=env, check=False)
+            subprocess.run(command(args.harness, task, jobs_dir, args.model, model_tag), cwd=ROOT, env=env, check=False)
     return 0
 
 

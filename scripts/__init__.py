@@ -1,2 +1,1 @@
-"""Reproducibility and custom Harbor agent modules."""
-
+"""Local Harbor agents and reproducibility utilities."""

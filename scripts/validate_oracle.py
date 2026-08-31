@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Select seed-42 candidates and retain the first three successful Oracles.
+"""Select seed-42 candidates and retain the first N successful Oracles.
 
 This script only lists task directories and reads Harbor result JSON. It never
 opens solution or verifier implementation files.
@@ -14,6 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET = ROOT / ".cache/datasets/terminal-bench-2-1"
+EXCLUSIONS = ROOT / "configs/oracle_exclusions.json"
 
 
 def candidate_order(dataset=DATASET, seed=42):
@@ -79,27 +80,40 @@ def execute_candidate(name, jobs_dir):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--execute", action="store_true")
-    parser.add_argument("--max-candidates", type=int, default=15)
+    parser.add_argument("--max-candidates", type=int, default=89)
+    parser.add_argument("--target-count", type=int, default=21)
     args = parser.parse_args()
     run_dir = Path(os.environ.get("RUN_DIR") or (ROOT / ".current_run").read_text().strip())
     jobs_dir = run_dir / "raw/oracle-jobs"
     jobs_dir.mkdir(parents=True, exist_ok=True)
     order = candidate_order()
+    exclusions = json.loads(EXCLUSIONS.read_text()) if EXCLUSIONS.exists() else {}
 
     if args.execute:
         for name in order[: args.max_candidates]:
+            if name in exclusions:
+                continue
             latest = latest_by_task(trial_results(jobs_dir))
             if name not in latest:
                 execute_candidate(name, jobs_dir)
             latest = latest_by_task(trial_results(jobs_dir))
             successes = [n for n in order if n in latest and successful(latest[n])]
-            if len(successes) >= 3:
+            if len(successes) >= args.target_count:
                 break
 
     latest = latest_by_task(trial_results(jobs_dir))
-    selected = [name for name in order if name in latest and successful(latest[name])][:3]
+    selected = [name for name in order if name in latest and successful(latest[name])][: args.target_count]
     attempts = []
     for rank, name in enumerate(order, 1):
+        if name in exclusions:
+            excluded = exclusions[name]
+            attempts.append({
+                "candidate_rank": rank, "task_id": name, "oracle_success": False,
+                "reward": None, "exception_type": excluded.get("classification"),
+                "result_path": excluded.get("result_path", ""),
+                "notes": excluded.get("reason", ""),
+            })
+            continue
         if name not in latest:
             continue
         result = latest[name]
@@ -113,12 +127,12 @@ def main():
         })
 
     manifest = {
-        "label": "Preliminary three-task engineering smoke subset",
+        "label": "Preliminary %d-task engineering evaluation subset" % args.target_count,
         "benchmark": "Terminal-Bench 2.1",
         "dataset": "terminal-bench/terminal-bench-2-1@latest",
         "dataset_task_count": 89,
         "selection_seed": 42,
-        "selection_algorithm": "sort IDs; random.Random(42).sample all IDs; retain first three successful Oracle candidates",
+        "selection_algorithm": "sort IDs; random.Random(42).sample all IDs; retain first %d successful Oracle candidates" % args.target_count,
         "selection_safety": "Task names and resource metadata only; solution and verifier implementation contents were not inspected.",
         "candidate_order": order,
         "oracle_attempts": attempts,
@@ -129,15 +143,14 @@ def main():
         "official_leaderboard_claim": False,
     }
     (run_dir / "run_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    if len(selected) == 3:
+    if len(selected) == args.target_count:
         (ROOT / "configs/progress_subset.txt").write_text("\n".join(selected) + "\n")
         print("Selected:", ", ".join(selected))
     else:
-        print("Oracle selection incomplete: %d/3 successful candidates" % len(selected))
+        print("Oracle selection incomplete: %d/%d successful candidates" % (len(selected), args.target_count))
         if args.execute:
             raise SystemExit(1)
 
 
 if __name__ == "__main__":
     main()
-
