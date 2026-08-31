@@ -5,8 +5,9 @@ from scripts.custom_harness import QwenCustomHarness
 
 class CustomHarnessTests(unittest.TestCase):
     def test_parses_plain_json_action(self):
-        action = QwenCustomHarness.parse_action('{"analysis":"inspect","command":"ls","done":false}')
+        action = QwenCustomHarness.parse_action('{"analysis":"inspect","phase":"inspect","command":"ls","done":false}')
         self.assertEqual(action["command"], "ls")
+        self.assertEqual(action["phase"], "inspect")
         self.assertFalse(action["done"])
 
     def test_parses_fenced_json_action(self):
@@ -23,3 +24,16 @@ class CustomHarnessTests(unittest.TestCase):
         self.assertTrue(clipped.startswith("a" * 100))
         self.assertTrue(clipped.endswith("z" * 100))
 
+    def test_safety_guard_allows_normal_build_commands(self):
+        allowed, reason = QwenCustomHarness.command_is_safe("python -m py_compile /app/solution.py")
+        self.assertTrue(allowed)
+        self.assertEqual(reason, "")
+
+    def test_safety_guard_rejects_broad_deletion(self):
+        allowed, reason = QwenCustomHarness.command_is_safe("rm -rf / --no-preserve-root")
+        self.assertFalse(allowed)
+        self.assertIn("deletion", reason)
+
+    def test_extracts_explicit_requested_artifact(self):
+        paths = QwenCustomHarness.requested_artifacts("Create /app/pipeline_parallel.py and implement it.")
+        self.assertEqual(paths, ["/app/pipeline_parallel.py"])

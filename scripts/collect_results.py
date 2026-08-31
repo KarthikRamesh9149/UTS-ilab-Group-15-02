@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Discover Harbor trial results and create the six-row smoke-test CSV."""
+"""Discover Harbor trial results and create the frozen 126-row comparison CSV."""
 import csv
 import json
 import os
@@ -20,6 +20,12 @@ INFRA_MARKERS = (
     "image pull", "no such host", "environment setup", "container startup",
     "network connection", "could not resolve", "unknown flag: --project-name",
 )
+MODELS = (
+    ("qwen2.5-coder:3b", "f72c60cabf62"),
+    ("qwen2.5-coder:7b", "dae161e27b0e"),
+)
+HARNESSES = ("mini-swe-agent", "openhands", "uts-qwen-harness")
+CUSTOM_VERSION = "2.2.0"
 
 
 def load_json(path):
@@ -79,7 +85,7 @@ def trajectory_metrics(path):
     return calls or None, len(steps) or None
 
 
-def parse_trial(path, model_digest="f72c60cabf62", git_commit=""):
+def parse_trial(path, model_digest="", git_commit=""):
     path = Path(path)
     data = load_json(path)
     harness = data.get("agent_info", {}).get("name", "")
@@ -101,7 +107,7 @@ def parse_trial(path, model_digest="f72c60cabf62", git_commit=""):
         "run_id": data.get("id", ""), "timestamp": data.get("started_at", ""),
         "task_id": task, "benchmark": "Terminal-Bench", "benchmark_version": "2.1",
         "harness": harness, "harness_version": data.get("agent_info", {}).get("version", ""),
-        "model_name": model_info.get("name") or "qwen2.5-coder:3b",
+        "model_name": model_info.get("name") or "",
         "model_digest": model_digest, "model_runtime": "Ollama 0.33.2",
         "model_base_url_redacted": "http://host.docker.internal:11434/v1",
         "context_length": 32768, "temperature": 0,
@@ -128,11 +134,16 @@ def discover_latest(run_dir):
         except (OSError, json.JSONDecodeError):
             continue
         harness = data.get("agent_info", {}).get("name")
-        if harness not in ("mini-swe-agent", "openhands", "uts-qwen-harness") or "task_name" not in data:
+        if harness not in HARNESSES or "task_name" not in data:
+            continue
+        if harness == "uts-qwen-harness" and (data.get("agent_info") or {}).get("version") != CUSTOM_VERSION:
+            continue
+        model = ((data.get("agent_info") or {}).get("model_info") or {}).get("name")
+        if model not in {name for name, _ in MODELS}:
             continue
         task = data["task_name"].rsplit("/", 1)[-1]
         stamp = data.get("finished_at") or data.get("started_at") or ""
-        key = (harness, task)
+        key = (model, harness, task)
         if key not in latest or stamp > latest[key][0]:
             latest[key] = (stamp, path)
     return {key: value[1] for key, value in latest.items()}
@@ -146,23 +157,24 @@ def collect(run_dir):
     except OSError:
         commit = ""
     rows = []
-    for harness in ("mini-swe-agent", "openhands", "uts-qwen-harness"):
-        for task in subset:
-            path = latest.get((harness, task))
-            if path:
-                rows.append(parse_trial(path, git_commit=commit))
-            else:
-                row = {key: "" for key in COLUMNS}
-                row.update({
-                    "task_id": task, "benchmark": "Terminal-Bench", "benchmark_version": "2.1",
-                    "harness": harness, "model_name": "qwen2.5-coder:3b", "model_digest": "f72c60cabf62",
-                    "model_runtime": "Ollama 0.33.2", "model_base_url_redacted": "http://host.docker.internal:11434/v1",
-                    "context_length": 32768, "temperature": 0, "valid_trial": False,
-                    "timeout": False, "infrastructure_error": True, "error_type": "MissingTrial",
-                    "error_message": "No Harbor trial result was discovered", "git_commit": commit,
-                    "notes": "Intended trial row retained",
-                })
-                rows.append(row)
+    for model, digest in MODELS:
+        for harness in HARNESSES:
+            for task in subset:
+                path = latest.get((model, harness, task))
+                if path:
+                    rows.append(parse_trial(path, model_digest=digest, git_commit=commit))
+                else:
+                    row = {key: "" for key in COLUMNS}
+                    row.update({
+                        "task_id": task, "benchmark": "Terminal-Bench", "benchmark_version": "2.1",
+                        "harness": harness, "model_name": model, "model_digest": digest,
+                        "model_runtime": "Ollama 0.33.2", "model_base_url_redacted": "[local OpenAI-compatible endpoint]",
+                        "context_length": 32768, "temperature": 0, "valid_trial": False,
+                        "timeout": False, "infrastructure_error": True, "error_type": "MissingTrial",
+                        "error_message": "No Harbor trial result was discovered", "git_commit": commit,
+                        "notes": "Intended trial row retained",
+                    })
+                    rows.append(row)
     return rows
 
 
