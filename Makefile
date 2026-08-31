@@ -3,6 +3,7 @@ MODEL := qwen2.5-coder:3b
 OLLAMA := .tools/ollama/Ollama.app/Contents/Resources/ollama
 MODEL_STORE := $(CURDIR)/.cache/ollama/models
 HARBOR := $(CURDIR)/.tools/bin/harbor
+PYTHON := $(CURDIR)/.tools/python/cpython-3.12.13-macos-aarch64-none/bin/python3.12
 
 .PHONY: preflight model-pull model-start model-test oracle mini-swe openhands collect report test stop all
 
@@ -20,25 +21,24 @@ model-test:
 	./scripts/test_model_endpoint.sh
 
 oracle:
-	./scripts/run_baselines.py --harness oracle
+	$(PYTHON) ./scripts/run_baselines.py --harness oracle
 
 mini-swe:
-	./scripts/run_baselines.py --harness mini-swe-agent
+	$(PYTHON) ./scripts/run_baselines.py --harness mini-swe-agent
 
 openhands:
-	./scripts/run_baselines.py --harness openhands
+	$(PYTHON) ./scripts/run_baselines.py --harness openhands
 
 collect:
-	./scripts/collect_results.py
+	$(PYTHON) ./scripts/collect_results.py
 
 report:
-	./scripts/generate_progress_report.py
+	$(PYTHON) ./scripts/generate_progress_report.py
 
 test:
-	python3 -m unittest discover -s tests -v
+	$(PYTHON) -m unittest discover -s tests -v
 
 stop:
 	./scripts/stop_model.sh
 
 all: preflight model-pull model-test oracle mini-swe openhands collect report test stop
-
