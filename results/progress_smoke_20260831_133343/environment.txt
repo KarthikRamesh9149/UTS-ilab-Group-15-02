@@ -1,0 +1,87 @@
+Terminal-Bench 2.1 preliminary smoke environment
+Captured: 2026-08-31T13:33:43+10:00
+Timezone: AEST
+
+Operating system:
+ProductName:		macOS
+ProductVersion:		26.6.2
+BuildVersion:		25G83
+
+Kernel and architecture:
+Darwin Karthiks-MacBook-Air.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:16:20 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T8142 arm64
+
+Hardware:
+Hardware:
+
+    Hardware Overview:
+
+      Model Name: MacBook Air
+      Model Identifier: Mac17,3
+      Model Number: MDH74HN/A
+      Chip: Apple M5
+      Total Number of Cores: 10 (4 Super and 6 Efficiency)
+      Memory: 16 GB
+      System Firmware Version: 18000.161.10
+      OS Loader Version: 18000.161.10
+      Activation Lock Status: Enabled
+
+
+Disk:
+Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s5   460Gi   282Gi   153Gi    65%    3.2M  1.6G    0%   /System/Volumes/Data
+
+Apple Silicon / Metal:
+Graphics/Displays:
+
+    Apple M5:
+
+      Chipset Model: Apple M5
+      Type: GPU
+      Bus: Built-In
+      Total Number of Cores: 8
+      Vendor: Apple (0x106b)
+      Metal Support: Metal 4
+      Displays:
+        Color LCD:
+          Display Type: Built-in Liquid Retina Display
+          Resolution: 2560 x 1664 Retina
+          Main Display: Yes
+          Mirror: Off
+          Online: Yes
+          Automatically Adjust Brightness: No
+          Connection Type: Internal
+
+
+NVIDIA GPU:
+Not present
+
+Git:
+git version 2.50.1 (Apple Git-155)
+
+Python (system):
+Python 3.9.6
+
+uv:
+uv 0.12.3 (507230998 2026-08-07 aarch64-apple-darwin)
+
+Docker client:
+Docker version 29.7.2, build a7dcaa6
+
+Docker daemon:
+Server 29.5.2; OS Ubuntu 24.04.4 LTS; Arch aarch64; CPUs 6; Memory 8306728960
+
+Colima:
+colima version v0.10.3
+git commit: 00f6c297e92a82c04a4ab507db0a61435650d7e8
+
+runtime: docker
+arch: aarch64
+client: v29.7.2
+server: v29.5.2
+
+Ollama:
+Warning: could not connect to a running Ollama instance
+Warning: client version is 0.33.2
+
+Harbor:
+0.22.0

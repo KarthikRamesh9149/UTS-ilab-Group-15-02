@@ -1,0 +1,2 @@
+# Populated only after deterministic seed-42 sampling and successful Oracle validation.
+

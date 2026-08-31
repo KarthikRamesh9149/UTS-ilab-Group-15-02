@@ -1,0 +1,12 @@
+# Resolved against Harbor 0.22.0 before execution. Secrets are dummy local values.
+agent: openhands
+model: openai/qwen2.5-coder:3b
+model_base_url: http://host.docker.internal:11434/v1
+api_key: ollama
+temperature: 0
+context_length: 32768
+n_concurrent: 1
+k: 1
+max_iterations: 25
+native_tool_calling: false
+
