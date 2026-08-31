@@ -43,3 +43,16 @@ make test
 ## Results
 
 The completed run artifacts live under `results/progress_smoke_20260831_133343/`. Read `summary.md` for the six-condition comparison, `results.csv` for all intended trial rows, `limitations.md` before interpreting the numbers, and `terminal_evidence/` for per-condition output captures.
+
+Model | Harness | Valid / Intended | Passed | Pass rate | Mean runtime
+--- | --- | ---: | ---: | ---: | ---:
+Qwen 3B | Mini-SWE-Agent | 21 / 21 | 0 | 0.0% | 353.5 s
+Qwen 3B | OpenHands | 21 / 21 | 0 | 0.0% | 442.9 s
+Qwen 3B | UTS custom 2.2.0 | 20 / 21 | 0 | 0.0% | 233.2 s
+Qwen 7B | Mini-SWE-Agent | 21 / 21 | 0 | 0.0% | 289.7 s
+Qwen 7B | OpenHands | 21 / 21 | 0 | 0.0% | 515.0 s
+Qwen 7B | UTS custom 2.2.0 | 21 / 21 | 0 | 0.0% | 400.4 s
+
+All six conditions scored zero passes, so this run provides no evidence that any harness or model size is more accurate on the subset. The custom harness had the lowest mean runtime with 3B, but one of its 3B trials exceeded the frozen 120-second command limit before verification; that row remains an invalid, non-infrastructure outcome. Runtime alone is not a quality win.
+
+The custom harness is intentionally benchmark-specific rather than a general agent framework. It uses a strict JSON action contract, phase-aware prompting, rolling context, bounded execution, repeat/destructive-command guards, exact artifact checks, and an edit-plus-test completion gate. Its behavior is covered by the repository test suite and frozen at version 2.2.0 for all scored custom rows.

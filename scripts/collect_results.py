@@ -100,7 +100,8 @@ def parse_trial(path, model_digest="", git_commit=""):
     prompt = agent_result.get("n_input_tokens")
     completion = agent_result.get("n_output_tokens")
     total = prompt + completion if prompt is not None and completion is not None else None
-    timeout = "timeout" in ((exc.get("exception_type") or "") + " " + (exc.get("exception_message") or "")).lower()
+    exception_text = ((exc.get("exception_type") or "") + " " + (exc.get("exception_message") or "")).lower()
+    timeout = "timeout" in exception_text or "timed out" in exception_text
     task = data.get("task_name", "").rsplit("/", 1)[-1]
     valid = bool(data.get("verifier_result")) and not infra
     return {
@@ -129,6 +130,8 @@ def parse_trial(path, model_digest="", git_commit=""):
 def discover_latest(run_dir):
     latest = {}
     for path in (run_dir / "raw").rglob("result.json"):
+        if "infrastructure-failures" in path.parts:
+            continue
         try:
             data = load_json(path)
         except (OSError, json.JSONDecodeError):

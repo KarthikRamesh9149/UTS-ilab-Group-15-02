@@ -41,7 +41,14 @@ class ResultParserTests(unittest.TestCase):
         data["verifier_result"] = None; data["agent_execution"] = None
         self.assertTrue(is_infrastructure_error(data))
 
+    def test_timed_out_message_is_recorded_as_timeout(self):
+        data = self.fixture(exception={"exception_type": "RuntimeError", "exception_message": "Command timed out after 120 seconds"})
+        data["verifier_result"] = None
+        with tempfile.TemporaryDirectory() as tmp:
+            row = parse_trial(self.write(data, Path(tmp)))
+            self.assertTrue(row["timeout"])
+            self.assertFalse(row["infrastructure_error"])
+
 
 if __name__ == "__main__":
     unittest.main()
-

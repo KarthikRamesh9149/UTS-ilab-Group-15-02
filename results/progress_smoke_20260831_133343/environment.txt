@@ -83,5 +83,7 @@ Ollama:
 Warning: could not connect to a running Ollama instance
 Warning: client version is 0.33.2
 
+The warning above is from the run-start snapshot taken before the local server was started. Final endpoint verification confirmed Ollama 0.33.2 with `qwen2.5-coder:3b` (Q4_K_M, digest `f72c60cabf62`) and `qwen2.5-coder:7b` (Q4_K_M, digest `dae161e27b0e`) reachable from both the host and Harbor containers.
+
 Harbor:
 0.22.0
