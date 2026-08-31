@@ -1,0 +1,17 @@
+.DS_Store
+.tools/
+.cache/
+.runtime/
+.current_run
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+
+# Harbor outputs can be large; keep only curated, explicitly forced evidence.
+jobs/
+results/progress_smoke_*/raw/
+results/progress_smoke_*/trials/
+results/progress_smoke_*/commands.log
+
