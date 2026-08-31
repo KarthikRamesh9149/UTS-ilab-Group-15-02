@@ -51,7 +51,7 @@ def command(harness, task, jobs_dir):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--harness", choices=("oracle", "mini-swe-agent", "openhands"), required=True)
+    parser.add_argument("--harness", choices=("oracle", "mini-swe-agent", "openhands", "custom"), required=True)
     parser.add_argument("--task", help="Run only one frozen task as a compatibility probe")
     args = parser.parse_args()
     if args.harness == "oracle":
@@ -66,12 +66,28 @@ def main():
     jobs_dir.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
     env.update({
-        "OPENAI_API_KEY": "ollama", "MSWEA_API_KEY": "ollama", "LLM_API_KEY": "ollama",
+        "OPENAI_API_KEY": "ollama", "LLM_API_KEY": "ollama",
         "OPENAI_BASE_URL": BASE_URL, "OPENAI_API_BASE": BASE_URL, "LLM_BASE_URL": BASE_URL,
     })
+    # Harbor's Mini-SWE adapter checks MSWEA_API_KEY first, but LiteLLM's
+    # OpenAI-compatible path needs the canonical OPENAI_API_KEY. Do not set the
+    # former so Harbor resolves and passes through the latter.
+    env.pop("MSWEA_API_KEY", None)
     for task in tasks:
         print("Running %s on %s" % (args.harness, task), flush=True)
-        subprocess.run(command(args.harness, task, jobs_dir), cwd=ROOT, env=env, check=False)
+        if args.harness == "custom":
+            custom_cmd = [
+                "harbor", "run", "-p", str(DATASET / task),
+                "-a", "scripts.custom_harness:QwenCustomHarness", "-m", MODEL,
+                "-n", "1", "-k", "1", "-o", str(jobs_dir),
+                "--job-name", "uts-qwen-harness-%s" % task, "--yes",
+                "--ak", "api_base=http://127.0.0.1:11434/v1", "--ak", "api_key=ollama",
+                "--ak", "temperature=0", "--ak", "max_steps=25",
+                "--ak", "max_output_tokens=800", "--ak", "command_timeout_sec=120",
+            ]
+            subprocess.run(custom_cmd, cwd=ROOT, env=env, check=False)
+        else:
+            subprocess.run(command(args.harness, task, jobs_dir), cwd=ROOT, env=env, check=False)
     return 0
 
 

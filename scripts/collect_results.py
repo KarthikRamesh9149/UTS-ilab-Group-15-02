@@ -128,7 +128,7 @@ def discover_latest(run_dir):
         except (OSError, json.JSONDecodeError):
             continue
         harness = data.get("agent_info", {}).get("name")
-        if harness not in ("mini-swe-agent", "openhands") or "task_name" not in data:
+        if harness not in ("mini-swe-agent", "openhands", "uts-qwen-harness") or "task_name" not in data:
             continue
         task = data["task_name"].rsplit("/", 1)[-1]
         stamp = data.get("finished_at") or data.get("started_at") or ""
@@ -146,7 +146,7 @@ def collect(run_dir):
     except OSError:
         commit = ""
     rows = []
-    for harness in ("mini-swe-agent", "openhands"):
+    for harness in ("mini-swe-agent", "openhands", "uts-qwen-harness"):
         for task in subset:
             path = latest.get((harness, task))
             if path:
@@ -177,4 +177,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
