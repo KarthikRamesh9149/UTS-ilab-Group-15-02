@@ -1,0 +1,28 @@
+$ uts-bench results --model qwen2.5-coder:3b --harness mini-swe-agent
+Terminal-Bench 2.1 | fixed subset | k=1 | temperature=0 | concurrency=1
+
+#   TASK                                      REWARD  VALID  INFRA  DURATION
+01  torch-pipeline-parallelism                  0.0  True   False      534s
+02  constraints-scheduling                      0.0  True   False      173s
+03  headless-terminal                           0.0  True   False      223s
+04  gcode-to-text                               0.0  True   False      239s
+05  fix-code-vulnerability                      0.0  True   False      171s
+06  custom-memory-heap-crash                    0.0  True   False      262s
+07  configure-git-webserver                     0.0  True   False      207s
+08  code-from-image                             0.0  True   False      212s
+09  sam-cell-seg                                0.0  True   False      252s
+10  openssl-selfsigned-cert                     0.0  True   False      188s
+11  build-pmars                                 0.0  True   False      165s
+12  sqlite-db-truncate                          0.0  True   False      229s
+13  financial-document-processor                0.0  True   False      238s
+14  fix-git                                     0.0  True   False      175s
+15  pypi-server                                 0.0  True   False      212s
+16  sparql-university                           0.0  True   False      252s
+17  feal-linear-cryptanalysis                   0.0  True   False     2028s
+18  nginx-request-logging                       0.0  True   False      212s
+19  path-tracing                                0.0  True   False      752s
+20  reshard-c4-data                             0.0  True   False      419s
+21  write-compressor                            0.0  True   False      281s
+
+SUMMARY intended=21 valid=21 passed=0 failed=21 infra=0 pass_rate=0.0%
+SOURCE  results.csv (generated; no rows hand-edited)

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Run one Harbor trial per frozen task for the requested integrated harness."""
 import argparse
+import json
 import os
 import subprocess
 import sys
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +17,7 @@ SUPPORTED_MODELS = {
     "openai/qwen2.5-coder:7b": "7b",
 }
 BASE_URL = "http://host.docker.internal:11434/v1"
+OLLAMA_API = "http://127.0.0.1:11434/api/generate"
 
 
 def selected_tasks():
@@ -57,6 +60,28 @@ def command(harness, task, jobs_dir, model, model_tag):
     return cmd
 
 
+def unload_inactive_models(selected_model):
+    """Keep only the selected Qwen size resident on a 16 GB local machine."""
+    selected_name = selected_model.removeprefix("openai/")
+    for candidate in SUPPORTED_MODELS:
+        candidate_name = candidate.removeprefix("openai/")
+        if candidate_name == selected_name:
+            continue
+        payload = json.dumps({"model": candidate_name, "keep_alive": 0}).encode()
+        request = urllib.request.Request(
+            OLLAMA_API,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                response.read()
+            print("Unloaded inactive local model %s" % candidate_name, flush=True)
+        except Exception as exc:
+            print("Warning: could not unload inactive model %s: %s" % (candidate_name, exc), flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--harness", choices=("oracle", "mini-swe-agent", "openhands", "custom"), required=True)
@@ -65,6 +90,7 @@ def main():
     args = parser.parse_args()
     if args.harness == "oracle":
         return subprocess.call([sys.executable, str(ROOT / "scripts/validate_oracle.py"), "--execute"], cwd=ROOT)
+    unload_inactive_models(args.model)
     tasks = selected_tasks()
     if args.task:
         if args.task not in tasks:

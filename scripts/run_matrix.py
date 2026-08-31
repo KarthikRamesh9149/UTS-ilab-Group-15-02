@@ -47,6 +47,8 @@ def trial_key(data):
 def completed_trials(run_dir):
     completed = {}
     for path in (run_dir / "raw").rglob("result.json"):
+        if "infrastructure-failures" in path.parts:
+            continue
         try:
             data = json.loads(path.read_text())
         except (OSError, json.JSONDecodeError):

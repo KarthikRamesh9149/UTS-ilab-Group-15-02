@@ -1,0 +1,28 @@
+$ uts-bench results --model qwen2.5-coder:3b --harness openhands
+Terminal-Bench 2.1 | fixed subset | k=1 | temperature=0 | concurrency=1
+
+#   TASK                                      REWARD  VALID  INFRA  DURATION
+01  torch-pipeline-parallelism                  0.0  True   False      821s
+02  constraints-scheduling                      0.0  True   False      399s
+03  headless-terminal                           0.0  True   False      330s
+04  gcode-to-text                               0.0  True   False      373s
+05  fix-code-vulnerability                      0.0  True   False      336s
+06  custom-memory-heap-crash                    0.0  True   False      375s
+07  configure-git-webserver                     0.0  True   False      365s
+08  code-from-image                             0.0  True   False      308s
+09  sam-cell-seg                                0.0  True   False      372s
+10  openssl-selfsigned-cert                     0.0  True   False      315s
+11  build-pmars                                 0.0  True   False      334s
+12  sqlite-db-truncate                          0.0  True   False      315s
+13  financial-document-processor                0.0  True   False      426s
+14  fix-git                                     0.0  True   False      308s
+15  pypi-server                                 0.0  True   False      345s
+16  sparql-university                           0.0  True   False     1304s
+17  feal-linear-cryptanalysis                   0.0  True   False      336s
+18  nginx-request-logging                       0.0  True   False      372s
+19  path-tracing                                0.0  True   False      561s
+20  reshard-c4-data                             0.0  True   False      599s
+21  write-compressor                            0.0  True   False      407s
+
+SUMMARY intended=21 valid=21 passed=0 failed=21 infra=0 pass_rate=0.0%
+SOURCE  results.csv (generated; no rows hand-edited)

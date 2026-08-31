@@ -1,0 +1,68 @@
+{
+  "qwen2.5-coder:3b | mini-swe-agent": {
+    "model": "qwen2.5-coder:3b",
+    "harness": "mini-swe-agent",
+    "intended_trials": 21,
+    "valid_trials": 21,
+    "passed": 0,
+    "failed": 21,
+    "infrastructure_errors": 0,
+    "preliminary_pass_rate": 0.0,
+    "mean_runtime_seconds": 353.48638095238096
+  },
+  "qwen2.5-coder:3b | openhands": {
+    "model": "qwen2.5-coder:3b",
+    "harness": "openhands",
+    "intended_trials": 21,
+    "valid_trials": 21,
+    "passed": 0,
+    "failed": 21,
+    "infrastructure_errors": 0,
+    "preliminary_pass_rate": 0.0,
+    "mean_runtime_seconds": 442.89014285714285
+  },
+  "qwen2.5-coder:3b | uts-qwen-harness": {
+    "model": "qwen2.5-coder:3b",
+    "harness": "uts-qwen-harness",
+    "intended_trials": 21,
+    "valid_trials": 20,
+    "passed": 0,
+    "failed": 20,
+    "infrastructure_errors": 0,
+    "preliminary_pass_rate": 0.0,
+    "mean_runtime_seconds": 233.16745
+  },
+  "qwen2.5-coder:7b | mini-swe-agent": {
+    "model": "qwen2.5-coder:7b",
+    "harness": "mini-swe-agent",
+    "intended_trials": 21,
+    "valid_trials": 21,
+    "passed": 0,
+    "failed": 21,
+    "infrastructure_errors": 0,
+    "preliminary_pass_rate": 0.0,
+    "mean_runtime_seconds": 289.7179523809524
+  },
+  "qwen2.5-coder:7b | openhands": {
+    "model": "qwen2.5-coder:7b",
+    "harness": "openhands",
+    "intended_trials": 21,
+    "valid_trials": 21,
+    "passed": 0,
+    "failed": 21,
+    "infrastructure_errors": 0,
+    "preliminary_pass_rate": 0.0,
+    "mean_runtime_seconds": 515.0455714285714
+  },
+  "qwen2.5-coder:7b | uts-qwen-harness": {
+    "model": "qwen2.5-coder:7b",
+    "harness": "uts-qwen-harness",
+    "intended_trials": 21,
+    "valid_trials": 21,
+    "passed": 0,
+    "failed": 21,
+    "infrastructure_errors": 0,
+    "preliminary_pass_rate": 0.0,
+    "mean_runtime_seconds": 400.4116666666667
+  }
+}

@@ -50,7 +50,11 @@ def main():
         lines.append("%s | %s | %d / %d | %d | %d | %d | %s | %s s" % (data["model"], data["harness"], data["valid_trials"], data["intended_trials"], data["passed"], data["failed"], data["infrastructure_errors"], rate, fmt(data["mean_runtime_seconds"])))
     table = "\n".join(lines) + "\n"
     (run_dir / "results_table.md").write_text(table)
-    (run_dir / "summary.md").write_text(table + "\nPass rates are fixed-subset values from one trial on each of 21 tasks per condition.\n")
+    (run_dir / "summary.md").write_text(
+        table
+        + "\nPass rates are fixed-subset values from one intended trial on each of 21 tasks per condition. "
+        + "One custom-harness 3B trial ended on its 120-second command limit before verification and is retained as an invalid, non-infrastructure outcome.\n"
+    )
     limitations = """# Limitations
 
 - A fixed 21-task subset of Terminal-Bench 2.1 was attempted; the full 89-task suite was intentionally out of scope.
@@ -60,17 +64,18 @@ def main():
 - Ollama's Q4_K_M quantisation may differ from the full Hugging Face checkpoint.
 - Harness prompting and tool interfaces differ; OpenHands native tool calling was disabled for local endpoint compatibility.
 - Oracle selection outcomes are separate from scored model trials and do not enter pass-rate calculations.
+- One custom-harness 3B trial ended when an agent-selected command exceeded the frozen 120-second command limit. It produced no verifier result and is retained as an invalid, non-infrastructure outcome without retry.
 """
     (run_dir / "limitations.md").write_text(limitations)
     total_valid = sum(v["valid_trials"] for v in summary.values())
     total_passed = sum(v["passed"] for v in summary.values())
     issues = sorted({r["error_type"] for r in rows if r["error_type"]})
-    issue_text = ", ".join(issues) if issues else "no recorded compatibility or infrastructure exceptions"
+    issue_text = ", ".join(issues) if issues else "none"
     progress = f"""## Fixed-subset implementation and evaluation
 
 Harbor 0.22.0 and Terminal-Bench 2.1 were configured on an Apple M5 MacBook Air. Qwen2.5-Coder-3B-Instruct and Qwen2.5-Coder-7B-Instruct were hosted locally through Ollama 0.33.2 as Q4_K_M packages (digests `f72c60cabf62` and `dae161e27b0e`) with a 32,768-token context. Host and container checks confirmed access to the same OpenAI-compatible local model service.
 
-Mini-SWE-Agent, OpenHands, and custom UTS Qwen harness 2.2.0 were each assigned the same frozen 21-task subset for both model sizes, temperature zero, `k=1`, and concurrency one. Across 126 intended trial rows, {total_valid} produced valid verifier results and {total_passed} passed. Recorded compatibility or infrastructure statuses were: {issue_text}. Missing token fields remain unavailable rather than being reported as zero; no paid model endpoint was used.
+Mini-SWE-Agent, OpenHands, and custom UTS Qwen harness 2.2.0 were each assigned the same frozen 21-task subset for both model sizes, temperature zero, `k=1`, and concurrency one. Across 126 intended trial rows, {total_valid} produced valid verifier results and {total_passed} passed. Recorded agent exception types were: {issue_text}. One custom-harness 3B command timeout produced no verifier result and is retained as an invalid, non-infrastructure outcome. Missing token fields remain unavailable rather than being reported as zero; no paid model endpoint was used.
 
 This is a controlled local fixed-subset comparison, not a full Terminal-Bench 2.1 accuracy estimate. The full 89-task run was intentionally excluded from scope.
 """
