@@ -132,7 +132,7 @@ Terminus-2 on this task **does not count** — OpenRouter ran out of credit mid-
 **Do not keep doing**
 
 - Paid OpenRouter until someone adds credit on purpose.
-- Mixing these rows with Karthik’s 21-task 3B/7B matrix. Different models, different harness.
+- Mixing these rows with other models or harnesses. This trial is gpt-4o-mini / 1.5B vs Terminus-2.
 
 **Keep**
 
