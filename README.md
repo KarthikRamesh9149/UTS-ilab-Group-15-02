@@ -44,6 +44,10 @@ make test
 
 The completed run artifacts live under `results/progress_smoke_20260831_133343/`. Read `summary.md` for the six-condition comparison, `results.csv` for all intended trial rows, `limitations.md` before interpreting the numbers, and `terminal_evidence/` for per-condition output captures.
 
+## Contributor smoke notes
+
+- Remith's Windows Harbor/Ollama smoke-test notes are recorded in `docs/remith-windows-harbor-smoke-notes.md`. These notes cover local Docker Desktop validation, Ollama connectivity from Docker containers, and one-task smoke runs for Oracle, Mini-SWE-Agent, OpenHands, and the UTS custom harness.
+
 Model | Harness | Valid / Intended | Passed | Pass rate | Mean runtime
 --- | --- | ---: | ---: | ---: | ---:
 Qwen 3B | Mini-SWE-Agent | 21 / 21 | 0 | 0.0% | 353.5 s
