@@ -39,12 +39,15 @@ The initial task filter `headless-terminal` did not match the registered Termina
 | `remith-mini-swe-qwen7b-smoke-build-pmars` | `mini-swe-agent` | `openai/qwen2.5-coder:7b` | 0.0 | 0 | 1m 27s | Infrastructure worked, but the task was not solved. |
 | `remith-mini-swe-qwen7b-smoke-build-pmars-config` | `mini-swe-agent` | `openai/qwen2.5-coder:7b` | 0.0 | 0 | 1m 17s | Infrastructure worked with the repo config file, but the task was not solved. |
 | `remith-openhands-qwen7b-smoke-build-pmars` | `openhands` | `openai/qwen2.5-coder:7b` | 0.0 | 0 | 2m 50s | Infrastructure worked, but the task was not solved within the configured iteration limit. |
+| `remith-custom-qwen7b-smoke-build-pmars` | `uts-qwen-harness` | `openai/qwen2.5-coder:7b` | 0.0 | 0 | 5m 56s | Infrastructure worked, but the custom harness did not solve the task within its step limit. |
 
 ## Observations
 
 - The Oracle run passed with reward `1.0`, which confirms the benchmark task itself is runnable locally.
 - The Mini-SWE-Agent runs completed without Harbor exceptions, but the agent transcript ended with `RepeatedFormatError`. Qwen did not emit the required Mini-SWE-Agent bash tool-call format.
 - The OpenHands run completed without Harbor exceptions, but OpenHands reached the configured `max_iterations=25` limit. Harbor also reported `No final_metrics found in trajectory`.
+- The custom harness run completed without Harbor exceptions and used the expected `uts-qwen-harness` version `2.2.0`. It made 25 model calls, used 43,590 input tokens and 2,318 output tokens, then terminated at `step_limit`.
+- In the custom harness run, Qwen attempted package/source commands but did not produce a valid no-X11 source build. The verifier still reported that `/usr/local/bin/pmars` was missing or unusable and that the expected source layout was not present.
 - The verifier failures for the model harness runs were expected consequences of the task not being solved. For `build-pmars`, the verifier reported that `/usr/local/bin/pmars` was not installed and that no `/app/pmars-*` source directory existed.
 - The model remained constant for the Mini-SWE-Agent and OpenHands smoke tests. The harness was the changed variable.
 
