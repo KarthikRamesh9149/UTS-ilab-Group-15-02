@@ -1,6 +1,6 @@
-# Walkthrough: what we built, the code, how we ran it
+# Run log and agent internals
 
-Read this if the score table still feels abstract.
+How the agent is invoked, which commands were used, and what the traces show.
 
 ## Picture of one run
 
@@ -199,7 +199,7 @@ Harbor then ran 6 hidden tests:
 | `check_cert.py` runs with no extra packages | fail | fail |
 | **Passed** | **4 / 6** | **4 / 6** |
 
-Same two fails. That is “we tied the established harness on this task.”
+Same two fails.
 
 ---
 
@@ -219,14 +219,4 @@ The code running now is **v0.2 again** (version string 0.2.1 only adds local Oll
 
 The tiny model put a whole script in **one** fence (password-protected key). That failed. Then it replied `DONE`. Tests: **1 / 6** (folder only).
 
-So: **same Python harness, weaker model → fewer tests pass.** The 4/6 was gpt-4o-mini, not a fluke.
-
----
-
-## What to keep saying in the report
-
-1. We wrote a small Harbor agent in `harness/v0_bash_agent.py`.
-2. We run it with `harbor run -a harness.v0_bash_agent:BashReActAgent ...`
-3. One-command-per-turn + sticky `cd` is the change that mattered.
-4. On openssl, that matched Terminus-2 at **4/6 tests**.
-5. A vague DONE-retry and a 1.5B local model both did worse.
+Same agent, smaller model, fewer tests. The 4/6 result used gpt-4o-mini.

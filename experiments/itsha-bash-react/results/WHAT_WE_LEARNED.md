@@ -1,6 +1,6 @@
-# What we tweaked, what worked, what did not
+# Iteration notes
 
-Terminal-Bench only prints **1 or 0** for a whole task. Every agent run here got 0 because two (or more) hidden tests still failed. That 0 is not the result. **The result is which hidden tests passed after each harness change.**
+Official Terminal-Bench reward is 1 or 0 for the whole task. Agent runs here scored 0 because at least one hidden test failed. The tables below use hidden tests passed after each harness change.
 
 The openssl task has 6 tests. That is the main comparison. Same model (`gpt-4o-mini`) unless it says otherwise.
 
@@ -30,7 +30,7 @@ The custom harness is a small loop: model writes a bash command → we run it in
 
 **Tests:** not a fair attempt — the loop was broken.
 
-**Verdict: did not work.** A harness that drops all but the first command cannot be compared to Terminus-2.
+v0.1 is not a valid comparison: only the first command ran.
 
 ---
 
@@ -60,7 +60,7 @@ Both failed the same two things: the text file format was wrong, and the Python 
 
 **Tokens:** custom ~7.6k in / 0.6k out. Terminus-2 ~10k in / 1.4k out.
 
-**Verdict: this tweak worked.** The loop now actually drives the model. On this task it **matched the established harness test-for-test**. Keep v0.2.
+The loop executed a full command sequence. On this task it matched Terminus-2 test-for-test. Current agent is v0.2.
 
 ---
 
@@ -77,7 +77,7 @@ Both failed the same two things: the text file format was wrong, and the Python 
 
 It spent the extra turns fighting `sed` date formats. It never rewrote `check_cert.py` to drop `import OpenSSL`.
 
-**Verdict: did not work.** More retries without a specific hint wasted tokens and did not pass another test. Drop v0.3. The running code is back to v0.2.
+Extra retries without a specific hint did not pass another test. v0.3 was reverted. The running code is v0.2.
 
 ---
 
@@ -99,7 +99,7 @@ It spent the extra turns fighting `sed` date formats. It never rewrote `check_ce
 
 The 1.5B model put many commands in one block, hung on a key passphrase, then said DONE.
 
-**Verdict: the 4/6 was the stronger model, not a lucky container.** A 1.5B local model is too small for this task even with a working harness. $0, useful as a control.
+Same agent, smaller model: 1/6 vs 4/6. Control run, $0.
 
 ---
 
@@ -115,26 +115,11 @@ Terminus-2 on this task **does not count** — OpenRouter ran out of credit mid-
 
 ---
 
-## 4. What to tell the group
+## 4. Summary
 
-**Worked**
-
-- Harbor on this Windows PC (oracle 4/5 tasks).
-- Forcing **one command per turn** and **sticky `cd`**. That is the only harness change that clearly improved behaviour.
-- Custom v0.2 **tied Terminus-2** on openssl: **4/6 vs 4/6**, identical fails.
-
-**Did not work**
-
-- Taking only the first bash fence (v0.1).
-- Vague “check your work before DONE” (v0.3) — 4× tokens, still 4/6.
-- Local 1.5B Qwen — 1/6 on the same task.
-
-**Do not keep doing**
-
-- Paid OpenRouter until someone adds credit on purpose.
-- Mixing these rows with other models or harnesses. This trial is gpt-4o-mini / 1.5B vs Terminus-2.
-
-**Keep**
-
-- Harness v0.2 (one command, sticky cwd).
-- Report **tests passed / tests total**, not the official 0.
+- Oracle: 4/5 tasks on this host. Harbor and Docker are usable; GPU tasks are not.
+- v0.1 (first fence only) did not execute multi-step plans. Not a valid baseline score.
+- v0.2 (one command per turn, sticky `cd`) is the current agent. On openssl it matched Terminus-2 at 4/6, same two failures.
+- v0.3 (deny first DONE) stayed at 4/6 and used about 4× the tokens. Reverted.
+- Local 1.5B with the v0.2 loop scored 1/6 on the same task.
+- Paid OpenRouter runs are paused (credit error on Terminus-2 `fix-git`).

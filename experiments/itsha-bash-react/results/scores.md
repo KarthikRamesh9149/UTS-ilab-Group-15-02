@@ -1,6 +1,6 @@
 # Numbers (tests passed, not official 0/1)
 
-Official Terminal-Bench reward is 1 only if **every** hidden test passes. Agent runs here never cleared every test, so that column is always fail. Use **tests passed** instead. Full story: [WHAT_WE_LEARNED.md](WHAT_WE_LEARNED.md).
+Official Terminal-Bench reward is 1 only if every hidden test passes. Agent runs below did not clear every test. Counts are hidden tests passed. Notes: [WHAT_WE_LEARNED.md](WHAT_WE_LEARNED.md).
 
 ## openssl-selfsigned-cert (6 tests) — main comparison
 

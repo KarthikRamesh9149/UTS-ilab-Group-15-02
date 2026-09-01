@@ -1,9 +1,16 @@
-# Harshini trial run
+# Bash-ReAct custom harness (Terminal-Bench 2.1)
 
-This branch is a Terminal-Bench 2.1 custom-harness trial.
+Harbor agent that completes Terminal-Bench tasks by running **one shell command per turn**. The model is held fixed; only the harness changes.
 
-**What is being done:** write a small Harbor agent, hold the model fixed, and compare it to Terminus-2 on the same task.
+Code and run notes: [`experiments/itsha-bash-react/`](experiments/itsha-bash-react/README.md)
 
-Start here: [`experiments/itsha-bash-react/README.md`](experiments/itsha-bash-react/README.md)
+## Comparison
 
-Short result: custom harness v0.2 and Terminus-2 both passed **4 of 6** hidden tests on `openssl-selfsigned-cert` with gpt-4o-mini. Official task score is still 0 because two tests failed.
+| | Custom (v0.2) | Terminus-2 |
+|---|---|---|
+| Task | `openssl-selfsigned-cert` | same |
+| Model | `gpt-4o-mini` | same |
+| Hidden tests | **4 / 6** | **4 / 6** |
+| Official reward | 0 | 0 |
+
+Same two tests failed on both sides (`verification.txt` format; `check_cert.py` imported missing `OpenSSL`).
