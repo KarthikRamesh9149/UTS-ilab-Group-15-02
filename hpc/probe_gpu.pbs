@@ -1,0 +1,42 @@
+#!/bin/bash
+# Short probe: what GPU do we actually get, and does Apptainer see it?
+#PBS -N gpu-probe
+#PBS -q small_gpuq
+#PBS -l select=1:ncpus=2:ngpus=1:mem=16gb
+#PBS -l walltime=00:10:00
+#PBS -j oe
+
+echo "==================== NODE ===================="
+hostname
+date
+
+echo
+echo "==================== GPU ===================="
+nvidia-smi || echo "nvidia-smi FAILED"
+echo "--- concise ---"
+nvidia-smi --query-gpu=name,memory.total,compute_cap,driver_version --format=csv 2>/dev/null \
+  || echo "(query failed - driver may be older than this flag)"
+
+echo
+echo "==================== CUDA MODULES ===================="
+source /etc/profile.d/modules.sh 2>/dev/null
+module load cuda/12.4 2>&1 && echo "loaded cuda/12.4" || echo "could not load cuda/12.4"
+which nvcc 2>/dev/null && nvcc --version 2>&1 | tail -2
+
+echo
+echo "==================== APPTAINER + GPU ===================="
+apptainer --version
+echo "--- can a container see the GPU? (pulls a small CUDA image) ---"
+export APPTAINER_CACHEDIR=/scratch/$USER/apptainer-cache
+mkdir -p "$APPTAINER_CACHEDIR"
+timeout 480 apptainer exec --nv docker://nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi -L \
+  || echo "apptainer --nv test FAILED or timed out"
+
+echo
+echo "==================== SCRATCH ===================="
+mkdir -p /scratch/$USER && echo "scratch ok: /scratch/$USER"
+df -h /scratch | tail -1
+
+echo
+echo "==================== DONE ===================="
+date

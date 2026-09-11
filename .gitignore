@@ -11,6 +11,10 @@ __pycache__/
 
 # Harbor outputs can be large; keep only curated, explicitly forced evidence.
 jobs/
+*.log
+
+# LF-normalised copies generated when shipping PBS scripts to CETUS from Windows.
+hpc/*.lf.pbs
 results/progress_smoke_*/raw/
 results/progress_smoke_*/trials/
 results/progress_smoke_*/commands.log
