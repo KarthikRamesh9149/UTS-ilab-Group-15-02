@@ -19,18 +19,21 @@
 
 set -u
 
-SCRATCH=/scratch/$USER
-# Uncompressed sandbox dir, not a .sif - see hpc/stage_assets.pbs for why.
-SIF=$SCRATCH/sif/vllm-openai
-MODEL=$SCRATCH/models/Qwen2.5-Coder-32B-Instruct-AWQ
+# Assets live in $HOME because /scratch is node-local on this cluster and would
+# be invisible from whichever GPU node this job lands on. See hpc/stage_assets.pbs.
+ASSETS=$HOME/tb-assets
+SIF=$ASSETS/vllm-openai.sif
+MODEL=$ASSETS/models/Qwen2.5-Coder-32B-Instruct-AWQ
 SERVED_NAME=qwen2.5-coder-32b-awq
 PORT=8000
 ENDPOINT_FILE=$HOME/vllm-endpoint.txt
 SERVER_LOG=$HOME/vllm-server.log
 
-export APPTAINER_CACHEDIR=$SCRATCH/apptainer-cache
-export APPTAINER_TMPDIR=$SCRATCH/apptainer-tmp
-export TMPDIR=$SCRATCH/tmp
+# Node-local scratch is fine for throwaway temp files.
+export APPTAINER_CACHEDIR=/scratch/$USER/apptainer-cache
+export APPTAINER_TMPDIR=/scratch/$USER/apptainer-tmp
+export TMPDIR=/scratch/$USER/tmp
+mkdir -p "$APPTAINER_CACHEDIR" "$APPTAINER_TMPDIR" "$TMPDIR"
 
 echo "==================== START ===================="
 date; hostname
@@ -68,7 +71,7 @@ echo "==================== LAUNCHING vLLM ===================="
 export APPTAINERENV_VLLM_USE_FLASHINFER_SAMPLER=0
 export APPTAINERENV_HF_HUB_OFFLINE=1
 
-apptainer exec --nv --bind "$SCRATCH:$SCRATCH" "$SIF" \
+apptainer exec --nv --bind "$HOME:$HOME" "$SIF" \
     vllm serve "$MODEL" \
         --served-model-name "$SERVED_NAME" \
         --dtype float16 \
