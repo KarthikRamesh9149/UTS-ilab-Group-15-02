@@ -15,6 +15,8 @@ jobs/
 
 # LF-normalised copies generated when shipping PBS scripts to CETUS from Windows.
 hpc/*.lf.pbs
+# Process id of a running scripts/watch_and_run.ps1, so it can be stopped later.
+.watcher.pid
 results/progress_smoke_*/raw/
 results/progress_smoke_*/trials/
 results/progress_smoke_*/commands.log
