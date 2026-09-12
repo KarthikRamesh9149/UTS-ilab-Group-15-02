@@ -80,29 +80,43 @@ def read_trial(result_path: Path) -> dict | None:
     }
 
 
-def collect(job_dir: Path) -> tuple[list[dict], list[str]]:
-    rows, pending = [], []
-    for trial_dir in sorted(p for p in job_dir.iterdir() if p.is_dir()):
-        result_path = trial_dir / "result.json"
-        if not result_path.exists():
-            pending.append(trial_dir.name)
-            continue
-        row = read_trial(result_path)
-        if row is None:
-            pending.append(trial_dir.name)
-        else:
-            rows.append(row)
-    return rows, pending
+def collect(job_dirs: list[Path]) -> tuple[list[dict], list[str]]:
+    """Read one or more job directories, later ones overriding earlier per task.
+
+    The override is what records an infrastructure correction (proposal 4.1.7): a
+    task re-run with a raised timeout supersedes its earlier timed-out trial,
+    without editing the original job directory that documents the failure.
+    """
+    by_task: dict[str, dict] = {}
+    pending = []
+    for job_dir in job_dirs:
+        for trial_dir in sorted(p for p in job_dir.iterdir() if p.is_dir()):
+            result_path = trial_dir / "result.json"
+            if not result_path.exists():
+                pending.append(trial_dir.name)
+                continue
+            row = read_trial(result_path)
+            if row is None:
+                pending.append(trial_dir.name)
+            else:
+                by_task[row["task"]] = row
+    return list(by_task.values()), pending
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("job_dir", type=Path)
+    parser.add_argument(
+        "job_dir",
+        type=Path,
+        nargs="+",
+        help="one or more job dirs; later ones supersede earlier per task",
+    )
     parser.add_argument("--csv", type=Path, help="also write a CSV here")
     args = parser.parse_args()
 
-    if not args.job_dir.is_dir():
-        raise SystemExit("not a directory: %s" % args.job_dir)
+    for job_dir in args.job_dir:
+        if not job_dir.is_dir():
+            raise SystemExit("not a directory: %s" % job_dir)
 
     rows, pending = collect(args.job_dir)
     rows.sort(key=lambda r: r["task"])
