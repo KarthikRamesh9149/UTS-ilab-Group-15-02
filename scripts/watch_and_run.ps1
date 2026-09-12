@@ -62,7 +62,13 @@ while ((Get-Date) -lt $deadline) {
     # The trailing sentinel is how we tell "connected, file absent" from "could not
     # connect": ssh reports the REMOTE command's exit status, so a missing file also
     # gives a non-zero code and would otherwise be misread as a network failure.
-    $raw = ssh -o BatchMode=yes -o ConnectTimeout=15 cetus `
+    $sshOpts = @(
+        "-o", "BatchMode=yes",
+        "-o", "ConnectTimeout=15",
+        "-o", "ServerAliveInterval=10",
+        "-o", "ServerAliveCountMax=2"
+    )
+    $raw = ssh @sshOpts cetus `
         "cat ~/vllm-endpoint.txt 2>/dev/null; echo __REACHED__" 2>$null
     $text = ($raw -join "`n")
 
@@ -82,7 +88,7 @@ while ((Get-Date) -lt $deadline) {
     else {
         # Reachable but no endpoint yet. Report queue position so the log shows
         # progress rather than silence.
-        $q = ssh -o BatchMode=yes -o ConnectTimeout=15 cetus "qstat -u `$USER 2>/dev/null | tail -n 1" 2>$null
+        $q = ssh @sshOpts cetus "qstat -u `$USER 2>/dev/null | tail -n 1" 2>$null
         Write-Log "connected; job not up yet: $(($q -join ' ').Trim())"
     }
     Start-Sleep -Seconds $PollSeconds
