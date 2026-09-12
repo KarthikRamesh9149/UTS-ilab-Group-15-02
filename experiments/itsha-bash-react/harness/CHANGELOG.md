@@ -50,3 +50,20 @@ Design lever changes only. Score moves get recorded when a task run finishes.
 - Reward **0.0**, 44s, $0, **1/6** tests (directory only).
 - Model stuffed many commands into one fence, created a password-protected key, failed, then replied `DONE`.
 - Same harness as the gpt-4o-mini 4/6 run, so the 4/6 was the stronger model, not a fluke.
+
+## 0.2.2 — 2026-09-12
+
+**Not a design lever. No change to the agent loop, prompt, parser, step budget or
+completion rule.** Behaviour is identical to 0.2.1; scores from 0.2.1 remain comparable.
+
+Connectivity only, so the harness can address a self-hosted vLLM endpoint:
+
+- Strip a known provider prefix (`openai/`, `openrouter/`, `ollama/`, `hosted_vllm/`,
+  `vllm/`, `local/`) outright. 0.2.1 only stripped `openai/` when the name carried a
+  `:` tag, so a self-hosted name like `openai/qwen2.5-coder-32b-awq` reached the server
+  with the prefix attached and 404'd.
+- Accept `wire_model`, `api_base` and `api_key` as agent kwargs, so the endpoint can be
+  set per run via `--ak` instead of only through environment variables.
+
+The version bump exists so scored rows record which build produced them. Any future
+entry that changes behaviour gets a new minor version and its own probe.

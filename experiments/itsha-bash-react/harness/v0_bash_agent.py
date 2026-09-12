@@ -46,6 +46,10 @@ CWD_MARK = "__CWD__"
 class BashReActAgent(BaseAgent):
     """Harbor-native loop: prompt -> one bash command -> observe -> repeat."""
 
+    _PROVIDER_PREFIXES = frozenset(
+        {"openai", "openrouter", "ollama", "hosted_vllm", "vllm", "local"}
+    )
+
     def __init__(
         self,
         logs_dir: Path,
@@ -54,6 +58,9 @@ class BashReActAgent(BaseAgent):
         temperature: float = 0,
         max_output_tokens: int = 700,
         command_timeout_sec: int = 120,
+        wire_model: str | None = None,
+        api_base: str | None = None,
+        api_key: str | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -61,19 +68,25 @@ class BashReActAgent(BaseAgent):
         if not model_name:
             raise ValueError("model_name is required")
         api_key = (
-            os.environ.get("OPENROUTER_API_KEY")
+            api_key
+            or os.environ.get("OPENROUTER_API_KEY")
             or os.environ.get("OPENAI_API_KEY")
             or "ollama"
         )
-        self._wire_model = model_name
-        if self._wire_model.startswith("openrouter/"):
-            self._wire_model = self._wire_model.split("/", 1)[1]
-        elif self._wire_model.startswith("ollama/"):
-            self._wire_model = self._wire_model.split("/", 1)[1]
-        elif self._wire_model.startswith("openai/") and ":" in self._wire_model:
-            # Harbor-style local tags like openai/qwen2.5-coder:1.5b
-            self._wire_model = self._wire_model.split("/", 1)[1]
-        base_url = os.environ.get("OPENAI_BASE_URL") or os.environ.get("OPENAI_API_BASE")
+        # Harbor prefixes the model with a provider (openai/, openrouter/, ollama/,
+        # hosted_vllm/). The wire name must be what the endpoint actually serves, so
+        # strip a known prefix outright rather than only when a ':' tag is present -
+        # a self-hosted name like openai/qwen2.5-coder-32b-awq has no tag.
+        self._wire_model = wire_model or model_name
+        if not wire_model:
+            provider, _, remainder = self._wire_model.partition("/")
+            if remainder and provider in self._PROVIDER_PREFIXES:
+                self._wire_model = remainder
+        base_url = (
+            api_base
+            or os.environ.get("OPENAI_BASE_URL")
+            or os.environ.get("OPENAI_API_BASE")
+        )
         if not base_url:
             base_url = "https://openrouter.ai/api/v1" if os.environ.get("OPENROUTER_API_KEY") else "http://127.0.0.1:11434/v1"
         self._client = AsyncOpenAI(
@@ -95,7 +108,7 @@ class BashReActAgent(BaseAgent):
         return "bash-react-v0"
 
     def version(self) -> str:
-        return "0.2.1"
+        return "0.2.2"
 
     async def setup(self, environment: BaseEnvironment) -> None:
         result = await environment.exec("pwd", timeout_sec=10)
