@@ -20,7 +20,8 @@
 set -u
 
 SCRATCH=/scratch/$USER
-SIF=$SCRATCH/sif/vllm-openai.sif
+# Uncompressed sandbox dir, not a .sif - see hpc/stage_assets.pbs for why.
+SIF=$SCRATCH/sif/vllm-openai
 MODEL=$SCRATCH/models/Qwen2.5-Coder-32B-Instruct-AWQ
 SERVED_NAME=qwen2.5-coder-32b-awq
 PORT=8000

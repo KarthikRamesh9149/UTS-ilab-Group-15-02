@@ -2,65 +2,70 @@
 # Stage 1 of 2: download the vLLM container and model weights.
 # Deliberately runs on workq with NO GPU - downloading does not need one, and the
 # GPU queues have a ~7 hour wait we should not spend on network I/O.
+#
+# Built as an uncompressed SANDBOX directory, not a .sif. Creating a SIF runs
+# mksquashfs, which spawns threads across every core it can see and got the first
+# attempt killed by PBS ("ncpus 6.8 exceeded limit 4"). A sandbox skips compression
+# entirely, works the same with `apptainer exec --nv`, and scratch has 11 TB free
+# so there is nothing to gain from compressing.
 #PBS -N stage-assets
 #PBS -q workq
-#PBS -l select=1:ncpus=4:mem=32gb
+#PBS -l select=1:ncpus=12:mem=64gb
 #PBS -l walltime=08:00:00
 #PBS -j oe
 
 set -u
 
 SCRATCH=/scratch/$USER
-SIF_DIR=$SCRATCH/sif
+IMAGE_DIR=$SCRATCH/sif
+SANDBOX=$IMAGE_DIR/vllm-openai
 MODEL_DIR=$SCRATCH/models
+MODEL_REPO=Qwen/Qwen2.5-Coder-32B-Instruct-AWQ
+TARGET=$MODEL_DIR/Qwen2.5-Coder-32B-Instruct-AWQ
 
-# Apptainer needs a lot of temp space to convert OCI layers into a SIF.
-# Home is small and shared; keep all of it on the 11 TB scratch disk.
+# Apptainer needs a lot of temp space. Home is small and shared; keep it on scratch.
 export APPTAINER_CACHEDIR=$SCRATCH/apptainer-cache
 export APPTAINER_TMPDIR=$SCRATCH/apptainer-tmp
 export TMPDIR=$SCRATCH/tmp
 
-mkdir -p "$SIF_DIR" "$MODEL_DIR" "$APPTAINER_CACHEDIR" "$APPTAINER_TMPDIR" "$TMPDIR"
+mkdir -p "$IMAGE_DIR" "$MODEL_DIR" "$APPTAINER_CACHEDIR" "$APPTAINER_TMPDIR" "$TMPDIR"
 
 echo "==================== START ===================="
 date; hostname
+echo "cpus granted: ${NCPUS:-unknown}"
 df -h /scratch | tail -1
 
 echo
-echo "==================== 1. vLLM CONTAINER ===================="
-SIF=$SIF_DIR/vllm-openai.sif
-if [ -f "$SIF" ]; then
-    echo "already present: $SIF ($(du -h "$SIF" | cut -f1))"
+echo "==================== 1. vLLM CONTAINER (sandbox) ===================="
+if [ -x "$SANDBOX/usr/bin/env" ] || [ -d "$SANDBOX/usr" ]; then
+    echo "already present: $SANDBOX ($(du -sh "$SANDBOX" 2>/dev/null | cut -f1))"
 else
-    echo "pulling docker://vllm/vllm-openai:latest -> $SIF"
-    apptainer pull "$SIF" docker://vllm/vllm-openai:latest
-    echo "pull exit=$? size=$(du -h "$SIF" 2>/dev/null | cut -f1)"
+    echo "building sandbox from docker://vllm/vllm-openai:latest"
+    apptainer build --force --sandbox "$SANDBOX" docker://vllm/vllm-openai:latest
+    echo "build exit=$?"
 fi
 
 echo
 echo "==================== 2. SANITY: what is in the container ===================="
-apptainer exec "$SIF" python -c "import torch, vllm; print('vllm', vllm.__version__, '| torch', torch.__version__)" \
+apptainer exec "$SANDBOX" python -c "import torch, vllm; print('vllm', vllm.__version__, '| torch', torch.__version__)" \
     || echo "WARNING: could not import vllm/torch inside the container"
-echo "--- does this build include sm_75 kernels? ---"
-apptainer exec "$SIF" python -c "import torch; print('arch list:', torch.cuda.get_arch_list())" \
+echo "--- does this build include sm_75 (Turing) kernels? ---"
+apptainer exec "$SANDBOX" python -c "import torch; print('arch list:', torch.cuda.get_arch_list())" \
     || echo "(arch list unavailable)"
 
 echo
 echo "==================== 3. MODEL WEIGHTS ===================="
-# 4-bit AWQ so a 32B model fits in 2 x 24 GB with room for KV cache.
-# Use the container's modern Python - the cluster's system Python is 3.6.
-MODEL_REPO=Qwen/Qwen2.5-Coder-32B-Instruct-AWQ
-TARGET=$MODEL_DIR/Qwen2.5-Coder-32B-Instruct-AWQ
-
+# 4-bit AWQ so a 32B model fits in 2 x 24 GB with room for a 32k KV cache.
+# Use the container's modern Python - the cluster's system Python is 3.6.8.
 if [ -f "$TARGET/config.json" ]; then
     echo "already present: $TARGET ($(du -sh "$TARGET" | cut -f1))"
 else
     echo "downloading $MODEL_REPO -> $TARGET"
-    APPTAINERENV_HF_HUB_ENABLE_HXET=0 \
-    apptainer exec --bind "$SCRATCH:$SCRATCH" "$SIF" \
+    # Modest worker count: PBS enforces the CPU limit strictly.
+    apptainer exec --bind "$SCRATCH:$SCRATCH" "$SANDBOX" \
         python -c "
 from huggingface_hub import snapshot_download
-p = snapshot_download('$MODEL_REPO', local_dir='$TARGET', max_workers=8)
+p = snapshot_download('$MODEL_REPO', local_dir='$TARGET', max_workers=4)
 print('downloaded to', p)
 "
     echo "download exit=$?"
@@ -68,11 +73,11 @@ fi
 
 echo
 echo "==================== SUMMARY ===================="
-ls -la "$SIF_DIR" 2>/dev/null
+echo "--- container ---"
+du -sh "$SANDBOX" 2>/dev/null
 echo "--- model files ---"
 ls -la "$TARGET" 2>/dev/null | head -20
-echo "--- sizes ---"
-du -sh "$SIF" "$TARGET" 2>/dev/null
+du -sh "$TARGET" 2>/dev/null
 df -h /scratch | tail -1
 echo "==================== DONE ===================="
 date
