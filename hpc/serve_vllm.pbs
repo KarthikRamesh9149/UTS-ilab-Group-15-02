@@ -1,0 +1,131 @@
+#!/bin/bash
+# Stage 2 of 2: serve the model on 2 GPUs and hold the server up.
+#
+# The GPU queue wait is hours, so this job does BOTH jobs at once: it verifies
+# vLLM can start on Turing hardware AND then stays up as the inference endpoint
+# for the benchmark run. A separate short "test" job would wait the same hours
+# for less.
+#
+# Turing (sm_75) constraints, all of them load-bearing:
+#   --dtype float16          bfloat16 raises a hard error below sm_80
+#   no FlashAttention        unavailable below sm_80; vLLM falls back to Triton
+#   float16 KV cache         FP8 KV cache needs newer hardware
+#
+#PBS -N vllm-serve
+#PBS -q small_gpuq
+#PBS -l select=1:ncpus=8:ngpus=2:mem=64gb
+#PBS -l walltime=24:00:00
+#PBS -j oe
+
+set -u
+
+SCRATCH=/scratch/$USER
+SIF=$SCRATCH/sif/vllm-openai.sif
+MODEL=$SCRATCH/models/Qwen2.5-Coder-32B-Instruct-AWQ
+SERVED_NAME=qwen2.5-coder-32b-awq
+PORT=8000
+ENDPOINT_FILE=$HOME/vllm-endpoint.txt
+SERVER_LOG=$HOME/vllm-server.log
+
+export APPTAINER_CACHEDIR=$SCRATCH/apptainer-cache
+export APPTAINER_TMPDIR=$SCRATCH/apptainer-tmp
+export TMPDIR=$SCRATCH/tmp
+
+echo "==================== START ===================="
+date; hostname
+nvidia-smi --query-gpu=index,name,memory.used,memory.total --format=csv
+
+for path in "$SIF" "$MODEL/config.json"; do
+    if [ ! -e "$path" ]; then
+        echo "FATAL: missing $path - run hpc/stage_assets.pbs first"
+        exit 1
+    fi
+done
+
+# One token per job, written next to the endpoint details.
+API_KEY=$(head -c 18 /dev/urandom | base64 | tr -d '/+=' | head -c 24)
+
+cat > "$ENDPOINT_FILE" <<EOF
+# vLLM endpoint for PBS job $PBS_JOBID
+NODE=$(hostname)
+PORT=$PORT
+MODEL=$SERVED_NAME
+API_KEY=$API_KEY
+STARTED=$(date -Iseconds)
+
+# Tunnel from a laptop (run on the laptop, needs UTS VPN):
+#   ssh -N -L ${PORT}:$(hostname):${PORT} cetus
+# Then point a harness at:
+#   OPENAI_BASE_URL=http://127.0.0.1:${PORT}/v1
+#   OPENAI_API_KEY=$API_KEY
+EOF
+echo "wrote $ENDPOINT_FILE"
+
+echo
+echo "==================== LAUNCHING vLLM ===================="
+# FlashInfer's sampler has no sm_75 kernel; disabling it avoids a noisy fallback.
+export APPTAINERENV_VLLM_USE_FLASHINFER_SAMPLER=0
+export APPTAINERENV_HF_HUB_OFFLINE=1
+
+apptainer exec --nv --bind "$SCRATCH:$SCRATCH" "$SIF" \
+    vllm serve "$MODEL" \
+        --served-model-name "$SERVED_NAME" \
+        --dtype float16 \
+        --kv-cache-dtype float16 \
+        --tensor-parallel-size 2 \
+        --max-model-len 32768 \
+        --gpu-memory-utilization 0.80 \
+        --host 0.0.0.0 \
+        --port "$PORT" \
+        --api-key "$API_KEY" \
+        --disable-log-requests \
+    > "$SERVER_LOG" 2>&1 &
+
+SERVER_PID=$!
+echo "server pid=$SERVER_PID, log=$SERVER_LOG"
+
+echo
+echo "==================== WAITING FOR READINESS ===================="
+READY=0
+for i in $(seq 1 120); do   # up to 20 minutes; AWQ load on Turing is slow
+    sleep 10
+    if curl -s -f -H "Authorization: Bearer $API_KEY" \
+         "http://127.0.0.1:$PORT/v1/models" > /dev/null 2>&1; then
+        echo "READY after $((i*10))s"
+        READY=1
+        break
+    fi
+    if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+        echo "SERVER DIED after $((i*10))s - last 60 lines:"
+        tail -60 "$SERVER_LOG"
+        exit 1
+    fi
+    [ $((i % 6)) -eq 0 ] && echo "  ...still loading ($((i*10))s)"
+done
+
+if [ "$READY" -ne 1 ]; then
+    echo "TIMED OUT waiting for readiness - last 60 lines:"
+    tail -60 "$SERVER_LOG"
+    kill "$SERVER_PID" 2>/dev/null
+    exit 1
+fi
+
+echo
+echo "==================== SELF-TEST ===================="
+echo "--- /v1/models ---"
+curl -s -H "Authorization: Bearer $API_KEY" "http://127.0.0.1:$PORT/v1/models"
+echo
+echo "--- one completion (does it actually generate?) ---"
+curl -s -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" \
+    -d "{\"model\":\"$SERVED_NAME\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly: OK\"}],\"max_tokens\":10,\"temperature\":0}" \
+    "http://127.0.0.1:$PORT/v1/chat/completions"
+echo
+nvidia-smi --query-gpu=index,memory.used,memory.total --format=csv
+
+echo
+echo "==================== SERVING ===================="
+echo "Endpoint is up on $(hostname):$PORT until walltime expires."
+echo "Tunnel with:  ssh -N -L $PORT:$(hostname):$PORT cetus"
+wait "$SERVER_PID"
+echo "==================== SERVER EXITED ===================="
+date
