@@ -14,6 +14,13 @@
 # over NFS. Creating a .sif runs mksquashfs, which threads across every visible
 # core - that killed the 4-CPU attempt ("ncpus 6.8 exceeded limit 4"), so this
 # asks for 12.
+#
+# The 12 CPUs are ONLY for that first build. Once the .sif exists this job just
+# downloads weights, and the large request only delays scheduling - a 12-CPU
+# submission sat queued behind 39 others while a 2-CPU one started instantly.
+# For a weights-only run, override the sizing:
+#   qsub -l select=1:ncpus=2:mem=16gb -l walltime=02:00:00 \
+#        -v MODEL_REPO=Qwen/Qwen2.5-Coder-14B-Instruct-AWQ hpc/stage_assets.pbs
 #PBS -N stage-assets
 #PBS -q workq
 #PBS -l select=1:ncpus=12:mem=64gb
