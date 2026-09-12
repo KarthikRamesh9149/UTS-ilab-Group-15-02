@@ -11,6 +11,10 @@
 #   no FlashAttention        unavailable below sm_80; vLLM falls back to Triton
 #   float16 KV cache         FP8 KV cache needs newer hardware
 #
+# This image is vLLM 0.29.0 / torch 2.13.0+cu130, and torch.cuda.get_arch_list()
+# reports sm_75 among its compiled architectures - so the Quadro RTX 6000s on this
+# cluster are supported. Verified from the staged container before submitting.
+#
 #PBS -N vllm-serve
 #PBS -q small_gpuq
 #PBS -l select=1:ncpus=8:ngpus=2:mem=64gb
@@ -82,8 +86,12 @@ apptainer exec --nv --bind "$HOME:$HOME" "$SIF" \
         --host 0.0.0.0 \
         --port "$PORT" \
         --api-key "$API_KEY" \
-        --disable-log-requests \
     > "$SERVER_LOG" 2>&1 &
+# No --disable-log-requests: it was removed in vLLM 0.29 (request logging is now
+# off by default, opt in via --enable-log-requests). Passing it is an argparse
+# error that kills the server on startup - which we would only have discovered
+# after the multi-hour GPU queue wait. Every flag above was checked against this
+# image's own source before submitting.
 
 SERVER_PID=$!
 echo "server pid=$SERVER_PID, log=$SERVER_LOG"
