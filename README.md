@@ -13,6 +13,27 @@ Each harness runs the same tasks once (`k=1`, concurrency 1, temperature 0) with
 
 The intended matrix is therefore 21 tasks × 3 harnesses × 2 models = **126 trials**. This is deliberately **not** a full 89-task run, an official leaderboard submission, or a statistically representative accuracy estimate.
 
+## Current phase: a model capable enough to separate harnesses
+
+The 126-trial matrix scored **0 passes in every condition**, so accuracy could not
+distinguish one harness from another. Terminal-Bench 2.1 is hard by construction —
+frontier models score 65–85% and small models around 15% — and a 3B/7B checkpoint at
+4-bit sits below the level where the benchmark produces signal at all.
+
+The current phase keeps the frozen 21-task subset and the fairness controls below, and
+changes only the model, to a size where a harness difference has somewhere to show up.
+
+| Piece | Where | Status |
+|---|---|---|
+| Custom harness (one bash command per turn) | [`experiments/itsha-bash-react/`](experiments/itsha-bash-react/README.md) | v0.2.1, one-lever changelog |
+| Host runnability of the frozen 21 | [`results/oracle-21-windows-check.md`](results/oracle-21-windows-check.md) | 19/21 valid |
+| Open-weights model server on UTS CETUS | [`hpc/`](hpc/) | staging |
+| Harbor job reader (any run → table/CSV) | `scripts/summarize_job.py` | working |
+
+Oracle validation is host-specific, so it was re-run on the machine that will produce
+the scored rows. That is verification only: the subset stays frozen at 21 task IDs and
+the two host-limited tasks remain in the denominator.
+
 ## Evaluation safeguards
 
 - The task list is frozen in `configs/progress_subset.txt`.
