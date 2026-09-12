@@ -15,10 +15,20 @@
 # reports sm_75 among its compiled architectures - so the Quadro RTX 6000s on this
 # cluster are supported. Verified from the staged container before submitting.
 #
+# Sized for ONE GPU deliberately. At submission time every GPU on the cluster was
+# allocated (pbsnodes showed ngpus f/t = 0/2 on essentially every node) with 14
+# jobs queued ahead of us. A 2-GPU request must wait for two cards to free on the
+# SAME node, which turns a long wait into a much longer one. 14B at 4-bit is
+# ~9.5 GB and fits one 24 GB card with full 32k context, so the second card buys
+# nothing here. Shorter walltime also improves the odds of backfilling a gap.
+#
+# For the 32B on two cards (weights ~19 GB, needs tensor parallelism):
+#   qsub -l select=1:ncpus=8:ngpus=2:mem=64gb -l walltime=24:00:00 \
+#        -v MODEL_REPO=Qwen2.5-Coder-32B-Instruct-AWQ,TP=2 hpc/serve_vllm.pbs
 #PBS -N vllm-serve
 #PBS -q small_gpuq
-#PBS -l select=1:ncpus=8:ngpus=2:mem=64gb
-#PBS -l walltime=24:00:00
+#PBS -l select=1:ncpus=6:ngpus=1:mem=48gb
+#PBS -l walltime=12:00:00
 #PBS -j oe
 
 set -u
@@ -27,8 +37,13 @@ set -u
 # be invisible from whichever GPU node this job lands on. See hpc/stage_assets.pbs.
 ASSETS=$HOME/tb-assets
 SIF=$ASSETS/vllm-openai.sif
-MODEL=$ASSETS/models/Qwen2.5-Coder-32B-Instruct-AWQ
-SERVED_NAME=qwen2.5-coder-32b-awq
+# Directory name only, not the full HF repo id. Override with qsub -v MODEL_REPO=...
+MODEL_REPO=${MODEL_REPO:-Qwen2.5-Coder-14B-Instruct-AWQ}
+MODEL=$ASSETS/models/$MODEL_REPO
+TP=${TP:-1}
+# The name the harness asks for on the wire. Derived so it always matches the
+# weights being served - a mismatch here is what the runner's preflight catches.
+SERVED_NAME=$(echo "$MODEL_REPO" | tr 'A-Z' 'a-z' | sed 's/-instruct-awq/-awq/')
 PORT=8000
 ENDPOINT_FILE=$HOME/vllm-endpoint.txt
 SERVER_LOG=$HOME/vllm-server.log
@@ -41,6 +56,12 @@ mkdir -p "$APPTAINER_CACHEDIR" "$APPTAINER_TMPDIR" "$TMPDIR"
 
 echo "==================== START ===================="
 date; hostname
+echo "model      : $MODEL_REPO"
+echo "served as  : $SERVED_NAME   <- the runner's --model must match this"
+echo "tensor par : $TP"
+# GPUs on this cluster are shared: the earlier probe saw another user's 2.4 GB
+# process on a card we had been allocated. 0.80 leaves room for that rather than
+# failing to start.
 nvidia-smi --query-gpu=index,name,memory.used,memory.total --format=csv
 
 for path in "$SIF" "$MODEL/config.json"; do
@@ -80,7 +101,7 @@ apptainer exec --nv --bind "$HOME:$HOME" "$SIF" \
         --served-model-name "$SERVED_NAME" \
         --dtype float16 \
         --kv-cache-dtype float16 \
-        --tensor-parallel-size 2 \
+        --tensor-parallel-size "$TP" \
         --max-model-len 32768 \
         --gpu-memory-utilization 0.80 \
         --host 0.0.0.0 \

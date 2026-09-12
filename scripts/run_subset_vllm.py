@@ -51,7 +51,9 @@ DATASET = "terminal-bench/terminal-bench-2-1"
 HARNESS_ROOT = ROOT / "experiments/itsha-bash-react"
 CUSTOM_AGENT = "harness.v0_bash_agent:BashReActAgent"
 
-DEFAULT_MODEL = "qwen2.5-coder-32b-awq"
+# Must match --served-model-name in hpc/serve_vllm.pbs, which derives it from the
+# weights directory. Preflight fails loudly if they drift apart.
+DEFAULT_MODEL = "qwen2.5-coder-14b-awq"
 
 
 def frozen_tasks() -> list[str]:

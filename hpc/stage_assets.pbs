@@ -25,8 +25,11 @@ set -u
 ASSETS=$HOME/tb-assets
 SIF=$ASSETS/vllm-openai.sif
 MODEL_DIR=$ASSETS/models
-MODEL_REPO=Qwen/Qwen2.5-Coder-32B-Instruct-AWQ
-TARGET=$MODEL_DIR/Qwen2.5-Coder-32B-Instruct-AWQ
+# Override per submission:  qsub -v MODEL_REPO=Qwen/Qwen2.5-Coder-32B-Instruct-AWQ
+# 14B is the default because it fits one 24 GB card, and a 1-GPU request schedules
+# far sooner than a 2-GPU one when every GPU on the cluster is allocated.
+MODEL_REPO=${MODEL_REPO:-Qwen/Qwen2.5-Coder-14B-Instruct-AWQ}
+TARGET=$MODEL_DIR/$(basename "$MODEL_REPO")
 
 # Build scratch is fine to keep node-local - it is thrown away when the job ends.
 export APPTAINER_CACHEDIR=/scratch/$USER/apptainer-cache
