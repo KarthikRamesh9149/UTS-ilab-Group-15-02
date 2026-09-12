@@ -27,7 +27,10 @@
 #        -v MODEL_REPO=Qwen2.5-Coder-32B-Instruct-AWQ,TP=2 hpc/serve_vllm.pbs
 #PBS -N vllm-serve
 #PBS -q small_gpuq
-#PBS -l select=1:ncpus=6:ngpus=1:mem=48gb
+# 2 CPUs is enough: this server is GPU-bound, Harbor sends one request at a time,
+# and a 6-CPU ask sat queued while hpc-exec02 had a free GPU but only 3 free CPUs.
+# PBS kills a job that exceeds its CPU cap, so do not drop this to 1.
+#PBS -l select=1:ncpus=2:ngpus=1:mem=48gb
 #PBS -l walltime=12:00:00
 #PBS -j oe
 
