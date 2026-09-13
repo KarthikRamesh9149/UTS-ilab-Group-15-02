@@ -59,9 +59,15 @@ mkdir -p "$APPTAINER_CACHEDIR" "$APPTAINER_TMPDIR" "$TMPDIR"
 
 echo "==================== START ===================="
 date; hostname
+# 0.70 + max_model_len 32768 failed overnight by a hair: needed 6.0 GiB KV,
+# had 6.0 GiB (est. max len 32736). Agent turns are clipped; 16k is enough and
+# leaves headroom when the card is shared.
+GPU_MEM_UTIL=0.70
+MAX_MODEL_LEN=16384
 echo "model      : $MODEL_REPO"
 echo "served as  : $SERVED_NAME   <- the runner's --model must match this"
 echo "tensor par : $TP"
+echo "max len    : $MAX_MODEL_LEN   util=$GPU_MEM_UTIL"
 nvidia-smi --query-gpu=index,name,memory.used,memory.total --format=csv
 
 # These GPUs are shared. Job 85684 died because vLLM defaulted to cuda:0 which
@@ -78,7 +84,6 @@ export CUDA_VISIBLE_DEVICES=$BEST_GPU
 export APPTAINERENV_CUDA_VISIBLE_DEVICES=$BEST_GPU
 FREE_MIB=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits -i "$BEST_GPU" | tr -d ' ')
 echo "using GPU $BEST_GPU (${FREE_MIB} MiB free); CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
-GPU_MEM_UTIL=0.70
 
 for path in "$SIF" "$MODEL/config.json"; do
     if [ ! -e "$path" ]; then
@@ -118,7 +123,7 @@ apptainer exec --nv --bind "$HOME:$HOME" "$SIF" \
         --dtype float16 \
         --kv-cache-dtype float16 \
         --tensor-parallel-size "$TP" \
-        --max-model-len 32768 \
+        --max-model-len "$MAX_MODEL_LEN" \
         --gpu-memory-utilization "$GPU_MEM_UTIL" \
         --host 0.0.0.0 \
         --port "$PORT" \
