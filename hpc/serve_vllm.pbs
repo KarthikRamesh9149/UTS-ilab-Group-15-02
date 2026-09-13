@@ -62,10 +62,23 @@ date; hostname
 echo "model      : $MODEL_REPO"
 echo "served as  : $SERVED_NAME   <- the runner's --model must match this"
 echo "tensor par : $TP"
-# GPUs on this cluster are shared: the earlier probe saw another user's 2.4 GB
-# process on a card we had been allocated. 0.80 leaves room for that rather than
-# failing to start.
 nvidia-smi --query-gpu=index,name,memory.used,memory.total --format=csv
+
+# These GPUs are shared. Job 85684 died because vLLM defaulted to cuda:0 which
+# already had 5.7 GB used by someone else (17.68 free < 0.80 * 23.46). Pick the
+# emptiest visible card, and ask for only 70% of that card so residual processes
+# do not fail startup again.
+BEST_GPU=$(nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nounits \
+    | sort -t, -k2 -nr | head -n1 | cut -d, -f1 | tr -d ' ')
+if [ -z "$BEST_GPU" ]; then
+    echo "FATAL: could not pick a GPU"
+    exit 1
+fi
+export CUDA_VISIBLE_DEVICES=$BEST_GPU
+export APPTAINERENV_CUDA_VISIBLE_DEVICES=$BEST_GPU
+FREE_MIB=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits -i "$BEST_GPU" | tr -d ' ')
+echo "using GPU $BEST_GPU (${FREE_MIB} MiB free); CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
+GPU_MEM_UTIL=0.70
 
 for path in "$SIF" "$MODEL/config.json"; do
     if [ ! -e "$path" ]; then
@@ -106,7 +119,7 @@ apptainer exec --nv --bind "$HOME:$HOME" "$SIF" \
         --kv-cache-dtype float16 \
         --tensor-parallel-size "$TP" \
         --max-model-len 32768 \
-        --gpu-memory-utilization 0.80 \
+        --gpu-memory-utilization "$GPU_MEM_UTIL" \
         --host 0.0.0.0 \
         --port "$PORT" \
         --api-key "$API_KEY" \
