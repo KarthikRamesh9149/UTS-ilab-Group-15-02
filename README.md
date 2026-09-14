@@ -13,7 +13,7 @@ Each harness runs the same tasks once (`k=1`, concurrency 1, temperature 0) with
 
 The intended matrix is therefore 21 tasks × 3 harnesses × 2 models = **126 trials**. This is deliberately **not** a full 89-task run, an official leaderboard submission, or a statistically representative accuracy estimate.
 
-**Branches:** `main` holds the team matrix and shared protocol. Per-member experiment tracks use their own branch (e.g. **`harshini-trial-run`** for CETUS vLLM runs — see [`results/harshini/`](results/harshini/README.md)). Do not commit chat or meeting notes into the repo; use issues or your own notes locally.
+CETUS vLLM runs and curated 21-task score CSVs for that track are on branch `harshini-trial-run` under [`results/harshini/`](results/harshini/README.md).
 
 ## Current phase: a model capable enough to separate harnesses
 
