@@ -32,14 +32,17 @@ param(
     [int]$ReadySeconds = 1800,   # model load: 14B AWQ on Turing is slow
     [int]$Attempts = 3,          # the runner is resumable, so retries are cheap
     [ValidateSet("custom", "mini-swe-agent", "both")]
-    [string]$HarnessOnly = "both"
+    [string]$HarnessOnly = "both",
+    # Reuse an existing jobs/<harness>-21-<stamp> directory so a resume skips
+    # already-scored tasks instead of starting a new 21-task folder.
+    [string]$RunStamp = ""
 )
 
 $ErrorActionPreference = "Continue"
 $repo = Split-Path -Parent $PSScriptRoot
 Set-Location $repo
 
-$stamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$stamp = if ($RunStamp) { $RunStamp } else { Get-Date -Format "yyyyMMdd_HHmmss" }
 $log = Join-Path $repo "results\watch-run-$stamp.log"
 New-Item -ItemType Directory -Force -Path (Split-Path $log) | Out-Null
 
@@ -76,14 +79,24 @@ while ((Get-Date) -lt $deadline) {
         Write-Log "cannot reach CETUS (VPN down?) - retrying"
     }
     elseif ($text -match "NODE=(\S+)") {
-        $endpoint = @{
-            Node   = ([regex]::Match($text, "NODE=(\S+)")).Groups[1].Value
-            Port   = ([regex]::Match($text, "PORT=(\S+)")).Groups[1].Value
-            Model  = ([regex]::Match($text, "MODEL=(\S+)")).Groups[1].Value
-            ApiKey = ([regex]::Match($text, "API_KEY=(\S+)")).Groups[1].Value
+        # The endpoint file is written at job START and left behind after the
+        # job dies. Last night's file would send us at a dead node. Only trust
+        # it if qstat shows vllm-serve actually Running.
+        $jobs = ssh @sshOpts cetus "qstat -u `$USER 2>/dev/null" 2>$null
+        $jobsText = $jobs -join "`n"
+        if ($jobsText -notmatch "vllm-serve.* R ") {
+            Write-Log "stale endpoint file (no Running vllm-serve) - waiting for a new job"
         }
-        Write-Log "endpoint published: node=$($endpoint.Node) port=$($endpoint.Port) model=$($endpoint.Model)"
-        break
+        else {
+            $endpoint = @{
+                Node   = ([regex]::Match($text, "NODE=(\S+)")).Groups[1].Value
+                Port   = ([regex]::Match($text, "PORT=(\S+)")).Groups[1].Value
+                Model  = ([regex]::Match($text, "MODEL=(\S+)")).Groups[1].Value
+                ApiKey = ([regex]::Match($text, "API_KEY=(\S+)")).Groups[1].Value
+            }
+            Write-Log "endpoint published: node=$($endpoint.Node) port=$($endpoint.Port) model=$($endpoint.Model)"
+            break
+        }
     }
     else {
         # Reachable but no endpoint yet. Report queue position so the log shows
@@ -156,6 +169,8 @@ $harnesses = switch ($HarnessOnly) {
 foreach ($harness in $harnesses) {
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
         Write-Log "running 21 tasks: harness=$harness (attempt $attempt of $Attempts)"
+        $env:PYTHONIOENCODING = "utf-8"
+        $env:PYTHONUTF8 = "1"
         python scripts/run_subset_vllm.py `
             --harness $harness `
             --model $endpoint.Model `
