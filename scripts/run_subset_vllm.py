@@ -29,12 +29,18 @@ import argparse
 import csv
 import json
 import os
+import shutil
 import subprocess
 import sys
 import urllib.error
 import urllib.request
 from datetime import datetime
 from pathlib import Path
+
+# These are not scores. The trial never reached the model, so "already done"
+# must not skip them on a resume - otherwise a dropped tunnel permanently zeros
+# the task. Stash the failed trial so Harbor can write a fresh one next to it.
+RETRYABLE_EXCEPTIONS = frozenset({"APIConnectionError"})
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -102,8 +108,22 @@ def preflight(base_url: str, api_key: str, model: str) -> None:
 
 
 def already_done(task_dir: Path) -> bool:
-    """A finished trial means we can skip it, so an interrupted run can resume."""
-    return any(task_dir.glob("*/result.json"))
+    """Skip only a real scored trial. Empty stubs and connection deaths are not done."""
+    results = list(task_dir.glob("*/result.json"))
+    if not results:
+        return False
+    rows = [row for row in (read_trial(path) for path in results) if row]
+    # Broken overnight stubs left empty result.json files. Treating those as done
+    # made mini-swe-agent skip all 21 in one second.
+    if not rows:
+        return False
+    if all((row.get("exception") or "") in RETRYABLE_EXCEPTIONS for row in rows):
+        stash = task_dir.with_name(task_dir.name + ".stashed-connfail")
+        if stash.exists():
+            shutil.rmtree(stash)
+        task_dir.rename(stash)
+        return False
+    return True
 
 
 def build_command(
@@ -228,6 +248,10 @@ def main() -> int:
         "OPENAI_API_BASE": agent_url,
         "LLM_API_KEY": args.api_key,
         "LLM_BASE_URL": agent_url,
+        # Harbor's progress spinner uses braille; Windows cp1252 raises
+        # UnicodeEncodeError and was what emptied the mini-swe-agent CSV.
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONUTF8": "1",
         "PYTHONPATH": os.pathsep.join(
             [str(HARNESS_ROOT), str(ROOT), env.get("PYTHONPATH", "")]
         ),
