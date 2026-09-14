@@ -1,7 +1,7 @@
 # Oracle runnability check — frozen 21 tasks on a Windows host
 
 **Date:** 11 September 2026, corrected 12 September 2026
-**Branch:** `harshini/21task-run`
+**Branch:** `harshini-trial-run`
 **Raw data:** [`oracle-21-check.csv`](oracle-21-check.csv) (first pass, 19/21) ·
 [`oracle-21-final.csv`](oracle-21-final.csv) (after the timeout correction, 21/21)
 
@@ -101,7 +101,7 @@ later trial supersedes an earlier one for the same task.
 $tasks = Get-Content configs/progress_subset.txt | Where-Object { $_.Trim() -and -not $_.Trim().StartsWith('#') }
 $harborArgs = @(); foreach ($t in $tasks) { $harborArgs += "-i"; $harborArgs += "terminal-bench/$($t.Trim())" }
 harbor run -d terminal-bench/terminal-bench-2-1 -a oracle @harborArgs -n 4 -k 1 -o jobs --job-name oracle-21-check --yes
-python scripts/summarize_job.py jobs/oracle-21-check --csv results/oracle-21-check.csv
+python scripts/summarize_job.py jobs/oracle-21-check --csv results/harshini/oracle-21-check.csv
 ```
 
 Then the correction for the two timeouts:
@@ -110,5 +110,5 @@ Then the correction for the two timeouts:
 harbor run -d terminal-bench/terminal-bench-2-1 -a oracle `
   -i terminal-bench/reshard-c4-data -i terminal-bench/torch-pipeline-parallelism `
   -n 1 -k 1 -o jobs --job-name oracle-2-retry --timeout-multiplier 3.0 --yes
-python scripts/summarize_job.py jobs/oracle-21-check jobs/oracle-2-retry --csv results/oracle-21-final.csv
+python scripts/summarize_job.py jobs/oracle-21-check jobs/oracle-2-retry --csv results/harshini/oracle-21-final.csv
 ```

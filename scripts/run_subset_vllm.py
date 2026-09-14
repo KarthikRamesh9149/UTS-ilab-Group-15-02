@@ -281,7 +281,7 @@ def main() -> int:
         subprocess.run(cmd, cwd=ROOT, env=env, check=False)
 
     if not args.dry_run:
-        aggregate(run_dir, ROOT / "results" / ("%s.csv" % run_name))
+        aggregate(run_dir, ROOT / "results" / "harshini" / ("%s.csv" % run_name))
     return 0
 
 

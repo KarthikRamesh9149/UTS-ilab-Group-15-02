@@ -13,6 +13,8 @@ Each harness runs the same tasks once (`k=1`, concurrency 1, temperature 0) with
 
 The intended matrix is therefore 21 tasks × 3 harnesses × 2 models = **126 trials**. This is deliberately **not** a full 89-task run, an official leaderboard submission, or a statistically representative accuracy estimate.
 
+**Branches:** `main` holds the team matrix and shared protocol. Per-member experiment tracks use their own branch (e.g. **`harshini-trial-run`** for CETUS vLLM runs — see [`results/harshini/`](results/harshini/README.md)). Do not commit chat or meeting notes into the repo; use issues or your own notes locally.
+
 ## Current phase: a model capable enough to separate harnesses
 
 The 126-trial matrix scored **0 passes in every condition**, so accuracy could not
@@ -26,8 +28,9 @@ changes only the model, to a size where a harness difference has somewhere to sh
 | Piece | Where | Status |
 |---|---|---|
 | Custom harness (one bash command per turn) | [`experiments/itsha-bash-react/`](experiments/itsha-bash-react/README.md) | v0.2.1, one-lever changelog |
-| Host runnability of the frozen 21 | [`results/oracle-21-windows-check.md`](results/oracle-21-windows-check.md) | 19/21 valid |
-| Open-weights model server on UTS CETUS | [`hpc/`](hpc/) | staging |
+| Host runnability of the frozen 21 | [`results/harshini/oracle-21-windows-check.md`](results/harshini/oracle-21-windows-check.md) | 21/21 valid (Windows host) |
+| Same-model 21-task runs (custom + mini-SWE) | [`results/harshini/`](results/harshini/README.md) | on `harshini-trial-run` |
+| Open-weights model server on UTS CETUS | [`hpc/`](hpc/) | PBS scripts in repo |
 | Harbor job reader (any run → table/CSV) | `scripts/summarize_job.py` | working |
 
 Oracle validation is host-specific, so it was re-run on the machine that will produce

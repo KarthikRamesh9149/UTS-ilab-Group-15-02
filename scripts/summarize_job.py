@@ -3,7 +3,7 @@
 
 Usage:
     python scripts/summarize_job.py jobs/oracle-21-check
-    python scripts/summarize_job.py jobs/oracle-21-check --csv results/oracle-21-check.csv
+    python scripts/summarize_job.py jobs/oracle-21-check --csv results/harshini/oracle-21-check.csv
 
 Works on any Harbor 0.22 job directory, so the same reader serves the Oracle
 runnability check, the baseline harnesses and the custom harness.
