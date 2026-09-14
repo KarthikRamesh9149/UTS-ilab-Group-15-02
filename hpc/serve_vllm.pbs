@@ -125,10 +125,16 @@ apptainer exec --nv --bind "$HOME:$HOME" "$SIF" \
         --tensor-parallel-size "$TP" \
         --max-model-len "$MAX_MODEL_LEN" \
         --gpu-memory-utilization "$GPU_MEM_UTIL" \
+        --enable-auto-tool-choice \
+        --tool-call-parser hermes \
         --host 0.0.0.0 \
         --port "$PORT" \
         --api-key "$API_KEY" \
     > "$SERVER_LOG" 2>&1 &
+# --enable-auto-tool-choice + hermes: required for mini-swe-agent, which sends
+# tool_choice=auto. Without these, vLLM returns 400 and every mini trial dies
+# with NonZeroAgentExitCodeError. hermes is the Qwen2.5-compatible parser in
+# this image (qwen3_* parsers are for Qwen3 only).
 # No --disable-log-requests: it was removed in vLLM 0.29 (request logging is now
 # off by default, opt in via --enable-log-requests). Passing it is an argparse
 # error that kills the server on startup - which we would only have discovered
