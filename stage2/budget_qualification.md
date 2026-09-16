@@ -1,4 +1,38 @@
-# Scored-request admission remains closed
+# Approved estimated trial admission; scored execution not launched
+
+**Current amendment, 2026-09-16:** the user explicitly accepted the estimated
+per-trial limit proposed below. The historical decision-needed section records
+the earlier gate; it is no longer a request for permission. Implementation is
+tested in the gateway and ledger, not yet running scored benchmark jobs.
+
+`utf8-envelope-v1` estimates input as twice the sum of serialized-request UTF-8
+bytes and the largest of eight pinned-encoder rendered byte counts, plus 8,192
+tokens; it saturates at the full model context. Maximum requested output is
+added at the frozen price ceiling. This deliberately large allowance is an
+estimate, not a provider-guaranteed individual-trial cap. Unsupported message
+fields/non-function tools fail closed. The same estimator must serve all
+harnesses; no harness-specific discount or cache saving is assumed.
+
+The gateway now accepts a trusted host-side `trial_estimate` callable separately
+from `maximum_charge`. The latter must remain `full_context_bound` for scored
+production. A fresh scored ledger must explicitly set `allow_estimated_trials=True`;
+the mode is immutable. Existing funded/strict ledgers cannot switch modes.
+The original setup ledger remains strict and retains its $1 allocation.
+
+Project, stage and fresh-account admission check the full worst-case charge.
+Only the $0.055 per-trial check uses the estimate plus previous actual charges.
+Both amounts persist atomically before dispatch; ambiguous outcomes retain the
+full reservation. An actual charge above either amount is recorded and creates
+a persistent halt across all trials and process restarts, without automatic
+retry. All original total/stage allocations and the $2 account reserve remain.
+
+`trial_estimate_audit.json` tests the estimator against the three previously
+reconciled requests without another API call. All actual input counts/costs
+were covered. Initial estimated reservations were $0.00112040, $0.01311000 and
+$0.01310340, versus the unchanged hard reservation of $0.10487040 per request.
+These three samples do not establish full input-shape or production coverage.
+
+## Historical investigation before approval
 
 Checked 2026-09-16. This records a remaining gate, not a new budget or permission
 request. No scored request was sent to test an insufficient spending bound.
