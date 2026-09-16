@@ -233,3 +233,31 @@ The fixture used root in both containers. The task must not receive a Docker
 socket, gateway ledger or credential mount. Public task internet access remains
 unqualified and disabled in this fixture. Scored-request cost bounds and native
 baseline execution remain launch gates. No scored trial has run in Stage 2.
+
+2026-09-16 live HTTP milestone: `live_harbor_probe.py` exercised the installed
+Harbor LiteLLM client, localhost HTTP gateway, guarded admission ledger and
+actual pinned OpenRouter endpoint together. It returned exactly `UTS_OK` with
+one upstream dispatch, 14 input tokens and 4 output tokens. Cost $0.00000156;
+the generation receipt reconciled within this execution and no pending requests
+remain. Total aggregate setup spending is $0.00003396. A subsequent read-only
+account check reported credit $25.265142845 and matching key usage $0.00003396.
+The $0.10487040 full-context reservation was made before dispatch, using the
+existing $1 setup ledger, not a new allowance. No scored-trial bound is inferred.
+
+`receipt_polling.py` now provides bounded read-only receipt lookup: at most
+eight attempts with a 20-second admission deadline for new lookups by default.
+An already-running HTTP lookup retains the transport's 45-second timeout, so
+this is not a strict 20-second end-to-end wall limit. No generation call is
+retried. Unknown outcomes retain the reservation. The one-shot setup runner
+persists its marker and response privately and has an explicit read-only
+reconciliation mode for a delayed receipt. Its client disables SDK retries and
+bypasses Harbor's outer retry decorator only for this documented fixture;
+native baseline retry configuration still needs integration and verification.
+
+All 57 Stage 2 tests and 12 existing tests pass (69 total), including four new
+receipt delay/deadline/error tests. This was a real **client** run, not a Terminus
+agent, OpenHands agent or benchmark task. No task scores were produced. The
+remaining execution gates include scored-request cost limits, public task
+network isolation, native agent integration, dataset provenance and the
+previously documented study protocol gates. Mac checks remained normal with
+48 GiB disk free. Raw credentials and runtime journals remain untracked.
