@@ -1,4 +1,4 @@
-"""Fail-closed reservation ledger. Integration with a billing gateway is pending.
+"""Hard aggregate reservation ledger with optional approved trial estimates.
 
 Amounts are integer nanodollars, never binary floating point. Reserve BEFORE
 dispatch; interrupted/ambiguous requests retain their full reservation. A retry
@@ -23,7 +23,9 @@ class BudgetExceeded(RuntimeError):
 
 
 class Ledger:
-    def __init__(self, path, ceiling, trial_cap, stage_caps=None):
+    def __init__(self, path, ceiling, trial_cap, stage_caps=None, *, allow_estimated_trials=False):
+        if type(allow_estimated_trials) is not bool:
+            raise ValueError('Explicit boolean estimation policy required')
         self.db = sqlite3.connect(path, timeout=30, isolation_level=None)
         self.db.execute('PRAGMA synchronous=FULL')
         self.db.executescript('''
@@ -36,8 +38,19 @@ class Ledger:
             CREATE TABLE IF NOT EXISTS trial_stages (trial TEXT PRIMARY KEY, stage TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS generations (
                 request_id TEXT PRIMARY KEY, generation_id TEXT UNIQUE NOT NULL);
+            CREATE TABLE IF NOT EXISTS estimation_policy (
+                id INTEGER PRIMARY KEY CHECK(id=1), enabled INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS trial_estimates (
+                request_id TEXT PRIMARY KEY, amount INTEGER NOT NULL);
         ''')
         with self.transaction():
+            mode = self.db.execute('SELECT enabled FROM estimation_policy WHERE id=1').fetchone()
+            if mode is None:
+                if allow_estimated_trials and self.db.execute('SELECT COUNT(*) FROM requests').fetchone()[0]:
+                    raise ValueError('Cannot change an existing funded ledger to estimated mode')
+                self.db.execute('INSERT INTO estimation_policy VALUES (1,?)', (int(allow_estimated_trials),))
+            elif mode[0] != int(allow_estimated_trials):
+                raise ValueError('Existing estimation policy is immutable')
             self.db.execute('INSERT OR IGNORE INTO policy VALUES (1,?,?)', (dollars(ceiling), dollars(trial_cap)))
             policy = self.db.execute('SELECT ceiling,trial_cap FROM policy WHERE id=1').fetchone()
             if policy != (dollars(ceiling), dollars(trial_cap)):
@@ -51,6 +64,7 @@ class Ledger:
             elif supplied != stored:
                 raise ValueError('Existing stage allocations are immutable')
         self.ceiling, self.trial_cap = policy
+        self.allow_estimated_trials = allow_estimated_trials
 
     @contextmanager
     def transaction(self):
@@ -67,8 +81,13 @@ class Ledger:
         return self.db.execute(query + (' WHERE trial=?' if trial is not None else ''),
                                (trial,) if trial is not None else ()).fetchone()[0]
 
-    def reserve(self, request_id, trial, maximum, available_account_credit, stage=None):
+    def reserve(self, request_id, trial, maximum, available_account_credit, stage=None, *, trial_estimate=None):
         amount = dollars(maximum)
+        if trial_estimate is not None and not self.allow_estimated_trials:
+            raise ValueError('Estimated trial admission is not enabled for this ledger')
+        trial_amount = amount if trial_estimate is None else dollars(trial_estimate)
+        if not 0 < trial_amount <= amount:
+            raise ValueError('Trial estimate must be positive and no greater than the hard reservation')
         if amount <= 0 or not request_id or not trial:
             raise ValueError('Positive reservation and identifiers required')
         # Caller supplies a fresh account balance; leave $2 untouched and also
@@ -92,10 +111,15 @@ class Ledger:
                 if spent + amount > stages[stage]:
                     raise BudgetExceeded('Stage allocation exhausted')
                 self.db.execute('INSERT OR IGNORE INTO trial_stages VALUES (?,?)', (trial, stage))
-            if self.exposure() + amount > self.ceiling or self.exposure(trial) + amount > self.trial_cap or pending + amount > available:
+            # All earlier requests are settled (the pending barrier above).
+            # Only the per-trial admission uses an approved estimate. Project,
+            # stage and account checks retain the entire worst-case charge.
+            if self.exposure() + amount > self.ceiling or self.exposure(trial) + trial_amount > self.trial_cap or pending + amount > available:
                 raise BudgetExceeded('Reservation refused before dispatch')
             self.db.execute('INSERT INTO requests VALUES (?,?,?,NULL,?)',
                             (request_id, trial, amount, 'pending'))
+            if trial_estimate is not None:
+                self.db.execute('INSERT INTO trial_estimates VALUES (?,?)', (request_id, trial_amount))
 
     def settle(self, request_id, actual):
         charged = dollars(actual)
@@ -108,13 +132,14 @@ class Ledger:
                 if row[1] != charged:
                     raise ValueError('Conflicting billing evidence')
                 return
-            if charged > row[0]:
+            estimate = self.db.execute('SELECT amount FROM trial_estimates WHERE request_id=?', (request_id,)).fetchone()
+            if charged > row[0] or (estimate is not None and charged > estimate[0]):
                 # Persist a halt, including across process restarts.
                 self.db.execute('INSERT INTO incidents VALUES (?,?)', (request_id, charged))
                 overcharge = True
             self.db.execute("UPDATE requests SET charged=?,state='settled' WHERE id=?", (charged, request_id))
         if overcharge:
-            raise BudgetExceeded('Charge exceeds reservation; ledger halted')
+            raise BudgetExceeded('Charge exceeds reservation or trial estimate; ledger halted')
 
     def attach_generation(self, request_id, generation_id):
         if not isinstance(generation_id, str) or not generation_id or len(generation_id) > 256:

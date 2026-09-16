@@ -424,3 +424,23 @@ Final checks for the calibration increment: all 105 automated tests passed
 (72 Stage 2, 12 existing, 9 backend, 2 client, 6 runner, 4 job guards).
 Read-only account verification reports $25.264147325 available and matching
 $0.00102948 aggregate key usage. The study remains paused before scored work.
+
+2026-09-16 approved budget amendment implemented:
+
+The user accepted conservative estimated per-trial admission while retaining
+worst-case aggregate protection. Gateway/ledger now persist separate hard and
+estimated amounts atomically. Project, stage and account checks still use the
+full-context bound; trial checks use previous actual charges plus the estimate.
+Any actual charge exceeding the estimate persists a halt across restarts.
+Strict setup/pilot ledger behaviour remains the default. Estimation mode must
+be explicitly enabled on a fresh scored ledger and cannot be changed on reopen.
+
+`trial_estimator.py` provides the single shared `utf8-envelope-v1` estimator.
+The offline receipt audit covers all three additional calibration cases, with
+no new API call. See `budget_qualification.md` for the approved residual risk,
+formula and integration contract. Scored-run wiring, full runtime qualification
+and the remaining experiment gates still precede any benchmark launch.
+
+Verification: all 115 tests pass (82 Stage 2 + 12 existing + 21 custom suites).
+The estimate audit reused prior receipts and made no paid call. No new scored
+ledger was funded and no benchmark started during this amendment.

@@ -1,5 +1,10 @@
 {
-  "status": "authorised_rebudget_pending_gateway_integration",
+  "status": "authorised_dual_reservation_pending_scored_runner",
+  "per_trial_admission_mode": "conservative_estimate",
+  "per_trial_estimator_version": "utf8-envelope-v1",
+  "global_stage_account_reservation_mode": "full_model_context",
+  "halt_on_actual_cost_exceeding_estimate": true,
+  "estimation_risk_accepted_date": "2026-09-16",
   "currency": "USD",
   "observed_account_balance": "25.265176805",
   "untouched_reserve": "2.00",

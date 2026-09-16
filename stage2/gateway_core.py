@@ -1,4 +1,4 @@
-"""Gateway dispatch core; HTTP serving and live cost-bound qualification pending.
+"""Gateway dispatch core with separate hard and estimated trial reservations.
 
 Only the host supplies the estimator, balance reader and upstream transport.
 Agent payloads cannot choose them. There is deliberately no live default or
@@ -46,13 +46,14 @@ def reconcile_receipt(response, receipt):
 
 
 class Gateway:
-    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream, generation_reader=None):
+    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream, generation_reader=None, *, trial_estimate=None):
         self.ledger = ledger
         self.trial = trial
         self.balance_reader = balance_reader
         self.maximum_charge = maximum_charge
         self.upstream = upstream
         self.generation_reader = generation_reader
+        self.trial_estimate = trial_estimate
         self.lock = threading.Lock()
         self.revoked = False
 
@@ -74,9 +75,11 @@ class Gateway:
             maximum = self.maximum_charge(request)
             if dollars(maximum) <= 0:
                 raise GatewayError('Invalid request charge bound')
+            estimate = self.trial_estimate(request) if self.trial_estimate is not None else None
             balance = self.balance_reader()
             identifier = str(uuid.uuid4())
-            self.ledger.reserve(identifier, self.trial.identifier, maximum, balance, self.trial.stage)
+            self.ledger.reserve(identifier, self.trial.identifier, maximum, balance, self.trial.stage,
+                                trial_estimate=estimate)
             try:
                 response = self.upstream(request)
             except Exception:
