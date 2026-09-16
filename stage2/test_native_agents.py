@@ -5,6 +5,8 @@ from types import SimpleNamespace as NS
 import unittest
 import tempfile
 import ast
+import json
+import re
 from unittest.mock import patch
 
 from native_agents import ModelSettings, agent_factory, CompatibleOpenHands
@@ -67,9 +69,22 @@ class InstallerTests(unittest.IsolatedAsyncioTestCase):
             async def ensure_system_dependencies(self, env, deps): calls.append(deps)
             async def exec_as_root(self, env, command): calls.append(command)
             async def exec_as_agent(self, env, command): calls.append(command)
-        await CompatibleOpenHands.install(Receiver(), NS(default_user='root'))
-        for package in ['openhands-ai==0.62.0', 'openhands-agent-server==1.0.0a6',
-                        'openhands-sdk==1.0.0a6', 'openhands-tools==1.0.0a6']:
-            self.assertIn(package, calls[-1])
+        uploads = []
+        async def upload_file(**kwargs): uploads.append(kwargs)
+        await CompatibleOpenHands.install(Receiver(), NS(default_user='root', upload_file=upload_file))
+        self.assertEqual(uploads[0]['source_path'], Path(__file__).with_name('openhands-requirements.lock'))
+        self.assertEqual(uploads[0]['target_path'], '/opt/openhands-requirements.lock')
+        self.assertIn('--require-hashes -r /opt/openhands-requirements.lock', calls[-1])
         self.assertIn('uv python install 3.12', calls[-1])
         self.assertIn('openhands.core.main --version', calls[-1])
+
+    def test_lock_preserves_fixture_versions_and_hashes(self):
+        stage = Path(__file__).parent
+        normalize = lambda name: re.sub(r'[-_.]+', '-', name).lower()
+        expected = {normalize(name): version for name, version in
+                    json.loads((stage / 'openhands_fixture_audit.json').read_text())['installed_packages']}
+        raw = (stage / 'openhands-requirements.lock').read_text()
+        entries = re.findall(r'^([\w.-]+)==([^\s]+) \\\n((?:    --hash=sha256:[a-f0-9]{64}(?: \\)?\n)+)', raw, re.M)
+        actual = {normalize(name): version for name, version, hashes in entries}
+        self.assertEqual(actual, expected)
+        self.assertEqual(len(entries), 350)

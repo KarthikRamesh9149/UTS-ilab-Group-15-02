@@ -5,6 +5,7 @@ prompts, tools, context management and decision loops remain inherited.
 """
 import shlex
 import types
+from pathlib import Path
 
 from harbor.agents.installed.openhands import OpenHands
 from harbor.agents.terminus_2.terminus_2 import Terminus2
@@ -28,15 +29,18 @@ class CompatibleOpenHands(OpenHands):
         user = environment.default_user or 'root'
         await self.exec_as_root(environment,
             command='mkdir -p /opt/openhands-venv && chown ' + shlex.quote(user + ':' + user) + ' /opt/openhands-venv')
-        # Same native install procedure, with the already fixture-tested Python
-        # and four mutually compatible package versions. No task base replacement.
+        # Freeze the complete previously tested dependency set, not only the
+        # four top-level compatibility pins. No task base replacement.
+        await environment.upload_file(
+            source_path=Path(__file__).with_name('openhands-requirements.lock'),
+            target_path='/opt/openhands-requirements.lock')
+        await self.exec_as_root(environment, command='chmod 644 /opt/openhands-requirements.lock')
         await self.exec_as_agent(environment, command=(
             'set -euo pipefail; curl -LsSf https://astral.sh/uv/install.sh | sh && '
             'if [ -f "$HOME/.local/bin/env" ]; then source "$HOME/.local/bin/env"; fi && '
             'uv python install 3.12 && uv venv /opt/openhands-venv --python 3.12 && '
             'source /opt/openhands-venv/bin/activate && export SKIP_VSCODE_BUILD=true && '
-            'uv pip install openhands-ai==0.62.0 openhands-agent-server==1.0.0a6 '
-            'openhands-sdk==1.0.0a6 openhands-tools==1.0.0a6 && '
+            'uv pip install --require-hashes -r /opt/openhands-requirements.lock && '
             '/opt/openhands-venv/bin/python -m openhands.core.main --version'))
 
 
