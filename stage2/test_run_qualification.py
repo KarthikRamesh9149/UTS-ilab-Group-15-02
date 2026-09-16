@@ -34,12 +34,12 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
             admission = {'gateway_image': 'fixture', 'guard_image': 'fixture', 'setup_timeout_seconds': 30}
             with patch('run_qualification.validate', return_value=settings), \
                  patch('run_qualification.run_trial', side_effect=execute), \
-                 patch('run_qualification.audit_trial', return_value=billing) as audit, \
+                 patch('matrix_resume.audit_trial', return_value=billing) as audit, \
                  patch('builtins.print'):
                 first = await run(root, admission)
                 second = await run(root, admission)
             self.assertEqual(calls, tasks)
-            self.assertEqual(audit.call_count, 20)
+            self.assertEqual(audit.call_count, 40)
             self.assertFalse(first['paid_expansion_allowed'])
             self.assertEqual(first, second)
 
