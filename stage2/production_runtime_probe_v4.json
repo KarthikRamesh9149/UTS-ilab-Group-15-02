@@ -1,0 +1,27 @@
+{
+  "kind": "production_wiring_synthetic_provider_not_scored",
+  "time_utc": "2026-09-16T06:09:05.408445+00:00",
+  "live_api_calls": 0,
+  "images": {
+    "gateway": "sha256:d9426843da42da20b7eb662144f979f2712fab3013b6c84b53060e3368521ff1",
+    "guard": "sha256:1c0880608811bee9c493f4263d18fb2bcc2caebfb64731f84c4481881ec6a29d"
+  },
+  "checks": {
+    "task_has_no_gateway_mounts": true,
+    "task_is_nonroot": true,
+    "official_fixture_limits_preserved": true,
+    "task_guarded_namespace": true,
+    "no_host_port_or_privilege": true,
+    "nonroot_model_roundtrip": true,
+    "public_metadata_https": true,
+    "private_paths_absent_and_task_writable": true,
+    "model_access_revoked_before_verifier": true,
+    "task_state_survives_revocation": true,
+    "one_durable_reconciled_receipt": true,
+    "containers_removed": true,
+    "networks_removed": true,
+    "volumes_removed": true
+  },
+  "trial_path": ".runtime/stage2/production-runtime-prfhma7j",
+  "status": "passed"
+}
