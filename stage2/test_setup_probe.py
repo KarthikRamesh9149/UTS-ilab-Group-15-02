@@ -1,6 +1,7 @@
 from decimal import Decimal
 import unittest
-from setup_probe import full_context_bound, validate_metadata, CONTEXT
+from setup_probe import full_context_bound, validate_metadata, CONTEXT, fixture_request
+from gateway_policy import prepare_request
 from gateway_policy import MODEL, ENDPOINT
 
 
@@ -24,3 +25,9 @@ class SetupTests(unittest.TestCase):
             data=self.metadata()
             data['data']['endpoints'][0]['pricing'][field]=value
             with self.assertRaises(ValueError): validate_metadata(data)
+
+    def test_tool_fixture_is_accepted_without_server_tools(self):
+        request = prepare_request(fixture_request('tools'))
+        self.assertEqual(request['tools'][0]['function']['name'], 'record_fixture')
+        self.assertEqual(request['tools'][0]['type'], 'function')
+        self.assertEqual(full_context_bound(request), Decimal('.1048832'))
