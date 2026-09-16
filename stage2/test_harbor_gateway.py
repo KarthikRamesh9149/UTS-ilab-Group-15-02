@@ -15,6 +15,8 @@ from budget_ledger import Ledger
 from gateway_core import Gateway, Trial, token_digest
 from gateway_http import make_server
 from gateway_policy import MODEL
+from native_agents import ModelSettings, agent_factory
+from types import SimpleNamespace
 
 
 class HarborGatewayTests(unittest.IsolatedAsyncioTestCase):
@@ -44,19 +46,18 @@ class HarborGatewayTests(unittest.IsolatedAsyncioTestCase):
             thread = threading.Thread(target=serve, daemon=True)
             thread.start()
             try:
-                client = LiteLLM('openai/' + MODEL, temperature=0,
-                    api_base='http://127.0.0.1:' + str(server.server_address[1]) + '/v1',
-                    api_key='fixture', num_retries=0, timeout=5,
-                    model_info={'max_input_tokens':1048576,'max_output_tokens':64,
-                                'input_cost_per_token':.00000006,'output_cost_per_token':.00000018,
-                                'cache_read_input_token_cost':.000000015,
-                                'cache_creation_input_token_cost':0})
-                # Bypass only Harbor's outer retry decorator for this fixture;
-                # the actual native client body and HTTP serialization run.
-                response = await client.call.__wrapped__(client, 'Synthetic client fixture', max_tokens=64)
+                base = 'http://127.0.0.1:' + str(server.server_address[1]) + '/v1'
+                agent = agent_factory('terminus-2', ModelSettings(64, 1., 'high'))(
+                    paths=SimpleNamespace(agent_dir=Path(directory)), host_api_base=base,
+                    container_api_base='http://127.0.0.1:8765/v1', trial_token='fixture',
+                    agent_timeout_seconds=60)
+                # Actual production factory and its native client serialization.
+                response = await agent._llm.call('Synthetic client fixture', **agent._llm_call_kwargs)
                 self.assertEqual(response.content, 'UTS_FIXTURE')
                 self.assertEqual(len(calls), 1)
                 self.assertEqual(calls[0]['model'], MODEL)
+                self.assertEqual(calls[0]['temperature'], 1.)
+                self.assertEqual(calls[0]['reasoning'], {'effort': 'high'})
                 self.assertFalse(calls[0]['provider']['allow_fallbacks'])
             finally:
                 server.shutdown()

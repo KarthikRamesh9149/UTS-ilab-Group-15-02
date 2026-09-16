@@ -50,12 +50,14 @@ class CustomModelTests(unittest.TestCase):
             thread.start()
             try:
                 model = gateway_model('http://127.0.0.1:' + str(server.server_address[1]) + '/v1',
-                                      'synthetic', max_output_tokens=64)
+                                      'synthetic', max_output_tokens=64, temperature=1., reasoning_effort='high')
                 result = model.invoke('Synthetic fixture only')
                 self.assertEqual(result.content, 'UTS_CUSTOM_CLIENT_OK')
                 self.assertEqual(len(calls), 1)
                 self.assertEqual(calls[0]['model'], MODEL)
                 self.assertEqual(calls[0]['max_tokens'], 64)
+                self.assertEqual(calls[0]['temperature'], 1.)
+                self.assertEqual(calls[0]['reasoning'], {'effort': 'high'})
                 self.assertEqual(calls[0]['provider']['only'], ['deepinfra/fp8'])
                 self.assertFalse(calls[0]['provider']['allow_fallbacks'])
                 self.assertEqual(model.max_retries, 0)
