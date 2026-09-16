@@ -1,5 +1,11 @@
 # Stage 2 execution status
 
+Latest host decision: user authorised a Mac + OpenRouter fallback. Read-only
+qualification found insufficient current Docker resources, limited disk headroom
+and six unrelated running Orchestra services. See mac_host_qualification.md.
+No host transition or benchmark launch is claimed yet. CETUS records below
+remain historical evidence, not the newly selected execution target.
+
 Approved scope: CETUS task execution, OpenRouter DeepSeek V4 Flash 0731 through
 the verified DeepInfra FP8 endpoint; Terminus-2, OpenHands and a new custom
 Deep Agents/LangGraph harness. Preserve the Stage 1 pilot without edits.
