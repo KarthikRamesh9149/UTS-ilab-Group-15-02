@@ -14,7 +14,7 @@ FROZEN_FILES = tuple(sorted(set(RUNTIME_FILES) | {
     'input_manifest.json', 'dataset_provenance.json', 'development_selection.py',
     'finalist_freeze.py', 'final_schedule.py', 'matrix_resume.py',
     'run_qualification.py', 'run_development.py', 'run_diagnostic.py', 'qualification_review.py',
-    'run_final.py', 'custom_execution_limits.json'}))
+    'run_final.py', 'final_analysis.py', 'custom_execution_limits.json'}))
 
 
 def file_hashes(root):
