@@ -1,0 +1,7 @@
+FROM ghcr.io/astral-sh/uv@sha256:b6007a73910218ab068c7a9a7fb91e68f97017ab486af0ecd00403561a64e573
+COPY gateway-requirements.lock /tmp/gateway-requirements.lock
+RUN uv pip install --system --require-hashes -r /tmp/gateway-requirements.lock
+COPY *.py /study/stage2/
+RUN mkdir -p /study/.runtime/stage2 /study/.cache/stage2-tokenizer /socket
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENTRYPOINT ["python", "/study/stage2/scored_gateway.py"]

@@ -1,0 +1,18 @@
+{
+  "kind": "production_wiring_synthetic_provider_not_scored",
+  "time_utc": "2026-09-16T06:06:48.965729+00:00",
+  "live_api_calls": 0,
+  "images": {
+    "gateway": "sha256:f79304e46a66ee186c9ff42049206c82c0b0730eb302d39a4a9248f946f86d76",
+    "guard": "sha256:1c0880608811bee9c493f4263d18fb2bcc2caebfb64731f84c4481881ec6a29d"
+  },
+  "checks": {
+    "containers_removed": true,
+    "networks_removed": true,
+    "volumes_removed": true
+  },
+  "trial_path": ".runtime/stage2/production-runtime-ejc4pn6j",
+  "error_type": "RuntimeError",
+  "error": "Docker compose command failed for environment uts-production-fixture-f754ca61d2. Command: docker compose --project-name uts-production-fixture-f754ca61d2 --project-directory /Users/karthikramesh/.codex/.chatgpt-projects/g-p-6a789724c2d48191b80421978177d029/terminal-bench-progress-smoke/stage2/fixtures -f /private/var/folders/tm/bhp0l9fd6ps93_z9t_6r0dwc0000gn/T/tmp4dqauyw5/uts-production-fixture-f754ca61d2-docker-compose-resources.json -f /Users/karthikramesh/.codex/.chatgpt-projects/g-p-6a789724c2d48191b80421978177d029/terminal-bench-progress-smoke/.tools/uv-tools/harbor/lib/python3.12/site-packages/harbor/environments/docker/docker-compose-prebuilt.yaml -f /Users/karthikramesh/.codex/.chatgpt-projects/g-p-6a789724c2d48191b80421978177d029/terminal-bench-progress-smoke/.runtime/stage2/production-runtime-ejc4pn6j/compose.json -f /private/var/folders/tm/bhp0l9fd6ps93_z9t_6r0dwc0000gn/T/tmpcm056395/docker-compose-environment.json -f /private/var/folders/tm/bhp0l9fd6ps93_z9t_6r0dwc0000gn/T/tmpmcf1m_bl/docker-compose-mounts.json up --detach --wait. Return code: 1. Stdout:  Network uts-production-fixture-f754ca61d2_uts-task-egress Creating \n Network uts-production-fixture-f754ca61d2_uts-t",
+  "status": "failed"
+}

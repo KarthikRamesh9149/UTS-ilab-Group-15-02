@@ -58,3 +58,47 @@ Nine new tests use a synthetic provider, including an actual Unix-socket
 startup/interruption check. No production ledger or paid request was created
 by these tests. The gateway image, production Compose wiring and scored runner
 remain unfinished; the presence of the entry point is not launch qualification.
+
+## Combined production-layout fixture
+
+`production_compose.py` wires the gateway, socket initialiser, isolated relay
+and task-network guard. The task has no model-socket, key, token-file or ledger
+mount. A separate relay in its network namespace serves loopback HTTP, allowing
+non-root task processes without relaxing Unix-socket permissions. The gateway
+uses a pinned-base image and hash-locked Python dependencies.
+
+`production_runtime_probe_v4.json` passed 14 actual Docker checks: non-root
+model roundtrip through the real session/estimator, enforced CPU/RAM, private
+path absence, public metadata HTTPS, durable synthetic receipt, model-access
+revocation while retaining task files, and container/network/volume removal.
+The upstream provider was synthetic; no API generation occurred. Earlier
+failed fixture attempts v1-v3 are preserved rather than overwritten.
+
+Colima maps these Mac-owned private bind mounts to UID 0 inside the VM. The
+gateway and relay therefore use container UID 0 with all capabilities dropped;
+the task fixture remains UID 65534. Host ownership and 0700/0600 permissions
+were not weakened. This is a verified host mapping, not a portable assumption.
+The v3 test also exposed capability-name normalisation and merged stderr in
+Harbor output; v4 corrects those assertions and tests graceful server shutdown.
+
+`qualify_oracle.py` starts reference-solution qualification on the unchanged
+frozen dev20. It checks all canonical dataset hashes, preserves existing
+attempts and reward-zero outcomes, uses official CPU/RAM and timeouts, and
+checks disk, thermal/performance and critical-memory signals before each new
+task. A shared process lock excludes concurrent scored sessions. Reference
+solutions/verifier logs remain local and are not policy-development inputs.
+No model gateway or API key is attached to these reference runs.
+
+Full dev20 qualification, production native-agent integration, protocol freeze,
+tracing and scored evaluation remain required. Reference-solution results are
+infrastructure evidence, not model scores or evidence of a harness win.
+
+The initial `video-processing` reference attempt enforced its declared 1 CPU
+and 2048 MB but raised `RewardFileNotFoundError`: this manual adapter omitted
+the explicit agent/verifier log mounts supplied by Harbor's stock Trial.
+The original attempt remains in `.runtime/stage2/oracle-dev20`. Revision
+`explicit-log-mounts-v2` restores those mounts and uses a separate preserved
+attempt directory `.runtime/stage2/oracle-dev20-v2`. This is an infrastructure
+correction, not a retry of a known reward-zero result. Runtime inspection
+confirmed both log mounts with unchanged task CPU/RAM. Qualification is not
+complete until the reference run produces a valid verifier result.
