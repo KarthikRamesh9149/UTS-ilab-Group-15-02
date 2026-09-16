@@ -1,0 +1,5 @@
+services:
+  main:
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
