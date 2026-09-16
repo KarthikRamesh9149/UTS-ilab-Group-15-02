@@ -102,6 +102,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False):
             checks = dict(observed, verifier_reward_one=result.get('verifier_result', {}).get('rewards', {}).get('reward') == 1,
                 model_revoked=result.get('model_revoked') is True,
                 clean_status=result['status'] == 'verified',
+                billing_verified=result.get('billing', {}).get('billing_verified') is True,
                 containers_removed=result['containers_removed'], networks_removed=result['networks_removed'],
                 volumes_removed=result['volumes_removed'])
             receipts = list((fixture_root / '.runtime/stage2/scored-attempts/synthetic-runtime').glob('*.receipt.json'))
