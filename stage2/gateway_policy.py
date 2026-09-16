@@ -11,7 +11,7 @@ MODEL = 'deepseek/deepseek-v4-flash-0731'
 CANONICAL_MODEL = 'deepseek/deepseek-v4-flash-20260731'
 ENDPOINT = 'deepinfra/fp8'
 MAX_BODY = 2 * 1024 * 1024
-ALLOWED = {'model', 'messages', 'tools', 'tool_choice', 'max_tokens',
+ALLOWED = {'model', 'messages', 'tools', 'tool_choice', 'max_tokens', 'max_completion_tokens',
            'temperature', 'top_p', 'seed', 'stop', 'stream', 'reasoning',
            'parallel_tool_calls', 'response_format'}
 
@@ -31,13 +31,19 @@ def prepare_request(payload):
             raise ValueError('Invalid message')
         if message.get('content') is not None and not isinstance(message['content'], str):
             raise ValueError('Multimodal input is not cost-qualified')
-    maximum = payload.get('max_tokens')
+    if 'max_tokens' in payload and 'max_completion_tokens' in payload:
+        raise ValueError('Ambiguous output limit aliases')
+    maximum = payload.get('max_tokens', payload.get('max_completion_tokens'))
     if type(maximum) is not int or not 0 < maximum <= 384000:
         raise ValueError('Explicit bounded max_tokens required')
     encoded = json.dumps(payload, allow_nan=False).encode()
     if len(encoded) > MAX_BODY:
         raise ValueError('Request body too large')
     result = deepcopy(payload)
+    # OpenRouter documents these as equivalent total-generation limits. Keep
+    # one canonical field for the reservation function; do not alter its value.
+    result.pop('max_completion_tokens', None)
+    result['max_tokens'] = maximum
     result['stream'] = False
     result['provider'] = {
         'only': [ENDPOINT], 'order': [ENDPOINT], 'allow_fallbacks': False,
