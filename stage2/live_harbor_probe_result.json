@@ -1,0 +1,36 @@
+{
+  "kind": "real_harbor_http_provider_setup_not_scored",
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "maximum_reserved_usd": "0.10487040",
+  "time_utc": "2026-09-16T04:16:42.117759+00:00",
+  "status": "completed",
+  "client_text": "UTS_OK",
+  "exact_text": true,
+  "upstream_dispatches": 1,
+  "pending_requests": [],
+  "total_setup_exposure_usd": "0.00003396",
+  "generation_id": "gen-1789532202-xCMMXO2wvPnxbleaYKS0",
+  "usage": {
+    "prompt_tokens": 14,
+    "completion_tokens": 4,
+    "total_tokens": 18,
+    "cost": "0.00000156",
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": "0.00000156",
+      "upstream_inference_prompt_cost": "8.4E-7",
+      "upstream_inference_completions_cost": "7.2E-7"
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}
