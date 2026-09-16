@@ -9,6 +9,7 @@ from pathlib import Path
 import stat
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.parse import urlencode
 
 BASE = 'https://openrouter.ai/api/v1'
 ENDPOINTS = '/models/deepseek/deepseek-v4-flash-20260731/endpoints'
@@ -45,7 +46,7 @@ class OpenRouter:
         self.opener = opener or build_opener(NoRedirect())
 
     def _request(self, path, payload=None):
-        if path not in {'/credits', '/key', ENDPOINTS, '/chat/completions'}:
+        if path not in {'/credits', '/key', ENDPOINTS, '/chat/completions'} and not path.startswith('/generation?id='):
             raise TransportError('Unapproved API path')
         if path == '/chat/completions' and (not self.generation_enabled or payload is None):
             raise TransportError('Generation is disabled')
@@ -83,6 +84,11 @@ class OpenRouter:
 
     def complete(self, payload):
         return self._request('/chat/completions', payload)
+
+    def generation(self, identifier):
+        if not isinstance(identifier, str) or not identifier or len(identifier) > 256:
+            raise TransportError('Invalid generation identifier')
+        return self._request('/generation?' + urlencode({'id': identifier}))['data']
 
 
 if __name__ == '__main__':

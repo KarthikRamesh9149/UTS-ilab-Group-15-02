@@ -31,12 +31,13 @@ def token_digest(token):
 
 
 class Gateway:
-    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream):
+    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream, generation_reader=None):
         self.ledger = ledger
         self.trial = trial
         self.balance_reader = balance_reader
         self.maximum_charge = maximum_charge
         self.upstream = upstream
+        self.generation_reader = generation_reader
         self.lock = threading.Lock()
         self.revoked = False
 
@@ -53,6 +54,8 @@ class Gateway:
             request = prepare_request(payload)
             if self.maximum_charge is None:
                 raise GatewayError('No qualified request charge bound')
+            if self.generation_reader is None:
+                raise GatewayError('No billing reconciliation reader')
             maximum = self.maximum_charge(request)
             if dollars(maximum) <= 0:
                 raise GatewayError('Invalid request charge bound')
@@ -67,6 +70,7 @@ class Gateway:
                 raise GatewayError('Upstream outcome unknown; reservation retained') from None
             if not isinstance(response, dict) or response.get('model') != MODEL:
                 raise GatewayError('Unverified response identity; reservation retained')
+            self.ledger.attach_generation(identifier, response.get('id'))
             usage = response.get('usage')
             if not isinstance(usage, dict) or usage.get('cost') is None or not response.get('id'):
                 raise GatewayError('Missing billing evidence; reservation retained')
@@ -80,5 +84,15 @@ class Gateway:
             # Exact upstream decimal parsing is required of the transport.
             if not isinstance(cost, (str, int, Decimal)):
                 raise GatewayError('Inexact billing evidence; reservation retained')
+            try:
+                receipt = self.generation_reader(response['id'])
+                if receipt.get('id') != response['id'] or receipt.get('model') != MODEL or receipt.get('provider_name') != 'DeepInfra':
+                    raise ValueError('Receipt identity mismatch')
+                if not isinstance(receipt.get('total_cost'), (str, int, Decimal)) or isinstance(receipt['total_cost'], bool):
+                    raise ValueError('Missing exact receipt cost')
+                if dollars(receipt['total_cost']) != dollars(cost):
+                    raise ValueError('Costs disagree')
+            except Exception:
+                raise GatewayError('Billing reconciliation incomplete; reservation retained') from None
             self.ledger.settle(identifier, cost)
             return response

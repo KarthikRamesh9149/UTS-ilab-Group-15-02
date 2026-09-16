@@ -14,7 +14,9 @@ class GatewayTests(unittest.TestCase):
         self.calls = []
         self.response = {'id': 'synthetic-generation', 'model': MODEL, 'usage': {'cost': '.001'}}
         self.gateway = Gateway(self.ledger, Trial('trial1', 'development', token_digest('test-token')),
-                               lambda: '25', lambda request: '.01', self.upstream)
+                               lambda: '25', lambda request: '.01', self.upstream,
+                               lambda identifier: {'id': identifier, 'model': MODEL,
+                                  'provider_name': 'DeepInfra', 'total_cost': '.001'})
         self.payload = {'model': MODEL, 'messages': [{'role':'user','content':'fixture'}], 'max_tokens': 32}
 
     def tearDown(self):
@@ -76,3 +78,19 @@ class GatewayTests(unittest.TestCase):
         with self.assertRaises(GatewayError):
             self.gateway.complete('test-token', self.payload)
         self.assertEqual(self.ledger.exposure(), dollars('.01'))
+
+    def test_mismatched_receipt_retains_recoverable_generation(self):
+        self.gateway.generation_reader = lambda identifier: {'id':identifier, 'model':MODEL,
+            'provider_name':'DeepInfra', 'total_cost':'.002'}
+        with self.assertRaises(GatewayError):
+            self.gateway.complete('test-token', self.payload)
+        pending = self.ledger.pending()
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(pending[0][3], 'synthetic-generation')
+        self.assertEqual(self.ledger.exposure(), dollars('.01'))
+
+    def test_missing_reconciliation_reader_blocks_dispatch(self):
+        self.gateway.generation_reader = None
+        with self.assertRaises(GatewayError):
+            self.gateway.complete('test-token', self.payload)
+        self.assertFalse(self.calls)
