@@ -7,7 +7,7 @@ import tempfile
 import ast
 import json
 import re
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 
 from native_agents import ModelSettings, agent_factory, CompatibleOpenHands
 from gateway_policy import MODEL, prepare_request
@@ -63,6 +63,21 @@ class FactoryTests(unittest.TestCase):
 
 
 class InstallerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_connection_extras_reach_native_run_environment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            agent = agent_factory('openhands', ModelSettings(8192, 1., 'high'))(
+                paths=NS(agent_dir=Path(directory)), host_api_base='http://127.0.0.1:1234/v1',
+                container_api_base='http://127.0.0.1:8765/v1', trial_token='synthetic',
+                agent_timeout_seconds=60)
+            original = {'LLM_MODEL': agent.model_name}
+            with patch('harbor.agents.installed.openhands.OpenHands.exec_as_agent', new_callable=AsyncMock) as execute:
+                await agent.exec_as_agent(NS(), command='native-command', env=original)
+                forwarded = execute.call_args.kwargs['env']
+                self.assertEqual(forwarded['LLM_TIMEOUT'], '120')
+                self.assertEqual(ast.literal_eval(forwarded['LLM_COMPLETION_KWARGS']),
+                                 {'extra_body': {'reasoning': {'effort': 'high'}}})
+                self.assertEqual(original, {'LLM_MODEL': agent.model_name})
+
     async def test_only_compatibility_pins_are_added(self):
         calls = []
         class Receiver:

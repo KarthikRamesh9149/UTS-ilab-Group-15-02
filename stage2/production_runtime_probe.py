@@ -18,6 +18,29 @@ def gateway_fixture(native_openhands=False, native_custom=False):
     from scored_gateway import serve
     from setup_probe import CONTEXT
     from unittest.mock import patch
+    from gateway_policy import prepare_request
+    from model_protocol import ModelSettings
+    original_enforce = ModelSettings.enforce
+    def record_rejection(payload, error):
+        # Fixture-only diagnostics: no prompt text, tool arguments, headers,
+        # credentials or upstream requests are recorded here.
+        details = {'error': str(error), 'fields': sorted(payload),
+                   'content_types': [type(m.get('content')).__name__ for m in payload.get('messages', [])],
+                   'settings': {key: payload.get(key) for key in
+                                ['model', 'max_tokens', 'max_completion_tokens', 'temperature', 'top_p', 'reasoning', 'reasoning_effort']}}
+        Path('/study/.runtime/stage2/fixture-rejection.json').write_text(json.dumps(details))
+    def diagnosed_prepare(payload):
+        try:
+            return prepare_request(payload)
+        except ValueError as exc:
+            record_rejection(payload, exc)
+            raise
+    def diagnosed_enforce(self, payload):
+        try:
+            return original_enforce(self, payload)
+        except ValueError as exc:
+            record_rejection(payload, exc)
+            raise
     class SyntheticProvider:
         calls = 0
         def metadata(self):
@@ -53,7 +76,9 @@ def gateway_fixture(native_openhands=False, native_custom=False):
                 'usage': {'prompt_tokens': 10, 'completion_tokens': 4, 'cost': '.000001'}}
         def generation(self, identifier):
             return {'id': identifier, 'model': MODEL, 'provider_name': 'DeepInfra', 'total_cost': '.000001'}
-    with patch('openrouter_transport.OpenRouter', return_value=SyntheticProvider()):
+    with patch('openrouter_transport.OpenRouter', return_value=SyntheticProvider()), \
+         patch('gateway_core.prepare_request', side_effect=diagnosed_prepare), \
+         patch.object(ModelSettings, 'enforce', diagnosed_enforce):
         try:
             serve('/study', 'synthetic-runtime', 'development', '/run/trial-token',
                   '/run/openrouter.env', '/socket/private/model.sock')
