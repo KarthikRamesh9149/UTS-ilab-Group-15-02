@@ -21,9 +21,11 @@ from scored_trial import run_trial, docker
 from gateway_policy import MODEL
 
 
-async def probe(label, *, wait=False, rebuild_gateway=False):
+async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
     if not label.isalnum():
         raise ValueError('Alphanumeric unique evidence label required')
+    if harness not in {'marker', 'openhands'}:
+        raise ValueError('Unknown infrastructure probe harness')
     os.umask(0o077)
     root = Path(__file__).resolve().parents[1]
     runtime = private_directory(root / '.runtime/stage2')
@@ -63,14 +65,33 @@ async def probe(label, *, wait=False, rebuild_gateway=False):
         from harbor.models.task.task import Task
         task = Task(root / 'stage2/fixtures/lifecycle')
         task.config.environment.docker_image = guard_image
+        if harness == 'openhands':
+            task.config.environment.docker_image = docker('image', 'inspect', 'uts-stage2-openhands-fixture:1', '--format', '{{.Id}}')
+            task.config.environment.cpus = 2
+            task.config.environment.memory_mb = 4096
+            task.config.agent.timeout_sec = 180
         observed = {}
         def compose(**kwargs):
             kwargs['tokenizer_dir'] = root / '.cache/stage2-tokenizer'
             result = compose_runtime(**kwargs)
             result['services']['model-gateway']['entrypoint'] = ['python', '/study/stage2/production_runtime_probe.py']
             result['services']['model-gateway']['command'] = ['--gateway']
+            if harness == 'openhands':
+                result['services']['model-gateway']['command'].append('--native-openhands')
             return result
         def factory(**kwargs):
+            if harness == 'openhands':
+                import types
+                from native_agents import agent_factory, ModelSettings
+                agent = agent_factory('openhands', ModelSettings(8192, 1., 'high'))(**kwargs)
+                async def prepared_install(self, environment):
+                    version = await environment.exec(self.get_version_command(), timeout_sec=30)
+                    if version.return_code != 0:
+                        raise RuntimeError('Prepared native installation is not usable')
+                # Only the fixture has a preinstalled dependency environment.
+                # The production factory still installs into official images.
+                agent.install = types.MethodType(prepared_install, agent)
+                return agent
             class ProbeAgent:
                 async def setup(self, env): pass
                 async def run(self, instruction, env, context):
@@ -106,9 +127,10 @@ async def probe(label, *, wait=False, rebuild_gateway=False):
                 containers_removed=result['containers_removed'], networks_removed=result['networks_removed'],
                 volumes_removed=result['volumes_removed'])
             receipts = list((fixture_root / '.runtime/stage2/scored-attempts/synthetic-runtime').glob('*.receipt.json'))
-            checks['one_reconciled_synthetic_receipt'] = len(receipts) == 1
+            checks['expected_reconciled_synthetic_receipts'] = len(receipts) == (2 if harness == 'openhands' else 1)
             evidence = {'kind': 'synthetic_full_runner_not_benchmark_score', 'live_api_calls': 0,
                 'gateway_image': gateway_image, 'guard_image': guard_image,
+                'harness': harness, 'task_image': task.config.environment.docker_image,
                 'runtime_path': str(fixture_root.relative_to(root)), 'checks': checks,
                 'status': 'passed' if all(checks.values()) else 'failed'}
         except Exception as exc:
@@ -127,5 +149,6 @@ if __name__ == '__main__':
     parser.add_argument('--label', required=True)
     parser.add_argument('--wait', action='store_true')
     parser.add_argument('--rebuild-gateway', action='store_true')
+    parser.add_argument('--harness', choices=['marker', 'openhands'], default='marker')
     args = parser.parse_args()
-    asyncio.run(probe(args.label, wait=args.wait, rebuild_gateway=args.rebuild_gateway))
+    asyncio.run(probe(args.label, wait=args.wait, rebuild_gateway=args.rebuild_gateway, harness=args.harness))
