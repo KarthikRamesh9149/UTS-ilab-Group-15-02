@@ -83,3 +83,18 @@ do not change baseline semantics silently to make integration pass.
 See runtime_blockers.md: an approved isolated network route remains unresolved.
 The command-channel fixture also does not yet hide its socket/token from the
 task itself. Do not run agents through it. No paid model calls were made.
+
+2026-09-16 native-instance follow-up: PBS 88380 passed a deterministic native
+Apptainer instance test with no custom control socket/token or host bind mounts.
+Files persisted between separate commands; shared home/control paths were
+absent; networking remained disabled; the instance was stopped afterward.
+This supersedes the custom socket fixture as the preferred backend direction,
+but does not qualify the all89 runtime. Apptainer reported rootless cgroups
+unusable in fakeroot mode, leaving resource enforcement as an explicit gate.
+
+Added gateway dispatch core with trial-token authentication/revocation,
+reserve-before-dispatch, fresh-balance callback, and fail-closed handling of
+missing/ambiguous billing. Seven synthetic gateway tests passed; total 32 Stage 2
+plus 12 existing tests (44). No live transport, billable-input estimator or
+provider reconciliation has been qualified. No API requests are dispatched by
+default, and no paid call was made. HTTP serving/baseline wiring still pending.
