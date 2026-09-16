@@ -3,7 +3,8 @@ import tempfile
 import unittest
 
 from budget_ledger import BudgetExceeded, Ledger, dollars
-from gateway_core import Gateway, GatewayError, Trial, token_digest
+from gateway_core import Gateway, GatewayError, Trial, token_digest, reconcile_receipt
+from gateway_policy import CANONICAL_MODEL
 from gateway_policy import MODEL
 
 
@@ -94,3 +95,11 @@ class GatewayTests(unittest.TestCase):
         with self.assertRaises(GatewayError):
             self.gateway.complete('test-token', self.payload)
         self.assertFalse(self.calls)
+
+    def test_only_registered_canonical_alias_is_accepted(self):
+        receipt = {'id':self.response['id'], 'model':CANONICAL_MODEL,
+                   'provider_name':'DeepInfra', 'total_cost':'.001'}
+        self.assertEqual(reconcile_receipt(self.response,receipt), '.001')
+        receipt['model'] = 'deepseek/some-other-model'
+        with self.assertRaises(ValueError):
+            reconcile_receipt(self.response,receipt)

@@ -1,0 +1,42 @@
+{
+  "kind": "setup_compatibility_not_scored",
+  "status": "reconciled_without_replay",
+  "generation_id": "gen-1789527209-4IkGybBjNOGTAnqzdgwh",
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "receipt_model": "deepseek/deepseek-v4-flash-20260731",
+  "provider": "DeepInfra",
+  "actual_cost_usd": "0.00000156",
+  "usage": {
+    "prompt_tokens": 14,
+    "completion_tokens": 4,
+    "total_tokens": 18,
+    "cost": "0.00000156",
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": "0.00000156",
+      "upstream_inference_prompt_cost": "8.4E-7",
+      "upstream_inference_completions_cost": "7.2E-7"
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  },
+  "text": "UTS_OK",
+  "ledger_exposure_usd": "0.00000156",
+  "remaining_credit_usd": "25.265175245",
+  "key": {
+    "limit": 30,
+    "limit_remaining": "29.99999844",
+    "usage": "0.00000156",
+    "limit_reset": null
+  },
+  "time_utc": "2026-09-16T02:55:01.538910+00:00"
+}

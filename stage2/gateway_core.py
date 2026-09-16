@@ -12,7 +12,7 @@ import threading
 import uuid
 
 from budget_ledger import dollars
-from gateway_policy import MODEL, prepare_request
+from gateway_policy import MODEL, CANONICAL_MODEL, prepare_request
 
 
 class GatewayError(RuntimeError):
@@ -28,6 +28,21 @@ class Trial:
 
 def token_digest(token):
     return hashlib.sha256(token.encode()).hexdigest()
+
+
+def reconcile_receipt(response, receipt):
+    if response.get('model') != MODEL or receipt.get('id') != response.get('id'):
+        raise ValueError('Receipt identity mismatch')
+    if receipt.get('model') not in {MODEL, CANONICAL_MODEL} or receipt.get('provider_name') != 'DeepInfra':
+        raise ValueError('Receipt provider/model mismatch')
+    cost = response['usage']['cost']
+    actual = receipt.get('total_cost')
+    for value in (cost, actual):
+        if not isinstance(value, (str, int, Decimal)) or isinstance(value, bool):
+            raise ValueError('Missing exact receipt cost')
+    if dollars(actual) != dollars(cost):
+        raise ValueError('Costs disagree')
+    return actual
 
 
 class Gateway:
@@ -86,12 +101,7 @@ class Gateway:
                 raise GatewayError('Inexact billing evidence; reservation retained')
             try:
                 receipt = self.generation_reader(response['id'])
-                if receipt.get('id') != response['id'] or receipt.get('model') != MODEL or receipt.get('provider_name') != 'DeepInfra':
-                    raise ValueError('Receipt identity mismatch')
-                if not isinstance(receipt.get('total_cost'), (str, int, Decimal)) or isinstance(receipt['total_cost'], bool):
-                    raise ValueError('Missing exact receipt cost')
-                if dollars(receipt['total_cost']) != dollars(cost):
-                    raise ValueError('Costs disagree')
+                reconcile_receipt(response, receipt)
             except Exception:
                 raise GatewayError('Billing reconciliation incomplete; reservation retained') from None
             self.ledger.settle(identifier, cost)
