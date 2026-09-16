@@ -12,15 +12,15 @@ RUNTIME_FILES = ('budget_ledger.py', 'gateway_core.py', 'gateway_policy.py',
     'trial_estimator.py', 'openrouter_transport.py', 'receipt_polling.py',
     'production_compose.py', 'guarded_runtime.py', 'container_model_relay.py',
     'container_gateway_rpc.py', 'host_model_bridge.py', 'trial_execution.py',
-    'scored_trial.py', 'native_agents.py', 'custom_backend.py', 'custom_runner.py',
+    'scored_trial.py', 'pinned_docker.py', 'native_agents.py', 'custom_backend.py', 'custom_runner.py',
     'custom_model.py', 'custom_control.py', 'custom_jobs.py', 'custom_harbor_agent.py',
     'openhands-requirements.lock')
 
 RUNTIME_CHECKS = {'verifier_reward_one', 'model_revoked', 'clean_status', 'billing_verified',
                   'containers_removed', 'networks_removed', 'volumes_removed',
-                  'expected_reconciled_synthetic_receipts'}
+                  'expected_reconciled_synthetic_receipts', 'runtime_images_preserved'}
 LIVE_CHECKS = {'agent_created_file', 'native_tool_roundtrip', 'settings_on_wire',
-               'billing_verified', 'cleanup_verified', 'trajectory_written'}
+               'billing_verified', 'cleanup_verified', 'trajectory_written', 'runtime_images_preserved'}
 
 
 def source_hashes(root):

@@ -163,6 +163,9 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
                 trajectory = fixture_root / '.runtime/stage2/scored-trials/synthetic-runtime/agent/custom-trajectory.json'
                 checks['custom_trajectory_written'] = trajectory.is_file()
             checks['runtime_sources_unchanged'] = source_hashes(root) == LOADED_SOURCE_HASHES
+            checks['runtime_images_preserved'] = all(
+                docker('image', 'inspect', image, '--format', '{{.Id}}') == image
+                for image in (gateway_image, guard_image))
             evidence = {'kind': 'synthetic_full_runner_not_benchmark_score', 'live_api_calls': 0,
                 'gateway_image': gateway_image, 'guard_image': guard_image,
                 'harness': harness, 'task_image': task.config.environment.docker_image,

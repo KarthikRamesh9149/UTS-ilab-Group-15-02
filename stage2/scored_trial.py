@@ -68,7 +68,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
     Billing reconciliation/selection and final protocol admission remain the
     matrix's responsibility. An interrupted attempt is retained and not resumed.
     """
-    from harbor.environments.docker.docker import DockerEnvironment
+    from pinned_docker import PinnedImageDockerEnvironment as DockerEnvironment
     from harbor.models.task.task import Task
     from harbor.models.trial.paths import TrialPaths
     import math
