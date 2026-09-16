@@ -1,0 +1,50 @@
+#!/bin/bash
+#PBS -N uts-net-check
+#PBS -q smallq
+#PBS -l select=1:ncpus=1:mem=2gb
+#PBS -l walltime=00:05:00
+#PBS -j oe
+
+# Benign fixture only. No API keys, model calls, agents or privilege workarounds.
+set -u
+umask 077
+cd "${PBS_O_WORKDIR:?}"
+exec >"network-recheck-${PBS_JOBID}.log" 2>&1
+date -u
+hostname
+uname -sm
+apptainer version
+command -v docker podman slirp4netns pasta rootlesskit || true
+grep -E '^[[:space:]]*allow net' /etc/apptainer/apptainer.conf || true
+grep "^$(id -un):" /etc/subuid /etc/subgid || true
+cat /proc/self/cgroup
+for controller in memory cpuset; do
+  path=$(awk -F: -v c="$controller" '$2 ~ c {print $3}' /proc/self/cgroup)
+  for file in memory.limit_in_bytes cpuset.cpus; do
+    target="/sys/fs/cgroup/$controller$path/$file"
+    if [ -r "$target" ]; then printf '%s=' "$target"; cat "$target"; fi
+  done
+done
+curl --silent --show-error --max-time 15 --output /dev/null \
+  --write-out 'compute_openrouter_http=%{http_code}\n' https://openrouter.ai/api/v1/models
+jobdir=$(mktemp -d /scratch/uts-network-recheck.XXXXXX) || exit 1
+echo "scratch_path=$jobdir"
+export APPTAINER_CACHEDIR="$jobdir/cache"
+export APPTAINER_TMPDIR="$jobdir/tmp"
+mkdir -p "$APPTAINER_CACHEDIR" "$APPTAINER_TMPDIR"
+timeout 150 apptainer pull "$jobdir/ubuntu.sif" docker://ubuntu:24.04
+pull_status=$?
+echo "pull_exit=$pull_status"
+if [ "$pull_status" -eq 0 ]; then
+  echo 'Testing standard bridge permission; a denial is final, no workaround.'
+  timeout 20 apptainer exec --cleanenv --containall \
+    --no-mount home,tmp,bind-paths,hostfs,cwd --net --network bridge \
+    "$jobdir/ubuntu.sif" /bin/sh -c 'id; cat /proc/net/route'
+  echo "bridge_exit=$?"
+  timeout 20 apptainer exec --cleanenv --containall \
+    --no-mount home,tmp,bind-paths,hostfs,cwd --net --network none \
+    "$jobdir/ubuntu.sif" /bin/sh -c 'id; cat /proc/net/route; test ! -e /shared/homes'
+  echo "none_exit=$?"
+fi
+date -u
+echo recheck_finished
