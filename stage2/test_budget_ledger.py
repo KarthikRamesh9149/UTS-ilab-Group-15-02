@@ -2,6 +2,8 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 
 from budget_ledger import BudgetExceeded, Ledger, dollars
 
@@ -62,6 +64,53 @@ class BudgetTests(unittest.TestCase):
     def test_policy_cannot_be_raised_on_reopen(self):
         with self.assertRaises(ValueError):
             Ledger(self.path, '30', '.055')
+
+    def test_stage_budget_protects_final_allocation(self):
+        ledger = Ledger(Path(self.temp.name) / 'stages.sqlite', '.10', '.055',
+                        {'development': '.04', 'final': '.06'})
+        try:
+            ledger.reserve('a', 'dev1', '.04', '25', 'development')
+            ledger.settle('a', '.04')
+            with self.assertRaises(BudgetExceeded):
+                ledger.reserve('b', 'dev2', '.001', '25', 'development')
+            ledger.reserve('c', 'final1', '.055', '25', 'final')
+            ledger.settle('c', '.055')
+            with self.assertRaises(ValueError):
+                ledger.reserve('d', 'dev1', '.001', '25', 'final')
+        finally:
+            ledger.close()
+
+    def test_concurrent_reservations_admit_only_one(self):
+        barrier = Barrier(2)
+        def attempt(identifier):
+            ledger = Ledger(self.path, '.10', '.055')
+            try:
+                barrier.wait(timeout=5)
+                ledger.reserve(identifier, identifier, '.01', '25')
+                return True
+            except BudgetExceeded:
+                return False
+            finally:
+                ledger.close()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            self.assertEqual(sorted(pool.map(attempt, ['a', 'b'])), [False, True])
+
+    def test_settled_duplicate_id_is_not_dispatched_twice(self):
+        self.ledger.reserve('a', 'trial', '.01', '25')
+        self.ledger.settle('a', '.001')
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.ledger.reserve('a', 'trial', '.01', '25')
+
+    def test_overcharge_halt_survives_restart(self):
+        self.ledger.reserve('a', 'trial', '.01', '25')
+        with self.assertRaises(BudgetExceeded):
+            self.ledger.settle('a', '.02')
+        other = Ledger(self.path, '.10', '.055')
+        try:
+            with self.assertRaises(BudgetExceeded):
+                other.reserve('b', 'other', '.001', '25')
+        finally:
+            other.close()
 
 
 if __name__ == '__main__':

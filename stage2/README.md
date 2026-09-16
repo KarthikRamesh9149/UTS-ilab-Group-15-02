@@ -70,3 +70,16 @@ root/mount isolation, file roundtrip, no routes/TCP endpoints, private socket.
 Both logs are retained. This does not establish CPU/memory limits, adversarial
 containment, internet egress, Dockerfile/Compose support or all-task compatibility.
 Offline checks: 17 Stage 2 tests and 12 existing tests passed (29 total).
+
+2026-09-16 next increment: inventoried all 89 environment definitions (all have
+images, no Compose, maximum declared 4 CPUs/8192 MB RAM). Added immutable stage
+allocations to protect the final budget, one-outstanding-request admission,
+concurrent-reservation/restart tests and strict pinned-provider request policy.
+25 Stage 2 tests plus 12 existing tests passed (37 total). Request policy is
+offline only: streaming, input-cost bounds, actual billing reconciliation and
+live gateway integration are not qualified. Unsupported features fail closed;
+do not change baseline semantics silently to make integration pass.
+
+See runtime_blockers.md: an approved isolated network route remains unresolved.
+The command-channel fixture also does not yet hide its socket/token from the
+task itself. Do not run agents through it. No paid model calls were made.
