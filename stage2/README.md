@@ -104,3 +104,13 @@ missing/ambiguous billing. Seven synthetic gateway tests passed; total 32 Stage 
 plus 12 existing tests (44). No live transport, billable-input estimator or
 provider reconciliation has been qualified. No API requests are dispatched by
 default, and no paid call was made. HTTP serving/baseline wiring still pending.
+
+2026-09-16 OpenRouter transport increment: added fixed-origin HTTPS transport
+with redirects refused, no retries, exact decimal response parsing, sanitised
+HTTP errors and a private credential-file check. Generation remains disabled
+by default. All 37 Stage 2 tests and 12 existing tests passed (49 total).
+A real read-only account/endpoint check returned available account credit
+$25.265176805, key usage $0, key remaining allowance $30, and the requested
+DeepInfra FP8 endpoint at $0.06/M input and $0.18/M output tokens. This is not
+generation, tool-use, billing reconciliation or harness compatibility evidence.
+The safe request-cost bound and live gateway serving remain pending.
