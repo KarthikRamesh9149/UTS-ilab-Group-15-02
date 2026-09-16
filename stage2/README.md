@@ -158,3 +158,21 @@ All 46 Stage 2 tests and 12 existing tests passed (58 total). No scored task
 ran. Tool calling, HTTP-to-live-provider wiring, real baseline execution,
 input-cost bounds for scored trials, Docker network isolation and full runtime
 qualification remain outstanding. The one-shot marker prevents probe replay.
+
+2026-09-16 tool/client milestone: the single real tool-call fixture returned
+`record_fixture` with exactly `{"marker":"UTS_OK","count":7}`; no commands or
+tool side effects were executed. Cost $0.00003084 (319 input, 65 output tokens).
+Its receipt was delayed beyond bounded read-only polling, so the gateway stopped
+and retained the reservation. Reconciled the same generation later, no replay.
+Total setup spend $0.00003240, no pending requests. Refreshed key usage and
+account credit agree: remaining $25.265144405. Keep the earlier result/receipt
+snapshots: they accurately record the transient accounting delay.
+
+The installed Harbor LiteLLM client successfully used the real localhost HTTP
+gateway and guarded core with a scripted upstream response, exactly once.
+Harbor's outer automatic retry decorator was explicitly bypassed only in this
+fixture and SDK retries disabled. A production connection adapter must preserve
+that no-hidden-retries property; no baseline agent was executed by this test.
+No vendor package was edited. All 48 Stage 2 tests plus 12 existing tests pass
+(60 total). Scored-trial input-cost bounds, native agent/task wiring and Docker
+network isolation still require qualification before the study can launch.

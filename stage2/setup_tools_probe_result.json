@@ -1,0 +1,18 @@
+{
+  "kind": "setup_compatibility_not_scored",
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "endpoint": "deepinfra/fp8",
+  "maximum_reserved_usd": "0.10488320",
+  "time_utc": "2026-09-16T03:06:18.751288+00:00",
+  "status": "stopped_requires_reconciliation",
+  "error_type": "GatewayError",
+  "pending_requests": [
+    [
+      "0cda5c97-9218-425c-b934-8d879cd414af",
+      "compatibility-tools-v1",
+      104883200,
+      "gen-1789527978-dcXQ48AiF4WStPVKSpWK"
+    ]
+  ],
+  "ledger_exposure_usd": "0.10488476"
+}
