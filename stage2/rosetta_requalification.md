@@ -1,5 +1,39 @@
 # Host translation correction: reference qualification remains pending
 
+## Completed qualification outcome
+
+All 20 post-change reference trials completed: 16 passes, four zero rewards,
+no missing verifier outcomes, and verified resource limits and cleanup for every
+trial. This does **not** qualify the full study's host. Paid benchmark execution
+remains blocked by environment compatibility, not by a model result.
+
+| Task | Reference outcome | Infrastructure evidence |
+|---|---|---|
+| build-pov-ray | Zero | Reference download returned HTTP 403 |
+| install-windows-3.11 | Zero | Rosetta unsupported syscall 282 |
+| qemu-alpine-ssh | Zero | Rosetta unsupported syscall 282 |
+| qemu-startup | Zero | Rosetta unsupported syscall 282 |
+
+All other selected reference tasks passed, including regex-chess, which timed
+out under the original QEMU translation run. The original 15-pass/4-zero/1-timeout
+run remains preserved. Neither set of reference outcomes is a model score.
+
+The supported Rosetta correction therefore improved one reference outcome but
+did not remove the x86-64 compatibility barrier. A qualified native x86-64 Linux
+Docker host is the next candidate; it must be explicitly available/approved and
+must itself pass isolation, resources, networking and reference checks. No paid
+host purchase or task-specific syscall shim has been authorised by this note.
+The download rejection requires separate diagnosis even on a native host.
+
+A read-only GitHub Codespaces inventory attempt returned HTTP 403 because the
+current CLI login lacks the `codespace` scope. Availability is unknown, not
+confirmed absent. No scope refresh, Codespace creation or external spend occurred.
+The already-queued synthetic runtime probe may finish; no paid matrix or live
+model requalification is queued behind it. Original setup spend remains
+USD 0.00463008; the reference run made zero model calls.
+
+## Historical investigation and correction
+
 2026-09-16. The initial reference run had 15 passes, four zero rewards and one
 timeout. Infrastructure-only inspection found:
 
