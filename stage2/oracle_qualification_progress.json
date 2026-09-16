@@ -1,10 +1,10 @@
 {
   "kind": "reference_solution_runtime_qualification_not_model_score",
   "status": "partial_snapshot",
-  "snapshot_utc": "2026-09-16T06:41:23.511176+00:00",
+  "snapshot_utc": "2026-09-16T06:49:00.192889+00:00",
   "frozen_development_tasks": 20,
-  "valid_results_in_snapshot": 6,
-  "reference_passes_in_snapshot": 5,
+  "valid_results_in_snapshot": 8,
+  "reference_passes_in_snapshot": 6,
   "live_api_calls": 0,
   "runtime_revision": "explicit-log-mounts-v2",
   "results": [
@@ -91,11 +91,37 @@
       "agent_timeout_sec": 3600.0,
       "verifier_timeout_sec": 3600.0,
       "reward": 1.0
+    },
+    {
+      "task": "install-windows-3.11",
+      "status": "verified",
+      "time_utc": "2026-09-16T06:40:58.641365+00:00",
+      "elapsed_seconds": 385.144,
+      "cleanup_verified": true,
+      "image_id": "sha256:c6695097316ef8810abce0545e347e65354aef9d51d4f7f662c3242e742f6a3e",
+      "resource_limits_verified": true,
+      "cpus": 2,
+      "memory_mb": 4096,
+      "agent_timeout_sec": 3600.0,
+      "verifier_timeout_sec": 3600.0,
+      "reward": 0.0
+    },
+    {
+      "task": "openssl-selfsigned-cert",
+      "status": "verified",
+      "time_utc": "2026-09-16T06:47:23.801887+00:00",
+      "elapsed_seconds": 52.719,
+      "cleanup_verified": true,
+      "image_id": "sha256:4c948a4e630af2435ae0a19108fc0814a946ac2fa29a512469e0fc77b38c8c12",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
     }
   ],
   "pending_tasks": [
-    "install-windows-3.11",
-    "openssl-selfsigned-cert",
     "regex-chess",
     "polyglot-rust-c",
     "adaptive-rejection-sampler",
