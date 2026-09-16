@@ -36,3 +36,25 @@ Remaining gates before scored execution:
 
 The fixture checks normal completion cleanup, not all crash/failure paths.
 No scored Stage 2 result or harness-quality improvement is claimed.
+
+## Production gateway lifecycle increment
+
+`scored_gateway.py` now implements a trusted session and private-socket server
+entry point. All conditions use the canonical `scored_budget.sqlite`, with
+$21.285 aggregate, $6.600 development and $14.685 final allocations. The
+existing $1 setup allowance is separate and unchanged; no contingency is
+automatically released. The approved estimated $0.055 trial admission is wired
+to full-context aggregate reservations and a persistent underestimate halt.
+
+Every dispatch checks current endpoint metadata, account credit and key
+allowance. An exclusive process lock prevents overlapping scored sessions.
+Trial directories are single-use, including after interruption; request,
+response and billing receipt files are private, exclusive and flushed to disk.
+Uncertain billing blocks the next trial. The server closes its socket and
+revokes its session on normal interruption; Docker lifecycle integration must
+still enforce agent-to-verifier revocation and crash cleanup.
+
+Nine new tests use a synthetic provider, including an actual Unix-socket
+startup/interruption check. No production ledger or paid request was created
+by these tests. The gateway image, production Compose wiring and scored runner
+remain unfinished; the presence of the entry point is not launch qualification.
