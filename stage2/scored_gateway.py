@@ -55,6 +55,7 @@ class ScoredSession:
         self.closed = False
         self.client = client
         self.sequence = 0
+        self.budget_stop_sequence = 0
         self.active_prefix = None
         root = Path(root).resolve()
         runtime = private_directory(root / '.runtime' / 'stage2')
@@ -117,7 +118,14 @@ class ScoredSession:
     def complete(self, token, payload):
         if self.closed:
             raise RuntimeError('Session is closed')
-        return self.gateway.complete(token, payload)
+        try:
+            return self.gateway.complete(token, payload)
+        except BudgetExceeded:
+            self.budget_stop_sequence += 1
+            durable_json(self.evidence / f'{self.budget_stop_sequence:06d}.budget-stop.json', {
+                'trial_id': self.gateway.trial.identifier, 'stage': self.gateway.trial.stage,
+                'kind': 'budget_stop', 'generation_sequence': self.sequence})
+            raise
 
     def close(self):
         self.closed = True

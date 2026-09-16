@@ -76,4 +76,6 @@ def agent_factory(harness, settings, *, custom_max_model_calls=None, parent=None
             max_output_tokens=settings.max_output_tokens, max_model_calls=custom_max_model_calls,
             temperature=settings.temperature, reasoning_effort=settings.reasoning_effort,
             trial_timeout_seconds=agent_timeout_seconds)
+    create.harness = harness
+    create.model_protocol_sha256 = settings.fingerprint()
     return create

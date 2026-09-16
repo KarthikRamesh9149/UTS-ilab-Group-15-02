@@ -64,6 +64,11 @@ def audit_trial(runtime, trial_id, stage):
             raise ValueError('Gateway attempt identity mismatch')
         if started.get('model_protocol_sha256') != settings.fingerprint():
             raise ValueError('Gateway model protocol identity mismatch')
+        stops = list(evidence.glob('*.budget-stop.json'))
+        for path in stops:
+            stop = read_json(path)
+            if stop.get('trial_id') != trial_id or stop.get('stage') != stage or stop.get('kind') != 'budget_stop':
+                raise ValueError('Invalid budget stop evidence')
         requests = sorted(evidence.glob('*.request.json'))
         responses = sorted(evidence.glob('*.response.json'))
         receipts = sorted(evidence.glob('*.receipt.json'))
@@ -97,6 +102,7 @@ def audit_trial(runtime, trial_id, stage):
         if charged > dollars('.055'):
             raise ValueError('Trial charge exceeded approved estimated admission cap')
         return {'billing_verified': True, 'requests': len(rows),
+                'budget_stop_count': len(stops),
                 'model_protocol_sha256': settings.fingerprint(),
                 'charged_usd': str(Decimal(charged) / UNIT),
                 'aggregate_charged_usd': str(Decimal(total) / UNIT),

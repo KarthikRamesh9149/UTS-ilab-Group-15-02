@@ -11,6 +11,7 @@ from scored_gateway import ScoredSession
 from test_scored_gateway import Client
 from model_protocol import ModelSettings, freeze_protocol
 from scored_gateway import private_directory
+from budget_ledger import BudgetExceeded
 
 
 class AccountingTests(unittest.TestCase):
@@ -53,6 +54,15 @@ class AccountingTests(unittest.TestCase):
         evidence = self.create()
         (evidence / '000001.receipt.json').unlink()
         with self.assertRaises(ValueError): audit_trial(self.runtime, 'test', 'development')
+
+    def test_budget_refusal_is_counted_without_fake_charge(self):
+        self.client.allowance = '2.001'
+        with self.assertRaises(BudgetExceeded): self.create()
+        result = audit_trial(self.runtime, 'test', 'development')
+        self.assertEqual(result['requests'], 0)
+        self.assertEqual(result['charged_usd'], '0')
+        self.assertEqual(result['budget_stop_count'], 1)
+        self.assertEqual(self.client.calls, 0)
 
     def test_matching_forged_artifact_cost_still_must_match_ledger(self):
         evidence = self.create()

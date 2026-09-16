@@ -87,6 +87,9 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         health = check_host()
         protocol_hash = freeze_protocol(runtime, model_settings)
+        factory_protocol = getattr(agent_factory, 'model_protocol_sha256', protocol_hash)
+        if factory_protocol != protocol_hash:
+            raise ValueError('Agent factory and gateway model settings differ')
         manifest = json.loads((root / 'stage2/input_manifest.json').read_text())
         allowed = manifest['development_ids' if stage == 'development' else 'all_task_ids']
         if task_id not in allowed:
@@ -108,6 +111,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             handle.write(token)
         project = 'uts-scored-' + uuid.uuid4().hex[:12]
         result = {'trial_id': trial_id, 'task_id': task_id, 'stage': stage,
+                  'harness': getattr(agent_factory, 'harness', None),
                   'started_utc': datetime.now(timezone.utc).isoformat(), 'host': health,
                   'model_protocol_sha256': protocol_hash,
                   'status': 'starting', 'project': project}
