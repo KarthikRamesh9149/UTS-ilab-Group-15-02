@@ -13,7 +13,7 @@ FROZEN_FILES = tuple(sorted(set(RUNTIME_FILES) | {
     'custom-requirements.lock', 'gateway-requirements.lock', 'budget_policy.json',
     'input_manifest.json', 'dataset_provenance.json', 'development_selection.py',
     'finalist_freeze.py', 'final_schedule.py', 'matrix_resume.py',
-    'run_qualification.py', 'run_development.py', 'qualification_review.py',
+    'run_qualification.py', 'run_development.py', 'run_diagnostic.py', 'qualification_review.py',
     'custom_execution_limits.json'}))
 
 
