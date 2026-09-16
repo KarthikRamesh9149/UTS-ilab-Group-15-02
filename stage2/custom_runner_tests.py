@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import AsyncMock
 from pydantic import PrivateAttr
 from langchain_core.messages import AIMessage
 from langchain_core.outputs import ChatResult, ChatGeneration
@@ -57,6 +58,27 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
             await runner.run('Synthetic task', timeout_seconds=20)
         self.assertEqual(len(model._calls), 1)
         self.assertEqual(runner.control.repairs_used, 0)
+
+    async def test_mid_graph_failure_preserves_prior_tool_observations(self):
+        model, runner = self.make([AIMessage(content='', tool_calls=[{
+            'name': 'execute', 'args': {'command': 'printf marker'}, 'id': 'prior-tool'}]),
+            RuntimeError('Later provider failure')])
+        with self.assertRaises(RuntimeError):
+            await runner.run('Synthetic task', timeout_seconds=20)
+        self.assertTrue(any(getattr(message, 'tool_call_id', None) == 'prior-tool'
+                            for message in runner.state['messages']))
+        self.assertEqual(len(model._calls), 2)
+
+    async def test_production_cleanup_can_wait_until_after_verification(self):
+        model = SequenceModel()
+        model._sequence = [completion()]
+        runner = CustomRunner(model, HarborSandbox(FakeEnvironment(), identifier='test'),
+            Condition('C0'), max_model_calls=2, defer_job_cleanup=True)
+        runner.jobs.close = AsyncMock()
+        await runner.run('Synthetic', timeout_seconds=10)
+        runner.jobs.close.assert_not_awaited()
+        await runner.jobs.close()
+        runner.jobs.close.assert_awaited_once()
 
     async def test_call_limit_survives_repair_invocations(self):
         model, runner = self.make([AIMessage(content='No completion')] * 4, limit=1)

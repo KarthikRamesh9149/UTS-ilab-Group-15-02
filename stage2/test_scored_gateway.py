@@ -1,5 +1,6 @@
 from decimal import Decimal
 import json
+import fcntl
 from pathlib import Path
 import tempfile
 import unittest
@@ -80,6 +81,14 @@ class ScoredGatewayTests(unittest.TestCase):
                 self.session('trial-2')
         with self.session('trial-2'):
             pass
+
+    def test_gateway_and_host_orchestration_locks_are_distinct(self):
+        runtime = self.root / '.runtime/stage2'
+        runtime.mkdir(parents=True, mode=0o700)
+        with (runtime / 'scored.lock').open('w') as host_lock:
+            fcntl.flock(host_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            with self.session():
+                self.assertTrue((runtime / 'gateway.lock').exists())
 
     def test_ambiguous_generation_persists_and_blocks_next_trial(self):
         self.client.fail = True

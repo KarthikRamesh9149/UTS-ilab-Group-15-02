@@ -34,12 +34,15 @@ class TrialModelLimit(AgentMiddleware):
 
 
 class CustomRunner:
-    def __init__(self, model, backend, condition: Condition, *, max_model_calls):
+    def __init__(self, model, backend, condition: Condition, *, max_model_calls, defer_job_cleanup=False):
         if getattr(model, 'model_name', None) != MODEL:
             raise ValueError('Explicit pinned model required')
         if type(max_model_calls) is not int or max_model_calls <= 0:
             raise ValueError('Explicit model call limit required')
         self.control = CompletionControl(condition)
+        if type(defer_job_cleanup) is not bool:
+            raise ValueError('Explicit cleanup lifecycle required')
+        self.defer_job_cleanup = defer_job_cleanup
         self.jobs = ContainerJobs(backend)
         self.used = False
         self.state = None
@@ -90,7 +93,12 @@ class CustomRunner:
             async with asyncio.timeout(timeout_seconds):
                 while not self.control.terminal:
                     events_before = len(self.control.events)
-                    self.state = await self.graph.ainvoke(self.state, config={'recursion_limit': 10000})
+                    # Keep each committed graph state so a later timeout or
+                    # provider error does not erase earlier tool observations.
+                    # This streams graph states, not provider token responses.
+                    async for snapshot in self.graph.astream(self.state,
+                            config={'recursion_limit': 10000}, stream_mode='values'):
+                        self.state = snapshot
                     if self.control.terminal:
                         break
                     if len(self.control.events) == events_before:
@@ -105,7 +113,8 @@ class CustomRunner:
             # Caller must destroy the trial container even if cleanup fails.
             primary = sys.exception()
             try:
-                await self.jobs.close()
+                if not self.defer_job_cleanup:
+                    await self.jobs.close()
             except Exception as cleanup_error:
                 if primary is None:
                     raise
