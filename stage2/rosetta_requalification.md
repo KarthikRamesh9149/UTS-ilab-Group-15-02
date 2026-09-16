@@ -71,3 +71,11 @@ Do not treat Rosetta as a general fix for all task environments or relabel this
 reference failure as a model failure. Task files and official limits remain
 unchanged; no favourable retry or task substitution was performed. At this
 snapshot, seven post-change reference outcomes exist: five passes and two zeros.
+
+The upstream Linux x86-64 syscall table identifies syscall 282 as `signalfd`:
+https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall_64.tbl
+This interpretation applies to the observed amd64 image, not syscall tables
+for other architectures. Rosetta's explicit unsupported-call error is evidence
+of a translation limitation in this run. No syscall shim, task patch, hidden
+test change or privilege expansion has been applied to hide it. Full-host
+qualification remains unresolved; the remaining reference checks continue.
