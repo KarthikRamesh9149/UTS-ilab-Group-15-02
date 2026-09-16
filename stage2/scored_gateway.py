@@ -60,7 +60,10 @@ class ScoredSession:
         runtime = private_directory(root / '.runtime' / 'stage2')
         try:
             # O_NOFOLLOW avoids following a replaced control-file symlink.
-            descriptor = os.open(runtime / 'scored.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+            # The host orchestrator separately holds scored.lock for the whole
+            # trial. Do not rely on flock propagating across macOS/Colima, or
+            # deadlock against that host lock on filesystems where it does.
+            descriptor = os.open(runtime / 'gateway.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
             self.lock = os.fdopen(descriptor, 'r+')
             fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self.available_balance()

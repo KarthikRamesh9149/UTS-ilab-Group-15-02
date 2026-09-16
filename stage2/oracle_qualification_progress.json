@@ -1,30 +1,104 @@
 {
   "kind": "reference_solution_runtime_qualification_not_model_score",
   "status": "partial_snapshot",
+  "snapshot_utc": "2026-09-16T06:34:26.175669+00:00",
   "frozen_development_tasks": 20,
-  "valid_results_in_snapshot": 1,
-  "reference_passes_in_snapshot": 1,
+  "valid_results_in_snapshot": 5,
+  "reference_passes_in_snapshot": 4,
   "live_api_calls": 0,
   "runtime_revision": "explicit-log-mounts-v2",
   "results": [
     {
       "task": "video-processing",
-      "time_utc": "2026-09-16T06:16:16.849373+00:00",
       "status": "verified",
-      "reward": 1.0,
+      "time_utc": "2026-09-16T06:16:16.849373+00:00",
       "elapsed_seconds": 124.063,
+      "cleanup_verified": true,
       "image_id": "sha256:a2c0f39e3ab04e67ac6e49cad9167bb0d987babe32511768c01aa0c6905a875f",
+      "resource_limits_verified": true,
       "cpus": 1,
       "memory_mb": 2048,
       "agent_timeout_sec": 3600.0,
       "verifier_timeout_sec": 3600.0,
+      "reward": 1.0
+    },
+    {
+      "task": "build-pov-ray",
+      "status": "verified",
+      "time_utc": "2026-09-16T06:18:49.975115+00:00",
+      "elapsed_seconds": 132.496,
+      "cleanup_verified": true,
+      "image_id": "sha256:874baf49341e2853a15a9184e308c7eb632e97f434359fcff2891c6e5ca1b39b",
       "resource_limits_verified": true,
-      "cleanup_verified": true
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 12000.0,
+      "verifier_timeout_sec": 12000.0,
+      "reward": 0.0
+    },
+    {
+      "task": "mailman",
+      "status": "verified",
+      "time_utc": "2026-09-16T06:21:02.493028+00:00",
+      "elapsed_seconds": 234.02,
+      "cleanup_verified": true,
+      "image_id": "sha256:04fac73db7e2b4f49d43f09fbc2266a94d70131f07efa1393d370abc059f4094",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 1800.0,
+      "verifier_timeout_sec": 1800.0,
+      "reward": 1.0
+    },
+    {
+      "task": "constraints-scheduling",
+      "status": "verified",
+      "time_utc": "2026-09-16T06:24:56.529263+00:00",
+      "elapsed_seconds": 75.307,
+      "cleanup_verified": true,
+      "image_id": "sha256:567ce5a189f8d11ac461790876e934cc7af38391baf89a78f95f4dafc1fec3b0",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 1200.0,
+      "verifier_timeout_sec": 1200.0,
+      "reward": 1.0
+    },
+    {
+      "task": "overfull-hbox",
+      "status": "verified",
+      "time_utc": "2026-09-16T06:26:11.851009+00:00",
+      "elapsed_seconds": 246.49,
+      "cleanup_verified": true,
+      "image_id": "sha256:7dca952bb6736194a736b5110945f48842eafa8551e24468f1dddeed0daee799",
+      "resource_limits_verified": true,
+      "cpus": 2,
+      "memory_mb": 4096,
+      "agent_timeout_sec": 750.0,
+      "verifier_timeout_sec": 360.0,
+      "reward": 1.0
     }
   ],
+  "pending_tasks": [
+    "reshard-c4-data",
+    "install-windows-3.11",
+    "openssl-selfsigned-cert",
+    "regex-chess",
+    "polyglot-rust-c",
+    "adaptive-rejection-sampler",
+    "qemu-alpine-ssh",
+    "modernize-scientific-stack",
+    "distribution-search",
+    "merge-diff-arc-agi-task",
+    "sqlite-db-truncate",
+    "prove-plus-comm",
+    "db-wal-recovery",
+    "qemu-startup",
+    "nginx-request-logging"
+  ],
   "limitations": [
-    "Reference-solution results are not model or custom-harness scores.",
-    "The initial attempt had no collected reward because the adapter omitted log mounts; it remains preserved locally.",
-    "Remaining frozen development tasks are not qualified by this snapshot."
+    "Reference results are not baseline or custom-model scores.",
+    "The original uncollected video-processing attempt is retained locally; only log mounts changed for v2.",
+    "Reward-zero results are preserved and do not qualify a task as reference-passing."
   ]
 }

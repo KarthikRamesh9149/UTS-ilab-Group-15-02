@@ -109,3 +109,54 @@ in 124.063 seconds with its original resource/time limits and verified cleanup.
 remaining frozen sequence has been started sequentially; it is not yet complete.
 All 138 automated tests passed for this runtime increment. No API credit was
 spent and no scored model evaluation started.
+
+## Host-side agents and custom lifecycle
+
+`host_model_bridge.py` and `container_gateway_rpc.py` connect a host-side model
+client to the trusted relay container using a fixed Docker-exec argument list
+and stdin JSON. The only forwarded endpoint is the private gateway completion
+route. No shell, Docker published port or upstream API key is exposed to the
+task. Budget rejection is retained and ambiguous requests are never retried.
+These additions still require a combined real-container bridge fixture; the
+earlier production-layout fixture did not exercise this new host-side path.
+
+`custom_harbor_agent.py` now supplies the candidate controller's Harbor setup,
+run and evidence lifecycle. Each attempt is single-use. Message-only traces
+exclude client configuration and credentials, and model-reported completion
+is never labelled a verifier pass. Billing remains the gateway ledger's job.
+Unrelated LangSmith tracing settings are explicitly disabled for the run;
+approved Langfuse delivery is still a separate outstanding integration.
+
+The controller now records successive graph states, retaining tool observations
+when a later model call fails. This is graph-state streaming, not token-streaming
+inference. A real Deep Agents graph and native ChatOpenAI client completed a
+synthetic tool call through the host HTTP bridge with provider streaming off;
+the Docker RPC and upstream response were mocked in that test.
+
+Further dev20 reference results: mailman and constraints-scheduling returned
+reward 1.0; build-pov-ray returned reward 0.0. The latter's reference process
+exited 8 after an upstream HTTP 403 download failure. The reward-zero result is
+retained, not replaced or silently retried. No hidden verifier implementation
+or solution text was used to change the custom policy. These are reference
+qualification results, not baseline or custom-model results.
+
+Production custom command cleanup is deferred until after verification, so an
+agent's required long-running service is not killed before it can be tested.
+The scored orchestrator must call `cleanup_after_verification` in its finally
+block and destroy the environment even if cleanup fails. Model revocation
+still belongs at the earlier agent-to-verifier boundary. Standalone controller
+fixtures retain their immediate-cleanup default. The full scored lifecycle is
+not yet wired or runtime-qualified.
+
+Host orchestration uses `scored.lock`, whereas gateway ownership now uses
+`gateway.lock`. This avoids depending on cross-kernel macOS/Colima flock
+semantics or deadlocking a gateway against its own host runner. Both locks
+must be used in their respective processes by the scored orchestrator.
+The gateway image must be rebuilt with the new RPC module/lock change before
+the pending real-container host-bridge qualification.
+
+Verification for this increment: 155 automated tests passed (113 Stage 2,
+12 existing, 9 custom backend, 2 native client, 8 controller, 4 job guards,
+5 Harbor-adapter and 2 native host-bridge tests). The metadata-only oracle
+export now records five valid reference results, four passes and one zero;
+the remaining sequence is still active. No additional API generation occurred.
