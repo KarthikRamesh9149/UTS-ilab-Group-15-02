@@ -1,5 +1,19 @@
 # Terminus development qualification gate
 
+## Evidence-bound review implementation
+
+`qualification_review.assess` now reaudits exactly the frozen first-20 cells
+through the durable resume validator and binds the review to their exact result
+hashes and model protocol. It requires attributed, explicit parser, routing and
+environment findings with notes. Missing/stale review evidence is rejected;
+any uncleared systemic finding blocks expansion. A clear review cannot override
+the existing pass-count, budget-stop, billing or coverage thresholds.
+
+This evaluator makes no model calls and does not create a favourable review.
+No real first-20 model results or cleared review exist yet. The Mac's known
+reference translation failures remain unresolved; paid execution is paused.
+Integration into the later development-block driver remains pending.
+
 The client plan requires the first 20 development trials to use Terminus-2.
 These are part of the 120 planned development cells, not additional spending.
 
