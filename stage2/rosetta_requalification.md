@@ -42,3 +42,21 @@ establish host qualification.
 Immediately after restart: no running containers, approximately 26.8 GB host
 free space. Standard 20 GB floor, memory and thermal checks remain enforced at
 each reference trial boundary.
+
+## Host identity admission safeguard
+
+Runtime/live proofs now capture the Docker architecture, kernel, engine version,
+CPU count and memory capacity, Docker context, macOS build and actual x86
+translation registrations. Proofs must match the live host and the admission,
+and the probe must verify that its host identity remained unchanged. Missing
+host provenance is rejected; old proofs are retained as historical evidence,
+not silently upgraded. Current registration confirms Rosetta enabled and
+qemu-x86_64 disabled.
+
+191 stage-two unit tests passed after adding host checks, followed by 12 focused
+admission tests after requiring the explicit unchanged-host check. A single
+`scored_runtime_probe.py --label rosettav1 --harness custom --rebuild-gateway --wait`
+process is queued behind the active reference owner. It will make no model calls
+and creates no containers until that owner releases the lock. No paid matrix is
+queued. Initial post-change reference results: video-processing passed;
+build-pov-ray remained zero. Remaining outcomes are pending, not assumed passes.

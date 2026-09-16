@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from gateway_policy import MODEL, ENDPOINT
 from model_protocol import ModelSettings
@@ -11,6 +12,8 @@ from scoring_admission import RUNTIME_FILES, RUNTIME_CHECKS, LIVE_CHECKS, source
 
 class AdmissionTests(unittest.TestCase):
     def setUp(self):
+        self.host_patch = patch('host_environment.snapshot', return_value={'synthetic_host': 'fixture'})
+        self.host_patch.start()
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         folder = self.root / 'stage2'
@@ -18,6 +21,7 @@ class AdmissionTests(unittest.TestCase):
         for name in RUNTIME_FILES: (folder / name).write_text('synthetic test source\n')
         settings = ModelSettings(64, 1., 'high')
         self.document = {'model': MODEL, 'endpoint': ENDPOINT,
+            'host_environment': {'synthetic_host': 'fixture'},
             'settings': {'max_output_tokens': 64, 'temperature': 1., 'reasoning_effort': 'high'},
             'source_hashes': source_hashes(self.root), 'gateway_image': 'sha256:' + 'a' * 64,
             'guard_image': 'sha256:' + 'b' * 64, 'proofs': {}}
@@ -26,6 +30,7 @@ class AdmissionTests(unittest.TestCase):
                 'openhands_live': 'actual_openhands_agent_live_setup_not_scored',
                 'custom_live': 'actual_custom_agent_live_setup_not_scored'}.items():
             evidence = {'kind': kind, 'status': 'passed', 'checks': dict.fromkeys(RUNTIME_CHECKS if role == 'runtime' else LIVE_CHECKS, True),
+                'host_environment': self.document['host_environment'],
                 'model_protocol_sha256': settings.fingerprint(), 'source_hashes': self.document['source_hashes'],
                 'gateway_image': self.document['gateway_image'], 'guard_image': self.document['guard_image'],
                 'live_api_calls': 0 if role == 'runtime' else 2}
@@ -34,7 +39,21 @@ class AdmissionTests(unittest.TestCase):
             self.document['proofs'][role] = {'path': 'stage2/' + path.name,
                 'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
 
-    def tearDown(self): self.temp.cleanup()
+    def tearDown(self):
+        self.host_patch.stop()
+        self.temp.cleanup()
+
+    def test_changed_host_is_rejected(self):
+        self.document['host_environment'] = {'synthetic_host': 'changed'}
+        with self.assertRaises(ValueError): validate(self.root, self.document)
+
+    def test_missing_host_evidence_is_rejected(self):
+        path = self.root / 'stage2/runtime.json'
+        evidence = json.loads(path.read_text())
+        del evidence['host_environment']
+        path.write_text(json.dumps(evidence))
+        self.document['proofs']['runtime']['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+        with self.assertRaises(ValueError): validate(self.root, self.document)
 
     def test_complete_matching_fixture_contract(self):
         self.assertEqual(validate(self.root, self.document), ModelSettings(64, 1., 'high'))
