@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import tempfile
 from unittest.mock import patch
+import host_environment
 
 from model_protocol import ModelSettings
 from native_agents import agent_factory
@@ -43,6 +44,7 @@ async def probe(harness, label, settings, *, execute=False, wait=False):
                 if not wait: raise
                 await asyncio.sleep(5)
         check_host()
+        host_identity = host_environment.snapshot()
         if output.exists() or (runtime / 'native-setup-configs' / (trial_id + '.json')).exists():
             raise ValueError('Existing compatibility attempt must not be replayed')
         if source_hashes(root) != loaded:
@@ -80,7 +82,8 @@ async def probe(harness, label, settings, *, execute=False, wait=False):
         evidence = {'kind': f'actual_{harness.replace("-2", "")}_agent_live_setup_not_scored',
             'harness': harness, 'trial_id': trial_id, 'model_protocol_sha256': settings.fingerprint(),
             'source_hashes': loaded, 'gateway_image': gateway, 'guard_image': guard,
-            'runtime_path': str(fixture.relative_to(root)), 'status': 'failed'}
+            'runtime_path': str(fixture.relative_to(root)), 'status': 'failed',
+            'host_environment': host_identity}
         try:
             with patch('scored_trial.frozen_dataset', return_value=root / 'stage2/fixtures'), \
                  patch('harbor.models.task.task.Task', return_value=task), \
@@ -101,6 +104,7 @@ async def probe(harness, label, settings, *, execute=False, wait=False):
                 'cleanup_verified': all(result.get(k) is True for k in ['model_revoked', 'containers_removed', 'networks_removed', 'volumes_removed']),
                 'trajectory_written': (logs / trajectory).is_file(),
                 'runtime_sources_unchanged': source_hashes(root) == loaded,
+                'host_environment_unchanged': host_environment.snapshot() == host_identity,
                 'runtime_images_preserved': all(
                     docker('image', 'inspect', image, '--format', '{{.Id}}') == image
                     for image in (gateway, guard))}

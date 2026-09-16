@@ -14,6 +14,7 @@ import tempfile
 import subprocess
 import urllib.request
 from unittest.mock import patch
+import host_environment
 
 from production_compose import compose_runtime
 from scored_gateway import durable_json, private_directory
@@ -56,6 +57,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
             raise ValueError('Preserve previous probe evidence')
         from qualify_oracle import check_host
         check_host()
+        host_identity = host_environment.snapshot()
         if source_hashes(root) != LOADED_SOURCE_HASHES:
             raise ValueError('Runtime sources changed while probe waited; restart the unstarted probe')
         if rebuild_gateway:
@@ -163,6 +165,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
                 trajectory = fixture_root / '.runtime/stage2/scored-trials/synthetic-runtime/agent/custom-trajectory.json'
                 checks['custom_trajectory_written'] = trajectory.is_file()
             checks['runtime_sources_unchanged'] = source_hashes(root) == LOADED_SOURCE_HASHES
+            checks['host_environment_unchanged'] = host_environment.snapshot() == host_identity
             checks['runtime_images_preserved'] = all(
                 docker('image', 'inspect', image, '--format', '{{.Id}}') == image
                 for image in (gateway_image, guard_image))
@@ -172,6 +175,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
                 'installation_mode': 'production_hash_locked' if full_install else 'prepared_fixture',
                 'model_protocol_sha256': settings.fingerprint(), 'source_hashes': LOADED_SOURCE_HASHES,
                 'runtime_path': str(fixture_root.relative_to(root)), 'checks': checks,
+                'host_environment': host_identity,
                 'status': 'passed' if all(checks.values()) else 'failed'}
         except Exception as exc:
             evidence = {'kind': 'synthetic_full_runner_not_benchmark_score', 'live_api_calls': 0,

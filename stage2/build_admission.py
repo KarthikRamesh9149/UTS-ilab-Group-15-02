@@ -4,6 +4,7 @@ from dataclasses import asdict
 import hashlib
 import json
 from pathlib import Path
+import host_environment
 
 from gateway_policy import MODEL, ENDPOINT
 from model_protocol import ModelSettings
@@ -16,7 +17,8 @@ def build(root, *, proofs, settings, setup_timeout_seconds=900):
         raise ValueError('Positive integer setup timeout required')
     document = {'model': MODEL, 'endpoint': ENDPOINT,
                 'settings': asdict(settings), 'source_hashes': source_hashes(root),
-                'setup_timeout_seconds': setup_timeout_seconds, 'proofs': {}}
+                'setup_timeout_seconds': setup_timeout_seconds, 'proofs': {},
+                'host_environment': host_environment.snapshot()}
     for role, relative in proofs.items():
         relative = Path(relative)
         if relative.is_absolute() or '..' in relative.parts or relative.parts[:1] != ('stage2',):

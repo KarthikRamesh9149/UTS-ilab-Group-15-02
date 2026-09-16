@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import host_environment
 
 from gateway_policy import MODEL, ENDPOINT
 from model_protocol import ModelSettings
@@ -12,15 +13,17 @@ RUNTIME_FILES = ('budget_ledger.py', 'gateway_core.py', 'gateway_policy.py',
     'trial_estimator.py', 'openrouter_transport.py', 'receipt_polling.py',
     'production_compose.py', 'guarded_runtime.py', 'container_model_relay.py',
     'container_gateway_rpc.py', 'host_model_bridge.py', 'trial_execution.py',
-    'scored_trial.py', 'pinned_docker.py', 'native_agents.py', 'custom_backend.py', 'custom_runner.py',
+    'scored_trial.py', 'pinned_docker.py', 'host_environment.py', 'native_agents.py', 'custom_backend.py', 'custom_runner.py',
     'custom_model.py', 'custom_control.py', 'custom_jobs.py', 'custom_harbor_agent.py',
     'openhands-requirements.lock')
 
 RUNTIME_CHECKS = {'verifier_reward_one', 'model_revoked', 'clean_status', 'billing_verified',
                   'containers_removed', 'networks_removed', 'volumes_removed',
-                  'expected_reconciled_synthetic_receipts', 'runtime_images_preserved'}
+                  'expected_reconciled_synthetic_receipts', 'runtime_images_preserved',
+                  'host_environment_unchanged'}
 LIVE_CHECKS = {'agent_created_file', 'native_tool_roundtrip', 'settings_on_wire',
-               'billing_verified', 'cleanup_verified', 'trajectory_written', 'runtime_images_preserved'}
+               'billing_verified', 'cleanup_verified', 'trajectory_written', 'runtime_images_preserved',
+               'host_environment_unchanged'}
 
 
 def source_hashes(root):
@@ -32,6 +35,8 @@ def validate(root, document):
     root = Path(root).resolve()
     if document.get('model') != MODEL or document.get('endpoint') != ENDPOINT:
         raise ValueError('Admission model/provider mismatch')
+    if document.get('host_environment') != host_environment.snapshot():
+        raise ValueError('Execution host changed since qualification')
     settings = ModelSettings(**document['settings'])
     if document.get('source_hashes') != source_hashes(root):
         raise ValueError('Runtime code changed since qualification')
@@ -54,6 +59,8 @@ def validate(root, document):
         if hashlib.sha256(raw).hexdigest() != entry['sha256']:
             raise ValueError('Qualification evidence changed')
         evidence = json.loads(raw)
+        if evidence.get('host_environment') != document['host_environment']:
+            raise ValueError('Evidence used a different execution host')
         checks = evidence.get('checks', {})
         required = RUNTIME_CHECKS if role == 'runtime' else LIVE_CHECKS
         if not required <= set(checks):
