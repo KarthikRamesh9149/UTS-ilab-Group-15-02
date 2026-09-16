@@ -1,0 +1,41 @@
+{
+  "kind": "actual_deepagents_harbor_scripted_fixture_not_scored",
+  "live_api_calls": 0,
+  "time_utc": "2026-09-16T04:55:08.985108+00:00",
+  "checks": {
+    "file_created": true,
+    "native_tools_succeeded": true,
+    "no_delegation": true,
+    "no_planning_tool": true,
+    "exactly_three_scripted_calls": true,
+    "foreground_timeout": true,
+    "quoted_path_roundtrip": true
+  },
+  "versions": {
+    "deepagents": "0.7.14",
+    "langgraph": "1.2.11",
+    "langchain": "1.4.0",
+    "harbor": "0.22.0"
+  },
+  "readback": {
+    "stdout": "UTS_CUSTOM_OK",
+    "stderr": null,
+    "code": 0
+  },
+  "tool_names": [
+    "delete",
+    "edit_file",
+    "execute",
+    "glob",
+    "grep",
+    "ls",
+    "read_file",
+    "write_file"
+  ],
+  "status": "passed",
+  "limitations": [
+    "Not a frozen custom experimental condition.",
+    "Polling, interruption, recovery control, context policy and live gateway integration remain outstanding.",
+    "Fixture task only; no benchmark or provider quality claims."
+  ]
+}
