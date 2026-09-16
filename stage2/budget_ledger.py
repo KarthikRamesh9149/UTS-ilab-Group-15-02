@@ -23,7 +23,7 @@ class BudgetExceeded(RuntimeError):
 
 
 class Ledger:
-    def __init__(self, path, ceiling, trial_cap):
+    def __init__(self, path, ceiling, trial_cap, stage_caps=None):
         self.db = sqlite3.connect(path, timeout=30, isolation_level=None)
         self.db.execute('PRAGMA synchronous=FULL')
         self.db.executescript('''
@@ -32,12 +32,22 @@ class Ledger:
                 id TEXT PRIMARY KEY, trial TEXT NOT NULL, reserved INTEGER NOT NULL,
                 charged INTEGER, state TEXT NOT NULL CHECK(state IN ('pending','settled')));
             CREATE TABLE IF NOT EXISTS incidents (request_id TEXT, actual INTEGER);
+            CREATE TABLE IF NOT EXISTS stages (name TEXT PRIMARY KEY, cap INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS trial_stages (trial TEXT PRIMARY KEY, stage TEXT NOT NULL);
         ''')
         with self.transaction():
             self.db.execute('INSERT OR IGNORE INTO policy VALUES (1,?,?)', (dollars(ceiling), dollars(trial_cap)))
             policy = self.db.execute('SELECT ceiling,trial_cap FROM policy WHERE id=1').fetchone()
             if policy != (dollars(ceiling), dollars(trial_cap)):
                 raise ValueError('Existing ledger policy is immutable')
+            supplied = {name: dollars(cap) for name, cap in (stage_caps or {}).items()}
+            stored = dict(self.db.execute('SELECT name,cap FROM stages'))
+            if supplied and not stored:
+                if self.exposure() or sum(supplied.values()) > policy[0]:
+                    raise ValueError('Stage allocations must fit the ceiling and precede spending')
+                self.db.executemany('INSERT INTO stages VALUES (?,?)', supplied.items())
+            elif supplied != stored:
+                raise ValueError('Existing stage allocations are immutable')
         self.ceiling, self.trial_cap = policy
 
     @contextmanager
@@ -55,7 +65,7 @@ class Ledger:
         return self.db.execute(query + (' WHERE trial=?' if trial is not None else ''),
                                (trial,) if trial is not None else ()).fetchone()[0]
 
-    def reserve(self, request_id, trial, maximum, available_account_credit):
+    def reserve(self, request_id, trial, maximum, available_account_credit, stage=None):
         amount = dollars(maximum)
         if amount <= 0 or not request_id or not trial:
             raise ValueError('Positive reservation and identifiers required')
@@ -66,6 +76,20 @@ class Ledger:
             if self.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Ledger halted by billing incident')
             pending = self.db.execute("SELECT COALESCE(SUM(reserved),0) FROM requests WHERE state='pending'").fetchone()[0]
+            if pending:
+                raise BudgetExceeded('Resolve the outstanding request before dispatching another')
+            stages = dict(self.db.execute('SELECT name,cap FROM stages'))
+            if stages:
+                if stage not in stages:
+                    raise ValueError('A registered stage is required')
+                linked = self.db.execute('SELECT stage FROM trial_stages WHERE trial=?', (trial,)).fetchone()
+                if linked and linked[0] != stage:
+                    raise ValueError('Trial cannot change stages')
+                spent = self.db.execute('''SELECT COALESCE(SUM(COALESCE(r.charged,r.reserved)),0)
+                    FROM requests r JOIN trial_stages t ON r.trial=t.trial WHERE t.stage=?''', (stage,)).fetchone()[0]
+                if spent + amount > stages[stage]:
+                    raise BudgetExceeded('Stage allocation exhausted')
+                self.db.execute('INSERT OR IGNORE INTO trial_stages VALUES (?,?)', (trial, stage))
             if self.exposure() + amount > self.ceiling or self.exposure(trial) + amount > self.trial_cap or pending + amount > available:
                 raise BudgetExceeded('Reservation refused before dispatch')
             self.db.execute('INSERT INTO requests VALUES (?,?,?,NULL,?)',
