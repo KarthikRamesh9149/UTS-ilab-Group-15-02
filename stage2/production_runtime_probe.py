@@ -11,7 +11,9 @@ import tempfile
 import uuid
 
 
-def gateway_fixture(native_openhands=False):
+def gateway_fixture(native_openhands=False, native_custom=False):
+    if native_openhands and native_custom:
+        raise ValueError('Select only one native fixture harness')
     from gateway_policy import MODEL, ENDPOINT
     from scored_gateway import serve
     from setup_probe import CONTEXT
@@ -30,14 +32,17 @@ def gateway_fixture(native_openhands=False):
             self.calls += 1
             message = {'role': 'assistant', 'content': 'UTS_RUNTIME_OK'}
             finish = 'stop'
-            if native_openhands:
+            if native_openhands or native_custom:
                 if request.get('reasoning') != {'effort': 'high'} or request.get('temperature') != 1.0 or request.get('max_tokens') != 8192:
-                    raise ValueError('Native OpenHands settings not preserved')
+                    raise ValueError('Native harness settings not preserved')
                 tools = {tool['function']['name'] for tool in request.get('tools', [])}
-                name = 'execute_bash' if self.calls == 1 else 'finish'
+                names = ('execute', 'complete_task') if native_custom else ('execute_bash', 'finish')
+                name = names[0] if self.calls == 1 else names[1]
                 if name not in tools or self.calls > 2:
                     raise ValueError('Unexpected native fixture tool sequence')
-                args = {'command': 'printf UTS_LIFECYCLE_OK > /tmp/uts-lifecycle-result'} if name == 'execute_bash' else {'message': 'Fixture complete.'}
+                args = ({'command': 'printf UTS_LIFECYCLE_OK > /tmp/uts-lifecycle-result'}
+                        if self.calls == 1 else
+                        {'summary': 'Fixture marker written.'} if native_custom else {'message': 'Fixture complete.'})
                 message = {'role': 'assistant', 'content': None, 'tool_calls': [{
                     'id': 'synthetic-call-' + str(self.calls), 'type': 'function',
                     'function': {'name': name, 'arguments': json.dumps(args)}}]}
@@ -163,9 +168,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--gateway', action='store_true')
     parser.add_argument('--native-openhands', action='store_true')
+    parser.add_argument('--native-custom', action='store_true')
     parser.add_argument('--label', default='v1')
     args = parser.parse_args()
     if args.gateway:
-        gateway_fixture(args.native_openhands)
+        gateway_fixture(args.native_openhands, args.native_custom)
     else:
         asyncio.run(probe(args.label))
