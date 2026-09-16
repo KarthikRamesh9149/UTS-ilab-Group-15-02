@@ -204,3 +204,32 @@ egress-control sidecar worth evaluating, but its availability alone proves no
 isolation guarantee. No paid requests or scored tasks were added this increment.
 All 48 Stage 2 tests and 12 existing tests passed again (60 total). Mac checks
 showed no thermal/performance warnings, 37% memory free and 48 GiB disk free.
+
+2026-09-16 container gateway transport: added a private Unix-socket HTTP server
+and task-local loopback relay. This permits an installed agent's ordinary
+OpenAI client to contact a dedicated model gateway container through a read-only
+socket volume, without a host HTTP listener. The relay forwards only the fixed
+completion route, preserves the caller's trial bearer token, bounds request and
+response sizes, strips unrelated headers and never retries requests. It has no
+upstream key and no command-execution interface. The existing host-loopback
+gateway behaviour is unchanged.
+
+`docker_gateway_probe_result.json` records a real two-container run using the
+pinned cached ARM64 Python image. All 12 checks passed, including roundtrip,
+wrong-token/account-route rejection, no task network other than loopback,
+read-only socket mount, no exposed host ports, and exactly one settled request
+in the **synthetic fixture ledger**. The provider response and balance were
+scripted; no real account, credential or paid request was used. Both containers
+and their dedicated socket volume were removed. No existing volumes or services
+were changed. Five new regression tests pass; 53 Stage 2 plus 12 existing tests
+pass (65 total). Mac health checks remained normal with 48 GiB free space.
+
+This qualifies the narrow socket/HTTP transport fixture, NOT the OpenHands
+agent itself or the complete execution architecture. Production integration
+must supply an authoritative persistent budget ledger and upstream credential
+to the trusted gateway only, run its upstream HTTPS connection separately from
+the task, revoke each trial token, and explicitly support each task's user/UID.
+The fixture used root in both containers. The task must not receive a Docker
+socket, gateway ledger or credential mount. Public task internet access remains
+unqualified and disabled in this fixture. Scored-request cost bounds and native
+baseline execution remain launch gates. No scored trial has run in Stage 2.

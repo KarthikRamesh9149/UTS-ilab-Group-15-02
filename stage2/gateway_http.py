@@ -1,11 +1,17 @@
 """Sequential, loopback-only OpenAI-compatible gateway HTTP boundary.
 
-Host orchestrator supplies a trusted gateway factory; no live defaults. Do not
-publish this listener into task containers. Baseline clients run on the host.
+Host orchestrator supplies a trusted gateway factory; no live defaults. TCP is
+host-loopback only. A private Unix socket supports a dedicated gateway container
+without publishing host ports or giving the task upstream credentials.
 """
 from decimal import Decimal
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+import os
+from pathlib import Path
+import socket
+import socketserver
+import stat
 
 from budget_ledger import BudgetExceeded
 from gateway_core import GatewayError
@@ -71,6 +77,29 @@ class Handler(BaseHTTPRequestHandler):
 
 def make_server(factory, port=0):
     server = HTTPServer(('127.0.0.1', port), Handler)
+    server.factory = factory
+    server.gateway = None
+    return server
+
+
+class UnixHTTPServer(HTTPServer):
+    address_family = socket.AF_UNIX
+
+    def server_bind(self):
+        socketserver.TCPServer.server_bind(self)
+        self.server_name = 'private-model-gateway'
+        self.server_port = 0
+
+
+def make_unix_server(factory, path):
+    path = Path(path)
+    info = path.parent.lstat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
+        raise ValueError('Socket parent must be an owned private directory')
+    if path.exists() or path.is_symlink():
+        raise ValueError('Refusing to replace an existing socket path')
+    server = UnixHTTPServer(str(path), Handler)
+    os.chmod(path, 0o600)
     server.factory = factory
     server.gateway = None
     return server
