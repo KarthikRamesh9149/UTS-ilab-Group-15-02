@@ -86,7 +86,9 @@ def agent_factory(harness, settings, *, custom_max_model_calls=None, parent=None
                     'extra_body': {'reasoning': {'effort': settings.reasoning_effort}}})
         if harness == 'openhands':
             return CompatibleOpenHands(**shared, version='0.62.0', python_version='3.12',
-                api_base=container_api_base, extra_env={'LLM_API_KEY': trial_token}, num_retries=0)
+                api_base=container_api_base, extra_env={'LLM_API_KEY': trial_token, 'LLM_TIMEOUT': '120',
+                    'LLM_COMPLETION_KWARGS': repr({'extra_body': {'reasoning': {'effort': settings.reasoning_effort}}})},
+                num_retries=0)
         # Import only in the separately pinned Deep Agents environment.
         from custom_harbor_agent import CustomHarborAgent
         return CustomHarborAgent(logs_dir=paths.agent_dir, condition=harness, parent=parent,

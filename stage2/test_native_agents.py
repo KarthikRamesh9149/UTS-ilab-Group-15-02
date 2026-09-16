@@ -4,6 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace as NS
 import unittest
 import tempfile
+import ast
 from unittest.mock import patch
 
 from native_agents import ModelSettings, agent_factory, CompatibleOpenHands
@@ -43,6 +44,9 @@ class FactoryTests(unittest.TestCase):
                 self.assertNotIn('max_iterations', cfg)
             self.assertEqual(oh.call_args.kwargs['version'], '0.62.0')
             self.assertEqual(oh.call_args.kwargs['python_version'], '3.12')
+            self.assertEqual(ast.literal_eval(oh.call_args.kwargs['extra_env']['LLM_COMPLETION_KWARGS']),
+                             {'extra_body': {'reasoning': {'effort': 'high'}}})
+            self.assertEqual(oh.call_args.kwargs['extra_env']['LLM_TIMEOUT'], '120')
             self.assertEqual(terminus.call_args.kwargs['llm_kwargs']['num_retries'], 0)
 
     def test_reasoning_alias_has_identical_canonical_request(self):

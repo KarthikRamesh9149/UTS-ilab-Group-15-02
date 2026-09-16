@@ -24,10 +24,23 @@ Connection-only adjustments:
   `llm_call_kwargs` fixes that omission without changing the decision loop.
 - The custom client accepts the same explicit temperature and reasoning values
   and uses the same 120-second HTTP timeout as the Terminus client.
+- OpenHands 0.62.0's installed `LLMConfig.completion_kwargs` and environment
+  parser were inspected in image
+  `sha256:71fb65c3de9cae7a69de53e6af2a0d241bd5a296c7db10b76b6cd0fb10118f65`.
+  The factory now sends explicit reasoning via `LLM_COMPLETION_KWARGS` and a
+  120-second `LLM_TIMEOUT`. This is configuration, not a patched native loop.
 
 Evidence: real native constructors; actual Terminus and custom client HTTP
 serialization into a synthetic provider; local installer-command and factory
 tests. No live API calls or paid benchmark trials were made for this checkpoint.
+
+`scored_runtime_probe --harness openhands` is prepared for the next serialized
+Docker check. Its synthetic provider requires high reasoning, temperature 1 and
+8,192 output tokens on actual incoming requests. The native OpenHands agent must
+execute a marker-writing tool call, finish, and pass Harbor verification with two
+reconciled synthetic receipts. The preinstalled fixture skips installation only;
+production installation into official task images is still a separate gate.
+This native test has not run yet and must not be called qualified from unit tests.
 
 Remaining admission requirements: rebuild the gateway image with this source;
 qualify the new scored runner in Docker; test actual OpenHands outgoing settings

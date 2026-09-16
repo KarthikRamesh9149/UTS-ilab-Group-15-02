@@ -11,7 +11,7 @@ import tempfile
 import uuid
 
 
-def gateway_fixture():
+def gateway_fixture(native_openhands=False):
     from gateway_policy import MODEL, ENDPOINT
     from scored_gateway import serve
     from setup_probe import CONTEXT
@@ -28,9 +28,23 @@ def gateway_fixture():
             return '25'
         def complete(self, request):
             self.calls += 1
+            message = {'role': 'assistant', 'content': 'UTS_RUNTIME_OK'}
+            finish = 'stop'
+            if native_openhands:
+                if request.get('reasoning') != {'effort': 'high'} or request.get('temperature') != 1.0 or request.get('max_tokens') != 8192:
+                    raise ValueError('Native OpenHands settings not preserved')
+                tools = {tool['function']['name'] for tool in request.get('tools', [])}
+                name = 'execute_bash' if self.calls == 1 else 'finish'
+                if name not in tools or self.calls > 2:
+                    raise ValueError('Unexpected native fixture tool sequence')
+                args = {'command': 'printf UTS_LIFECYCLE_OK > /tmp/uts-lifecycle-result'} if name == 'execute_bash' else {'message': 'Fixture complete.'}
+                message = {'role': 'assistant', 'content': None, 'tool_calls': [{
+                    'id': 'synthetic-call-' + str(self.calls), 'type': 'function',
+                    'function': {'name': name, 'arguments': json.dumps(args)}}]}
+                finish = 'tool_calls'
             return {'id': 'synthetic-' + str(self.calls), 'model': MODEL,
-                'choices': [{'index': 0, 'finish_reason': 'stop',
-                    'message': {'role': 'assistant', 'content': 'UTS_RUNTIME_OK'}}],
+                'object': 'chat.completion', 'created': 1,
+                'choices': [{'index': 0, 'finish_reason': finish, 'message': message}],
                 'usage': {'prompt_tokens': 10, 'completion_tokens': 4, 'cost': '.000001'}}
         def generation(self, identifier):
             return {'id': identifier, 'model': MODEL, 'provider_name': 'DeepInfra', 'total_cost': '.000001'}
@@ -145,9 +159,10 @@ async def probe(label):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--gateway', action='store_true')
+    parser.add_argument('--native-openhands', action='store_true')
     parser.add_argument('--label', default='v1')
     args = parser.parse_args()
     if args.gateway:
-        gateway_fixture()
+        gateway_fixture(args.native_openhands)
     else:
         asyncio.run(probe(args.label))
