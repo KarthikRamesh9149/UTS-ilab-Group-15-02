@@ -13,7 +13,7 @@ from pathlib import Path
 from native_agents import agent_factory
 from qualification_gate import evaluate
 from scoring_admission import validate
-from scored_accounting import audit_trial
+from matrix_resume import completed_cell
 from scored_gateway import private_directory, durable_json
 from scored_trial import run_trial
 
@@ -33,22 +33,16 @@ async def run(root, admission):
         for index, task_id in enumerate(task_ids):
             validate(root, admission)  # Fail closed if source/evidence changed mid-run.
             trial_id = f'dev-terminus-2-{index:02d}-{task_id}'
-            attempt = runtime / 'scored-trials' / trial_id
-            if attempt.exists():
-                path = attempt / 'result.json'
-                if not path.is_file():
-                    raise RuntimeError('Interrupted attempt requires audit, not replay: ' + trial_id)
-                result = json.loads(path.read_text())
-                if (result.get('trial_id'), result.get('task_id'), result.get('stage'), result.get('harness'), result.get('model_protocol_sha256')) != (
-                        trial_id, task_id, 'development', 'terminus-2', settings.fingerprint()):
-                    raise ValueError('Existing attempt identity mismatch')
-                # Recheck durable receipts; do not rely on an old success flag.
-                result['billing'] = audit_trial(runtime, trial_id, 'development')
-            else:
-                result = await run_trial(root=root, trial_id=trial_id, task_id=task_id,
+            cell = {'trial_id': trial_id, 'task_id': task_id, 'stage': 'development', 'harness': 'terminus-2'}
+            result = completed_cell(root, cell, settings)
+            if result is None:
+                await run_trial(root=root, trial_id=trial_id, task_id=task_id,
                     stage='development', agent_factory=agent_factory('terminus-2', settings),
                     gateway_image=admission['gateway_image'], guard_image=admission['guard_image'],
                     setup_timeout_seconds=admission['setup_timeout_seconds'], model_settings=settings)
+                result = completed_cell(root, cell, settings)
+                if result is None:
+                    raise RuntimeError('Trial returned without durable evidence')
             if result.get('status') != 'verified' or result.get('billing', {}).get('billing_verified') is not True:
                 raise RuntimeError('Trial infrastructure or billing requires inspection: ' + trial_id)
             if not all(result.get(key) is True for key in ['containers_removed', 'networks_removed', 'volumes_removed']):

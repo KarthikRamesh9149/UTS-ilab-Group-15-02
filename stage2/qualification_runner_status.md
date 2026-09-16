@@ -1,5 +1,16 @@
 # Resumable first-20 runner
 
+## Durable cell resume integration
+
+`matrix_resume.completed_cell` is now used by the first-20 runner for both
+resumed cells and just-finished cells. It verifies durable identity, model
+protocol, binary reward, revocation/cleanup and freshly reconciled billing.
+Existing incomplete or invalid attempts halt; valid zero rewards are retained.
+C2 cells additionally require the exact registered parent. A successful Python
+return without a durable result file is no longer sufficient to advance.
+The final freeze includes this resume implementation and qualification runner.
+No scored trial was launched by this change.
+
 ## Current checkpoint: frozen-image qualification
 
 The full custom synthetic runner passed in `scored_runtime_probe_pinnedv2.json`.
