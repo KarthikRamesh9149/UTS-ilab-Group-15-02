@@ -1,7 +1,7 @@
 {
   "kind": "reference_solution_runtime_qualification_not_model_score",
   "status": "partial_snapshot",
-  "snapshot_utc": "2026-09-16T07:33:49.633114+00:00",
+  "snapshot_utc": "2026-09-16T07:49:04.129183+00:00",
   "frozen_development_tasks": 20,
   "valid_results_in_snapshot": 8,
   "reference_passes_in_snapshot": 6,
@@ -119,10 +119,23 @@
       "agent_timeout_sec": 900.0,
       "verifier_timeout_sec": 900.0,
       "reward": 1.0
+    },
+    {
+      "task": "regex-chess",
+      "status": "infrastructure_or_reference_failure",
+      "time_utc": "2026-09-16T06:48:16.536594+00:00",
+      "elapsed_seconds": 3629.055,
+      "cleanup_verified": true,
+      "image_id": "sha256:e3b6d61d2d3930fbbdc5f7bf091a7f8b7f6125e1951ef8a7dbe165b1ef62942c",
+      "resource_limits_verified": true,
+      "error_type": "TimeoutError",
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 3600.0,
+      "verifier_timeout_sec": 3600.0
     }
   ],
   "pending_tasks": [
-    "regex-chess",
     "polyglot-rust-c",
     "adaptive-rejection-sampler",
     "qemu-alpine-ssh",

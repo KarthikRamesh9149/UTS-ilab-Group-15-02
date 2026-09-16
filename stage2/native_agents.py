@@ -24,6 +24,17 @@ class NoRetryTerminus(Terminus2):
 
 
 class CompatibleOpenHands(OpenHands):
+    async def exec_as_agent(self, environment, command, env=None, **kwargs):
+        # Harbor forwards declared settings but not arbitrary LLM_* extras.
+        # Preserve these explicit connection settings on the native run only.
+        if env is not None and 'LLM_MODEL' in env:
+            env = dict(env)
+            for name in ('LLM_COMPLETION_KWARGS', 'LLM_TIMEOUT'):
+                value = self._get_env(name)
+                if value is not None:
+                    env[name] = value
+        return await super().exec_as_agent(environment, command=command, env=env, **kwargs)
+
     async def install(self, environment):
         await self.ensure_system_dependencies(environment, ('curl', 'git', 'build_tools', 'tmux'))
         user = environment.default_user or 'root'

@@ -74,7 +74,8 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
         task = Task(root / 'stage2/fixtures/lifecycle')
         task.config.environment.docker_image = guard_image
         if harness == 'openhands':
-            task.config.environment.docker_image = docker('image', 'inspect', 'uts-stage2-openhands-fixture:1', '--format', '{{.Id}}')
+            image_tag = 'uts-stage2-terminus-fixture:1' if full_install else 'uts-stage2-openhands-fixture:1'
+            task.config.environment.docker_image = docker('image', 'inspect', image_tag, '--format', '{{.Id}}')
             task.config.environment.cpus = 2
             task.config.environment.memory_mb = 4096
             task.config.agent.timeout_sec = 180
@@ -98,6 +99,16 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
                 import types
                 from native_agents import agent_factory, ModelSettings
                 agent = agent_factory('openhands', ModelSettings(8192, 1., 'high'))(**kwargs)
+                original_setup = agent.setup
+                async def recorded_setup(environment):
+                    try:
+                        await original_setup(environment)
+                    except Exception as exc:
+                        # Private synthetic-fixture diagnostics only. Do not
+                        # publish command output or model credentials.
+                        (fixture_root / 'setup-error.txt').write_text(str(exc))
+                        raise
+                agent.setup = recorded_setup
                 if full_install:
                     # Exercise the real production installer, including hash
                     # enforcement, instead of trusting the prepared fixture.
@@ -140,7 +151,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
                     model_settings=settings,
                     gateway_image=gateway_image, guard_image=guard_image,
                     setup_timeout_seconds=900 if full_install else 30)
-            checks = dict(observed, verifier_reward_one=result.get('verifier_result', {}).get('rewards', {}).get('reward') == 1,
+            checks = dict(observed, verifier_reward_one=(result.get('verifier_result') or {}).get('rewards', {}).get('reward') == 1,
                 model_revoked=result.get('model_revoked') is True,
                 clean_status=result['status'] == 'verified',
                 billing_verified=result.get('billing', {}).get('billing_verified') is True,
