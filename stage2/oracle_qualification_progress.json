@@ -1,0 +1,30 @@
+{
+  "kind": "reference_solution_runtime_qualification_not_model_score",
+  "status": "partial_snapshot",
+  "frozen_development_tasks": 20,
+  "valid_results_in_snapshot": 1,
+  "reference_passes_in_snapshot": 1,
+  "live_api_calls": 0,
+  "runtime_revision": "explicit-log-mounts-v2",
+  "results": [
+    {
+      "task": "video-processing",
+      "time_utc": "2026-09-16T06:16:16.849373+00:00",
+      "status": "verified",
+      "reward": 1.0,
+      "elapsed_seconds": 124.063,
+      "image_id": "sha256:a2c0f39e3ab04e67ac6e49cad9167bb0d987babe32511768c01aa0c6905a875f",
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 3600.0,
+      "verifier_timeout_sec": 3600.0,
+      "resource_limits_verified": true,
+      "cleanup_verified": true
+    }
+  ],
+  "limitations": [
+    "Reference-solution results are not model or custom-harness scores.",
+    "The initial attempt had no collected reward because the adapter omitted log mounts; it remains preserved locally.",
+    "Remaining frozen development tasks are not qualified by this snapshot."
+  ]
+}
