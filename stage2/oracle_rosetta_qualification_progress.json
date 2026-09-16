@@ -3,13 +3,13 @@
   "reference_run": "rosetta",
   "source_namespace": "oracle-dev20-rosetta-v1",
   "status": "partial_snapshot",
-  "snapshot_utc": "2026-09-16T09:17:25.264738+00:00",
+  "snapshot_utc": "2026-09-16T09:19:46.169988+00:00",
   "frozen_development_tasks": 20,
-  "valid_results_in_snapshot": 10,
-  "reference_passes_in_snapshot": 8,
+  "valid_results_in_snapshot": 12,
+  "reference_passes_in_snapshot": 9,
   "live_api_calls": 0,
   "runtime_revision": "explicit-log-mounts-v2",
-  "completed_outcomes": 10,
+  "completed_outcomes": 12,
   "results": [
     {
       "task": "video-processing",
@@ -150,11 +150,37 @@
       "agent_timeout_sec": 900.0,
       "verifier_timeout_sec": 900.0,
       "reward": 1.0
+    },
+    {
+      "task": "adaptive-rejection-sampler",
+      "status": "verified",
+      "time_utc": "2026-09-16T09:16:51.062334+00:00",
+      "elapsed_seconds": 113.746,
+      "cleanup_verified": true,
+      "image_id": "sha256:985bed39e8448bc95f138b5f766b59003a95c4be171c96af8e76448338f3dd8f",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
+    },
+    {
+      "task": "qemu-alpine-ssh",
+      "status": "verified",
+      "time_utc": "2026-09-16T09:18:44.819756+00:00",
+      "elapsed_seconds": 35.161,
+      "cleanup_verified": true,
+      "image_id": "sha256:541e8214a8c4faa7b556531b899d45da21048fa2ca6dd328d8cb6c4cffa8e964",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 4096,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 0.0
     }
   ],
   "pending_tasks": [
-    "adaptive-rejection-sampler",
-    "qemu-alpine-ssh",
     "modernize-scientific-stack",
     "distribution-search",
     "merge-diff-arc-agi-task",
