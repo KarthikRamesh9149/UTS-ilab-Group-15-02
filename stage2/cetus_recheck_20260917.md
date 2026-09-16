@@ -85,3 +85,37 @@ Official sources checked:
 
 PBS history confirms Exit_status=0 for the diagnostic job; this means the
 probe completed, not that all the capabilities it tested passed.
+
+## Offline-controller experiment
+
+Follow-up PBS job 89222.hpc-head01 ran `cetus_offline_controller.pbs` on
+hpc-exec02 from 23:55:04 to 23:55:19 UTC, requesting one CPU and 2 GB RAM.
+This was a synthetic fixture, not Harbor execution or a scored benchmark.
+
+The following narrow checks passed:
+- Synthetic controller environment marker absent inside the clean container.
+- Shared home and the named control socket/token paths absent.
+- Binding to private loopback inside the no-network namespace.
+- File content persists between separately invoked commands.
+- A fixed sleep command terminates with timeout exit code 124.
+- Trusted host-side controller can fetch the public OpenRouter model catalogue
+  (HTTP 200), without an API key or inference request.
+- Stopped instance rejects subsequent exec; the expected 'no instance found'
+  error is evidence of that check, not a failed benchmark task.
+
+This demonstrates a useful controller/task separation primitive. It does not
+prove adversarial isolation, complete credential isolation, descendant-process
+cleanup, file-transfer/verifier integration, installed-agent compatibility,
+root semantics, or full Harbor lifecycle equivalence. The fixture exposes no
+control socket to the task; it uses native instance exec from outside.
+
+Remaining blockers are unchanged: no task-side outbound network and no verified
+hard per-task resource boundary. Apptainer explicitly reported rootless cgroups
+unusable in fakeroot mode; the container's CPU affinity still covered all 24
+host CPUs. We did not consume all those CPUs or interpret their visibility as
+an allocation. No changes to benchmark limits or the task set were made.
+
+The instance was stopped, no account PBS jobs remained in the final listing,
+and no API credit was used. Image/cache data was retained at
+`/scratch/uts-offline-controller.wXuoS3`. This experiment advances the offline
+alternative but does not admit the full study for execution.
