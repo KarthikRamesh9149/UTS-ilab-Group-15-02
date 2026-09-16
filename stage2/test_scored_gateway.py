@@ -131,6 +131,9 @@ class ScoredGatewayTests(unittest.TestCase):
             self.session('../escape')
 
     def test_service_interrupt_closes_socket_and_releases_ownership(self):
+        from model_protocol import ModelSettings, freeze_protocol
+        from scored_gateway import private_directory
+        freeze_protocol(private_directory(self.root / '.runtime/stage2'), ModelSettings(64, 1., 'high'))
         token = self.root / 'token'
         token.write_text('a' * 64)
         token.chmod(0o600)

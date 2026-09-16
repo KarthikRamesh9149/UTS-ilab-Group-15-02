@@ -44,7 +44,7 @@ def durable_json(path, value):
 
 
 class ScoredSession:
-    def __init__(self, root, trial_id, stage, token, client, *, estimator=None):
+    def __init__(self, root, trial_id, stage, token, client, *, estimator=None, settings=None):
         if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]{0,119}', trial_id):
             raise ValueError('Invalid trial identifier')
         if stage not in {'development', 'final'} or not isinstance(token, str) or len(token) < 32:
@@ -78,10 +78,12 @@ class ScoredSession:
             self.evidence.mkdir(mode=0o700)  # Exists, even from a crash: never replay.
             durable_json(self.evidence / 'started.json', {
                 'trial_id': trial_id, 'stage': stage, 'status': 'started',
+                'model_protocol_sha256': settings.fingerprint() if settings is not None else None,
                 'estimated_trial_cap_usd': '.055', 'aggregate_cap_usd': '21.285'})
             self.gateway = Gateway(self.ledger, Trial(trial_id, stage, token_digest(token)),
                 self.available_balance, full_context_bound, self.generate, self.receipt,
-                trial_estimate=estimator or trial_charge_estimator(root))
+                trial_estimate=estimator or trial_charge_estimator(root),
+                request_policy=settings.enforce if settings is not None else None)
         except BaseException:
             self.close()
             raise
@@ -144,6 +146,8 @@ def serve(root, trial_id, stage, token_file, credential_file, socket_path):
     """
     from gateway_http import make_unix_server
     from openrouter_transport import OpenRouter, load_key
+    from model_protocol import read_protocol
+    settings = read_protocol(Path(root) / '.runtime/stage2')
     token_path = Path(token_file)
     info = token_path.lstat()
     if not stat.S_ISREG(info.st_mode) or info.st_mode & 0o077:
@@ -159,7 +163,7 @@ def serve(root, trial_id, stage, token_file, credential_file, socket_path):
     previous = signal.signal(signal.SIGTERM, interrupted)
     server = None
     try:
-        with ScoredSession(root, trial_id, stage, token, client) as session:
+        with ScoredSession(root, trial_id, stage, token, client, settings=settings) as session:
             server = make_unix_server(lambda: session, socket_path)
             # Main-thread construction and serving preserve SQLite affinity.
             server.serve_forever()

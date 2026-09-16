@@ -9,6 +9,8 @@ from gateway_policy import MODEL
 from scored_accounting import audit_trial
 from scored_gateway import ScoredSession
 from test_scored_gateway import Client
+from model_protocol import ModelSettings, freeze_protocol
+from scored_gateway import private_directory
 
 
 class AccountingTests(unittest.TestCase):
@@ -19,13 +21,16 @@ class AccountingTests(unittest.TestCase):
         self.client = Client()
         self.token = 'fixture-token-' * 4
         self.payload = {'model': MODEL, 'max_tokens': 64,
+                        'temperature': 1., 'reasoning': {'effort': 'high'},
                         'messages': [{'role': 'user', 'content': 'synthetic'}]}
 
     def tearDown(self): self.temp.cleanup()
 
     def create(self, generate=True):
+        settings = ModelSettings(64, 1., 'high')
+        freeze_protocol(private_directory(self.runtime), settings)
         with ScoredSession(self.root, 'test', 'development', self.token, self.client,
-                           estimator=lambda request: '.01') as session:
+                           estimator=lambda request: '.01', settings=settings) as session:
             if generate: session.complete(self.token, self.payload)
         return self.runtime / 'scored-attempts/test'
 

@@ -19,6 +19,7 @@ from production_compose import compose_runtime
 from scored_gateway import durable_json, private_directory
 from scored_trial import run_trial, docker
 from gateway_policy import MODEL
+from model_protocol import ModelSettings
 
 
 async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
@@ -71,6 +72,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
             task.config.environment.memory_mb = 4096
             task.config.agent.timeout_sec = 180
         observed = {}
+        settings = ModelSettings(8192 if harness == 'openhands' else 64, 1., 'high')
         def compose(**kwargs):
             kwargs['tokenizer_dir'] = root / '.cache/stage2-tokenizer'
             result = compose_runtime(**kwargs)
@@ -95,7 +97,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
             class ProbeAgent:
                 async def setup(self, env): pass
                 async def run(self, instruction, env, context):
-                    payload = {'model': MODEL, 'max_tokens': 64,
+                    payload = {'model': MODEL, 'max_tokens': 64, 'temperature': 1., 'reasoning': {'effort': 'high'},
                                'messages': [{'role': 'user', 'content': instruction}]}
                     def request():
                         req = urllib.request.Request(kwargs['host_api_base'] + '/chat/completions',
@@ -119,6 +121,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
                  patch('scored_trial.compose_runtime', side_effect=compose):
                 result = await run_trial(root=fixture_root, trial_id='synthetic-runtime',
                     task_id='lifecycle', stage='development', agent_factory=factory,
+                    model_settings=settings,
                     gateway_image=gateway_image, guard_image=guard_image, setup_timeout_seconds=30)
             checks = dict(observed, verifier_reward_one=result.get('verifier_result', {}).get('rewards', {}).get('reward') == 1,
                 model_revoked=result.get('model_revoked') is True,

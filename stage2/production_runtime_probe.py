@@ -72,6 +72,8 @@ async def probe(label):
     trial = Path(tempfile.mkdtemp(prefix='production-runtime-', dir=root / '.runtime/stage2'))
     state = trial / 'state'
     state.mkdir(mode=0o700)
+    from model_protocol import ModelSettings, freeze_protocol
+    freeze_protocol(state, ModelSettings(64, 1., 'high'))
     token = secrets.token_hex(32)
     token_file, credential = trial / 'token', trial / 'credential'
     token_file.write_text(token)
@@ -116,7 +118,8 @@ async def probe(label):
         dropped = {cap.removeprefix('CAP_') for cap in host['CapDrop']}
         checks['task_guarded_namespace'] = host['NetworkMode'].startswith('container:') and {'NET_ADMIN', 'NET_RAW'} <= dropped
         checks['no_host_port_or_privilege'] = not host['PortBindings'] and not host['Privileged'] and not host['CapAdd']
-        payload = json.dumps({'model': MODEL, 'messages': [{'role': 'user', 'content': 'Synthetic runtime check'}], 'max_tokens': 64})
+        payload = json.dumps({'model': MODEL, 'messages': [{'role': 'user', 'content': 'Synthetic runtime check'}],
+                              'max_tokens': 64, 'temperature': 1., 'reasoning': {'effort': 'high'}})
         code = "import json,urllib.request; r=urllib.request.Request('http://127.0.0.1:8765/v1/chat/completions',data=" + repr(payload.encode()) + ",headers={'Authorization':" + repr('Bearer ' + token) + ",'Content-Type':'application/json'}); print(json.load(urllib.request.urlopen(r,timeout=60))['choices'][0]['message']['content'])"
         import shlex
         response = await env.exec('python -c ' + shlex.quote(code), timeout_sec=70)

@@ -20,6 +20,7 @@ from qualify_oracle import check_host, frozen_dataset
 from scored_gateway import durable_json, private_directory
 from trial_execution import execute_phases
 from scored_accounting import audit_trial
+from model_protocol import ModelSettings, freeze_protocol
 
 
 def docker(*args):
@@ -59,7 +60,7 @@ def audit_task(inspected, config, paths):
 
 
 async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
-                    gateway_image, guard_image, setup_timeout_seconds):
+                    gateway_image, guard_image, setup_timeout_seconds, model_settings):
     """Run one qualified native agent; factory gets only task timeout, not tests.
 
     Factory arguments: paths, host_api_base, container_api_base, trial_token,
@@ -75,6 +76,8 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         raise ValueError('Invalid trial ID')
     if stage not in {'development', 'final'} or not callable(agent_factory):
         raise ValueError('Explicit stage and qualified factory required')
+    if not isinstance(model_settings, ModelSettings):
+        raise ValueError('Explicit shared model protocol required')
     if type(setup_timeout_seconds) not in (int, float) or not math.isfinite(setup_timeout_seconds) or setup_timeout_seconds <= 0:
         raise ValueError('Positive setup limit required')
     root = Path(root).resolve()
@@ -83,6 +86,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
     with os.fdopen(fd, 'r+') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         health = check_host()
+        protocol_hash = freeze_protocol(runtime, model_settings)
         manifest = json.loads((root / 'stage2/input_manifest.json').read_text())
         allowed = manifest['development_ids' if stage == 'development' else 'all_task_ids']
         if task_id not in allowed:
@@ -105,6 +109,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         project = 'uts-scored-' + uuid.uuid4().hex[:12]
         result = {'trial_id': trial_id, 'task_id': task_id, 'stage': stage,
                   'started_utc': datetime.now(timezone.utc).isoformat(), 'host': health,
+                  'model_protocol_sha256': protocol_hash,
                   'status': 'starting', 'project': project}
         durable_json(trial / 'started.json', result)
         environment, bridge = None, None

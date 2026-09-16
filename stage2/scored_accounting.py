@@ -7,6 +7,7 @@ import sqlite3
 from budget_ledger import UNIT, dollars
 from gateway_core import reconcile_receipt
 from gateway_policy import MODEL, ENDPOINT
+from model_protocol import read_protocol
 
 
 def read_json(path):
@@ -20,6 +21,7 @@ def audit_trial(runtime, trial_id, stage):
     database = runtime / 'scored_budget.sqlite'
     if not database.is_file() or database.is_symlink():
         raise ValueError('Canonical scored ledger missing')
+    settings = read_protocol(runtime)
     # mode=ro prevents accidental creation of an empty substitute ledger.
     db = sqlite3.connect(database.resolve().as_uri() + '?mode=ro', uri=True)
     try:
@@ -60,6 +62,8 @@ def audit_trial(runtime, trial_id, stage):
         started = read_json(evidence / 'started.json')
         if started.get('trial_id') != trial_id or started.get('stage') != stage:
             raise ValueError('Gateway attempt identity mismatch')
+        if started.get('model_protocol_sha256') != settings.fingerprint():
+            raise ValueError('Gateway model protocol identity mismatch')
         requests = sorted(evidence.glob('*.request.json'))
         responses = sorted(evidence.glob('*.response.json'))
         receipts = sorted(evidence.glob('*.receipt.json'))
@@ -70,6 +74,12 @@ def audit_trial(runtime, trial_id, stage):
         for request_path in requests:
             prefix = request_path.name.removesuffix('.request.json')
             request = read_json(request_path)
+            # JSON decimals are preserved for money, but sampling values must
+            # be numeric floats for the same wire-contract validator.
+            sampled = dict(request)
+            for key in ['temperature', 'top_p']:
+                if isinstance(sampled.get(key), Decimal): sampled[key] = float(sampled[key])
+            settings.enforce(sampled)
             response = read_json(evidence / (prefix + '.response.json'))
             receipt = read_json(evidence / (prefix + '.receipt.json'))
             cost = dollars(reconcile_receipt(response, receipt))
@@ -87,6 +97,7 @@ def audit_trial(runtime, trial_id, stage):
         if charged > dollars('.055'):
             raise ValueError('Trial charge exceeded approved estimated admission cap')
         return {'billing_verified': True, 'requests': len(rows),
+                'model_protocol_sha256': settings.fingerprint(),
                 'charged_usd': str(Decimal(charged) / UNIT),
                 'aggregate_charged_usd': str(Decimal(total) / UNIT),
                 **{key: None if any(v is None for v in values) else sum(values)

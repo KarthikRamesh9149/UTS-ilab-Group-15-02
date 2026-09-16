@@ -3,34 +3,13 @@
 Connection/retry and OpenHands install compatibility changes only. Baseline
 prompts, tools, context management and decision loops remain inherited.
 """
-from dataclasses import dataclass
 import shlex
 import types
 
 from harbor.agents.installed.openhands import OpenHands
 from harbor.agents.terminus_2.terminus_2 import Terminus2
 from gateway_policy import MODEL
-
-
-@dataclass(frozen=True)
-class ModelSettings:
-    max_output_tokens: int
-    temperature: float
-    reasoning_effort: str
-
-    def __post_init__(self):
-        if type(self.max_output_tokens) is not int or not 0 < self.max_output_tokens <= 384000:
-            raise ValueError('Explicit provider output bound required')
-        if type(self.temperature) not in (int, float) or not 0 <= self.temperature <= 2:
-            raise ValueError('Explicit finite temperature required')
-        if self.reasoning_effort not in {'low', 'medium', 'high'}:
-            raise ValueError('Explicit qualified reasoning effort required')
-
-    @property
-    def model_info(self):
-        return {'max_input_tokens': 1048576, 'max_output_tokens': self.max_output_tokens,
-                'input_cost_per_token': .00000006, 'output_cost_per_token': .00000018,
-                'cache_read_input_token_cost': .000000015, 'cache_creation_input_token_cost': 0}
+from model_protocol import ModelSettings
 
 
 class NoRetryTerminus(Terminus2):
@@ -86,6 +65,7 @@ def agent_factory(harness, settings, *, custom_max_model_calls=None, parent=None
                     'extra_body': {'reasoning': {'effort': settings.reasoning_effort}}})
         if harness == 'openhands':
             return CompatibleOpenHands(**shared, version='0.62.0', python_version='3.12',
+                top_p=1.0,
                 api_base=container_api_base, extra_env={'LLM_API_KEY': trial_token, 'LLM_TIMEOUT': '120',
                     'LLM_COMPLETION_KWARGS': repr({'extra_body': {'reasoning': {'effort': settings.reasoning_effort}}})},
                 num_retries=0)
