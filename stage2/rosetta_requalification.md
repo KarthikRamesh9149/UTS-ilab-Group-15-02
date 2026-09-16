@@ -79,3 +79,13 @@ for other architectures. Rosetta's explicit unsupported-call error is evidence
 of a translation limitation in this run. No syscall shim, task patch, hidden
 test change or privilege expansion has been applied to hide it. Full-host
 qualification remains unresolved; the remaining reference checks continue.
+
+The qemu-alpine-ssh reference also reports the same unsupported syscall 282
+under Rosetta and returned reward zero after 35.161 seconds, with verified
+cleanup. This is no longer an isolated Windows-task observation: two reference
+tasks encounter the same translator limitation. Meanwhile regex-chess, which
+timed out under the earlier QEMU translator, passed under Rosetta in 382.239
+seconds with its original limits. These outcomes are evidence against treating
+either translator as already qualified for the full study. At twelve completed
+Rosetta reference outcomes there are nine passes and three zeros. No model
+accuracy comparison is inferred from these environment checks.
