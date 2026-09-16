@@ -329,3 +329,40 @@ Neither documentation nor a fixture pass establishes full-study completion.
 - All 62 Stage 2 and 12 existing tests pass (74 total). No scored trial ran.
   Live-provider OpenHands qualification, scored-request cost bounds, production
   task isolation, custom harness and the remaining study gates are still open.
+
+2026-09-16 custom backend milestone:
+
+- Installed a separate custom-harness environment, leaving the qualified
+  baseline environment unchanged: Deep Agents 0.7.14, LangGraph 1.2.11,
+  LangChain 1.4.0, Harbor 0.22.0. `custom_dependency_inventory.json` records
+  all 121 installed versions. Input requirements and a hash-locked resolution
+  are separate from that observed inventory.
+- `custom_backend.py` implements Deep Agents' sandbox filesystem/execute
+  interface using only the supplied Harbor environment. Model paths are never
+  opened on the Mac. Container-side foreground timeout, explicit output
+  truncation, bounded file transfers, and async/thread bridging are covered.
+- The first actual graph fixture failed file readback because Docker copy
+  preserved host ownership. `custom_agent_probe_result.json` retains that
+  failure. The backend now creates files through bounded, quoted commands as
+  the container user. `custom_agent_probe_v2.json` passes all seven runtime
+  checks: native file/execute tools, no delegation/planning tool, exactly three
+  scripted replies, timeout, and quoted-path roundtrip. Disposable containers
+  were removed. This is a real Deep Agents graph, not a paid model run.
+- `custom_model.py` requires an explicit loopback gateway, explicit bounded
+  output, one model, no SDK retry, and no Responses API/streaming. Two tests
+  include the actual LangChain/OpenAI client through the real gateway and a
+  synthetic ledger/provider. Nine backend tests also pass.
+- This is NOT frozen C0: background job polling/interruption, equal bounded
+  recovery, completion controls, fixed context policy and full run lifecycle
+  still need implementation. No C1/C2 or scored custom results are claimed.
+  All fixtures used scripted replies and spent no API credit.
+
+Custom checks use `.tools/stage2-custom/bin/python stage2/custom_backend_tests.py`
+and `stage2/custom_model_tests.py`, separately from the original test suites.
+Reference: https://docs.langchain.com/oss/python/deepagents/backends .
+
+Final checks for this increment: 62 Stage 2 + 12 existing + 9 custom backend
++ 2 custom client tests passed (85 total). Read-only OpenRouter verification
+still reports $25.264980845 credit and $0.00019596 aggregate key usage. No new
+paid requests were made. macOS reported no thermal/performance warning, 31%
+memory free and 38 GiB disk available. No benchmark fixture container remains.
