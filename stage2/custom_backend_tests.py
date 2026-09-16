@@ -14,10 +14,12 @@ class FakeEnvironment:
         self.calls = []
         self.output = 'ok'
         self.uploads = []
+        self.capture = True
 
     async def exec(self, command, timeout_sec):
         self.calls.append((command, timeout_sec))
-        return SimpleNamespace(stdout=self.output, stderr='', return_code=0)
+        output = json.dumps({'output': self.output[:64000], 'exit_code': 0, 'truncated': len(self.output) > 64000}) if self.capture else self.output
+        return SimpleNamespace(stdout=output, stderr='', return_code=0)
 
     async def upload_file(self, source, target):
         self.uploads.append((source, target, source.read_bytes()))
@@ -31,7 +33,8 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
     async def test_execute_only_calls_environment(self):
         result = await self.backend.aexecute('printf hello; false', timeout=2)
         self.assertEqual(result.output, 'ok')
-        self.assertIn("bash -lc 'printf hello; false'", self.env.calls[0][0])
+        self.assertIn('printf hello; false', self.env.calls[0][0])
+        self.assertIn('subprocess.Popen', self.env.calls[0][0])
         self.assertEqual(self.env.calls[0][1], 12)
 
     async def test_sync_bridge_from_worker(self):
@@ -68,6 +71,7 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_download_does_not_open_model_path_on_host(self):
         self.env.output = json.dumps({'data': base64.b64encode(b'remote').decode()})
+        self.env.capture = False
         result = await self.backend.adownload_files(['/does/not/exist/on/host'])
         self.assertEqual(result[0].content, b'remote')
 
