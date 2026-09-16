@@ -27,8 +27,16 @@ class OracleExportTests(unittest.TestCase):
             value['cleanup_verified'] = False
             (folder / 'result.json').write_text(json.dumps(value))
             self.assertEqual(summary(root)['status'], 'qualification_incomplete')
+            alternate = summary(root, 'rosetta')
+            self.assertEqual(alternate['completed_outcomes'], 0)
+            self.assertEqual(alternate['source_namespace'], 'oracle-dev20-rosetta-v1')
+            self.assertEqual(alternate['reference_passes_in_snapshot'], 0)
+            self.assertEqual(len(alternate['pending_tasks']), 20)
             value['cleanup_verified'] = True
             value['verifier']['rewards']['reward'] = 0
             (folder / 'result.json').write_text(json.dumps(value))
             self.assertEqual(summary(root)['reference_passes_in_snapshot'], 19)
             self.assertEqual(summary(root)['status'], 'qualification_incomplete')
+
+    def test_unknown_run_rejected(self):
+        with self.assertRaises(ValueError): summary(Path('/unused'), '../escape')
