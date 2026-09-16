@@ -28,7 +28,7 @@ LOADED_SOURCE_HASHES = source_hashes(Path(__file__).resolve().parents[1])
 async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', full_install=False):
     if not label.isalnum():
         raise ValueError('Alphanumeric unique evidence label required')
-    if harness not in {'marker', 'openhands'}:
+    if harness not in {'marker', 'openhands', 'custom'}:
         raise ValueError('Unknown infrastructure probe harness')
     if full_install and harness != 'openhands':
         raise ValueError('Full installation qualification is OpenHands-only')
@@ -79,7 +79,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
             task.config.environment.memory_mb = 4096
             task.config.agent.timeout_sec = 180
         observed = {}
-        settings = ModelSettings(8192 if harness == 'openhands' else 64, 1., 'high')
+        settings = ModelSettings(64 if harness == 'marker' else 8192, 1., 'high')
         def compose(**kwargs):
             kwargs['tokenizer_dir'] = root / '.cache/stage2-tokenizer'
             result = compose_runtime(**kwargs)
@@ -87,8 +87,13 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
             result['services']['model-gateway']['command'] = ['--gateway']
             if harness == 'openhands':
                 result['services']['model-gateway']['command'].append('--native-openhands')
+            if harness == 'custom':
+                result['services']['model-gateway']['command'].append('--native-custom')
             return result
         def factory(**kwargs):
+            if harness == 'custom':
+                from native_agents import agent_factory
+                return agent_factory('C0', settings, custom_max_model_calls=4)(**kwargs)
             if harness == 'openhands':
                 import types
                 from native_agents import agent_factory, ModelSettings
@@ -142,7 +147,10 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
                 containers_removed=result['containers_removed'], networks_removed=result['networks_removed'],
                 volumes_removed=result['volumes_removed'])
             receipts = list((fixture_root / '.runtime/stage2/scored-attempts/synthetic-runtime').glob('*.receipt.json'))
-            checks['expected_reconciled_synthetic_receipts'] = len(receipts) == (2 if harness == 'openhands' else 1)
+            checks['expected_reconciled_synthetic_receipts'] = len(receipts) == (1 if harness == 'marker' else 2)
+            if harness == 'custom':
+                trajectory = fixture_root / '.runtime/stage2/scored-trials/synthetic-runtime/agent/custom-trajectory.json'
+                checks['custom_trajectory_written'] = trajectory.is_file()
             checks['runtime_sources_unchanged'] = source_hashes(root) == LOADED_SOURCE_HASHES
             evidence = {'kind': 'synthetic_full_runner_not_benchmark_score', 'live_api_calls': 0,
                 'gateway_image': gateway_image, 'guard_image': guard_image,
@@ -167,7 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('--label', required=True)
     parser.add_argument('--wait', action='store_true')
     parser.add_argument('--rebuild-gateway', action='store_true')
-    parser.add_argument('--harness', choices=['marker', 'openhands'], default='marker')
+    parser.add_argument('--harness', choices=['marker', 'openhands', 'custom'], default='marker')
     parser.add_argument('--full-install', action='store_true', help='Qualify the production OpenHands installer')
     args = parser.parse_args()
     asyncio.run(probe(args.label, wait=args.wait, rebuild_gateway=args.rebuild_gateway,
