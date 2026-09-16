@@ -28,7 +28,7 @@ class CustomHarborAgent(BaseAgent):
 
     def __init__(self, logs_dir, *, condition, parent=None, api_base, trial_token,
                  max_output_tokens, max_model_calls, trial_timeout_seconds,
-                 model_name=MODEL, **kwargs):
+                 model_name=MODEL, temperature=None, reasoning_effort=None, **kwargs):
         if model_name != MODEL:
             raise ValueError('Pinned model required')
         if isinstance(trial_timeout_seconds, bool) or not isinstance(trial_timeout_seconds, (int, float)) or not math.isfinite(trial_timeout_seconds) or trial_timeout_seconds <= 0:
@@ -37,7 +37,8 @@ class CustomHarborAgent(BaseAgent):
             raise ValueError('Explicit shared model-call limit required')
         super().__init__(logs_dir=Path(logs_dir), model_name=model_name, **kwargs)
         self.condition = Condition(condition, parent)
-        self.model = gateway_model(api_base, trial_token, max_output_tokens=max_output_tokens)
+        self.model = gateway_model(api_base, trial_token, max_output_tokens=max_output_tokens,
+                                   temperature=temperature, reasoning_effort=reasoning_effort)
         self.max_model_calls = max_model_calls
         self.timeout = trial_timeout_seconds
         self.used = False

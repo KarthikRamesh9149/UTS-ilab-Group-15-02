@@ -12,7 +12,7 @@ CANONICAL_MODEL = 'deepseek/deepseek-v4-flash-20260731'
 ENDPOINT = 'deepinfra/fp8'
 MAX_BODY = 2 * 1024 * 1024
 ALLOWED = {'model', 'messages', 'tools', 'tool_choice', 'max_tokens', 'max_completion_tokens',
-           'temperature', 'top_p', 'seed', 'stop', 'stream', 'reasoning',
+           'temperature', 'top_p', 'seed', 'stop', 'stream', 'reasoning', 'reasoning_effort',
            'parallel_tool_calls', 'response_format'}
 
 
@@ -40,6 +40,10 @@ def prepare_request(payload):
     if len(encoded) > MAX_BODY:
         raise ValueError('Request body too large')
     result = deepcopy(payload)
+    if 'reasoning_effort' in result:
+        if 'reasoning' in result or result['reasoning_effort'] not in {'low', 'medium', 'high'}:
+            raise ValueError('Ambiguous or unsupported reasoning effort')
+        result['reasoning'] = {'effort': result.pop('reasoning_effort')}
     # OpenRouter documents these as equivalent total-generation limits. Keep
     # one canonical field for the reservation function; do not alter its value.
     result.pop('max_completion_tokens', None)
