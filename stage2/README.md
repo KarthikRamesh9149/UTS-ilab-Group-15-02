@@ -1,27 +1,29 @@
 # Stage 2 execution status
 
-Latest host decision: user authorised a Mac + OpenRouter fallback. Read-only
-qualification found insufficient current Docker resources, limited disk headroom
-and six unrelated running Orchestra services. See mac_host_qualification.md.
-No host transition or benchmark launch is claimed yet. CETUS records below
-remain historical evidence, not the newly selected execution target.
+Current host: the authorised Mac + OpenRouter fallback. Docker was resized to
+4 CPUs / 10 GiB and the authorised Orchestra services stopped. Local runtime,
+gateway and agent fixtures now run. CETUS records and earlier host inspections
+below are historical; no further CETUS execution is planned in this fallback.
+The scored study has not launched and is not complete.
 
-Approved scope: CETUS task execution, OpenRouter DeepSeek V4 Flash 0731 through
+Approved scope, with the authorised host amendment: Mac Docker task execution,
+OpenRouter DeepSeek V4 Flash 0731 through
 the verified DeepInfra FP8 endpoint; Terminus-2, OpenHands and a new custom
 Deep Agents/LangGraph harness. Preserve the Stage 1 pilot without edits.
 
 ## Gates and evidence checklist
 
-- [x] Shared SSH authentication established; no password stored by the project.
-- [x] OpenRouter key authenticated previously: non-resetting $30 limit, $0 usage.
-- [ ] Compute-node network, runtime and isolation preflight.
-- [ ] Account/project allocation and required Data Management Plan confirmed.
+- [x] OpenRouter authenticated; spending is recorded in the setup ledger.
+- [x] Mac Docker offline fixture and narrow public-egress fixture passed.
+- CETUS account/DMP/compute-node gates are historical and inapplicable to the
+  selected local host; no claim of UTS approval is made.
 - [x] Source branch: `codex/cetus-openrouter-stage2`, based on `6d10c4e`.
   The installed Command Line Tools Git works independently of the Xcode launcher.
   No licence was accepted automatically.
 - [ ] Safe task runtime validated against all 89 environment definitions.
 - [ ] Crash-safe gateway and precise budget ledger implemented and tested.
-- [ ] Model/provider metadata and account credit revalidated before paid probes.
+- [x] Model/provider metadata and account credit revalidated before paid probes.
+- [x] Canonical dataset bytes matched official revision; development IDs unchanged.
 - [ ] Dependencies, task manifests and experimental settings frozen.
 - [ ] Real custom backend, baseline integrations and Langfuse verified.
 - [ ] Bounded $1 compatibility probes and 20-task Terminus qualification.
@@ -29,6 +31,10 @@ Deep Agents/LangGraph harness. Preserve the Stage 1 pilot without edits.
 - [ ] 267 fresh final cells: 89 per harness, one attempt each.
 - [ ] Independent evidence, metric, billing and security audit.
 - [ ] Technical bundle and separate code-free report-writer ZIP.
+
+Stage 2 dataset source: see `dataset_provenance.json` for the authoritative
+`dataset_path`, official Git revision and per-file hashes. Do not use the old
+pilot cache or pilot selection/oracle runner for this stage.
 
 Revised budget after authorisation to use the available account balance:
 $0.055 per scored trial, equal across harnesses; setup $1; development $6.60;
@@ -261,3 +267,40 @@ remaining execution gates include scored-request cost limits, public task
 network isolation, native agent integration, dataset provenance and the
 previously documented study protocol gates. Mac checks remained normal with
 48 GiB disk free. Raw credentials and runtime journals remain untracked.
+
+2026-09-16 agent/provenance/network milestone:
+
+- Verified all 89 tasks and 1,037 files (including dataset metadata) against
+  official Git revision `7131e4375048a0e408a8fb404b5f499d726b695b` from
+  https://github.com/harbor-framework/terminal-bench-2-1 . The fresh extraction
+  is separate from the pilot. All frozen task-config hashes and 20 development
+  IDs match. The historical cache lacks 89 `.gitignore` files and two metadata
+  files, and `sanitize-git-repo/tests/test_outputs.py` differs. No old files or
+  pilot results were changed. This audit compared bytes/hashes without showing
+  hidden verifier or solution contents to policy development.
+- The actual Terminus-2 prompt, parser, terminal session and completion loop
+  passed a three-turn scripted-model fixture, then a three-call real-model
+  fixture. The real agent created the expected file and emitted a trajectory.
+  Charges reconciled at $0.000162; total setup spend $0.00019596, no pending
+  requests. This is a synthetic setup task, not a benchmark score. The fixture
+  used a four-turn / 2,048-output-token cap and disabled reasoning; these are
+  fixture settings, not a frozen final baseline configuration. Retry decorator
+  bypass remains an explicitly documented connection adjustment.
+- Subsequent source hardening generates a random token for future live fixture
+  use and journals each request before dispatch. The completed fixture predates
+  those two changes: it used a local fixture token and saved responses/receipts,
+  not exact outgoing request bodies. Do not claim multi-turn tokenizer
+  calibration from those responses alone. The one-shot marker prevents replay.
+- A disposable namespace-firewall fixture passed 10 checks: public HTTPS,
+  known-live private-peer denial, local task service access, inability to alter
+  firewall rules/create raw sockets, and no host home/control socket/key. Only
+  the guard container had NET_ADMIN; no host/CETUS firewall rules were changed.
+  All fixture containers and its network were removed. IPv6 and raw sockets
+  remain unavailable in this candidate; all-task semantic compatibility and
+  an adversarial isolation audit remain outstanding. This is not yet the
+  production Harbor network adapter.
+
+References for this local fixture design:
+https://docs.docker.com/engine/network/ (container network namespaces) and
+https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains (chain hooks).
+Neither documentation nor a fixture pass establishes full-study completion.
