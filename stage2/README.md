@@ -366,3 +366,43 @@ Final checks for this increment: 62 Stage 2 + 12 existing + 9 custom backend
 still reports $25.264980845 credit and $0.00019596 aggregate key usage. No new
 paid requests were made. macOS reported no thermal/performance warning, 31%
 memory free and 38 GiB disk available. No benchmark fixture container remains.
+
+2026-09-16 custom controller milestone:
+
+- `custom_control.py` implements C0/C1/C2 candidate prompt composition. C1
+  adds only planning instructions; C2 requires an explicit C0/C1 parent and
+  adds completion-check instructions/validation. Every condition has the same
+  two-repair allowance and tool schema. No finalist has been selected or frozen.
+- `custom_runner.py` runs the actual Deep Agents graph with explicit completion
+  and abandonment, per-trial state, total timeout and no replay. Completion is
+  labelled `agent_reported_complete`, never a verifier pass. C2 accepts no-edit
+  tasks and records model-supplied observations; it cannot establish that those
+  observations are true or exhaustive. The benchmark verifier remains decisive.
+- The fixed candidate context policy retains graph conversation state between
+  repair invocations, disables LLM summarisation and optional delegation, and
+  uses identical filesystem middleware across conditions. Request/body/context
+  exhaustion must fail closed rather than silently trim the baseline or input.
+- A regression exposed that the library's graph-output call counter did not
+  survive our repair reinvocation. A per-runner model-attempt limiter now spans
+  every repair; provider/transport exceptions are not automatically retried.
+- `custom_jobs.py` adds per-trial start/poll/interrupt handles, maximum four live
+  commands and 64 total handles. Signals are executed only inside the container.
+  Cleanup stops remaining jobs; the caller must always destroy the container,
+  including on cleanup failure. Polling returns output once the command finishes.
+- `custom_controller_probe_v1.json` passed nine actual-container checks. After
+  output-capture hardening, `custom_controller_probe_v2.json` passed ten: a
+  two-million-character command is drained inside the container with only a
+  64,000-byte prefix retained, before Harbor/host capture. The previous backend
+  truncated only after capture; the new implementation prevents that unbounded
+  host-memory path. Command output remains an untrusted task observation.
+- Seven pure control tests, six real-graph/controller tests and four job-guard
+  tests supplement existing suites. These fixtures used scripted replies and
+  made no paid API requests. `budget_qualification.md` explains why the scored
+  spending gate remains closed. Full production runtime qualification, live
+  integrations, experiment freeze, Langfuse delivery and scored runs remain.
+
+Final candidate checks: 69 Stage 2, 12 existing, 9 custom backend, 2 custom
+client, 6 custom runner and 4 custom job tests passed (102 total). The latest
+container fixture passed all ten checks and left no running fixture container.
+Read-only account verification still reports $25.264980845 credit and
+$0.00019596 aggregate usage. No scored trial or new paid request ran.

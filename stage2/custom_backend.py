@@ -54,12 +54,28 @@ class HarborSandbox(BaseSandbox):
             raise ValueError('Positive finite command timeout required')
         # Container-side timeout kills this foreground process group. The
         # Harbor outer timeout is a transport bound, not the process killer.
-        wrapped = f'timeout --signal=TERM --kill-after=2 {seconds}s bash -lc {shlex.quote(command)}'
-        result = await self.environment.exec(wrapped, timeout_sec=seconds + 10)
-        output = (result.stdout or '') + (result.stderr or '')
-        return ExecuteResponse(output=output[:self.MAX_OUTPUT_CHARS],
-                               exit_code=result.return_code,
-                               truncated=len(output) > self.MAX_OUTPUT_CHARS)
+        # Drain in the container and retain only a bounded prefix. Truncating
+        # after Harbor captures stdout would still allow unbounded host RAM.
+        argv = ['timeout', '--signal=TERM', '--kill-after=2', f'{seconds}s', 'bash', '-lc', command]
+        script = f'''import json,subprocess
+p = subprocess.Popen({argv!r}, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+kept = bytearray()
+truncated = False
+while True:
+    chunk = p.stdout.read(8192)
+    if not chunk:
+        break
+    remaining = {self.MAX_OUTPUT_CHARS} - len(kept)
+    kept.extend(chunk[:remaining])
+    truncated = truncated or len(chunk) > remaining
+code = p.wait()
+print(json.dumps({{"output": kept.decode("utf-8", errors="replace"), "exit_code": code, "truncated": truncated}}))
+'''
+        result = await self.environment.exec('python3 -c ' + shlex.quote(script), timeout_sec=seconds + 10)
+        if result.return_code != 0:
+            raise RuntimeError('Container output-capture helper failed')
+        captured = json.loads(result.stdout)
+        return ExecuteResponse(**captured)
 
     def execute(self, command, *, timeout=None):
         return self._sync(lambda: self.aexecute(command, timeout=timeout))
