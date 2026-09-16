@@ -57,7 +57,7 @@ def frozen_dataset(root):
 
 async def run_one(root, dataset, task_id, attempts, guard_image):
     from harbor.agents.oracle import OracleAgent
-    from harbor.environments.docker.docker import DockerEnvironment
+    from pinned_docker import PinnedImageDockerEnvironment as DockerEnvironment
     from harbor.models.agent.context import AgentContext
     from harbor.models.task.task import Task
     from harbor.models.trial.paths import TrialPaths
@@ -142,7 +142,7 @@ async def run_one(root, dataset, task_id, attempts, guard_image):
     return result
 
 
-async def main(task_id=None):
+async def main(task_id=None, rosetta_requalification=False):
     os.umask(0o077)
     root = Path(__file__).resolve().parents[1]
     runtime = private_directory(root / '.runtime/stage2')
@@ -159,7 +159,21 @@ async def main(task_id=None):
             selected = [task_id]
         # v1 omitted stock Harbor log mounts and could not collect any reward.
         # Keep its failed attempt untouched; v2 corrects only infrastructure.
-        attempts = private_directory(runtime / 'oracle-dev20-v2')
+        namespace = 'oracle-dev20-v2'
+        if rosetta_requalification:
+            translation = subprocess.check_output(
+                ['colima', 'ssh', '--', 'cat', '/proc/sys/fs/binfmt_misc/rosetta'],
+                text=True, timeout=20)
+            if not translation.startswith('enabled\n') or 'interpreter /mnt/lima-rosetta/rosetta\n' not in translation:
+                raise RuntimeError('Rosetta environment not verified')
+            namespace = 'oracle-dev20-rosetta-v1'
+        attempts = private_directory(runtime / namespace)
+        if rosetta_requalification and not (attempts / 'environment.json').exists():
+            durable_json(attempts / 'environment.json', {
+                'reason': 'Host x86-64 translator changed from QEMU to Rosetta; no task or limit changes',
+                'translator_registration': translation,
+                'prior_attempts_preserved': 'oracle-dev20-v2',
+                'time_utc': datetime.now(timezone.utc).isoformat()})
         guard_image = subprocess.check_output(['docker', 'image', 'inspect', 'uts-stage2-egress-fixture:1', '--format', '{{.Id}}'], text=True).strip()
         for identifier in selected:
             result = await run_one(root, dataset, identifier, attempts, guard_image)
@@ -171,5 +185,7 @@ async def main(task_id=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--task', help='One frozen dev20 task; omission runs the frozen sequence')
+    parser.add_argument('--rosetta-requalification', action='store_true',
+                        help='Separate preserved reference evidence after host translator change')
     args = parser.parse_args()
-    asyncio.run(main(args.task))
+    asyncio.run(main(args.task, args.rosetta_requalification))
