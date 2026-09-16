@@ -19,6 +19,7 @@ from production_compose import compose_runtime
 from qualify_oracle import check_host, frozen_dataset
 from scored_gateway import durable_json, private_directory
 from trial_execution import execute_phases
+from scored_accounting import audit_trial
 
 
 def docker(*args):
@@ -169,5 +170,11 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                     result[resource + '_removed'] = False
                 if not result[resource + '_removed']:
                     result['status'] = 'cleanup_failed'
+            try:
+                result['billing'] = audit_trial(runtime, trial_id, stage)
+            except Exception as exc:
+                result['billing'] = {'billing_verified': False, 'error_type': type(exc).__name__}
+                if result['status'] == 'verified':
+                    result['status'] = 'billing_unresolved'
             durable_json(trial / 'result.json', result)
         return result

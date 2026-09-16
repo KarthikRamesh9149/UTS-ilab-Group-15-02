@@ -47,6 +47,7 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
                         guard_image=inspection['Image'], setup_timeout_seconds=1)
             with ExitStack() as stack:
                 replacements = {'check_host': lambda: {}, 'frozen_dataset': lambda root: root,
+                    'audit_trial': lambda *args: {'billing_verified': True},
                     'compose_runtime': lambda **kwargs: {}, 'service': lambda *args: inspection,
                     'HostModelBridge': Bridge, 'execute_phases': phases,
                     'docker': lambda *args: 'leftover' if leftovers else ''}
