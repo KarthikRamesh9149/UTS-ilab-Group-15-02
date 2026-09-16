@@ -46,7 +46,7 @@ def reconcile_receipt(response, receipt):
 
 
 class Gateway:
-    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream, generation_reader=None, *, trial_estimate=None):
+    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream, generation_reader=None, *, trial_estimate=None, request_policy=None):
         self.ledger = ledger
         self.trial = trial
         self.balance_reader = balance_reader
@@ -54,6 +54,7 @@ class Gateway:
         self.upstream = upstream
         self.generation_reader = generation_reader
         self.trial_estimate = trial_estimate
+        self.request_policy = request_policy
         self.lock = threading.Lock()
         self.revoked = False
 
@@ -68,6 +69,8 @@ class Gateway:
             if self.revoked or not isinstance(token, str) or not hmac.compare_digest(token_digest(token), self.trial.token_digest):
                 raise GatewayError('Unauthorised trial')
             request = prepare_request(payload)
+            if self.request_policy is not None:
+                request = self.request_policy(request)
             if self.maximum_charge is None:
                 raise GatewayError('No qualified request charge bound')
             if self.generation_reader is None:

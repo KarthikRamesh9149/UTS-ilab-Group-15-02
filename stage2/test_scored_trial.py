@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from scored_trial import run_trial, audit_task
+from model_protocol import ModelSettings
 
 
 class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
@@ -44,6 +45,7 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
             inspection = {'Id': 'a' * 64, 'Image': 'sha256:' + 'b' * 64, 'State': {'Running': False}}
             args = dict(root=root, trial_id='test', task_id='fixture', stage='development',
                         agent_factory=factory, gateway_image=inspection['Image'],
+                        model_settings=ModelSettings(64, 1., 'high'),
                         guard_image=inspection['Image'], setup_timeout_seconds=1)
             with ExitStack() as stack:
                 replacements = {'check_host': lambda: {}, 'frozen_dataset': lambda root: root,
@@ -95,7 +97,8 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
                 with patch('scored_trial.check_host') as health:
                     with self.assertRaises(BlockingIOError):
                         await run_trial(root=directory, trial_id='x', task_id='x', stage='development',
-                            agent_factory=lambda **kwargs: None, gateway_image='', guard_image='', setup_timeout_seconds=1)
+                            agent_factory=lambda **kwargs: None, gateway_image='', guard_image='', setup_timeout_seconds=1,
+                            model_settings=ModelSettings(64, 1., 'high'))
                     health.assert_not_called()
 
 
