@@ -1,10 +1,10 @@
 {
   "kind": "reference_solution_runtime_qualification_not_model_score",
   "status": "partial_snapshot",
-  "snapshot_utc": "2026-09-16T06:34:26.175669+00:00",
+  "snapshot_utc": "2026-09-16T06:41:23.511176+00:00",
   "frozen_development_tasks": 20,
-  "valid_results_in_snapshot": 5,
-  "reference_passes_in_snapshot": 4,
+  "valid_results_in_snapshot": 6,
+  "reference_passes_in_snapshot": 5,
   "live_api_calls": 0,
   "runtime_revision": "explicit-log-mounts-v2",
   "results": [
@@ -77,10 +77,23 @@
       "agent_timeout_sec": 750.0,
       "verifier_timeout_sec": 360.0,
       "reward": 1.0
+    },
+    {
+      "task": "reshard-c4-data",
+      "status": "verified",
+      "time_utc": "2026-09-16T06:30:18.356796+00:00",
+      "elapsed_seconds": 640.277,
+      "cleanup_verified": true,
+      "image_id": "sha256:92d209e704785e17ad6b3f740e813dd72bc7ac33982ce435d197ab9d890eac2a",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 3600.0,
+      "verifier_timeout_sec": 3600.0,
+      "reward": 1.0
     }
   ],
   "pending_tasks": [
-    "reshard-c4-data",
     "install-windows-3.11",
     "openssl-selfsigned-cert",
     "regex-chess",
