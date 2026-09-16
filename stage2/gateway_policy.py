@@ -7,6 +7,8 @@ from copy import deepcopy
 import json
 
 MODEL = 'deepseek/deepseek-v4-flash-0731'
+# Dated canonical identifier used by the official endpoint/generation API.
+CANONICAL_MODEL = 'deepseek/deepseek-v4-flash-20260731'
 ENDPOINT = 'deepinfra/fp8'
 MAX_BODY = 2 * 1024 * 1024
 ALLOWED = {'model', 'messages', 'tools', 'tool_choice', 'max_tokens',

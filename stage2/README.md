@@ -135,3 +135,26 @@ API references inspected:
 - https://openrouter.ai/docs/api/api-reference/generations/get-generation
 - https://openrouter.ai/docs/cookbook/administration/usage-accounting
 - https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731
+
+2026-09-16 first live setup fixture: one plain completion through the gateway
+core returned exactly `UTS_OK` (14 prompt tokens, 4 completion tokens). Before
+dispatch, the ledger reserved $0.10487040: the entire 1,048,576-token input
+context at the $0.10/M routing ceiling plus 64 output tokens at $0.20/M. This
+does not rely on a heuristic tokenizer. It is only suitable for the setup
+allocation, not the $0.055 scored-trial ceiling.
+
+The generation receipt was initially unavailable, so the gateway retained its
+reservation and stopped. A later read-only lookup returned the canonical dated
+model identifier. Registered the exact alias mapping and reconciled the same
+generation without replay. Final cost: $0.00000156. Key usage, completion cost,
+generation cost and account-balance decrement agree; credit $25.265175245.
+See setup_probe_result.json (initial stop) and setup_probe_reconciled.json
+(recovery). The setup ledger is `.runtime/stage2/setup_budget.sqlite`, with a
+strict aggregate $1 ceiling. Every future setup request must use this ledger;
+do not create another setup allocation in another ledger. Development/final
+allocations remain separate and must not double-count this setup allowance.
+
+All 46 Stage 2 tests and 12 existing tests passed (58 total). No scored task
+ran. Tool calling, HTTP-to-live-provider wiring, real baseline execution,
+input-cost bounds for scored trials, Docker network isolation and full runtime
+qualification remain outstanding. The one-shot marker prevents probe replay.
