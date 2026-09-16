@@ -1,0 +1,16 @@
+Wed Sep 16 02:00:45 UTC 2026
+hpc-exec02.hpc.uts.edu.au
+INFO:    Converting OCI blobs to SIF format
+INFO:    Starting build...
+INFO:    Fetching OCI image...
+INFO:    Extracting OCI image...
+INFO:    Inserting Apptainer configuration...
+INFO:    Creating SIF file...
+Traceback (most recent call last):
+  File "transport_smoke.py", line 74, in <module>
+    main(sys.argv[1])
+  File "transport_smoke.py", line 52, in main
+    result = request(sock, token, {'action': 'exec', 'command': command})
+  File "/shared/homes/u26025369/uts-ilab-stage2-preflight-20260916/secure_transport.py", line 73, in request
+    raise RuntimeError(result.get('error', 'Control request failed'))
+RuntimeError: Invalid or interrupted request
