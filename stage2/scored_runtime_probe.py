@@ -20,6 +20,9 @@ from scored_gateway import durable_json, private_directory
 from scored_trial import run_trial, docker
 from gateway_policy import MODEL
 from model_protocol import ModelSettings
+from scoring_admission import source_hashes
+
+LOADED_SOURCE_HASHES = source_hashes(Path(__file__).resolve().parents[1])
 
 
 async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
@@ -51,6 +54,8 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
             raise ValueError('Preserve previous probe evidence')
         from qualify_oracle import check_host
         check_host()
+        if source_hashes(root) != LOADED_SOURCE_HASHES:
+            raise ValueError('Runtime sources changed while probe waited; restart the unstarted probe')
         if rebuild_gateway:
             print('Task owner released; rebuilding the gateway for the synthetic runtime check.', flush=True)
             await asyncio.to_thread(subprocess.run, ['docker', 'build', '--quiet',
@@ -131,9 +136,11 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
                 volumes_removed=result['volumes_removed'])
             receipts = list((fixture_root / '.runtime/stage2/scored-attempts/synthetic-runtime').glob('*.receipt.json'))
             checks['expected_reconciled_synthetic_receipts'] = len(receipts) == (2 if harness == 'openhands' else 1)
+            checks['runtime_sources_unchanged'] = source_hashes(root) == LOADED_SOURCE_HASHES
             evidence = {'kind': 'synthetic_full_runner_not_benchmark_score', 'live_api_calls': 0,
                 'gateway_image': gateway_image, 'guard_image': guard_image,
                 'harness': harness, 'task_image': task.config.environment.docker_image,
+                'model_protocol_sha256': settings.fingerprint(), 'source_hashes': LOADED_SOURCE_HASHES,
                 'runtime_path': str(fixture_root.relative_to(root)), 'checks': checks,
                 'status': 'passed' if all(checks.values()) else 'failed'}
         except Exception as exc:
