@@ -8,16 +8,21 @@ The earlier `pinnedv1` failure is retained: the host used the baseline Python
 environment instead of the custom environment and lacked `langchain_core`.
 No paid request was made in either synthetic attempt.
 
-Terminus passed `native_live_terminus-2_pinnedv2.json` with the same immutable
-images and model protocol. OpenHands and custom rechecks are not yet complete
-at this checkpoint. Historical v1 proofs used differing rebuilt image IDs and
-cannot be combined into a current admission.
+All three real-model rechecks passed in `native_live_*_pinnedv2.json` with the
+same immutable images and model protocol. Their validated admission is
+`scoring_admission_pinnedv2.json`. Historical v1 proofs used differing rebuilt
+image IDs and cannot be combined into a current admission. Aggregate original
+setup-ledger charges are USD 0.00463008 after these checks, not benchmark spend.
 
 `build_admission.py` constructs and validates an admission from four explicit
 proof paths. It does not spend, launch trials, replace an existing admission,
 or waive missing/stale evidence. Reference qualification still has 15 passes,
 four zero rewards and one timeout; those are not model scores and must not be
 represented as a fully qualified environment. The paid runner has not started.
+Infrastructure-only pattern inspection found HTTP 403 indicators in the
+build-pov-ray reference log, and timeout indicators in both qemu reference logs.
+These are diagnostic leads, not completed root-cause findings. No hidden
+solution text or verifier assertions were exported into harness policy.
 
 ## Earlier implementation checkpoint
 
