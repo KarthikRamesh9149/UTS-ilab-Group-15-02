@@ -1,0 +1,5 @@
+FROM uts-stage2-terminus-fixture:1
+RUN apt-get update && apt-get install -y --no-install-recommends curl git build-essential
+RUN uv venv /opt/openhands-venv --python /usr/local/bin/python && \
+    uv pip install --python /opt/openhands-venv/bin/python openhands-ai==0.62.0 openhands-agent-server==1.0.0a6 openhands-sdk==1.0.0a6 openhands-tools==1.0.0a6
+RUN /opt/openhands-venv/bin/python -m openhands.core.main --version

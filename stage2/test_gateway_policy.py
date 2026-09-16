@@ -3,6 +3,24 @@ from gateway_policy import MODEL, prepare_request
 
 
 class GatewayPolicyTests(unittest.TestCase):
+    def test_completion_limit_alias_is_canonical_without_mutation(self):
+        original = self.request()
+        original['max_completion_tokens'] = original.pop('max_tokens')
+        result = prepare_request(original)
+        self.assertEqual(result['max_tokens'], 32)
+        self.assertNotIn('max_completion_tokens', result)
+        self.assertNotIn('max_tokens', original)
+
+    def test_ambiguous_and_invalid_completion_alias_rejected(self):
+        with self.assertRaises(ValueError):
+            prepare_request(self.request(max_completion_tokens=32))
+        for value in [True, None, 0, 384001, 2.5]:
+            request = self.request()
+            del request['max_tokens']
+            request['max_completion_tokens'] = value
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                prepare_request(request)
+
     def request(self, **extra):
         return dict({'model': MODEL, 'messages': [{'role': 'user', 'content': 'fixture'}],
                      'max_tokens': 32}, **extra)

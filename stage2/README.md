@@ -304,3 +304,28 @@ References for this local fixture design:
 https://docs.docker.com/engine/network/ (container network namespaces) and
 https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains (chain hooks).
 Neither documentation nor a fixture pass establishes full-study completion.
+
+2026-09-16 OpenHands integration milestone:
+
+- Harbor 0.22.0's selected adapter invokes `openhands.core.main`. The latest
+  OpenHands 1.11.0 package lacks that entry point, so its installation fixture
+  failed before agent execution. The compatible legacy baseline is now pinned
+  to OpenHands 0.62.0. Its three exact, declared prerelease dependencies are
+  explicitly pinned in `fixtures/Dockerfile.openhands`; no package was patched.
+- The first native-agent attempt (`openhands_agent_probe_v1.json`) was rejected
+  because its client sends `max_completion_tokens`. The gateway now normalises
+  this documented equivalent to `max_tokens` without changing its value, and
+  rejects requests containing both aliases. Two regression tests cover this.
+  Reference: https://openrouter.ai/docs/api_reference/parameters .
+- The second attempt (`openhands_agent_probe_v2.json`) passed: actual native
+  OpenHands used its shell tool to create the expected file, then finished,
+  through the private socket relay in two scripted-model requests. The task
+  had no external network, host home, upstream key or Docker socket. Containers
+  and the dedicated volume were removed. No API credit was spent.
+- `openhands_fixture_audit.json` inventories the exact image's installed
+  packages and verifies post-run conversion into a six-step native trajectory.
+  Its token counts are scripted fixture values, not provider measurements;
+  native cost is absent. The inventory is not a hashed dependency rebuild lock.
+- All 62 Stage 2 and 12 existing tests pass (74 total). No scored trial ran.
+  Live-provider OpenHands qualification, scored-request cost bounds, production
+  task isolation, custom harness and the remaining study gates are still open.
