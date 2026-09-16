@@ -56,7 +56,7 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
                 for key, value in replacements.items(): stack.enter_context(patch('scored_trial.' + key, value))
                 stack.enter_context(patch('scored_trial.audit_task', side_effect=RuntimeError('audit') if audit_error else None))
                 stack.enter_context(patch('harbor.models.task.task.Task', return_value=task))
-                stack.enter_context(patch('harbor.environments.docker.docker.DockerEnvironment', Env))
+                stack.enter_context(patch('pinned_docker.PinnedImageDockerEnvironment', Env))
                 if audit_error or factory_error:
                     with self.assertRaises(RuntimeError): await run_trial(**args)
                 else:

@@ -10,7 +10,6 @@ import fcntl
 import json
 import os
 from pathlib import Path
-import subprocess
 import tempfile
 from unittest.mock import patch
 
@@ -55,11 +54,8 @@ async def probe(harness, label, settings, *, execute=False, wait=False):
         fixture = Path(tempfile.mkdtemp(prefix='native-live-', dir=runtime))
         private_directory(fixture / 'stage2')
         durable_json(fixture / 'stage2/input_manifest.json', {'development_ids': ['lifecycle']})
-        # Rebuild before choosing its immutable ID; only the dedicated gateway
-        # receives the actual API credential and original setup ledger.
-        await asyncio.to_thread(subprocess.run, ['docker', 'build', '--quiet',
-            '-f', str(root / 'stage2/fixtures/Dockerfile.gateway'), '-t',
-            'uts-stage2-gateway:1', str(root / 'stage2')], check=True, timeout=600)
+        # Qualify the already-built image shared with the synthetic runtime
+        # proof. Rebuilding here would invalidate that immutable identity.
         gateway = docker('image', 'inspect', 'uts-stage2-gateway:1', '--format', '{{.Id}}')
         guard = docker('image', 'inspect', 'uts-stage2-egress-fixture:1', '--format', '{{.Id}}')
         from harbor.models.task.task import Task
@@ -104,7 +100,10 @@ async def probe(harness, label, settings, *, execute=False, wait=False):
                 'billing_verified': billing['billing_verified'],
                 'cleanup_verified': all(result.get(k) is True for k in ['model_revoked', 'containers_removed', 'networks_removed', 'volumes_removed']),
                 'trajectory_written': (logs / trajectory).is_file(),
-                'runtime_sources_unchanged': source_hashes(root) == loaded}
+                'runtime_sources_unchanged': source_hashes(root) == loaded,
+                'runtime_images_preserved': all(
+                    docker('image', 'inspect', image, '--format', '{{.Id}}') == image
+                    for image in (gateway, guard))}
             evidence.update(checks=checks, billing=billing, live_api_calls=billing['requests'],
                             status='passed' if all(checks.values()) else 'failed')
         except Exception as exc:
