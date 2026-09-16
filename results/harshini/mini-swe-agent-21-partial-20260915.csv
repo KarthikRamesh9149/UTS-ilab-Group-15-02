@@ -1,0 +1,5 @@
+task,harness,reward,passed,exception,input_tokens,output_tokens
+constraints-scheduling,mini-swe-agent,0.0,False,,4749,646
+custom-memory-heap-crash,mini-swe-agent,,False,AgentTimeoutError,,
+headless-terminal,mini-swe-agent,0.0,False,,3396,367
+torch-pipeline-parallelism,mini-swe-agent,0.0,False,,4125,1260

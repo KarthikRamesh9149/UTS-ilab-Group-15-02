@@ -13,7 +13,15 @@ Each harness runs the same tasks once (`k=1`, concurrency 1, temperature 0) with
 
 The intended matrix is therefore 21 tasks × 3 harnesses × 2 models = **126 trials**. This is deliberately **not** a full 89-task run, an official leaderboard submission, or a statistically representative accuracy estimate.
 
-CETUS vLLM runs and curated 21-task score CSVs for that track are on branch `harshini-trial-run` under [`results/harshini/`](results/harshini/README.md).
+## Harshini track (`harshini-trial-run`)
+
+Larger open model on CETUS (Qwen2.5-Coder-14B-AWQ via vLLM) + Harbor on the Windows host. Details and CSVs: [`results/harshini/`](results/harshini/README.md).
+
+| Check | Result |
+|---|---|
+| Oracle on scoring host | **21 / 21** valid |
+| Custom harness × 14B (full 21) | **0 / 21** passes |
+| mini-SWE × 14B | **Partial** (4/21 trials; 0 passes; interrupted — not a finished baseline) |
 
 ## Current phase: a model capable enough to separate harnesses
 
@@ -27,11 +35,11 @@ changes only the model, to a size where a harness difference has somewhere to sh
 
 | Piece | Where | Status |
 |---|---|---|
-| Custom harness (one bash command per turn) | [`experiments/itsha-bash-react/`](experiments/itsha-bash-react/README.md) | v0.2.1, one-lever changelog |
-| Host runnability of the frozen 21 | [`results/harshini/oracle-21-windows-check.md`](results/harshini/oracle-21-windows-check.md) | 21/21 valid (Windows host) |
-| Same-model 21-task runs (custom + mini-SWE) | [`results/harshini/`](results/harshini/README.md) | on `harshini-trial-run` |
-| Open-weights model server on UTS CETUS | [`hpc/`](hpc/) | PBS scripts in repo |
-| Harbor job reader (any run → table/CSV) | `scripts/summarize_job.py` | working |
+| Custom harness (one bash command per turn) | [`experiments/itsha-bash-react/`](experiments/itsha-bash-react/README.md) | v0.2.2 |
+| Host Oracle check (frozen 21) | [`results/harshini/oracle-21-final.csv`](results/harshini/oracle-21-final.csv) | 21/21 |
+| Custom × 14B scores | [`results/harshini/custom-21-final.csv`](results/harshini/custom-21-final.csv) | 0/21 |
+| CETUS vLLM PBS scripts | [`hpc/`](hpc/) | in repo |
+| Same-model subset runner | `scripts/run_subset_vllm.py` | working |
 
 Oracle validation is host-specific, so it was re-run on the machine that will produce
 the scored rows. That is verification only: the subset stays frozen at 21 task IDs and
