@@ -13,7 +13,8 @@ RUNTIME_FILES = ('budget_ledger.py', 'gateway_core.py', 'gateway_policy.py',
     'production_compose.py', 'guarded_runtime.py', 'container_model_relay.py',
     'container_gateway_rpc.py', 'host_model_bridge.py', 'trial_execution.py',
     'scored_trial.py', 'native_agents.py', 'custom_backend.py', 'custom_runner.py',
-    'custom_model.py', 'custom_control.py', 'custom_jobs.py', 'custom_harbor_agent.py')
+    'custom_model.py', 'custom_control.py', 'custom_jobs.py', 'custom_harbor_agent.py',
+    'openhands-requirements.lock')
 
 RUNTIME_CHECKS = {'verifier_reward_one', 'model_revoked', 'clean_status', 'billing_verified',
                   'containers_removed', 'networks_removed', 'volumes_removed',
