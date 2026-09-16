@@ -1,0 +1,21 @@
+{
+  "kind": "actual_openhands_scripted_model_not_scored",
+  "live_api_calls": 0,
+  "time_utc": "2026-09-16T05:52:51.004089+00:00",
+  "image_id": "sha256:71fb65c3de9cae7a69de53e6af2a0d241bd5a296c7db10b76b6cd0fb10118f65",
+  "trial_path": ".runtime/stage2/openhands-agent-fb7fpnbx",
+  "guarded_network": true,
+  "checks": {
+    "public_https_works": true,
+    "agent_created_file": true
+  },
+  "context": {
+    "n_input_tokens": null,
+    "n_cache_tokens": null,
+    "n_output_tokens": null,
+    "cost_usd": null,
+    "metadata": null
+  },
+  "status": "passed",
+  "recorded_requests": 2
+}

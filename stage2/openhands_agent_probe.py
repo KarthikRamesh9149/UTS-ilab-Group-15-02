@@ -51,7 +51,7 @@ def serve_gateway():
         server.serve_forever()
 
 
-async def main(label):
+async def main(label, guarded=False):
     os.umask(0o077)
     from harbor.agents.installed.openhands import OpenHands
     from harbor.environments.docker.docker import DockerEnvironment
@@ -82,6 +82,11 @@ async def main(label):
             'volumes': ['model-socket:/socket', str(root / 'stage2') + ':/code:ro', str(gateway_dir) + ':/evidence'],
             'healthcheck': {'test': ['CMD', 'test', '-S', SOCKET], 'interval': '1s', 'timeout': '2s', 'retries': 20},
             'cpus': 1, 'mem_limit': '256m'}}, 'volumes': {'model-socket': {}}}
+    if guarded:
+        from guarded_runtime import with_task_guard
+        guard_image = subprocess.check_output(['docker', 'image', 'inspect',
+            'uts-stage2-egress-fixture:1', '--format', '{{.Id}}'], text=True).strip()
+        compose = with_task_guard(compose, guard_image)
     override = trial / 'fixture-compose.json'
     override.write_text(json.dumps(compose))
     environment = DockerEnvironment(environment_dir=root / 'stage2' / 'fixtures', environment_name=name,
@@ -95,9 +100,29 @@ async def main(label):
                 raise RuntimeError('Pinned OpenHands installation not usable')
     evidence = {'kind': 'actual_openhands_scripted_model_not_scored', 'live_api_calls': 0,
         'time_utc': datetime.now(timezone.utc).isoformat(), 'image_id': image,
-        'trial_path': str(trial.relative_to(root)), 'checks': {}}
+        'trial_path': str(trial.relative_to(root)), 'guarded_network': guarded, 'checks': {}}
     try:
         await environment.start(force_build=False)
+        if guarded:
+            ids = subprocess.check_output(['docker', 'ps', '-q', '--filter',
+                'label=com.docker.compose.project=' + name, '--filter',
+                'label=com.docker.compose.service=main'], text=True).split()
+            if len(ids) != 1:
+                raise RuntimeError('Expected exactly one task container')
+            inspected = json.loads(subprocess.check_output(['docker', 'inspect', ids[0]], text=True))[0]
+            host = inspected['HostConfig']
+            checks = evidence['checks']
+            checks['task_uses_guard_namespace'] = host['NetworkMode'].startswith('container:')
+            checks['task_limits_preserved'] = host['Memory'] == 4096 * 1024**2 and host['NanoCpus'] == 2_000_000_000
+            checks['task_has_no_published_ports'] = not host['PortBindings']
+            checks['task_has_no_admin_capability'] = not host['Privileged'] and not host['CapAdd'] and 'ALL' in host['CapDrop']
+            checks['socket_mount_readonly'] = any(m['Destination'] == '/socket' and not m['RW'] for m in inspected['Mounts'])
+            checks['upstream_key_not_in_task_env'] = not any(v.startswith('OPENROUTER_API_KEY=') for v in inspected['Config']['Env'])
+            checks['no_host_home_or_control_socket'] = not any(m['Destination'] in ['/var/run/docker.sock', '/Users/karthikramesh'] for m in inspected['Mounts'])
+            if not all(checks.values()):
+                raise RuntimeError('Merged runtime safeguards failed before agent execution')
+            network_check = await environment.exec("python -c \"import urllib.request; assert urllib.request.urlopen('https://openrouter.ai/api/v1/models', timeout=20).status == 200\"", timeout_sec=30)
+            evidence['checks']['public_https_works'] = network_check.return_code == 0
         await environment.ensure_dirs(['/logs/agent'])
         await environment.exec('python /code/container_model_relay.py --socket /socket/private/model.sock --port 8765 >/tmp/model-relay.log 2>&1 &', timeout_sec=10)
         await asyncio.sleep(.5)
@@ -119,6 +144,11 @@ async def main(label):
             await environment.download_dir('/logs/agent', paths.agent_dir)
         finally:
             await environment.stop(delete=True)
+    remaining = subprocess.check_output(['docker', 'ps', '-aq', '--filter',
+        'label=com.docker.compose.project=' + name], text=True).strip()
+    evidence['checks']['trial_containers_removed'] = not remaining
+    if remaining:
+        evidence['status'] = 'failed'
     evidence['recorded_requests'] = len(list(gateway_dir.glob('request-*.json')))
     with output.open('x') as handle:
         json.dump(evidence, handle, indent=2, default=str)
@@ -132,8 +162,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--gateway', action='store_true')
     parser.add_argument('--label', default='v1')
+    parser.add_argument('--guarded', action='store_true')
     args = parser.parse_args()
     if args.gateway:
         serve_gateway()
     else:
-        asyncio.run(main(args.label))
+        asyncio.run(main(args.label, args.guarded))
