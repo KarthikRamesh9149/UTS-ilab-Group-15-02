@@ -12,7 +12,7 @@ from scoring_admission import RUNTIME_FILES, validate
 FROZEN_FILES = tuple(sorted(set(RUNTIME_FILES) | {
     'custom-requirements.lock', 'gateway-requirements.lock', 'budget_policy.json',
     'input_manifest.json', 'dataset_provenance.json', 'development_selection.py',
-    'finalist_freeze.py', 'custom_execution_limits.json'}))
+    'finalist_freeze.py', 'final_schedule.py', 'custom_execution_limits.json'}))
 
 
 def file_hashes(root):

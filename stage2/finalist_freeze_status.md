@@ -23,3 +23,16 @@ No real freeze document exists, no development results are invented, and this
 does not authorize final expansion or establish superiority. Integrating the
 registered development limits and freeze into the gated matrix driver, binding
 the selected diagnostic block, and final execution remain pending.
+
+## Final ordering implemented
+
+`final_schedule.schedule` generates exactly 267 fresh final cells, one per
+task/role, using sorted task IDs and rotating the order of Terminus-2, OpenHands
+and custom for successive tasks. It rejects missing/duplicate/unsafe task IDs
+and invalid custom parents. Final IDs cannot collide with development IDs.
+The schedule code is included in the finalist freeze's file hashes.
+
+Four synthetic tests and a read-only check against the actual 89-task manifest
+passed for every supported custom configuration. The complete stage-two suite
+passed 209 tests. This creates no trial directories and makes no API requests;
+the final execution driver and its prerequisite gates remain pending.
