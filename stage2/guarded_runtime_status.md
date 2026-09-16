@@ -102,3 +102,10 @@ attempt directory `.runtime/stage2/oracle-dev20-v2`. This is an infrastructure
 correction, not a retry of a known reward-zero result. Runtime inspection
 confirmed both log mounts with unchanged task CPU/RAM. Qualification is not
 complete until the reference run produces a valid verifier result.
+
+The corrected video-processing reference run subsequently returned reward 1.0
+in 124.063 seconds with its original resource/time limits and verified cleanup.
+`oracle_qualification_progress.json` preserves this partial snapshot. The
+remaining frozen sequence has been started sequentially; it is not yet complete.
+All 138 automated tests passed for this runtime increment. No API credit was
+spent and no scored model evaluation started.
