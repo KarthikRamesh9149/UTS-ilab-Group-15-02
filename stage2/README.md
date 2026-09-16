@@ -114,3 +114,24 @@ $25.265176805, key usage $0, key remaining allowance $30, and the requested
 DeepInfra FP8 endpoint at $0.06/M input and $0.18/M output tokens. This is not
 generation, tool-use, billing reconciliation or harness compatibility evidence.
 The safe request-cost bound and live gateway serving remain pending.
+
+2026-09-16 gateway integration increment: a loopback-only HTTP endpoint now
+accepts OpenAI-style chat requests and forwards them to the guarded core.
+Real localhost HTTP tests use scripted responses, not paid model calls.
+Generation identifiers are durably attached before reconciliation; the core
+requires matching model/provider/cost from OpenRouter's generation endpoint
+before settling a reservation. Pending records remain queryable after restart.
+All 42 Stage 2 tests and 12 existing tests passed (54 total).
+
+The live upstream transport is implemented, but no live gateway instance was
+launched. Harness compatibility and a qualified conservative input-cost bound
+remain gates. The official tokenizer source was located at
+`deepseek-ai/DeepSeek-V4-Flash-0731`, revision
+`7872f01b1d1fe23eabc4c98b48bffcef5a386062`; it has not been installed or qualified
+against the provider's actual prompt encoding. No heuristic estimate is treated
+as a proven bound, and no paid generation occurred in this increment.
+
+API references inspected:
+- https://openrouter.ai/docs/api/api-reference/generations/get-generation
+- https://openrouter.ai/docs/cookbook/administration/usage-accounting
+- https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731

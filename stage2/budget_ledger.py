@@ -34,6 +34,8 @@ class Ledger:
             CREATE TABLE IF NOT EXISTS incidents (request_id TEXT, actual INTEGER);
             CREATE TABLE IF NOT EXISTS stages (name TEXT PRIMARY KEY, cap INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS trial_stages (trial TEXT PRIMARY KEY, stage TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS generations (
+                request_id TEXT PRIMARY KEY, generation_id TEXT UNIQUE NOT NULL);
         ''')
         with self.transaction():
             self.db.execute('INSERT OR IGNORE INTO policy VALUES (1,?,?)', (dollars(ceiling), dollars(trial_cap)))
@@ -113,6 +115,19 @@ class Ledger:
             self.db.execute("UPDATE requests SET charged=?,state='settled' WHERE id=?", (charged, request_id))
         if overcharge:
             raise BudgetExceeded('Charge exceeds reservation; ledger halted')
+
+    def attach_generation(self, request_id, generation_id):
+        if not isinstance(generation_id, str) or not generation_id or len(generation_id) > 256:
+            raise ValueError('Invalid generation identifier')
+        with self.transaction():
+            if not self.db.execute('SELECT 1 FROM requests WHERE id=?', (request_id,)).fetchone():
+                raise ValueError('Unknown request')
+            self.db.execute('INSERT INTO generations VALUES (?,?)', (request_id, generation_id))
+
+    def pending(self):
+        return self.db.execute('''SELECT r.id,r.trial,r.reserved,g.generation_id
+            FROM requests r LEFT JOIN generations g ON r.id=g.request_id
+            WHERE r.state='pending' ORDER BY r.id''').fetchall()
 
     def close(self):
         self.db.close()
