@@ -2,11 +2,13 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+import json
 
 from budget_ledger import Ledger, BudgetExceeded, dollars
 from gateway_policy import MODEL
 from model_protocol import ModelSettings
 from native_setup_gateway import NativeSetupSession
+from native_setup_accounting import audit_setup
 from test_scored_gateway import Client
 
 
@@ -73,3 +75,42 @@ class NativeSetupTests(unittest.TestCase):
             request['temperature'] = 0
             with self.assertRaises(ValueError): session.complete('a' * 64, request)
         self.assertEqual(self.client.calls, 0)
+
+    def make_auditable_call(self):
+        original = self.client.complete
+        def complete(request):
+            response = original(request)
+            response['usage'].update(prompt_tokens=10, completion_tokens=4)
+            return response
+        self.client.complete = complete
+        with self.session() as session:
+            session.complete('a' * 64, self.request())
+            return session.evidence
+
+    def test_readonly_audit_reconciles_receipts_and_usage(self):
+        self.make_auditable_call()
+        result = audit_setup(self.runtime, 'setup-native-fixture1', self.settings)
+        self.assertTrue(result['billing_verified'])
+        self.assertEqual(result['charged_usd'], '0.001')
+        self.assertEqual(result['prompt_tokens'], 10)
+
+    def test_audit_rejects_missing_receipt(self):
+        evidence = self.make_auditable_call()
+        (evidence / '000001.receipt.json').unlink()
+        with self.assertRaises(ValueError): audit_setup(self.runtime, 'setup-native-fixture1', self.settings)
+
+    def test_audit_rejects_wire_settings_drift(self):
+        evidence = self.make_auditable_call()
+        path = evidence / '000001.request.json'
+        request = json.loads(path.read_text())
+        request['temperature'] = 0
+        path.write_text(json.dumps(request))
+        with self.assertRaises(ValueError): audit_setup(self.runtime, 'setup-native-fixture1', self.settings)
+
+    def test_audit_rejects_receipt_charge_drift(self):
+        evidence = self.make_auditable_call()
+        path = evidence / '000001.receipt.json'
+        receipt = json.loads(path.read_text())
+        receipt['total_cost'] = '.002'
+        path.write_text(json.dumps(receipt))
+        with self.assertRaises(ValueError): audit_setup(self.runtime, 'setup-native-fixture1', self.settings)
