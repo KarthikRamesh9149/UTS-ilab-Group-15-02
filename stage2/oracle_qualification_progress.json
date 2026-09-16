@@ -1,10 +1,10 @@
 {
   "kind": "reference_solution_runtime_qualification_not_model_score",
   "status": "partial_snapshot",
-  "snapshot_utc": "2026-09-16T08:02:17.024612+00:00",
+  "snapshot_utc": "2026-09-16T08:13:23.981042+00:00",
   "frozen_development_tasks": 20,
-  "valid_results_in_snapshot": 9,
-  "reference_passes_in_snapshot": 7,
+  "valid_results_in_snapshot": 12,
+  "reference_passes_in_snapshot": 9,
   "live_api_calls": 0,
   "runtime_revision": "explicit-log-mounts-v2",
   "results": [
@@ -147,12 +147,51 @@
       "agent_timeout_sec": 900.0,
       "verifier_timeout_sec": 900.0,
       "reward": 1.0
+    },
+    {
+      "task": "adaptive-rejection-sampler",
+      "status": "verified",
+      "time_utc": "2026-09-16T08:00:27.050518+00:00",
+      "elapsed_seconds": 147.035,
+      "cleanup_verified": true,
+      "image_id": "sha256:985bed39e8448bc95f138b5f766b59003a95c4be171c96af8e76448338f3dd8f",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
+    },
+    {
+      "task": "qemu-alpine-ssh",
+      "status": "verified",
+      "time_utc": "2026-09-16T08:02:54.463877+00:00",
+      "elapsed_seconds": 543.99,
+      "cleanup_verified": true,
+      "image_id": "sha256:541e8214a8c4faa7b556531b899d45da21048fa2ca6dd328d8cb6c4cffa8e964",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 4096,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 0.0
+    },
+    {
+      "task": "modernize-scientific-stack",
+      "status": "verified",
+      "time_utc": "2026-09-16T08:11:58.837244+00:00",
+      "elapsed_seconds": 71.453,
+      "cleanup_verified": true,
+      "image_id": "sha256:64e69cee13bf6b0b9016e735b51891bce996a60f1e2d1a005bf12c949e221d71",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 600.0,
+      "verifier_timeout_sec": 600.0,
+      "reward": 1.0
     }
   ],
   "pending_tasks": [
-    "adaptive-rejection-sampler",
-    "qemu-alpine-ssh",
-    "modernize-scientific-stack",
     "distribution-search",
     "merge-diff-arc-agi-task",
     "sqlite-db-truncate",
