@@ -406,3 +406,21 @@ client, 6 custom runner and 4 custom job tests passed (102 total). The latest
 container fixture passed all ten checks and left no running fixture container.
 Read-only account verification still reports $25.264980845 credit and
 $0.00019596 aggregate usage. No scored trial or new paid request ran.
+
+2026-09-16 spending-bound investigation: three additional paid setup probes
+now match the pinned tokenizer on Unicode history and native OpenHands tool
+history with reasoning disabled/default. All three used the full-context
+reservation and the original $1 setup ledger. Actual additional spending was
+$0.00083352; aggregate setup spending is $0.00102948, with no pending requests.
+No scored task ran. See `extended_token_calibration_result.json` for all eight
+precomputed encoding candidates per request, matches, token usage and costs.
+
+Calibration cannot establish a provider-guaranteed bound for arbitrary future
+requests. `budget_qualification.md` now states the material decision explicitly:
+an estimated per-trial cap would need risk acceptance and separate full-context
+aggregate/stage reservations. No cap was raised and no estimate was enabled.
+
+Final checks for the calibration increment: all 105 automated tests passed
+(72 Stage 2, 12 existing, 9 backend, 2 client, 6 runner, 4 job guards).
+Read-only account verification reports $25.264147325 available and matching
+$0.00102948 aggregate key usage. The study remains paused before scored work.
