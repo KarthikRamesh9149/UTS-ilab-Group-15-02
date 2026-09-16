@@ -25,11 +25,13 @@ from scoring_admission import source_hashes
 LOADED_SOURCE_HASHES = source_hashes(Path(__file__).resolve().parents[1])
 
 
-async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
+async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', full_install=False):
     if not label.isalnum():
         raise ValueError('Alphanumeric unique evidence label required')
     if harness not in {'marker', 'openhands'}:
         raise ValueError('Unknown infrastructure probe harness')
+    if full_install and harness != 'openhands':
+        raise ValueError('Full installation qualification is OpenHands-only')
     os.umask(0o077)
     root = Path(__file__).resolve().parents[1]
     runtime = private_directory(root / '.runtime/stage2')
@@ -91,6 +93,10 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
                 import types
                 from native_agents import agent_factory, ModelSettings
                 agent = agent_factory('openhands', ModelSettings(8192, 1., 'high'))(**kwargs)
+                if full_install:
+                    # Exercise the real production installer, including hash
+                    # enforcement, instead of trusting the prepared fixture.
+                    return agent
                 async def prepared_install(self, environment):
                     version = await environment.exec(self.get_version_command(), timeout_sec=30)
                     if version.return_code != 0:
@@ -127,7 +133,8 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
                 result = await run_trial(root=fixture_root, trial_id='synthetic-runtime',
                     task_id='lifecycle', stage='development', agent_factory=factory,
                     model_settings=settings,
-                    gateway_image=gateway_image, guard_image=guard_image, setup_timeout_seconds=30)
+                    gateway_image=gateway_image, guard_image=guard_image,
+                    setup_timeout_seconds=900 if full_install else 30)
             checks = dict(observed, verifier_reward_one=result.get('verifier_result', {}).get('rewards', {}).get('reward') == 1,
                 model_revoked=result.get('model_revoked') is True,
                 clean_status=result['status'] == 'verified',
@@ -140,6 +147,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker'):
             evidence = {'kind': 'synthetic_full_runner_not_benchmark_score', 'live_api_calls': 0,
                 'gateway_image': gateway_image, 'guard_image': guard_image,
                 'harness': harness, 'task_image': task.config.environment.docker_image,
+                'installation_mode': 'production_hash_locked' if full_install else 'prepared_fixture',
                 'model_protocol_sha256': settings.fingerprint(), 'source_hashes': LOADED_SOURCE_HASHES,
                 'runtime_path': str(fixture_root.relative_to(root)), 'checks': checks,
                 'status': 'passed' if all(checks.values()) else 'failed'}
@@ -160,5 +168,7 @@ if __name__ == '__main__':
     parser.add_argument('--wait', action='store_true')
     parser.add_argument('--rebuild-gateway', action='store_true')
     parser.add_argument('--harness', choices=['marker', 'openhands'], default='marker')
+    parser.add_argument('--full-install', action='store_true', help='Qualify the production OpenHands installer')
     args = parser.parse_args()
-    asyncio.run(probe(args.label, wait=args.wait, rebuild_gateway=args.rebuild_gateway, harness=args.harness))
+    asyncio.run(probe(args.label, wait=args.wait, rebuild_gateway=args.rebuild_gateway,
+                      harness=args.harness, full_install=args.full_install))
