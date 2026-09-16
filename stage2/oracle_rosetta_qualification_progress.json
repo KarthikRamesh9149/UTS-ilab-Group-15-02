@@ -3,13 +3,13 @@
   "reference_run": "rosetta",
   "source_namespace": "oracle-dev20-rosetta-v1",
   "status": "partial_snapshot",
-  "snapshot_utc": "2026-09-16T08:56:59.951587+00:00",
+  "snapshot_utc": "2026-09-16T09:09:20.499829+00:00",
   "frozen_development_tasks": 20,
-  "valid_results_in_snapshot": 5,
-  "reference_passes_in_snapshot": 4,
+  "valid_results_in_snapshot": 7,
+  "reference_passes_in_snapshot": 5,
   "live_api_calls": 0,
   "runtime_revision": "explicit-log-mounts-v2",
-  "completed_outcomes": 5,
+  "completed_outcomes": 7,
   "results": [
     {
       "task": "video-processing",
@@ -80,11 +80,37 @@
       "agent_timeout_sec": 750.0,
       "verifier_timeout_sec": 360.0,
       "reward": 1.0
+    },
+    {
+      "task": "reshard-c4-data",
+      "status": "verified",
+      "time_utc": "2026-09-16T08:55:29.289746+00:00",
+      "elapsed_seconds": 108.479,
+      "cleanup_verified": true,
+      "image_id": "sha256:92d209e704785e17ad6b3f740e813dd72bc7ac33982ce435d197ab9d890eac2a",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 3600.0,
+      "verifier_timeout_sec": 3600.0,
+      "reward": 1.0
+    },
+    {
+      "task": "install-windows-3.11",
+      "status": "verified",
+      "time_utc": "2026-09-16T08:57:17.782468+00:00",
+      "elapsed_seconds": 697.83,
+      "cleanup_verified": true,
+      "image_id": "sha256:c6695097316ef8810abce0545e347e65354aef9d51d4f7f662c3242e742f6a3e",
+      "resource_limits_verified": true,
+      "cpus": 2,
+      "memory_mb": 4096,
+      "agent_timeout_sec": 3600.0,
+      "verifier_timeout_sec": 3600.0,
+      "reward": 0.0
     }
   ],
   "pending_tasks": [
-    "reshard-c4-data",
-    "install-windows-3.11",
     "openssl-selfsigned-cert",
     "regex-chess",
     "polyglot-rust-c",

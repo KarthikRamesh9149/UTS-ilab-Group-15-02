@@ -60,3 +60,14 @@ process is queued behind the active reference owner. It will make no model calls
 and creates no containers until that owner releases the lock. No paid matrix is
 queued. Initial post-change reference results: video-processing passed;
 build-pov-ray remained zero. Remaining outcomes are pending, not assumed passes.
+
+## Windows reference outcome
+
+The post-change Windows reference completed after 697.830 seconds with reward
+zero, reference exit code 1 and verified cleanup. Its infrastructure log reports
+`rosetta error: Unimplemented syscall number 282`. The earlier segmentation-fault
+indicator is absent, but the new outcome still does not qualify this task.
+Do not treat Rosetta as a general fix for all task environments or relabel this
+reference failure as a model failure. Task files and official limits remain
+unchanged; no favourable retry or task substitution was performed. At this
+snapshot, seven post-change reference outcomes exist: five passes and two zeros.
