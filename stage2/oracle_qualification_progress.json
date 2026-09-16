@@ -1,10 +1,10 @@
 {
   "kind": "reference_solution_runtime_qualification_not_model_score",
   "status": "partial_snapshot",
-  "snapshot_utc": "2026-09-16T07:49:04.129183+00:00",
+  "snapshot_utc": "2026-09-16T08:02:17.024612+00:00",
   "frozen_development_tasks": 20,
-  "valid_results_in_snapshot": 8,
-  "reference_passes_in_snapshot": 6,
+  "valid_results_in_snapshot": 9,
+  "reference_passes_in_snapshot": 7,
   "live_api_calls": 0,
   "runtime_revision": "explicit-log-mounts-v2",
   "results": [
@@ -133,10 +133,23 @@
       "memory_mb": 2048,
       "agent_timeout_sec": 3600.0,
       "verifier_timeout_sec": 3600.0
+    },
+    {
+      "task": "polyglot-rust-c",
+      "status": "verified",
+      "time_utc": "2026-09-16T07:59:02.193404+00:00",
+      "elapsed_seconds": 84.485,
+      "cleanup_verified": true,
+      "image_id": "sha256:3ba84f0e138a4b65e58c53f920a0fc852571e6402901c3bdbb876e9dab6e6c5e",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
     }
   ],
   "pending_tasks": [
-    "polyglot-rust-c",
     "adaptive-rejection-sampler",
     "qemu-alpine-ssh",
     "modernize-scientific-stack",
