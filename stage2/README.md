@@ -176,3 +176,31 @@ that no-hidden-retries property; no baseline agent was executed by this test.
 No vendor package was edited. All 48 Stage 2 tests plus 12 existing tests pass
 (60 total). Scored-trial input-cost bounds, native agent/task wiring and Docker
 network isolation still require qualification before the study can launch.
+
+2026-09-16 runtime/tokenizer milestone: the actual Harbor DockerEnvironment
+started an isolated fixture using the cached native ARM Node image. All seven
+checks passed: 4-CPU and 8-GiB configured limits, no Mac home, no Docker socket,
+no upstream API key, loopback-only networking, and a file preserved between
+commands. The fixture was removed through Harbor afterwards. This is an
+offline fixture, not an agent run, adversarial isolation audit, AMD64 task
+qualification, or evidence that all 89 tasks fit the host. See
+`harbor_runtime_probe_result.json` and the explicitly network-disabled Compose
+override. Do not use that override for tasks that require internet access.
+
+Reviewed the pinned official DeepSeek encoder and tokenizer. Offline replay of
+the two existing request shapes exactly matches the provider's input counts:
+14 plain and 319 tool-schema tokens. `calibrate_tokenizer.py` verifies both asset
+hashes before importing the reviewed encoder and makes no API calls. The assets
+remain in ignored `.cache/stage2-tokenizer/`; the output records source revision
+and hashes. This small calibration is NOT a qualified upper bound for scored
+requests. Multi-turn/tool-result/reasoning/schema cases and provider template
+drift remain unresolved; the production reservation policy is unchanged.
+
+Adapter inspection confirms OpenHands runs inside its environment, whereas the
+gateway currently listens only on host loopback. Restricted container-to-gateway
+connectivity and public-internet/private-network isolation need implementation
+and runtime verification before a live baseline can run. Harbor 0.22.0 has an
+egress-control sidecar worth evaluating, but its availability alone proves no
+isolation guarantee. No paid requests or scored tasks were added this increment.
+All 48 Stage 2 tests and 12 existing tests passed again (60 total). Mac checks
+showed no thermal/performance warnings, 37% memory free and 48 GiB disk free.
