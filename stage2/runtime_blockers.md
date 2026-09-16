@@ -33,8 +33,14 @@ of sandbox network isolation.
   inside the same container as commands. This tests host-tenant access control,
   NOT protection from a malicious command inside that container. The study's
   requirement that tasks cannot access their control socket is not met.
+  Follow-up: native instance fixture PBS 88380 avoids this custom socket/token
+  entirely and preserves file changes between commands. Prefer this route for
+  the real backend. This small fixture is not an adversarial containment audit.
 - Exact task CPU/RAM enforcement, storage limits, process cleanup, arbitrary
   user behavior and image compatibility have not been qualified.
+  PBS 88380 explicitly reports that rootless cgroups is not usable in fakeroot
+  mode. Scheduler enforcement must be verified independently; no unsupported
+  cgroup flags or a 95-percent watchdog may stand in for official task limits.
 - The scratch overlay used by the fixture is not a qualified persistent task
   filesystem backend. Filesystem continuity through verification needs tests.
 - Account/project allocation, DMP and approved trace-export destination remain

@@ -1,0 +1,28 @@
+#!/bin/bash
+#PBS -N uts-instance
+#PBS -l select=1:ncpus=2:mem=4gb
+#PBS -l walltime=00:10:00
+#PBS -j oe
+set -eu
+umask 077
+cd "${PBS_O_WORKDIR:?}"
+exec >"instance-${PBS_JOBID}.log" 2>&1
+date -u
+hostname
+jobdir=$(mktemp -d /scratch/uts-instance.XXXXXX)
+export APPTAINER_CACHEDIR="$jobdir/cache"
+export APPTAINER_TMPDIR="$jobdir/tmp"
+mkdir -p "$APPTAINER_CACHEDIR" "$APPTAINER_TMPDIR"
+timeout 300 apptainer pull "$jobdir/python.sif" docker://python:3.12-slim-bookworm
+instance="uts-fixture-${PBS_JOBID%%.*}"
+trap 'apptainer instance stop "$instance" || true' EXIT
+# No bind mounts, socket or authentication token are exposed to task commands.
+timeout 45 apptainer instance start --cleanenv --containall --writable-tmpfs \
+  --no-mount home,tmp,bind-paths,hostfs,cwd,sys --net --network none --fakeroot \
+  "$jobdir/python.sif" "$instance"
+timeout 30 apptainer exec "instance://$instance" /bin/sh -c \
+  'test ! -e /shared/homes && test ! -e /control && test ! -e /run/control-token && printf fixture > /tmp/uts-fixture'
+timeout 30 apptainer exec "instance://$instance" /bin/sh -c \
+  'test "$(cat /tmp/uts-fixture)" = fixture && echo filesystem_persists_across_commands=PASS; id; cat /proc/net/route'
+echo native_instance_smoke=PASS
+date -u
