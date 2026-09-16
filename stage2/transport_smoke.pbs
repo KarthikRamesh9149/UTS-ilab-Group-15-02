@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -N uts-uds-smoke
+#PBS -l select=1:ncpus=2:mem=4gb
+#PBS -l walltime=00:10:00
+#PBS -j oe
+set -eu
+umask 077
+cd "${PBS_O_WORKDIR:?}"
+exec >"transport-${PBS_JOBID}.log" 2>&1
+date -u
+hostname
+jobdir=$(mktemp -d /scratch/uts-uds-image.XXXXXX)
+export APPTAINER_CACHEDIR="$jobdir/cache"
+export APPTAINER_TMPDIR="$jobdir/tmp"
+mkdir -p "$APPTAINER_CACHEDIR" "$APPTAINER_TMPDIR"
+# Smoke image only; production image digests remain a separate freeze gate.
+timeout 300 apptainer pull "$jobdir/python.sif" docker://python:3.12-slim-bookworm
+timeout 120 python3 transport_smoke.py "$jobdir/python.sif"
+date -u

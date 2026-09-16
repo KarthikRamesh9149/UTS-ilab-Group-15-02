@@ -1,0 +1,76 @@
+Wed Sep 16 01:45:30 UTC 2026
+hpc-exec02.hpc.uts.edu.au
+Linux x86_64
+u26025369
+1.5.3-3.el8
+Filesystem                 Size  Used Avail Use% Mounted on
+/dev/sdb1                  6.6T  455G  6.2T   7% /scratch
+10.37.24.191:/cetus_homes  1.0T   35G  990G   4% /shared/homes
+scratch_path=/scratch/uts-preflight.JENtk6
+https://openrouter.ai/api/v1/models HTTP=200
+network_exit=0
+https://registry-1.docker.io/v2/ HTTP=401
+network_exit=0
+https://pypi.org/simple/ HTTP=200
+network_exit=0
+INFO:    Converting OCI blobs to SIF format
+INFO:    Starting build...
+INFO:    Fetching OCI image...
+INFO:    Extracting OCI image...
+INFO:    Inserting Apptainer configuration...
+INFO:    Creating SIF file...
+pull_exit=0
+WARNING: Error changing the container working directory. Using '/' instead: chdir /shared/homes/u26025369: no such file or directory
+uid=126025369(u26025369) gid=126025369(u26025369) groups=65534(nobody),126025369(u26025369)
+shared_home_absent=0
+docker_socket_absent=0
+973 808 0:54 / / rw,nodev,relatime unbindable - overlay overlay ro,lowerdir=/var/lib/apptainer/mnt/session/overlay-lowerdir:/var/lib/apptainer/mnt/session/rootfs
+983 973 0:52 /dev /dev rw,nosuid,relatime master:511 - tmpfs tmpfs rw,size=65536k,uid=126025369,gid=126025369
+984 983 0:58 / /dev/shm rw,nosuid,nodev,relatime - tmpfs tmpfs rw,uid=126025369,gid=126025369
+985 983 0:51 / /dev/mqueue rw,nosuid,nodev,relatime - mqueue mqueue rw
+986 983 0:59 / /dev/pts rw,nosuid,noexec,relatime - devpts devpts rw,mode=620,ptmxmode=666
+987 983 0:6 /tty /dev/tty rw,nosuid master:395 - devtmpfs devtmpfs rw,size=98039416k,nr_inodes=24509854,mode=755
+988 983 0:6 /null /dev/null rw,nosuid master:395 - devtmpfs devtmpfs rw,size=98039416k,nr_inodes=24509854,mode=755
+989 983 0:6 /zero /dev/zero rw,nosuid master:395 - devtmpfs devtmpfs rw,size=98039416k,nr_inodes=24509854,mode=755
+990 983 0:6 /random /dev/random rw,nosuid master:395 - devtmpfs devtmpfs rw,size=98039416k,nr_inodes=24509854,mode=755
+991 983 0:6 /urandom /dev/urandom rw,nosuid master:395 - devtmpfs devtmpfs rw,size=98039416k,nr_inodes=24509854,mode=755
+992 973 0:48 / /proc rw,nosuid,nodev,relatime - proc proc rw
+993 973 0:21 / /sys rw,nosuid,nodev,noexec,relatime master:335 - sysfs sysfs rw
+994 993 0:7 / /sys/kernel/security rw,nosuid,nodev,noexec,relatime master:339 - securityfs securityfs rw
+995 993 0:25 / /sys/fs/cgroup ro,nosuid,nodev,noexec master:342 - tmpfs tmpfs ro,mode=755
+996 995 0:26 / /sys/fs/cgroup/systemd rw,nosuid,nodev,noexec,relatime master:343 - cgroup cgroup rw,xattr,release_agent=/usr/lib/systemd/systemd-cgroups-agent,name=systemd
+997 995 0:30 / /sys/fs/cgroup/devices rw,nosuid,nodev,noexec,relatime master:347 - cgroup cgroup rw,devices
+998 995 0:31 / /sys/fs/cgroup/pids rw,nosuid,nodev,noexec,relatime master:350 - cgroup cgroup rw,pids
+999 995 0:32 / /sys/fs/cgroup/net_cls,net_prio rw,nosuid,nodev,noexec,relatime master:351 - cgroup cgroup rw,net_cls,net_prio
+1000 995 0:33 / /sys/fs/cgroup/freezer rw,nosuid,nodev,noexec,relatime master:355 - cgroup cgroup rw,freezer
+1001 995 0:34 / /sys/fs/cgroup/rdma rw,nosuid,nodev,noexec,relatime master:358 - cgroup cgroup rw,rdma
+1002 995 0:35 / /sys/fs/cgroup/blkio rw,nosuid,nodev,noexec,relatime master:359 - cgroup cgroup rw,blkio
+1003 995 0:36 / /sys/fs/cgroup/cpuset rw,nosuid,nodev,noexec,relatime master:363 - cgroup cgroup rw,cpuset
+1004 995 0:37 / /sys/fs/cgroup/cpu,cpuacct rw,nosuid,nodev,noexec,relatime master:366 - cgroup cgroup rw,cpu,cpuacct
+1005 995 0:38 / /sys/fs/cgroup/memory rw,nosuid,nodev,noexec,relatime master:367 - cgroup cgroup rw,memory
+1006 995 0:39 / /sys/fs/cgroup/perf_event rw,nosuid,nodev,noexec,relatime master:371 - cgroup cgroup rw,perf_event
+1007 995 0:40 / /sys/fs/cgroup/hugetlb rw,nosuid,nodev,noexec,relatime master:374 - cgroup cgroup rw,hugetlb
+1008 993 0:27 / /sys/fs/pstore rw,nosuid,nodev,noexec,relatime master:375 - pstore pstore rw
+1009 993 0:28 / /sys/firmware/efi/efivars rw,nosuid,nodev,noexec,relatime master:379 - efivarfs efivarfs rw
+1010 993 0:29 / /sys/fs/bpf rw,nosuid,nodev,noexec,relatime master:382 - bpf bpf rw,mode=700
+1011 993 0:12 / /sys/kernel/tracing rw,relatime master:383 - tracefs none rw
+1012 993 0:41 / /sys/kernel/config rw,relatime master:387 - configfs configfs rw
+1013 993 0:8 / /sys/kernel/debug rw,relatime master:390 - debugfs debugfs rw
+1014 993 0:50 / /sys/fs/fuse/connections rw,relatime master:391 - fusectl fusectl rw
+1015 973 0:52 /etc/passwd /etc/passwd rw,nosuid,relatime master:511 - tmpfs tmpfs rw,size=65536k,uid=126025369,gid=126025369
+1016 973 0:52 /etc/group /etc/group rw,nosuid,relatime master:511 - tmpfs tmpfs rw,size=65536k,uid=126025369,gid=126025369
+1017 973 8:17 /uts-preflight.JENtk6/evidence /evidence rw,nosuid,nodev,relatime master:423 - xfs /dev/sdb1 rw,attr2,inode64,logbufs=8,logbsize=256k,sunit=512,swidth=1536,noquota
+contained_exec_exit=0
+filesystem_roundtrip_exit=0
+WARNING: Error changing the container working directory. Using '/' instead: chdir /shared/homes/u26025369: no such file or directory
+Iface	Destination	Gateway 	Flags	RefCnt	Use	Metric	Mask		MTU	Window	IRTT                                                       
+uid=126025369(u26025369) gid=126025369(u26025369) groups=65534(nobody),126025369(u26025369)
+network_isolation_exit=0
+INFO:    User not listed in /etc/subuid, trying root-mapped namespace
+INFO:    Using fakeroot command combined with root-mapped namespace
+/.singularity.d/libs/fakeroot: eval: line 140: /.singularity.d/libs/faked: not found
+fakeroot: error while starting the `faked' daemon.
+sh: you need to specify whom to kill
+fakeroot_exit=1
+Wed Sep 16 01:45:41 UTC 2026
+preflight_finished

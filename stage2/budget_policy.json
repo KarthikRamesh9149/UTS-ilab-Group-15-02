@@ -1,0 +1,17 @@
+{
+  "status": "authorised_rebudget_pending_gateway_integration",
+  "currency": "USD",
+  "observed_account_balance": "25.265176805",
+  "untouched_reserve": "2.00",
+  "admission_ceiling": "23.265176805",
+  "setup_cap": "1.00",
+  "per_trial_cap_all_harnesses": "0.055",
+  "development_cells": 120,
+  "development_maximum": "6.600",
+  "final_cells": 267,
+  "final_maximum": "14.685",
+  "core_maximum": "22.285",
+  "contingency_maximum": "0.980176805",
+  "fresh_balance_check_required": true,
+  "automatic_top_up": false
+}
