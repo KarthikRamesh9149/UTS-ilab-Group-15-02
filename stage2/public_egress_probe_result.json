@@ -1,0 +1,25 @@
+{
+  "kind": "public_ipv4_egress_fixture_not_scored",
+  "time_utc": "2026-09-16T04:32:01.054416+00:00",
+  "image_id": "sha256:1c0880608811bee9c493f4263d18fb2bcc2caebfb64731f84c4481881ec6a29d",
+  "live_api_generations": 0,
+  "checks": {
+    "canary_known_live": true,
+    "public_https_works": true,
+    "private_peer_dns_resolves": true,
+    "known_live_private_peer_blocked": true,
+    "raw_socket_denied": true,
+    "task_cannot_control_firewall": true,
+    "task_loopback_service_works": true,
+    "docker_socket_absent": true,
+    "host_home_absent": true,
+    "upstream_key_absent": true
+  },
+  "status": "passed",
+  "cleanup_completed": true,
+  "limitations": [
+    "IPv4 public egress only; no IPv6 or raw task sockets.",
+    "No host-wide or CETUS firewall was modified.",
+    "This is not an adversarial audit or all89 task compatibility result."
+  ]
+}

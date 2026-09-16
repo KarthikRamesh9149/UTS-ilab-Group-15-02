@@ -1,0 +1,4 @@
+FROM uts-stage2-terminus-fixture:1
+RUN apt-get update && apt-get install -y --no-install-recommends nftables
+COPY public-egress.nft /etc/uts-public-egress.nft
+CMD ["sh", "-c", "nft -f /etc/uts-public-egress.nft && touch /tmp/ready && exec sleep infinity"]
