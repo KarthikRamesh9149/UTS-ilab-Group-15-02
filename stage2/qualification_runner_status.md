@@ -1,5 +1,26 @@
 # Resumable first-20 runner
 
+## Current checkpoint: frozen-image qualification
+
+The full custom synthetic runner passed in `scored_runtime_probe_pinnedv2.json`.
+It verified cleanup and preservation of the exact gateway/guard image IDs.
+The earlier `pinnedv1` failure is retained: the host used the baseline Python
+environment instead of the custom environment and lacked `langchain_core`.
+No paid request was made in either synthetic attempt.
+
+Terminus passed `native_live_terminus-2_pinnedv2.json` with the same immutable
+images and model protocol. OpenHands and custom rechecks are not yet complete
+at this checkpoint. Historical v1 proofs used differing rebuilt image IDs and
+cannot be combined into a current admission.
+
+`build_admission.py` constructs and validates an admission from four explicit
+proof paths. It does not spend, launch trials, replace an existing admission,
+or waive missing/stale evidence. Reference qualification still has 15 passes,
+four zero rewards and one timeout; those are not model scores and must not be
+represented as a fully qualified environment. The paid runner has not started.
+
+## Earlier implementation checkpoint
+
 `run_qualification.py --admission PATH` now connects validated compatibility
 evidence, native Terminus construction, real single-trial execution, receipt
 reaudit on resume, and the paid-expansion decision gate. It runs only the frozen
