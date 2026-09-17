@@ -2,6 +2,12 @@
 
 Updated 17 September 2026. Branch: `codex/cetus-local-harbor-study`.
 
+Latest local preparation and reconnect checklist:
+[CETUS_LOCAL_HANDOFF.md](CETUS_LOCAL_HANDOFF.md). This includes the single prepared
+integration job, local-only model client/gateway, native baseline configuration
+factories and detailed generation/tool/graph observations. No cluster connection
+or submission was attempted for that increment.
+
 ## Status
 
 This is **partial implementation, not a completed benchmark**. No baseline or
@@ -35,8 +41,9 @@ Not implemented or not qualified yet:
   local inference gateway or native-baseline local-model compatibility test has
   passed.
 - The shared lifecycle accepts the tested local trace observer, but no CETUS
-  launching runner is qualified or wired. Generation/tool-level and LangGraph
-  callbacks still need integration; no live model traces have been captured.
+  scored launching runner is qualified or wired. Detailed generation/tool hooks
+  and LangGraph callbacks now pass local tests; their live deployment and custom
+  harness attachment remain pending. No live model traces have been captured.
 - Langfuse credentials/project and live ingestion/dashboard reconciliation
   have not been verified. Spool records deliberately contain no raw task text.
 - The local custom harness has not been adapted or evaluated. The existing
