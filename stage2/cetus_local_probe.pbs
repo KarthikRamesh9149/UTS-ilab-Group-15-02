@@ -1,0 +1,16 @@
+#!/bin/bash
+#PBS -N uts-local-model
+#PBS -q med_gpuq
+#PBS -l select=1:ncpus=8:mem=64gb:ngpus=2
+#PBS -l walltime=02:00:00
+#PBS -j oe
+set -eu
+umask 077
+cd "${PBS_O_WORKDIR:?}"
+exec >"local-model-${PBS_JOBID}.log" 2>&1
+date -u
+hostname
+module use /shared/apps/etc/modulefiles
+module load gcc/13 cuda/12.6
+export OMP_NUM_THREADS=8
+timeout --signal=TERM --kill-after=30 6900 python3 -u cetus_local_probe.py
