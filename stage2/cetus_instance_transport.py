@@ -12,6 +12,7 @@ from pathlib import Path, PurePosixPath
 import re
 import shlex
 import signal
+import cetus_directory_transfer as directories
 
 MAX_BYTES = 4 * 1024 * 1024
 
@@ -178,3 +179,17 @@ class InstanceTransport:
         fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
         with os.fdopen(fd, 'wb') as handle:
             handle.write(result.stdout)
+
+    async def upload_dir(self, source_dir, target_dir):
+        data = directories.pack(source_dir, MAX_BYTES)
+        script = Path(directories.__file__).read_text()
+        result = await self._call(['python3', '-c', script, 'unpack', container_path(target_dir), str(MAX_BYTES)], data=data)
+        if result.return_code:
+            raise RuntimeError('Container directory upload failed: exit ' + str(result.return_code))
+
+    async def download_dir(self, source_dir, target_dir):
+        script = Path(directories.__file__).read_text()
+        result = await self._call(['python3', '-c', script, 'pack', container_path(source_dir), str(MAX_BYTES)])
+        if result.return_code:
+            raise RuntimeError('Container directory download failed: exit ' + str(result.return_code))
+        directories.unpack(result.stdout, target_dir, MAX_BYTES, private=True)

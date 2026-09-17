@@ -30,8 +30,10 @@ Not implemented or not qualified yet:
 - The local model has not loaded in an observed GPU allocation. Job 89247 was
   rechecked during this implementation and remained queued in med_gpuq.
 - No supported isolated 89-task runtime has been established on CETUS.
-- No CETUS Harbor deployment, local inference gateway, full lifecycle adapter,
-  or native-baseline local-model compatibility test has passed.
+- A development Harbor environment adapter now passes local contract and
+  mocked-container verifier checks (see below). No live CETUS Harbor deployment,
+  local inference gateway or native-baseline local-model compatibility test has
+  passed.
 - The shared lifecycle accepts the tested local trace observer, but no CETUS
   launching runner is qualified or wired. Generation/tool-level and LangGraph
   callbacks still need integration; no live model traces have been captured.
@@ -101,6 +103,57 @@ An interactive follow-up reached the CETUS password prompt successfully; the
 local SSH agent reported no identities. No credential was supplied and no
 authenticated reconnect is claimed. The full regression run passed 293 Stage 2,
 30 custom dependency and 12 pilot tests (335 total).
+
+### Local Harbor adapter continuation (no cluster access)
+
+The user requested local work only until they can log back in. No new SSH
+attempt, cluster job, model download, inference request or cloud trace export
+was made during this increment.
+
+`cetus_harbor_environment.py` implements Harbor's actual `BaseEnvironment`
+interface over the instance transport: liveness/start, command execution,
+file/directory transfers and owner-supplied cleanup. It preserves scoped
+environment precedence and default users and returns Harbor `ExecResult`
+objects. Output callbacks receive buffered output after execution, not live
+streaming. Failed starts and cleanup attempts cannot restart the same adapter;
+cleanup can be retried if it failed, but commands cannot continue afterwards.
+
+`cetus_directory_transfer.py` adds bounded directory transfers. It validates
+archives before extraction and rejects traversal, duplicate entries, links,
+devices, FIFOs and file/parent conflicts. Uploads preserve ordinary executable
+permission bits; downloaded controller files/directories are private. The
+current limit is 4 MiB per archive and 4096 entries. Downloads/uploads require
+a fresh or empty directory; no implicit merge or existing-file replacement.
+These are explicit implementation limitations, not new CETUS policy claims.
+
+Thirteen new tests exercise real transfer scripts on trusted local temporary
+files and the actual Harbor API. A lifecycle test uses the real Harbor Verifier
+with a mocked container transport, a fixture agent and a synthetic reward of
+zero. It checks revocation-before-tests ordering, reward preservation, cleanup
+and all five lifecycle trace phases. It does not run an actual benchmark task,
+native baseline or model. Full local regressions: 306 Stage 2, 30 custom
+dependency, 12 historical pilot tests (348 total).
+
+Remaining implementation/runtime checks:
+
+- Instance creation, image preparation and owner cleanup are not implemented
+  by this attached adapter. The caller must supply an already-qualified instance
+  and async cleanup callback; a successful `true` only proves liveness.
+- The development adapter currently accepts only offline single-container
+  operation. It refuses a public-network request rather than silently changing
+  it. This is not a claim that all supported CETUS networking is unavailable.
+- It declares no resource allocation or enforcement capability. No failed
+  Apptainer option is replaced with an unverified equivalent.
+- Non-root user switching, directory merges, larger transfers and full native
+  harness compatibility still need implementation or live qualification.
+- It is not registered as a production Harbor provider or scored launcher.
+  Python 3.12, bash and Python 3 in the task image are prerequisites for this
+  version of the controller/transport; their availability needs live checking.
+
+The next cluster step, after authentication, is a trusted fixture roundtrip
+using this exact adapter/transfer code, followed by actual task setup and
+native-harness checks as the required runtime capabilities are established.
+Do not interpret the local test total as scored trials or a cluster result.
 
 ### Study configuration
 
