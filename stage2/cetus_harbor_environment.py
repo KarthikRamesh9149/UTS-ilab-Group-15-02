@@ -5,13 +5,14 @@ No CLI registration, image builder, scheduler or scored-study launcher yet.
 Current transport supports offline, single-container, root-user fixtures only.
 """
 import math
+from contextlib import nullcontext
 from harbor.environments.base import BaseEnvironment, ExecResult
 from harbor.environments.capabilities import EnvironmentCapabilities, EnvironmentResourceCapabilities
 from harbor.models.task.config import NetworkMode
 
 
 class CetusAttachedEnvironment(BaseEnvironment):
-    def __init__(self, *args, transport, stop_instance, command_timeout=30, **kwargs):
+    def __init__(self, *args, transport, stop_instance, command_timeout=30, detail_observer=None, **kwargs):
         if not callable(stop_instance):
             raise ValueError('Instance owner must supply cleanup')
         if not math.isfinite(command_timeout) or command_timeout <= 0:
@@ -19,6 +20,7 @@ class CetusAttachedEnvironment(BaseEnvironment):
         self.transport = transport
         self._stop_instance = stop_instance
         self.command_timeout = command_timeout
+        self.detail_observer = detail_observer
         self._started = False
         self._start_attempted = False
         self._stop_requested = False
@@ -73,10 +75,13 @@ class CetusAttachedEnvironment(BaseEnvironment):
 
     async def exec(self, command, cwd=None, env=None, timeout_sec=None, user=None):
         self._ready()
-        result = await self.transport.exec(command, cwd=cwd,
-            env=self._merge_env({**self.task_env_config.env, **(env or {})}),
-            timeout_sec=self.command_timeout if timeout_sec is None else timeout_sec,
-            user=self.default_user if user is None else user)
+        observation = (self.detail_observer.operation('tool', {'tool_calls': 1})
+                       if self.detail_observer else nullcontext())
+        with observation:
+            result = await self.transport.exec(command, cwd=cwd,
+                env=self._merge_env({**self.task_env_config.env, **(env or {})}),
+                timeout_sec=self.command_timeout if timeout_sec is None else timeout_sec,
+                user=self.default_user if user is None else user)
         converted = ExecResult(return_code=result.return_code,
                           stdout=result.stdout.decode('utf-8', errors='replace'),
                           stderr=result.stderr.decode('utf-8', errors='replace'))

@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -N uts-harbor-check
+#PBS -q smallq
+#PBS -l select=1:ncpus=1:mem=2gb
+#PBS -l walltime=00:08:00
+#PBS -j oe
+set -eu
+umask 077
+cd "${PBS_O_WORKDIR:?}"
+# Explicit path to a previously prepared Linux Harbor environment. Do not use
+# the Mac venv or silently install packages into the cluster system Python.
+controller_python="${UTS_HARBOR_PYTHON:?Set the absolute pinned Harbor Python 3.12 path}"
+case "$controller_python" in /*) ;; *) exit 2 ;; esac
+test -x "$controller_python"
+export LITELLM_LOCAL_MODEL_COST_MAP=True
+timeout --signal=TERM --kill-after=30 420 "$controller_python" -u cetus_harbor_check.py \
+  --output "harbor-check-${PBS_JOBID}"

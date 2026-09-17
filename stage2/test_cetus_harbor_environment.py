@@ -11,6 +11,7 @@ from harbor.models.trial.paths import TrialPaths
 from cetus_harbor_environment import CetusAttachedEnvironment
 from cetus_instance_transport import CommandResult
 from local_trace import PhaseRecorder, TraceSpool
+from local_observation import DetailObserver
 from trial_execution import execute_phases
 
 
@@ -125,6 +126,8 @@ class AdapterTests(unittest.IsolatedAsyncioTestCase):
             async def revoke(): events.append('revoke')
             observer = PhaseRecorder(TraceSpool(root / 'spool'), trial_id='fixture-baseline-0',
                 task_id='fixture', harness='openhands', protocol_sha256='a' * 64)
+            details = DetailObserver(observer)
+            env.detail_observer = details
             # Default verifier_factory is the real Harbor Verifier. Only the
             # container is mocked; its synthetic reward is explicitly zero.
             result = await execute_phases(agent=Agent(), environment=env, task=task,
@@ -135,8 +138,13 @@ class AdapterTests(unittest.IsolatedAsyncioTestCase):
             self.assertLess(events.index('revoke'), events.index('upload-tests'))
             self.assertEqual(events[-1], 'stop')
             traces = observer.spool.events()
-            self.assertEqual({e['kind'] for e in traces}, {'setup', 'agent', 'verifier', 'cleanup', 'trial'})
+            self.assertEqual({e['kind'] for e in traces}, {'setup', 'agent', 'verifier', 'cleanup', 'trial', 'tool'})
             self.assertEqual(next(e['reward'] for e in traces if e['kind'] == 'verifier'), 0)
+            tools = [e for e in traces if e['kind'] == 'tool']
+            self.assertEqual(len(tools), transport.exec.await_count - 1)  # exclude pre-trial liveness
+            self.assertTrue(all(e['metrics']['tool_calls'] == 1 for e in tools))
+            self.assertNotIn('fixture-agent-command', str(traces))
+            self.assertFalse(details.errors)
 
 
 if __name__ == '__main__':

@@ -9,6 +9,7 @@ import math
 import os
 from pathlib import Path
 import re
+import threading
 
 KINDS = {'trial', 'setup', 'agent', 'generation', 'tool', 'graph', 'verifier', 'cleanup'}
 STATUSES = {'ok', 'error', 'timeout', 'interrupted'}
@@ -130,14 +131,20 @@ class PhaseRecorder:
             raise ValueError('Trial trace already exists; replay prohibited')
         self.sequence = 1
         self.closed = False
+        self._lock = threading.RLock()
 
-    def __call__(self, *, kind, started_ns, ended_ns, seconds, status='ok', reward=None):
+    def __call__(self, *, kind, started_ns, ended_ns, seconds, status='ok', reward=None, metrics=None):
+        with self._lock:
+            return self._record(kind=kind, started_ns=started_ns, ended_ns=ended_ns, seconds=seconds,
+                                status=status, reward=reward, metrics=metrics)
+
+    def _record(self, *, kind, started_ns, ended_ns, seconds, status, reward, metrics):
         if self.closed:
             raise ValueError('Trial trace already closed')
         sequence = 0 if kind == 'trial' else self.sequence
         self.sequence += 1
         event = observation(**self.identity, kind=kind, sequence=sequence,
             started_ns=started_ns, ended_ns=ended_ns, status=status, reward=reward,
-            metrics={'duration_seconds': seconds})
+            metrics={**(metrics or {}), 'duration_seconds': seconds})
         self.spool.record(event)
         self.closed = kind == 'trial'
