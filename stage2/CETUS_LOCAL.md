@@ -60,6 +60,17 @@ The continuation regression run passed 278 Stage 2, 30 custom dependency and
 12 pilot tests (320 total). No cloud export, GPU generation or scored task was
 part of these tests. Job 89247 remained queued at this continuation's check.
 
+The subsequent supported-runtime qualification ran in PBS job 89281 on
+17 September 2026 and finished with scheduler exit status 0. The diagnostic
+completed; runtime admission did not pass. Ordinary-user and fakeroot starts
+with explicit resource limits were rejected. The harmless offline fixture
+started without those limits and passed the specific isolation, persistence,
+timeout and stop checks, but its cgroup limits were effectively unlimited.
+See [the qualification evidence](CETUS_APPTAINER_QUALIFICATION.md). Four new
+helper tests passed locally and on CETUS. The full local regression run passed
+282 Stage 2, 30 custom dependency and 12 pilot tests (324 total). These are not
+benchmark scores. Model job 89247 remained queued; no duplicate was submitted.
+
 ## Approved design
 
 Everything that executes the benchmark stays on CETUS: model, Harbor, native
@@ -190,9 +201,11 @@ No test result in this document is a benchmark score.
 ## Unresolved external dependency
 
 Network-none fixtures succeeded, but the earlier CETUS compute-node check
-explicitly denied bridge networking. It did not demonstrate hard task cgroup
-limits. Read-only reinspection found Apptainer but no Docker or Podman on PATH;
-that does not prove an administrator-supported service is unavailable.
+explicitly denied bridge networking. The new compute-node probe also rejected
+both ordinary-user and fakeroot attempts to apply supported Apptainer resource
+flags. This is now a directly observed blocker, not just an untested option.
+Read-only reinspection found Apptainer but no Docker or Podman on PATH; that
+does not prove an administrator-supported service is unavailable.
 
 UTS needs to identify/provide an approved isolated task runtime and resource
 enforcement, or supply evidence of an existing supported configuration. Until
