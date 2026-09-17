@@ -112,3 +112,32 @@ class TraceSpool:
                 raise ValueError('Spool filename mismatch')
             events.append(event)
         return sorted(events, key=lambda e: (e['trace_id'], e['sequence']))
+
+
+class PhaseRecorder:
+    """Passive execute_phases observer; no SDK, network, tools or model access.
+
+    Construct a new recorder and a fresh per-attempt spool for every trial.
+    Partial attempts cannot be replayed under the same identity.
+    """
+    def __init__(self, spool, *, trial_id, task_id, harness, protocol_sha256):
+        self.spool = spool
+        self.identity = dict(trial_id=trial_id, task_id=task_id, harness=harness,
+                             protocol_sha256=protocol_sha256)
+        # Validate identifiers before the lifecycle can start executing.
+        observation(**self.identity, kind='trial', sequence=0, started_ns=0, ended_ns=0)
+        if any(e['trial_id'] == trial_id for e in spool.events()):
+            raise ValueError('Trial trace already exists; replay prohibited')
+        self.sequence = 1
+        self.closed = False
+
+    def __call__(self, *, kind, started_ns, ended_ns, seconds, status='ok', reward=None):
+        if self.closed:
+            raise ValueError('Trial trace already closed')
+        sequence = 0 if kind == 'trial' else self.sequence
+        self.sequence += 1
+        event = observation(**self.identity, kind=kind, sequence=sequence,
+            started_ns=started_ns, ended_ns=ended_ns, status=status, reward=reward,
+            metrics={'duration_seconds': seconds})
+        self.spool.record(event)
+        self.closed = kind == 'trial'
