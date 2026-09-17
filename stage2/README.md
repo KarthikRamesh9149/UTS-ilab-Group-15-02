@@ -1,5 +1,14 @@
 # Stage 2 execution status
 
+## Current track, 17 September 2026
+
+The active authorised study is now [CETUS-only local inference](CETUS_LOCAL.md),
+on branch `codex/cetus-local-harbor-study`. The OpenRouter configuration and
+records below are preserved historical work, not the active execution policy.
+Do not invoke the old paid runners to execute the local study.
+
+## Historical Mac/OpenRouter track (superseded)
+
 Current host: the authorised Mac + OpenRouter fallback. Docker was resized to
 4 CPUs / 10 GiB and the authorised Orchestra services stopped. Local runtime,
 gateway and agent fixtures now run. CETUS records and earlier host inspections
