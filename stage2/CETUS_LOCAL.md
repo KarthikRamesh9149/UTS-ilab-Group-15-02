@@ -18,6 +18,12 @@ Implemented and locally tested:
 - Development ranking with incomplete/invalid evidence rejection.
 - Durable metadata-only trace spool with conflict detection and stable IDs.
 - Explicit post-run Langfuse OTLP/HTTP JSON exporter; mock transport tested.
+- Optional phase observer connected to the shared Harbor lifecycle code:
+  setup, agent, verifier, cleanup and trial-root spans. Synthetic tests use
+  the real lifecycle function with fixture agents/environments/verifiers.
+  Only the verifier observation receives its actual reward; an agent failure
+  or timeout does not skip verification. Trace write failures are reported in
+  `trace_errors` without changing the verifier result or cleanup actions.
 
 Not implemented or not qualified yet:
 
@@ -26,7 +32,9 @@ Not implemented or not qualified yet:
 - No supported isolated 89-task runtime has been established on CETUS.
 - No CETUS Harbor deployment, local inference gateway, full lifecycle adapter,
   or native-baseline local-model compatibility test has passed.
-- Trace hooks are not yet attached to a live Harbor runner or LangGraph graph.
+- The shared lifecycle accepts the tested local trace observer, but no CETUS
+  launching runner is qualified or wired. Generation/tool-level and LangGraph
+  callbacks still need integration; no live model traces have been captured.
 - Langfuse credentials/project and live ingestion/dashboard reconciliation
   have not been verified. Spool records deliberately contain no raw task text.
 - The local custom harness has not been adapted or evaluated. The existing
@@ -41,6 +49,16 @@ and 12 historical pilot tests passed (315 total). Twelve of the Stage 2 tests
 are new local-study checks. Mock export acknowledgement is explicitly not a
 live Langfuse verification. Canonical dataset bytes were revalidated when
 generating the new manifest and again by the tests.
+
+Continuation: five additional lifecycle tracing regressions cover emitted
+spans, timeout/setup errors, trace-store failure equivalence, cleanup failure
+and cancellation. The observer has no network capability. Observations are
+recorded after each phase's agent timing ends; trace-write overhead can affect
+end-to-end trial duration and is not claimed to be zero. Recorded trace errors
+must be rejected by the future local scored-evidence admission step.
+The continuation regression run passed 278 Stage 2, 30 custom dependency and
+12 pilot tests (320 total). No cloud export, GPU generation or scored task was
+part of these tests. Job 89247 remained queued at this continuation's check.
 
 ## Approved design
 
