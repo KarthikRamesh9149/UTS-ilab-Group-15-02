@@ -73,6 +73,37 @@ benchmark scores. Model job 89247 remained queued; no duplicate was submitted.
 
 ## Approved design
 
+### Command and file-transfer continuation
+
+`cetus_instance_transport.py` now provides development primitives for commands
+and bounded individual-file upload/download to an existing named PBS instance.
+It is not a `BaseEnvironment` implementation or scored runner. No new container
+mode, network access, resource control or allocation is requested by this code.
+The controller subprocess environment excludes API keys and bind overrides;
+explicit command environment values are passed inside the container only.
+Timeout, cancellation and output overflow disable further transport use so the
+owner must clean up the instance. Local process-group termination is not proof
+of in-container descendant cleanup. Transfers are capped at 4 MiB; downloads
+refuse existing destinations, symlinks and nonregular remote files. Files are
+created privately. Directory/mode-preserving transfers, non-root user switching,
+instance lifecycle ownership and actual Harbor adapter wiring remain unfinished.
+Python 3.12 is required on the controller; CETUS's system Python 3.6 is unsuitable.
+
+Eleven transport tests passed locally, including execution of the exact binary
+file-transfer scripts against trusted temporary files, process timeout/output
+overflow and secret-environment exclusion. These did not invoke Apptainer or
+establish CETUS runtime compatibility. A new live check could not proceed: the
+previous SSH control socket was absent and a fresh noninteractive connection
+returned `Permission denied`. No password was read or submitted. This does not
+establish account revocation, VPN failure or the current state of job 89247.
+Its last authenticated observation was queued; that status is now stale.
+An interactive follow-up reached the CETUS password prompt successfully; the
+local SSH agent reported no identities. No credential was supplied and no
+authenticated reconnect is claimed. The full regression run passed 293 Stage 2,
+30 custom dependency and 12 pilot tests (335 total).
+
+### Study configuration
+
 Everything that executes the benchmark stays on CETUS: model, Harbor, native
 Terminus-2/OpenHands, custom agent and isolated task environments. Langfuse
 Cloud is an observability-only exception. No OpenRouter or external inference
