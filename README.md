@@ -1,5 +1,16 @@
 # UTS iLab Group 15-02 — Terminal-Bench 2.1 harness comparison
 
+## Active study: CETUS-only local inference
+
+The current branch implements the [CETUS local-model study](stage2/CETUS_LOCAL.md):
+Qwen3-Coder-Next Q4_K_M, Terminus-2 and OpenHands on 89 tasks, then custom
+Deep Agents/LangGraph development on a new frozen 20-task subset and final
+89-task evaluation. No OpenRouter inference is authorised for this track.
+Model and task-runtime qualification are still pending; no new scored results
+are claimed. See the linked status for what is implemented versus unverified.
+
+## Historical Stage 1 pilot (preserved)
+
 This repository is a small, honest comparison of three coding-agent harnesses on a fixed 21-task Terminal-Bench 2.1 development subset:
 
 - Mini-SWE-Agent (baseline 1)
