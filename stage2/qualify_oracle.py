@@ -11,6 +11,7 @@ import fcntl
 import hashlib
 import json
 import os
+import platform
 from pathlib import Path
 import re
 import shutil
@@ -23,6 +24,11 @@ from scored_gateway import durable_json, private_directory
 
 
 def check_host():
+    if platform.system() == 'Linux':
+        from linux_host_health import check_linux_host
+        return check_linux_host()
+    if platform.system() != 'Darwin':
+        raise RuntimeError('Unqualified host operating system')
     free = shutil.disk_usage('/System/Volumes/Data').free
     if free < 20_000_000_000:
         raise RuntimeError('Host free space below 20 GB')

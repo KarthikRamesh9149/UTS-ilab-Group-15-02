@@ -1,8 +1,20 @@
 import unittest
-from freeze_inputs import build, select_dev
+from unittest.mock import patch
+from pathlib import Path
+import json
+import tempfile
+from freeze_inputs import build, select_dev, dataset_path
 
 
 class InputTests(unittest.TestCase):
+    def test_canonical_provenance_path_is_preferred(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'stage2').mkdir()
+            (root / 'stage2/dataset_provenance.json').write_text(json.dumps({'dataset_path': '.cache/canonical/tasks'}))
+            with patch('freeze_inputs.ROOT', root):
+                self.assertEqual(dataset_path(), root / '.cache/canonical/tasks')
+
     def test_order_independent(self):
         ids = [str(i) for i in range(89)]
         self.assertEqual(select_dev(ids), select_dev(list(reversed(ids))))

@@ -3,6 +3,7 @@
 No calls, task replacements, resampling, allowances or model selection occur here.
 """
 from decimal import Decimal, InvalidOperation
+from study_budget import TRIAL_CAP
 
 
 def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False):
@@ -47,7 +48,7 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False)
                 reasons.append('usage_missing')
         try:
             cost = Decimal(str(billing['charged_usd']))
-            if not cost.is_finite() or not 0 <= cost <= Decimal('.055'):
+            if not cost.is_finite() or not 0 <= cost <= Decimal(TRIAL_CAP):
                 reasons.append('invalid_trial_charge')
         except (KeyError, InvalidOperation, ValueError):
             reasons.append('invalid_trial_charge')

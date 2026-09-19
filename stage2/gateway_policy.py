@@ -41,9 +41,16 @@ def prepare_request(payload):
         raise ValueError('Request body too large')
     result = deepcopy(payload)
     if 'reasoning_effort' in result:
-        if 'reasoning' in result or result['reasoning_effort'] not in {'low', 'medium', 'high'}:
+        effort = result['reasoning_effort']
+        if effort not in {'low', 'medium', 'high'}:
             raise ValueError('Ambiguous or unsupported reasoning effort')
-        result['reasoning'] = {'effort': result.pop('reasoning_effort')}
+        canonical = {'effort': effort}
+        # LiteLLM 1.101 serializes both the native effort and extra_body alias.
+        # Collapse only exactly identical settings, never conflicting options.
+        if 'reasoning' in result and result['reasoning'] != canonical:
+            raise ValueError('Ambiguous or unsupported reasoning effort')
+        result.pop('reasoning_effort')
+        result['reasoning'] = canonical
     # OpenRouter documents these as equivalent total-generation limits. Keep
     # one canonical field for the reservation function; do not alter its value.
     result.pop('max_completion_tokens', None)

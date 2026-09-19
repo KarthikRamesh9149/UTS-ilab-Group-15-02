@@ -12,7 +12,8 @@ class OracleQualificationTests(unittest.TestCase):
     def host(self, disk=30_000_000_000, pressure='1', thermal='No thermal warning level has been recorded'):
         def output(command, **kwargs):
             return thermal if command[0] == 'pmset' else pressure
-        with patch('qualify_oracle.shutil.disk_usage', return_value=SimpleNamespace(free=disk)), \
+        with patch('qualify_oracle.platform.system', return_value='Darwin'), \
+             patch('qualify_oracle.shutil.disk_usage', return_value=SimpleNamespace(free=disk)), \
              patch('qualify_oracle.subprocess.check_output', side_effect=output):
             return check_host()
 

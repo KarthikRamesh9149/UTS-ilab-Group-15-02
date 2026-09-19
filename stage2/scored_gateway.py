@@ -18,6 +18,7 @@ from gateway_core import Gateway, Trial, token_digest
 from receipt_polling import read_receipt
 from setup_probe import full_context_bound, validate_metadata
 from trial_estimator import trial_charge_estimator
+from study_budget import SCORED_CEILING, TRIAL_CAP, STAGE_CAPS
 
 
 def private_directory(path):
@@ -68,8 +69,8 @@ class ScoredSession:
             self.lock = os.fdopen(descriptor, 'r+')
             fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self.available_balance()
-            self.ledger = Ledger(runtime / 'scored_budget.sqlite', '21.285', '.055',
-                {'development': '6.600', 'final': '14.685'}, allow_estimated_trials=True)
+            self.ledger = Ledger(runtime / 'scored_budget.sqlite', SCORED_CEILING, TRIAL_CAP,
+                STAGE_CAPS, allow_estimated_trials=True)
             if self.ledger.pending():
                 raise BudgetExceeded('Resolve prior pending billing before another trial')
             if self.ledger.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
@@ -80,7 +81,7 @@ class ScoredSession:
             durable_json(self.evidence / 'started.json', {
                 'trial_id': trial_id, 'stage': stage, 'status': 'started',
                 'model_protocol_sha256': settings.fingerprint() if settings is not None else None,
-                'estimated_trial_cap_usd': '.055', 'aggregate_cap_usd': '21.285'})
+                'estimated_trial_cap_usd': TRIAL_CAP, 'aggregate_cap_usd': SCORED_CEILING})
             self.gateway = Gateway(self.ledger, Trial(trial_id, stage, token_digest(token)),
                 self.available_balance, full_context_bound, self.generate, self.receipt,
                 trial_estimate=estimator or trial_charge_estimator(root),

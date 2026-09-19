@@ -1,0 +1,83 @@
+{
+  "kind": "native_linux_preflight_not_benchmark_scores",
+  "time_utc": "2026-09-19T12:45:05.408912+00:00",
+  "host_environment": {
+    "docker": {
+      "Architecture": "x86_64",
+      "OSType": "linux",
+      "KernelVersion": "6.12.107+deb13-amd64",
+      "ServerVersion": "29.8.1",
+      "NCPU": 8,
+      "MemTotal": 16773283840
+    },
+    "docker_context": "default",
+    "docker_endpoint": "unix:///var/run/docker.sock",
+    "execution_mode": "native_linux_x86_64",
+    "client_kernel": "6.12.107+deb13-amd64",
+    "client_architecture": "x86_64"
+  },
+  "host_health": {
+    "free_disk_bytes": 514315235328,
+    "disk_free_by_role": {
+      "docker": 514315235328,
+      "artifacts": 514315235328
+    },
+    "memory_available_bytes": 15178297344,
+    "memory_total_bytes": 16773283840,
+    "available_cpus": 8,
+    "memory_full_stall_avg10_percent": 0,
+    "thermal": "not_exposed_by_virtual_machine",
+    "host_os": "Linux"
+  },
+  "ssh_authentication": {
+    "permitrootlogin": "without-password",
+    "pubkeyauthentication": "yes",
+    "passwordauthentication": "no",
+    "kbdinteractiveauthentication": "no"
+  },
+  "dataset_exact_file_hashes_verified": true,
+  "dataset_task_count": 89,
+  "packages": {
+    "harbor": "0.22.0",
+    "litellm": "1.101.0",
+    "openai": "2.54.0",
+    "deepagents": "0.7.14",
+    "langgraph": "1.2.11",
+    "langchain": "1.4.0",
+    "tokenizers": "0.23.2"
+  },
+  "dependency_lock_sha256": "5271e2abf1b15ace1dd280028ca976d5d4229a8eeb44a4520d3c20e8c5c31eb2",
+  "source_hashes": {
+    "budget_ledger.py": "ff17b6cb6bca96146431d74782b704b01cf9991b9dfec1d913802aae7b00d693",
+    "gateway_core.py": "c4cbe81211fe524b892a90cf6f10074f0f59ef50c8051e40f31bb922c95fc52c",
+    "gateway_policy.py": "250ecc94dfc269193102f860bd90372198c238e60590f947fa6192f2ffcaedd2",
+    "study_budget.py": "5f4379e07a061b8e012f9075dc74f8f6909d6b0a084d4964e69c0f1160cc87e7",
+    "linux_host_health.py": "ed7ab2c294e1835cf419e258e9b6f5b9b3e823ca58845e9c924ba1e6cf110f45",
+    "qualify_oracle.py": "472c813429404474df70b1ae224779d4b089de0c738940ab05242a15d04e216a",
+    "gateway_http.py": "38012e317ebc6c84d53e061fda5fb147ea58b0cb9244edd3c137d06508a78025",
+    "scored_gateway.py": "818d21ad1f9d9a43edfaec43862a6e2bd68c052c21491414eac8b39fb6d4bd5a",
+    "scored_accounting.py": "b3c793749334dbd005e99bbb201a4022fb31cd9c46b25fc64936dc6c55a6af21",
+    "model_protocol.py": "7a3816ba1b6679d743dc922a351956939fa25e6148faa8c0cfbfa2050d1513e0",
+    "trial_estimator.py": "83e36d69bbfe3fa4bb7104ffa11692ebdff0c544a6de2db622fb86c50d1f8b02",
+    "openrouter_transport.py": "cabee3e8812da943c573e46f392603b29b314812465edd511c09b7ffefaa148f",
+    "receipt_polling.py": "6971106627f2f2dfa28122348ae3aadf3e79d5e5b7a7aff8dd58070177fce154",
+    "production_compose.py": "58e0ab1d3b8bbb567805b4a25c79c3768756d80b08363091309e6ad0e2de8b41",
+    "guarded_runtime.py": "064840f03b62e3d8dec8ccaa7ac67f04a1649d2704b575f4d25d16f56ae00b4d",
+    "container_model_relay.py": "9e2d67f2c6dae045a3157d7bc0e94b93e3040dccc3c21d13deed3d2680587c21",
+    "container_gateway_rpc.py": "a49281a7f39dfcf1d8b087fd010ba4cc02eb042dce68179e3e5c10a8369a23bb",
+    "host_model_bridge.py": "5b8d730fbd3220d737db6956525cba7f12ac16572c85ace3fb3705bdef3e9f44",
+    "trial_execution.py": "a9728b415b0f4d7ffdf1335eac9b3346077baae8cd87ac8ce65d92ebfb8c75af",
+    "scored_trial.py": "730144a4bf5828870e10521b3e35b1dd609f21fa56abb0467dd9e043396d2f10",
+    "pinned_docker.py": "268099cc21c56c7371fd604137c4629964d9d02800311f0415fff9b276297589",
+    "host_environment.py": "d4add131f63bbf5a38931526aa7a58094ad6b22c0f872c43890048b7da4dccfb",
+    "native_agents.py": "fbe123612474f1f5d5528273ac4edd3e8ef375820efe3f3a1b5a1b4a01332081",
+    "custom_backend.py": "a3fbf3992a6504bd46b785503e20d7dc9843d43993e9a2da1afb3d1387c92d47",
+    "custom_runner.py": "c878a0ca0dd98eb2a4e5c8616b270370148aaaf9d1c42630d412c285c257b686",
+    "custom_model.py": "0273b4ba3fc4c3aee68a911f1c58d8a8ea6beecb6946d6a2e108b509e40f6658",
+    "custom_control.py": "01b6fb09d55d1fe28f53126c7c42350bdacac43b3d2eeb573a1d57dab631484c",
+    "custom_jobs.py": "4d945e1cad89994100fb473d0fbb4abcdc2618d9486869b20c347d618943d1fc",
+    "custom_harbor_agent.py": "7c2585e023b49515ff889b79f2daa55951a96f7dba83413416f9da1a049b4459",
+    "openhands-requirements.lock": "12a2a0964cf8d2e3d82743a73705eb5d46118cd277bea8b532b99b4d502da151"
+  },
+  "live_api_calls": 0
+}

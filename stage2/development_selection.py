@@ -1,6 +1,7 @@
 """Registered development selection; consumes audited metadata, never task text."""
 from decimal import Decimal
 import math
+from study_budget import TRIAL_CAP
 
 
 def summarize(records, *, condition, task_ids, protocol, parent=None):
@@ -34,7 +35,7 @@ def summarize(records, *, condition, task_ids, protocol, parent=None):
                 raise ValueError('Complete usage required')
         charge = Decimal(str(billing['charged_usd']))
         seconds = row.get('phase_seconds', {}).get('agent')
-        if not charge.is_finite() or not 0 <= charge <= Decimal('.055'):
+        if not charge.is_finite() or not 0 <= charge <= Decimal(TRIAL_CAP):
             raise ValueError('Invalid charge')
         if type(seconds) not in (int, float) or not math.isfinite(seconds) or seconds < 0:
             raise ValueError('Measured agent runtime required')

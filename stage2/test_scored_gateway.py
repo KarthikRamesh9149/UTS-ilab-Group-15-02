@@ -67,7 +67,8 @@ class ScoredGatewayTests(unittest.TestCase):
                 self.assertEqual(path.stat().st_mode & 0o777, 0o600)
         with self.session('trial-2', 'final') as session:
             self.assertEqual(session.ledger.exposure(), dollars('.001'))
-            self.assertEqual(session.ledger.ceiling, dollars('21.285'))
+            self.assertEqual(session.ledger.ceiling, dollars('8.901'))
+            self.assertEqual(session.ledger.trial_cap, dollars('.023'))
 
     def test_cannot_replay_finished_trial(self):
         with self.session():

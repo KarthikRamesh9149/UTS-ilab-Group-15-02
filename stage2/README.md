@@ -1,8 +1,18 @@
 # Stage 2 execution status
 
-## Current track, 17 September 2026
+## Current track, 19 September 2026
 
-The active authorised study is now [CETUS-only local inference](CETUS_LOCAL.md),
+The active authorised track is now [Netcup native Linux + OpenRouter](NETCUP.md),
+on branch `codex/netcup-openrouter-study`. This restores the one-model paid
+study on a dedicated x86-64 Docker server. The user capped further spending at
+the observed US$12.031657772 remaining balance; no top-ups are authorised.
+The amended caps are in `budget_policy.json` and `study_budget.py`.
+Server setup and qualification are in progress. No new scored result is
+implied by the historical records below.
+
+## Previous track, 17 September 2026
+
+The then-active authorised study was [CETUS-only local inference](CETUS_LOCAL.md),
 on branch `codex/cetus-local-harbor-study`. The OpenRouter configuration and
 records below are preserved historical work, not the active execution policy.
 Do not invoke the old paid runners to execute the local study.
