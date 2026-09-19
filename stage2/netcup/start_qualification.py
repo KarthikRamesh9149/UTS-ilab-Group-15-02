@@ -7,6 +7,7 @@ policy. No model charge occurs until all twenty reference checks pass.
 import argparse
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -50,13 +51,51 @@ def execute(root, admission_path, *, run=subprocess.run, inspect=summary, admit=
     print('First baseline block ended. Evidence review is required before any expansion.', flush=True)
 
 
+def prepare_and_qualify(root, label, *, run=subprocess.run, inspect=summary, admit=validate):
+    """One explicit fresh proof set, followed only by the first baseline block.
+
+    No automatic retry or label rotation. Failed/partial probes remain evidence
+    and require inspection. Reference qualification precedes every paid probe.
+    """
+    root = Path(root).resolve()
+    if not isinstance(label, str) or not re.fullmatch(r'[a-zA-Z0-9]{1,32}', label):
+        raise ValueError('Explicit bounded alphanumeric evidence label required')
+    python = str(root / '.venv/bin/python')
+    files = {'runtime': f'stage2/scored_runtime_probe_{label}.json',
+        'terminus-live': f'stage2/native_live_terminus-2_{label}.json',
+        'openhands-live': f'stage2/native_live_openhands_{label}.json',
+        'custom-live': f'stage2/native_live_custom_{label}.json'}
+    admission = root / 'stage2' / f'admission_{label}.json'
+    attempts = [root / '.runtime/stage2/native-setup-configs' / f'setup-native-{h}-{label}.json'
+                for h in ('terminus-2', 'openhands', 'custom')]
+    if any(path.exists() or path.is_symlink() for path in
+           [admission, *(root / name for name in files.values()), *attempts]):
+        raise ValueError('Existing proof attempt requires inspection, not replay')
+    references(root, run=run, inspect=inspect)
+    run([python, 'stage2/scored_runtime_probe.py', '--harness', 'custom',
+         '--label', label, '--rebuild-gateway'], cwd=root, check=True)
+    common = ['--max-output-tokens', '8192', '--temperature', '1', '--reasoning-effort', 'high']
+    for harness in ('terminus-2', 'openhands', 'custom'):
+        run([python, 'stage2/native_live_probe.py', '--harness', harness,
+             '--label', label, *common, '--execute'], cwd=root, check=True)
+    command = [python, 'stage2/build_admission.py', '--output', str(admission), *common]
+    for role, path in files.items():
+        command.extend(['--' + role, path])
+    run(command, cwd=root, check=True)
+    execute(root, admission, run=run, inspect=inspect, admit=admit)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     choice = parser.add_mutually_exclusive_group(required=True)
     choice.add_argument('--admission', type=Path)
     choice.add_argument('--references-only', action='store_true')
+    choice.add_argument('--prepare-and-qualify', metavar='LABEL',
+                        help='Fresh proofs and first20 only; no replay or automatic expansion')
     args = parser.parse_args()
     if args.references_only:
         references(ROOT)
+    elif args.prepare_and_qualify:
+        prepare_and_qualify(ROOT, args.prepare_and_qualify)
     else:
         execute(ROOT, args.admission)

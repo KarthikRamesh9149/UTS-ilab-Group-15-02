@@ -1,0 +1,33 @@
+{
+  "kind": "public_dependency_transport_check_not_benchmark_score",
+  "observed_date_utc": "2026-09-19",
+  "execution_location": "native_netcup_host_not_task_container",
+  "official_documentation": "https://www.povray.org/download/",
+  "original_https_status": 403,
+  "original_https_response": "cf-mitigated: challenge",
+  "ftp_base": "ftp://ftp.povray.org/pub/povray/Old-Versions/Official-2.2/",
+  "live_api_calls": 0,
+  "complete_downloads": [
+    {
+      "name": "POVDOC.TAR.Z",
+      "bytes": 276500,
+      "sha256": "e70e44d1fe8835c4dff7c7a55bd6629b15e6a15b2ab7f2f49ee9e2dc016cc470"
+    },
+    {
+      "name": "POVSCN.TAR.Z",
+      "bytes": 744789,
+      "sha256": "4272e2d4724d8dfd916d68827194577221d17b733d99e84e7040f3a9f7eb92a7"
+    },
+    {
+      "name": "POVSRC.TAR.Z",
+      "bytes": 575233,
+      "sha256": "4d8a7073fadaca82827f1354428393cd13e4d3f71a5a3149fd7d6fffd77293d4"
+    }
+  ],
+  "limitations": [
+    "Anonymous FTP is published by the software author but is not encrypted or cryptographically authenticated.",
+    "These are observed file digests, not independent publisher signatures.",
+    "Host download success is not yet proof that the amended reference passes in the guarded task container.",
+    "No archive contents were used to modify the model or custom harness policy."
+  ]
+}

@@ -25,9 +25,22 @@ def summary(root, run='original'):
             pending.append(task)
             continue
         value = json.loads(source.read_text())
+        original_outcome = None
+        if run == 'netcup' and task == 'build-pov-ray':
+            from reference_download_repair import qualified_override, REPAIRED_NAMESPACE
+            amended = qualified_override(root)
+            if amended is not None:
+                original_outcome = {'source_namespace': namespace,
+                    'status': value['status'], 'reward': value.get('verifier', {}).get('rewards', {}).get('reward')}
+                value = amended
         if value['task'] != task or value['live_api_calls'] != 0 or value.get('runtime_revision') != revision:
             raise ValueError('Unexpected qualification identity')
         row = {key: value[key] for key in ['task', 'status', 'time_utc', 'elapsed_seconds', 'cleanup_verified']}
+        if original_outcome is not None:
+            row['original_outcome_preserved'] = original_outcome
+            row['source_namespace'] = REPAIRED_NAMESPACE
+            row['reference_amendment'] = {key: entry for key, entry in value['reference_amendment'].items()
+                                          if key != 'copy_file_hashes'}
         for key in ['image_id', 'resource_limits_verified', 'error_type']:
             if key in value:
                 row[key] = value[key]
@@ -47,9 +60,13 @@ def summary(root, run='original'):
         'snapshot_utc': datetime.now(timezone.utc).isoformat(), 'frozen_development_tasks': 20,
         'valid_results_in_snapshot': valid, 'reference_passes_in_snapshot': passed,
         'live_api_calls': 0, 'runtime_revision': revision,
+        'amended_reference_attempts': sum('reference_amendment' in row for row in results),
         'completed_outcomes': len(results), 'results': results, 'pending_tasks': pending,
         'limitations': ['Reference results are not baseline or custom-model scores.',
             'Reward-zero results are preserved and do not qualify a task as reference-passing.'] +
+            (['A separately recorded reference-only FTP download amendment is used for POV-Ray; '
+              'the original failure remains recorded and model inputs/environments are unchanged.']
+             if any('reference_amendment' in row for row in results) else []) +
             (['Fresh Netcup-host evidence, separate from historical Mac qualification.'] if run == 'netcup' else
              ['The original uncollected video-processing attempt is retained locally; only log mounts changed for v2.'])}
 
