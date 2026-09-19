@@ -79,7 +79,7 @@ Progress and remaining work:
 
 - Server provisioned, key login verified, dependencies installed.
 - 363 Stage 2 unit/integration checks and 30 separately discovered custom checks
-  passed on the server with the current sources;
+  passed on the server with the current sources, plus two graph-tracing checks;
   the 12 legacy pilot tests also passed after transferring their source modules.
 - The `netcupv4` synthetic custom check and all three real-model native checks
   passed with billing, metadata tracing and cleanup verified. This established
@@ -135,6 +135,11 @@ only on the server.
 - The first repaired reference, `qemu-startup`, passed with reward 1, enforced
   resources and verified cleanup in 107.411 seconds. Remaining reference checks
   are still running; this is not a scored model result.
+- `install-windows-3.11` and `adaptive-rejection-sampler` also passed, in
+  387.875 and 55.331 seconds respectively. This resolves the three earlier
+  architecture-sensitive reference failures on the native host. The latest
+  committed progress snapshot has four passes from four completed references;
+  the remaining sixteen are not yet certified.
 - `start_qualification.py --references-only` cannot spend on models. After the
   references pass, rebuild the gateway and generate fresh synthetic/native
   proofs with a new label before constructing a fresh admission. Do not use
