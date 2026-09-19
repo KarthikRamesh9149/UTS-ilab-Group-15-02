@@ -13,6 +13,7 @@ from pathlib import Path
 from urllib.request import Request, build_opener, HTTPRedirectHandler, ProxyHandler
 
 from cetus_local_probe import MODEL
+from gateway_policy import MODEL as OPENROUTER_MODEL
 from local_trace import TraceSpool, validate
 
 BASES = {'https://cloud.langfuse.com', 'https://us.cloud.langfuse.com', 'https://jp.cloud.langfuse.com'}
@@ -28,7 +29,10 @@ def attribute(key, value):
     return {'key': key, 'value': data}
 
 
-def payload(events):
+def payload(events, *, track='cetus-local'):
+    models = {'cetus-local': MODEL, 'netcup-openrouter': OPENROUTER_MODEL}
+    if track not in models:
+        raise ValueError('Explicit registered study track required')
     if not events:
         raise ValueError('No completed observations to export')
     for event in events:
@@ -47,7 +51,7 @@ def payload(events):
         if not root['started_ns'] <= event['started_ns'] <= event['ended_ns'] <= root['ended_ns']:
             raise ValueError('Observation outside trial lifetime')
         attrs = [attribute('langfuse.observation.type', 'generation' if event['kind'] == 'generation' else 'span'),
-                 attribute('langfuse.trace.name', 'cetus-local-' + event['harness']),
+                 attribute('langfuse.trace.name', track + '-' + event['harness']),
                  attribute('langfuse.session.id', event['trial_id'])]
         for key in ('harness', 'task_id', 'protocol_sha256', 'status'):
             attrs.append(attribute('langfuse.trace.metadata.' + key, event[key]))
@@ -56,7 +60,10 @@ def payload(events):
         if event['reward'] is not None:
             attrs.append(attribute('uts.official_verifier_reward', event['reward']))
         if event['kind'] == 'generation':
-            attrs.append(attribute('gen_ai.request.model', MODEL))
+            attrs.append(attribute('gen_ai.request.model', models[track]))
+            if 'charged_nanodollars' in event['metrics']:
+                attrs.append(attribute('langfuse.observation.cost_details', json.dumps({
+                    'total': event['metrics']['charged_nanodollars'] / 1_000_000_000})))
             for key, name in [('input_tokens', 'gen_ai.usage.input_tokens'),
                               ('output_tokens', 'gen_ai.usage.output_tokens')]:
                 if key in event['metrics']:
@@ -68,8 +75,8 @@ def payload(events):
         if event is not root:
             span['parentSpanId'] = root['event_id'][:16]
         spans.append(span)
-    return {'resourceSpans': [{'resource': {'attributes': [attribute('service.name', 'uts-cetus-harbor')]},
-        'scopeSpans': [{'scope': {'name': 'uts.cetus.local', 'version': '1'}, 'spans': spans}]}]}
+    return {'resourceSpans': [{'resource': {'attributes': [attribute('service.name', 'uts-' + track + '-harbor')]},
+        'scopeSpans': [{'scope': {'name': 'uts.' + track.replace('-', '.'), 'version': '1'}, 'spans': spans}]}]}
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -77,7 +84,7 @@ class NoRedirect(HTTPRedirectHandler):
         raise RuntimeError('Langfuse export redirects prohibited')
 
 
-def export(spool, *, base_url, public_key, secret_key):
+def export(spool, *, base_url, public_key, secret_key, track='cetus-local'):
     if base_url not in BASES:
         raise ValueError('Unapproved Langfuse Cloud origin')
     if not public_key.startswith('pk-lf-') or not secret_key.startswith('sk-lf-'):
@@ -85,7 +92,7 @@ def export(spool, *, base_url, public_key, secret_key):
     events = TraceSpool(spool).events()
     # A stable digest covers the entire event collection. Re-export after a
     # crash uses the same OTEL span IDs; do not invent new IDs for retries.
-    body = json.dumps(payload(events), sort_keys=True, allow_nan=False).encode()
+    body = json.dumps(payload(events, track=track), sort_keys=True, allow_nan=False).encode()
     destination = (base_url + ':' + public_key).encode()
     receipt = Path(spool) / ('.exported-' + hashlib.sha256(destination + body).hexdigest())
     if receipt.is_symlink():
@@ -115,10 +122,12 @@ def export(spool, *, base_url, public_key, secret_key):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--spool', type=Path, required=True)
+    parser.add_argument('--track', choices=('cetus-local', 'netcup-openrouter'), default='cetus-local')
     args = parser.parse_args()
     try:
         print(json.dumps(export(args.spool, base_url=os.environ.get('LANGFUSE_BASE_URL', ''),
-            public_key=os.environ.get('LANGFUSE_PUBLIC_KEY', ''), secret_key=os.environ.get('LANGFUSE_SECRET_KEY', ''))))
+            public_key=os.environ.get('LANGFUSE_PUBLIC_KEY', ''), secret_key=os.environ.get('LANGFUSE_SECRET_KEY', ''),
+            track=args.track)))
     except Exception as exc:
         # Do not print HTTP bodies or request representations containing keys.
         print(json.dumps({'status': 'export_failed_spool_retained', 'error_type': type(exc).__name__}))

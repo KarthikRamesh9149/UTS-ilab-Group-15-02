@@ -15,7 +15,7 @@ def gateway_fixture(native_openhands=False, native_custom=False):
     if native_openhands and native_custom:
         raise ValueError('Select only one native fixture harness')
     from gateway_policy import MODEL, ENDPOINT
-    from scored_gateway import serve
+    from scored_gateway import serve, durable_json
     from setup_probe import CONTEXT
     from unittest.mock import patch
     from gateway_policy import prepare_request
@@ -70,10 +70,15 @@ def gateway_fixture(native_openhands=False, native_custom=False):
                     'id': 'synthetic-call-' + str(self.calls), 'type': 'function',
                     'function': {'name': name, 'arguments': json.dumps(args)}}]}
                 finish = 'tool_calls'
-            return {'id': 'synthetic-' + str(self.calls), 'model': MODEL,
+            identifier = 'synthetic-' + str(self.calls)
+            # The scripted provider publishes its synthetic receipt locally;
+            # no real provider key/network is used by this infrastructure test.
+            durable_json(Path('/study/.runtime/stage2/scored-attempts/synthetic-runtime') /
+                         f'{self.calls:06d}.receipt.json', self.generation(identifier))
+            return {'id': identifier, 'model': MODEL, 'provider': 'DeepInfra',
                 'object': 'chat.completion', 'created': 1,
                 'choices': [{'index': 0, 'finish_reason': finish, 'message': message}],
-                'usage': {'prompt_tokens': 10, 'completion_tokens': 4, 'cost': '.000001'}}
+                'usage': {'prompt_tokens': 10, 'completion_tokens': 4, 'cost': '.000001', 'is_byok': False}}
         def generation(self, identifier):
             return {'id': identifier, 'model': MODEL, 'provider_name': 'DeepInfra', 'total_cost': '.000001'}
     with patch('openrouter_transport.OpenRouter', return_value=SyntheticProvider()), \

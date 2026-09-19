@@ -46,7 +46,9 @@ def reconcile_receipt(response, receipt):
 
 
 class Gateway:
-    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream, generation_reader=None, *, trial_estimate=None, request_policy=None):
+    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream, generation_reader=None, *, trial_estimate=None, request_policy=None, receipt_timing='inline'):
+        if receipt_timing not in {'inline', 'post_trial'}:
+            raise ValueError('Explicit registered receipt policy required')
         self.ledger = ledger
         self.trial = trial
         self.balance_reader = balance_reader
@@ -55,6 +57,7 @@ class Gateway:
         self.generation_reader = generation_reader
         self.trial_estimate = trial_estimate
         self.request_policy = request_policy
+        self.receipt_timing = receipt_timing
         self.lock = threading.Lock()
         self.revoked = False
 
@@ -105,6 +108,14 @@ class Gateway:
             # Exact upstream decimal parsing is required of the transport.
             if not isinstance(cost, (str, int, Decimal)):
                 raise GatewayError('Inexact billing evidence; reservation retained')
+            if self.receipt_timing == 'post_trial':
+                # OpenRouter documents usage.cost as the amount charged to the
+                # account. Use it immediately, then independently audit the
+                # delayed /generation record after the agent is revoked.
+                if response.get('provider') != 'DeepInfra' or usage.get('is_byok') is not False:
+                    raise GatewayError('Unverified response provider; reservation retained')
+                self.ledger.settle(identifier, cost, receipt_pending=True)
+                return response
             try:
                 receipt = self.generation_reader(response['id'])
                 reconcile_receipt(response, receipt)

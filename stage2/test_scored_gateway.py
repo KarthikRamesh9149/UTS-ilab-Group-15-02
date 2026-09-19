@@ -55,7 +55,7 @@ class ScoredGatewayTests(unittest.TestCase):
 
     def session(self, identifier='trial-1', stage='development'):
         return ScoredSession(self.root, identifier, stage, self.token, self.client,
-                             estimator=lambda request: '.01')
+                             estimator=lambda request: '.01', receipt_timing='inline')
 
     def test_durable_request_response_receipt_and_shared_caps(self):
         with self.session() as session:

@@ -19,7 +19,7 @@ from setup_probe import full_context_bound
 
 
 class NativeSetupSession(ScoredSession):
-    def __init__(self, root, trial_id, token, client, *, settings):
+    def __init__(self, root, trial_id, token, client, *, settings, receipt_timing='post_trial'):
         if not re.fullmatch(r'setup-native-[a-zA-Z0-9_.-]{1,100}', trial_id):
             raise ValueError('Explicit native setup identity required')
         if not re.fullmatch(r'[a-f0-9]{64}', token) or not isinstance(settings, ModelSettings):
@@ -42,7 +42,7 @@ class NativeSetupSession(ScoredSession):
             fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self.available_balance()
             self.ledger = Ledger(ledger_path, '1', '1', {'setup': '1'})
-            if self.ledger.pending() or self.ledger.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
+            if self.ledger.pending() or self.ledger.pending_receipts() or self.ledger.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Unresolved setup billing blocks dispatch')
             self.evidence = private_directory(runtime / 'native-setup-attempts') / trial_id
             self.evidence.mkdir(mode=0o700)
@@ -50,10 +50,11 @@ class NativeSetupSession(ScoredSession):
                 'kind': 'native_harness_live_compatibility_not_scored',
                 'trial_id': trial_id, 'stage': 'setup',
                 'model_protocol_sha256': settings.fingerprint(),
-                'aggregate_setup_cap_usd': '1', 'reservation': 'full_context_hard_bound'})
+                'aggregate_setup_cap_usd': '1', 'reservation': 'full_context_hard_bound',
+                'receipt_timing': receipt_timing, 'inline_charge_source': 'openrouter_response_usage_cost'})
             self.gateway = Gateway(self.ledger, Trial(trial_id, 'setup', token_digest(token)),
                 self.available_balance, full_context_bound, self.generate, self.receipt,
-                request_policy=settings.enforce)
+                request_policy=settings.enforce, receipt_timing=receipt_timing)
         except BaseException:
             self.close()
             raise

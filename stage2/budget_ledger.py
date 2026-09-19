@@ -42,6 +42,9 @@ class Ledger:
                 id INTEGER PRIMARY KEY CHECK(id=1), enabled INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS trial_estimates (
                 request_id TEXT PRIMARY KEY, amount INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS receipt_checks (
+                request_id TEXT PRIMARY KEY,
+                state TEXT NOT NULL CHECK(state IN ('pending','verified')));
         ''')
         with self.transaction():
             mode = self.db.execute('SELECT enabled FROM estimation_policy WHERE id=1').fetchone()
@@ -99,6 +102,9 @@ class Ledger:
             pending = self.db.execute("SELECT COALESCE(SUM(reserved),0) FROM requests WHERE state='pending'").fetchone()[0]
             if pending:
                 raise BudgetExceeded('Resolve the outstanding request before dispatching another')
+            if self.db.execute('''SELECT COUNT(*) FROM receipt_checks c JOIN requests r ON r.id=c.request_id
+                                  WHERE c.state='pending' AND r.trial!=?''', (trial,)).fetchone()[0]:
+                raise BudgetExceeded('Previous trial receipts must be verified before new trial spending')
             stages = dict(self.db.execute('SELECT name,cap FROM stages'))
             if stages:
                 if stage not in stages:
@@ -121,7 +127,9 @@ class Ledger:
             if trial_estimate is not None:
                 self.db.execute('INSERT INTO trial_estimates VALUES (?,?)', (request_id, trial_amount))
 
-    def settle(self, request_id, actual):
+    def settle(self, request_id, actual, *, receipt_pending=False):
+        if type(receipt_pending) is not bool:
+            raise ValueError('Explicit receipt state required')
         charged = dollars(actual)
         overcharge = False
         with self.transaction():
@@ -138,6 +146,8 @@ class Ledger:
                 self.db.execute('INSERT INTO incidents VALUES (?,?)', (request_id, charged))
                 overcharge = True
             self.db.execute("UPDATE requests SET charged=?,state='settled' WHERE id=?", (charged, request_id))
+            if receipt_pending:
+                self.db.execute("INSERT INTO receipt_checks VALUES (?, 'pending')", (request_id,))
         if overcharge:
             raise BudgetExceeded('Charge exceeds reservation or trial estimate; ledger halted')
 
@@ -148,6 +158,27 @@ class Ledger:
             if not self.db.execute('SELECT 1 FROM requests WHERE id=?', (request_id,)).fetchone():
                 raise ValueError('Unknown request')
             self.db.execute('INSERT INTO generations VALUES (?,?)', (request_id, generation_id))
+
+    def record_receipt_incident(self, request_id, actual):
+        """Persist a post-trial cross-check failure; never clear it automatically."""
+        amount = dollars(actual)
+        with self.transaction():
+            if not self.db.execute('SELECT 1 FROM requests WHERE id=?', (request_id,)).fetchone():
+                raise ValueError('Unknown request')
+            if not self.db.execute('SELECT 1 FROM incidents WHERE request_id=? AND actual=?', (request_id, amount)).fetchone():
+                self.db.execute('INSERT INTO incidents VALUES (?,?)', (request_id, amount))
+
+    def verify_receipt(self, request_id, actual):
+        with self.transaction():
+            row = self.db.execute('SELECT charged,state FROM requests WHERE id=?', (request_id,)).fetchone()
+            if row != (dollars(actual), 'settled'):
+                raise ValueError('Receipt does not match settled response cost')
+            self.db.execute("UPDATE receipt_checks SET state='verified' WHERE request_id=?", (request_id,))
+
+    def pending_receipts(self):
+        return self.db.execute('''SELECT r.id,r.trial,g.generation_id FROM receipt_checks c
+            JOIN requests r ON r.id=c.request_id JOIN generations g ON r.id=g.request_id
+            WHERE c.state='pending' ORDER BY r.id''').fetchall()
 
     def pending(self):
         return self.db.execute('''SELECT r.id,r.trial,r.reserved,g.generation_id

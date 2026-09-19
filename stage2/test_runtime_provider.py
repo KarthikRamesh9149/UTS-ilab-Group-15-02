@@ -12,7 +12,7 @@ class ProviderFixtureTests(unittest.TestCase):
         def serve(*args):
             from openrouter_transport import OpenRouter
             check(OpenRouter())  # Patched by the fixture; never a real transport.
-        with patch('scored_gateway.serve', side_effect=serve):
+        with patch('scored_gateway.serve', side_effect=serve), patch('scored_gateway.durable_json'):
             gateway_fixture(native_openhands=True)
 
     def test_native_tool_sequence_and_no_third_call(self):

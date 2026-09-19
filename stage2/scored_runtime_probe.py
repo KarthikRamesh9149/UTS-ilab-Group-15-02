@@ -142,6 +142,8 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
                     if result.return_code != 0:
                         raise RuntimeError('Fixture write failed')
             return ProbeAgent()
+        if harness in {'custom', 'openhands'}:
+            factory.harness = 'C0' if harness == 'custom' else 'openhands'
         try:
             # The real dataset is not edited. These substitutions are confined
             # to this explicit fixture entry point, never a scoring CLI.
@@ -164,6 +166,8 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
             if harness == 'custom':
                 trajectory = fixture_root / '.runtime/stage2/scored-trials/synthetic-runtime/agent/custom-trajectory.json'
                 checks['custom_trajectory_written'] = trajectory.is_file()
+            if harness in {'custom', 'openhands'}:
+                checks['metadata_trace_complete'] = result.get('trace', {}).get('status') == 'complete_metadata_spool_not_cloud_export'
             checks['runtime_sources_unchanged'] = source_hashes(root) == LOADED_SOURCE_HASHES
             checks['host_environment_unchanged'] = host_environment.snapshot() == host_identity
             checks['runtime_images_preserved'] = all(

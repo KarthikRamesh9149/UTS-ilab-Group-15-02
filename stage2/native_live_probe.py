@@ -91,7 +91,8 @@ async def probe(harness, label, settings, *, execute=False, wait=False):
                  patch('scored_trial.audit_trial', side_effect=lambda *args: audit_setup(runtime, trial_id, settings)):
                 result = await run_trial(root=fixture, trial_id=trial_id, task_id='lifecycle',
                     stage='development', agent_factory=factory, model_settings=settings,
-                    gateway_image=gateway, guard_image=guard, setup_timeout_seconds=900)
+                    gateway_image=gateway, guard_image=guard, setup_timeout_seconds=900,
+                    billing_runtime=runtime, billing_kind='setup')
             billing = audit_setup(runtime, trial_id, settings)
             logs = fixture / '.runtime/stage2/scored-trials' / trial_id / 'agent'
             trajectory = {'terminus-2': 'trajectory.json', 'openhands': 'openhands.trajectory.json',
@@ -103,6 +104,7 @@ async def probe(harness, label, settings, *, execute=False, wait=False):
                 'billing_verified': billing['billing_verified'],
                 'cleanup_verified': all(result.get(k) is True for k in ['model_revoked', 'containers_removed', 'networks_removed', 'volumes_removed']),
                 'trajectory_written': (logs / trajectory).is_file(),
+                'metadata_trace_complete': result.get('trace', {}).get('status') == 'complete_metadata_spool_not_cloud_export',
                 'runtime_sources_unchanged': source_hashes(root) == loaded,
                 'host_environment_unchanged': host_environment.snapshot() == host_identity,
                 'runtime_images_preserved': all(

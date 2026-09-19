@@ -19,6 +19,8 @@ def audit_setup(runtime, trial_id, settings):
         db.execute('BEGIN')
         if db.execute('PRAGMA quick_check').fetchall() != [('ok',)]:
             raise ValueError('Ledger integrity failure')
+        if db.execute("SELECT COUNT(*) FROM receipt_checks WHERE state='pending'").fetchone()[0]:
+            raise ValueError('Post-trial receipt cross-check incomplete')
         if db.execute('SELECT ceiling,trial_cap FROM policy WHERE id=1').fetchone() != (dollars('1'), dollars('1')):
             raise ValueError('Setup allowance changed')
         if dict(db.execute('SELECT name,cap FROM stages')) != {'setup': dollars('1')}:

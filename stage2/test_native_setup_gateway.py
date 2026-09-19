@@ -27,7 +27,7 @@ class NativeSetupTests(unittest.TestCase):
     def tearDown(self): self.temp.cleanup()
 
     def session(self, name='setup-native-fixture1'):
-        return NativeSetupSession(self.root, name, 'a' * 64, self.client, settings=self.settings)
+        return NativeSetupSession(self.root, name, 'a' * 64, self.client, settings=self.settings, receipt_timing='inline')
 
     def request(self):
         return dict(model=MODEL, messages=[{'role': 'user', 'content': 'fixture'}],

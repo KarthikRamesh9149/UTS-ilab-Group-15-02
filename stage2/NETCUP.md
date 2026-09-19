@@ -37,6 +37,19 @@ setup spending was US$0.00463008. The server ledger is authoritative from
 migration onward; never run a second paid runner against the stale Mac copy.
 All setup receipts, even failed probes, must be included in final accounting.
 
+Before any scored trials, the receipt policy was revised in response to two
+retained setup failures: OpenRouter's historical generation lookup returned
+404 for more than 40 seconds after successful completions. The response's
+documented `usage.cost` now settles the charge immediately; the historical
+receipt must independently match after agent revocation, outside task time,
+before another trial may dispatch. Missing response costs retain reservations;
+receipt mismatches persist a halt. No failed generation is replayed to recover
+billing. This policy is identical for all three harnesses.
+
+Passive metadata traces record phases, generation times, tokens and exact
+charges without exporting prompts or task content. A complete local trace is
+not proof of a successful Langfuse cloud export.
+
 ## Deployment and qualification
 
 The new server is Debian 13, native x86-64, 8 vCPU, approximately 16 GB RAM and
@@ -65,9 +78,10 @@ sequential ownership locks, durable billing and verified cleanup.
 Progress and remaining work:
 
 - Server provisioned, key login verified, dependencies installed.
-- 332 Stage 2 unit/integration checks and 32 custom checks passed on the server;
+- 348 Stage 2 unit/integration checks and 32 custom checks passed on the server;
   the 12 legacy pilot tests also passed after transferring their source modules.
-- Synthetic full Docker/Harbor checks and fresh paid native-agent probes are
+- The `netcupv4` synthetic full Docker/Harbor custom check passed with billing,
+  metadata tracing and cleanup verified. Fresh paid native-agent probes are
   the next admission requirements. These fixtures are not benchmark scores.
 - Reference-solution environment checks cost no model credit. Do not inspect
   reference contents to tune the model or the custom harness.
