@@ -1,13 +1,18 @@
 # UTS iLab Group 15-02 — Terminal-Bench 2.1 harness comparison
 
-## Active study: CETUS-only local inference
+## Active study: Netcup + OpenRouter
 
-The current branch implements the [CETUS local-model study](stage2/CETUS_LOCAL.md):
-Qwen3-Coder-Next Q4_K_M, Terminus-2 and OpenHands on 89 tasks, then custom
-Deep Agents/LangGraph development on a new frozen 20-task subset and final
-89-task evaluation. No OpenRouter inference is authorised for this track.
-Model and task-runtime qualification are still pending; no new scored results
-are claimed. See the linked status for what is implemented versus unverified.
+Branch `codex/netcup-openrouter-study` continues the
+[one-model Harbor study on native x86-64 Linux](stage2/NETCUP.md), using
+DeepSeek V4 Flash 0731 through the pinned DeepInfra FP8 endpoint. Terminus-2,
+OpenHands and the custom Deep Agents/LangGraph harness share the same model
+and evaluation limits. Development uses the fixed 20-task subset; final scoring
+is 89 tasks per harness after qualification and a custom-code freeze.
+
+The remaining-credit budget is capped with no top-ups. Runtime compatibility
+checks are underway; they are not benchmark scores or evidence of a custom win.
+The [CETUS local-model work](stage2/CETUS_LOCAL.md) and the Stage 1 pilot below
+are preserved as separate historical experiments.
 
 ## Historical Stage 1 pilot (preserved)
 
