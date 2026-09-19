@@ -62,7 +62,8 @@ def frozen_dataset(root):
     return dataset
 
 
-async def run_one(root, dataset, task_id, attempts, guard_image, *, refresh_metadata=False):
+async def run_one(root, dataset, task_id, attempts, guard_image, *, refresh_metadata=False,
+                  reference_directory=None, reference_amendment=None):
     from harbor.agents.oracle import OracleAgent
     from pinned_docker import PinnedImageDockerEnvironment as DockerEnvironment
     from harbor.models.agent.context import AgentContext
@@ -108,6 +109,8 @@ async def run_one(root, dataset, task_id, attempts, guard_image, *, refresh_meta
                         'verifier_timeout_sec': task.config.verifier.timeout_sec},
         'status': 'started'}
     start = time.monotonic()
+    if reference_amendment is not None:
+        result['reference_amendment'] = reference_amendment
     try:
         await asyncio.wait_for(env.start(force_build=False), timeout=config.build_timeout_sec)
         ids = subprocess.check_output(['docker', 'ps', '-q', '--filter',
@@ -125,7 +128,7 @@ async def run_one(root, dataset, task_id, attempts, guard_image, *, refresh_meta
         if refresh_metadata:
             result['environment_preparation'] = await refresh_package_metadata(env)
         await env.ensure_dirs(['/logs/agent', '/logs/verifier'])
-        agent = OracleAgent(logs_dir=paths.agent_dir, task_dir=dataset / task_id,
+        agent = OracleAgent(logs_dir=paths.agent_dir, task_dir=reference_directory or dataset / task_id,
                             trial_paths=paths, agent_timeout_sec=task.config.agent.timeout_sec)
         with env.with_default_user(task.config.agent.user):
             await agent.setup(env)
@@ -151,14 +154,16 @@ async def run_one(root, dataset, task_id, attempts, guard_image, *, refresh_meta
     return result
 
 
-async def main(task_id=None, rosetta_requalification=False):
+async def main(task_id=None, rosetta_requalification=False, repair_povray_download=False, wait=False):
     os.umask(0o077)
     root = Path(__file__).resolve().parents[1]
     runtime = private_directory(root / '.runtime/stage2')
     # Same ownership lock as scored work: never run an oracle and model trial
     # simultaneously against shared host resources.
     with (runtime / 'scored.lock').open('a+') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        # An explicitly queued reference check may wait for the current owner;
+        # it does not execute task work or spend on models while waiting.
+        fcntl.flock(lock, fcntl.LOCK_EX if wait else fcntl.LOCK_EX | fcntl.LOCK_NB)
         dataset = frozen_dataset(root)
         manifest = json.loads((root / 'stage2/input_manifest.json').read_text())
         selected = manifest['development_ids']
@@ -172,6 +177,13 @@ async def main(task_id=None, rosetta_requalification=False):
         refresh_metadata = platform.system() == 'Linux'
         if refresh_metadata:
             namespace = 'oracle-dev20-snapshot-v4'
+        reference_directory = reference_amendment = None
+        if repair_povray_download:
+            from reference_download_repair import TASK, REPAIRED_NAMESPACE, prepare
+            if task_id != TASK or not refresh_metadata or rosetta_requalification:
+                raise ValueError('Reference transport repair is limited to the recorded native POV-Ray failure')
+            reference_directory, reference_amendment = prepare(root)
+            namespace = REPAIRED_NAMESPACE
         if rosetta_requalification:
             translation = subprocess.check_output(
                 ['colima', 'ssh', '--', 'cat', '/proc/sys/fs/binfmt_misc/rosetta'],
@@ -189,7 +201,9 @@ async def main(task_id=None, rosetta_requalification=False):
         guard_image = subprocess.check_output(['docker', 'image', 'inspect', 'uts-stage2-egress-fixture:1', '--format', '{{.Id}}'], text=True).strip()
         for identifier in selected:
             result = await run_one(root, dataset, identifier, attempts, guard_image,
-                                   refresh_metadata=refresh_metadata)
+                                   refresh_metadata=refresh_metadata,
+                                   reference_directory=reference_directory,
+                                   reference_amendment=reference_amendment)
             print(json.dumps(result), flush=True)
             if result['status'] != 'verified':
                 break
@@ -200,5 +214,8 @@ if __name__ == '__main__':
     parser.add_argument('--task', help='One frozen dev20 task; omission runs the frozen sequence')
     parser.add_argument('--rosetta-requalification', action='store_true',
                         help='Separate preserved reference evidence after host translator change')
+    parser.add_argument('--repair-povray-download', action='store_true',
+                        help='Separate reference-only official FTP transport amendment; no model/task changes')
+    parser.add_argument('--wait', action='store_true', help='Wait for the current task owner; never overlap')
     args = parser.parse_args()
-    asyncio.run(main(args.task, args.rosetta_requalification))
+    asyncio.run(main(args.task, args.rosetta_requalification, args.repair_povray_download, args.wait))

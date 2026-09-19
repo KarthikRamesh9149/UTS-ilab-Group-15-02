@@ -23,6 +23,11 @@ Historical Mac pilot and CETUS trials are separate and cannot fill these cells.
 - Uniform package preparation uses the documented Bullseye security snapshot
   amendment in `task_preparation.py`. Task/reference/test source bytes stay
   unchanged. This is disclosed, not claimed to be unmodified leaderboard setup.
+- A separately logged POV-Ray reference-only transport check changes three
+  failed HTTPS download URLs to the publisher's documented anonymous FTP URLs
+  in a private reference copy. It changes no scoring-task inputs or model
+  environment. The original reference failure remains visible alongside this
+  qualification check; it is not a model retry or extra model assistance.
 
 ## Systems and development
 

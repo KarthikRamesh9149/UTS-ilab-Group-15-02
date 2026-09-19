@@ -78,8 +78,10 @@ sequential ownership locks, durable billing and verified cleanup.
 Progress and remaining work:
 
 - Server provisioned, key login verified, dependencies installed.
-- 363 Stage 2 unit/integration checks and 30 separately discovered custom checks
-  passed on the server with the current sources, plus two graph-tracing checks;
+- 373 Stage 2 unit/integration checks passed locally and on the native server
+  after the reference-download amendment. The unchanged custom and tracing
+  components also have 30 separately discovered custom checks and two
+  graph-tracing checks passing on the server;
   the 12 legacy pilot tests also passed after transferring their source modules.
 - The `netcupv4` synthetic custom check and all three real-model native checks
   passed with billing, metadata tracing and cleanup verified. This established
@@ -155,6 +157,51 @@ The current executable study protocol, including candidate identity, fixed
 custom controller limits and interpretation of success, is in
 [EXPERIMENT_PROTOCOL.md](EXPERIMENT_PROTOCOL.md). Registering those limits does
 not authorise skipping the first-20 review or weakening its thresholds.
+
+## POV-Ray reference download and automatic next stage
+
+The native `build-pov-ray` reference failed with exit 8 when downloading
+`POVDOC.TAR.Z`: the publisher's HTTPS endpoint returned HTTP 403 with
+`cf-mitigated: challenge`. The original reward zero remains in the snapshot-v4
+namespace. The [publisher's download page](https://www.povray.org/download/)
+also explicitly offers anonymous FTP. All three required archive downloads
+succeeded via that published endpoint on the native host; observed file sizes
+and hashes are in `netcup/povray_download_diagnostic.json`.
+
+`reference_download_repair.py` makes one private, separately recorded reference
+copy. It checks the original script's pinned SHA-256 and changes only three
+exact HTTPS archive URLs to their official FTP equivalents. It validates that
+every other copied file remains byte-identical. The canonical dataset, task
+instruction, verifier, model environment, prompts and tools are **not** changed
+by this reference-only amendment. Original and amended reference outcomes are
+reported together; an amended failure cannot be replaced by a better attempt.
+No benchmark solution logic is copied into model policy. This qualifies host
+capability, not automatic model success: models must still solve the unchanged
+task and can encounter the original HTTPS download failure.
+
+The amended attempt uses `oracle-povray-ftp-v1`, launched with
+`qualify_oracle.py --task build-pov-ray --repair-povray-download --wait`.
+The explicit wait acquires the same exclusive task lock after the current
+reference batch finishes. No second task executes concurrently.
+
+`start_qualification.py --prepare-and-qualify netcupv5` then requires the complete
+reference qualification before rebuilding the gateway and running a fresh
+synthetic fixture plus the three real-model compatibility probes. Only passed,
+hash-bound evidence creates `admission_netcupv5.json` and starts the first 20
+Terminus trials. It stops for the actual first20 review; it does not run custom
+development or final scoring automatically. Existing probe labels, partial
+attempts and failures cannot be silently replayed or assigned new labels.
+
+This sequence is intended to avoid an idle server between already-authorized
+steps. A queued or active sequence is not evidence that its future gates passed.
+It is now queued as `uts-stage2-qualification-netcupv5.service`, with private log
+`.runtime/stage2/netcup-qualification-v5.log`. Its first process waits for the
+snapshot-v4 task owner before the amended reference attempt; the second runs
+the fresh-proof sequence only if the first command exits successfully. The
+explicit complete-reference check still blocks paid work if the new reference
+has reward zero or any other task remains unqualified. Inspect both service
+handles before starting anything else. Do not restart a terminal failed service
+without inspecting its retained attempt and the cause.
 
 ## Langfuse dashboard preparation
 
