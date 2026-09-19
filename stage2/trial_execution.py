@@ -15,7 +15,7 @@ from harbor.verifier.verifier import Verifier
 
 async def execute_phases(*, agent, environment, task, paths, revoke_model,
                          setup_timeout_seconds, verifier_factory=Verifier, cleanup_timeout_seconds=60,
-                         phase_observer=None):
+                         phase_observer=None, prepare_environment=None):
     limits = [setup_timeout_seconds, task.config.agent.timeout_sec, task.config.verifier.timeout_sec, cleanup_timeout_seconds]
     for value in limits:
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
@@ -53,8 +53,12 @@ async def execute_phases(*, agent, environment, task, paths, revoke_model,
     try:
         started, started_ns = time.monotonic(), time.time_ns()
         try:
-            with environment.with_default_user(task.config.agent.user):
-                await asyncio.wait_for(agent.setup(environment), timeout=setup_timeout_seconds)
+            async def setup_phase():
+                if prepare_environment is not None:
+                    result['environment_preparation'] = await prepare_environment(environment)
+                with environment.with_default_user(task.config.agent.user):
+                    await agent.setup(environment)
+            await asyncio.wait_for(setup_phase(), timeout=setup_timeout_seconds)
             ready = True
         except Exception as exc:
             result.update(status='setup_failed', agent_error_type=type(exc).__name__)

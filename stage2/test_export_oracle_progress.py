@@ -24,6 +24,11 @@ class OracleExportTests(unittest.TestCase):
             report = summary(root)
             self.assertEqual(report['status'], 'all_references_passed')
             self.assertNotIn('must-not-export', json.dumps(report))
+            native = summary(root, 'netcup')
+            self.assertEqual(native['reference_run'], 'netcup')
+            self.assertEqual(native['reference_passes_in_snapshot'], 0)
+            self.assertEqual(native['source_namespace'], 'oracle-dev20-snapshot-v4')
+            self.assertNotIn('original uncollected', json.dumps(native))
             value['cleanup_verified'] = False
             (folder / 'result.json').write_text(json.dumps(value))
             self.assertEqual(summary(root)['status'], 'qualification_incomplete')

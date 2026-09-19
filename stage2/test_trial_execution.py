@@ -11,7 +11,7 @@ from trial_execution import execute_phases
 class LifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def run_case(self, *, setup_error=False, agent_error=False, revoke_error=False,
                        verifier_error=False, cleanup_error=False, timeout=False, reward=1,
-                       clear_timeout=False, phase_observer=None):
+                       clear_timeout=False, phase_observer=None, preparation_error=False, prepare=False):
         events = []
         class Environment:
             @contextmanager
@@ -42,12 +42,27 @@ class LifecycleTests(unittest.IsolatedAsyncioTestCase):
         async def revoke():
             events.append('revoke')
             if revoke_error: raise RuntimeError('synthetic')
+        async def preparation(environment):
+            events.append('prepare-environment')
+            if preparation_error: raise RuntimeError('synthetic prep failure')
+            return {'status': 'fixture'}
         task = NS(instruction='synthetic', config=NS(agent=NS(timeout_sec=.01 if timeout else 1, user='agent-user'),
                                                     verifier=NS(timeout_sec=.01 if clear_timeout else 1, user='verifier-user')))
         result = await execute_phases(agent=Agent(), environment=Environment(), task=task,
             paths=None, revoke_model=revoke, setup_timeout_seconds=1, verifier_factory=Verifier,
-            phase_observer=phase_observer)
+            phase_observer=phase_observer, prepare_environment=preparation if prepare else None)
         return result, events
+
+    async def test_preparation_precedes_setup_and_uses_setup_failure_lifecycle(self):
+        result, events = await self.run_case(prepare=True)
+        self.assertLess(events.index('prepare-environment'), events.index('setup'))
+        self.assertEqual(result['environment_preparation'], {'status': 'fixture'})
+        result, events = await self.run_case(prepare=True, preparation_error=True)
+        self.assertEqual(result['status'], 'setup_failed')
+        self.assertNotIn('agent', events)
+        self.assertNotIn('verify', events)
+        self.assertIn('revoke', events)
+        self.assertIn('destroy', events)
 
     async def test_revoke_before_verification_cleanup_after(self):
         result, events = await self.run_case()

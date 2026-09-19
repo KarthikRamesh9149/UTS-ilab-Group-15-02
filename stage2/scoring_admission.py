@@ -11,6 +11,7 @@ from model_protocol import ModelSettings
 RUNTIME_FILES = ('budget_ledger.py', 'gateway_core.py', 'gateway_policy.py',
     'study_budget.py', 'linux_host_health.py', 'qualify_oracle.py',
     'paid_trace.py', 'local_trace.py', 'post_trial_receipts.py',
+    'task_preparation.py',
     'native_setup_gateway.py', 'native_setup_accounting.py', 'custom-requirements.lock',
     'gateway_http.py', 'scored_gateway.py', 'scored_accounting.py', 'model_protocol.py',
     'trial_estimator.py', 'openrouter_transport.py', 'receipt_polling.py',
