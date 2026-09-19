@@ -203,6 +203,27 @@ has reward zero or any other task remains unqualified. Inspect both service
 handles before starting anything else. Do not restart a terminal failed service
 without inspecting its retained attempt and the cause.
 
+### Verified advancement, 19 September 2026 at 14:30 UTC
+
+All twenty task environments are now qualified: nineteen original snapshot-v4
+references passed, and the separately amended POV-Ray reference passed in
+78.654 seconds. The original POV-Ray failure is preserved in the exported
+progress metadata. `oracle_netcup_qualification_progress.json` records twenty
+qualified tasks and exactly one amended reference; this is not twenty model
+passes or twenty unmodified reference passes.
+
+The original snapshot-v4 service ended at its expected reference gate because
+its unamended POV-Ray attempt was zero. The already-queued netcupv5 service then
+acquired the execution lock, completed the amended check and advanced without
+replaying any successful reference. Its fresh synthetic custom-runtime proof
+passed. The real-model native compatibility checks are now underway, before
+any scored trial. Gateway image:
+`sha256:5c08c03ed9a8d6cb30777b75d23e260297227ef5e1627b888d67c7c1d05cf590`.
+
+A private Mac checkpoint under `.runtime/netcup/reference-checkpoint-20260919-Wwznj9`
+contains the seventeen reference attempts completed at capture time. This is
+a partial raw-log backup, not the final twenty-task or study backup.
+
 ## Langfuse dashboard preparation
 
 The passive Harbor traces are live and metadata-only. The official Langfuse

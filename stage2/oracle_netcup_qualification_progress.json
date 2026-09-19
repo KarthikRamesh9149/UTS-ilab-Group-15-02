@@ -2,15 +2,15 @@
   "kind": "reference_solution_runtime_qualification_not_model_score",
   "reference_run": "netcup",
   "source_namespace": "oracle-dev20-snapshot-v4",
-  "status": "partial_snapshot",
-  "snapshot_utc": "2026-09-19T14:23:54.680446+00:00",
+  "status": "all_references_passed",
+  "snapshot_utc": "2026-09-19T14:30:48.608779+00:00",
   "frozen_development_tasks": 20,
-  "valid_results_in_snapshot": 13,
-  "reference_passes_in_snapshot": 12,
+  "valid_results_in_snapshot": 20,
+  "reference_passes_in_snapshot": 20,
   "live_api_calls": 0,
   "runtime_revision": "bullseye-security-snapshot-v4",
-  "amended_reference_attempts": 0,
-  "completed_outcomes": 13,
+  "amended_reference_attempts": 1,
+  "completed_outcomes": 20,
   "results": [
     {
       "task": "video-processing",
@@ -29,16 +29,51 @@
     {
       "task": "build-pov-ray",
       "status": "verified",
-      "time_utc": "2026-09-19T14:06:04.181208+00:00",
-      "elapsed_seconds": 61.228,
+      "time_utc": "2026-09-19T14:28:49.172191+00:00",
+      "elapsed_seconds": 78.654,
       "cleanup_verified": true,
+      "original_outcome_preserved": {
+        "source_namespace": "oracle-dev20-snapshot-v4",
+        "status": "verified",
+        "reward": 0.0
+      },
+      "source_namespace": "oracle-povray-ftp-v1",
+      "reference_amendment": {
+        "kind": "reference_only_official_download_transport_amendment",
+        "task": "build-pov-ray",
+        "original_namespace": "oracle-dev20-snapshot-v4",
+        "original_result_sha256": "f3aecc6f3695bbe734b612ff6fac553d2da9b1b52feeda1c3cbb2f95aa7c3fea",
+        "original_solution_sha256": "3da9dbf589656512cd7a7004dc3752d3552a6af939cfe59eff79f91695fa42c7",
+        "repaired_solution_sha256": "fa42daac5e3dea60ec886d4bc0f637d6aaaf6334c61d342dad06eb67783397a0",
+        "changed_paths": [
+          "solution/solve.sh"
+        ],
+        "official_documentation": "https://www.povray.org/download/",
+        "replacements": [
+          {
+            "from": "https://www.povray.org/ftp/pub/povray/Old-Versions/Official-2.2/POVDOC.TAR.Z",
+            "to": "ftp://ftp.povray.org/pub/povray/Old-Versions/Official-2.2/POVDOC.TAR.Z"
+          },
+          {
+            "from": "https://www.povray.org/ftp/pub/povray/Old-Versions/Official-2.2/POVSCN.TAR.Z",
+            "to": "ftp://ftp.povray.org/pub/povray/Old-Versions/Official-2.2/POVSCN.TAR.Z"
+          },
+          {
+            "from": "https://www.povray.org/ftp/pub/povray/Old-Versions/Official-2.2/POVSRC.TAR.Z",
+            "to": "ftp://ftp.povray.org/pub/povray/Old-Versions/Official-2.2/POVSRC.TAR.Z"
+          }
+        ],
+        "task_instruction_and_verifier_bytes_changed": false,
+        "canonical_dataset_changed": false,
+        "model_environment_changed": false
+      },
       "image_id": "sha256:874baf49341e2853a15a9184e308c7eb632e97f434359fcff2891c6e5ca1b39b",
       "resource_limits_verified": true,
       "cpus": 1,
       "memory_mb": 2048,
       "agent_timeout_sec": 12000.0,
       "verifier_timeout_sec": 12000.0,
-      "reward": 0.0
+      "reward": 1.0
     },
     {
       "task": "mailman",
@@ -181,6 +216,90 @@
       "reward": 1.0
     },
     {
+      "task": "modernize-scientific-stack",
+      "status": "verified",
+      "time_utc": "2026-09-19T14:23:53.444506+00:00",
+      "elapsed_seconds": 48.105,
+      "cleanup_verified": true,
+      "image_id": "sha256:64e69cee13bf6b0b9016e735b51891bce996a60f1e2d1a005bf12c949e221d71",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 600.0,
+      "verifier_timeout_sec": 600.0,
+      "reward": 1.0
+    },
+    {
+      "task": "distribution-search",
+      "status": "verified",
+      "time_utc": "2026-09-19T14:24:41.557274+00:00",
+      "elapsed_seconds": 36.53,
+      "cleanup_verified": true,
+      "image_id": "sha256:1448f7aa1c6080488251d00350e8e90477858989b1bec0accc866d7b3220738a",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 3600.0,
+      "verifier_timeout_sec": 3600.0,
+      "reward": 1.0
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "status": "verified",
+      "time_utc": "2026-09-19T14:25:18.095718+00:00",
+      "elapsed_seconds": 46.0,
+      "cleanup_verified": true,
+      "image_id": "sha256:bfc2a235f2ceea64ffb1ffc5529c2acebf570bff61f3668f0e5669ef570c17d4",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 4096,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
+    },
+    {
+      "task": "sqlite-db-truncate",
+      "status": "verified",
+      "time_utc": "2026-09-19T14:26:04.103176+00:00",
+      "elapsed_seconds": 33.116,
+      "cleanup_verified": true,
+      "image_id": "sha256:aabac93c93bd1f310e6a6fb893911d7735026ed18491c72133c9196a09092ca4",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
+    },
+    {
+      "task": "prove-plus-comm",
+      "status": "verified",
+      "time_utc": "2026-09-19T14:26:37.225709+00:00",
+      "elapsed_seconds": 50.431,
+      "cleanup_verified": true,
+      "image_id": "sha256:e26741d01681a9da1beeff8b7b7b65fe2b921b8b122a306a3707a81ebd051f73",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
+    },
+    {
+      "task": "db-wal-recovery",
+      "status": "verified",
+      "time_utc": "2026-09-19T14:27:27.665744+00:00",
+      "elapsed_seconds": 42.693,
+      "cleanup_verified": true,
+      "image_id": "sha256:0e33ea5ec823975d1bd6c3778395c9f94251dd88f571146057bff6adb7e4594e",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
+    },
+    {
       "task": "qemu-startup",
       "status": "verified",
       "time_utc": "2026-09-19T13:56:02.827801+00:00",
@@ -193,20 +312,27 @@
       "agent_timeout_sec": 900.0,
       "verifier_timeout_sec": 900.0,
       "reward": 1.0
+    },
+    {
+      "task": "nginx-request-logging",
+      "status": "verified",
+      "time_utc": "2026-09-19T14:28:10.366460+00:00",
+      "elapsed_seconds": 38.418,
+      "cleanup_verified": true,
+      "image_id": "sha256:693e64431a0dbf45952e8b91a298d54fd60247e501c6623fb8fa3ebc07fc3d3d",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 2048,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
     }
   ],
-  "pending_tasks": [
-    "modernize-scientific-stack",
-    "distribution-search",
-    "merge-diff-arc-agi-task",
-    "sqlite-db-truncate",
-    "prove-plus-comm",
-    "db-wal-recovery",
-    "nginx-request-logging"
-  ],
+  "pending_tasks": [],
   "limitations": [
     "Reference results are not baseline or custom-model scores.",
     "Reward-zero results are preserved and do not qualify a task as reference-passing.",
+    "A separately recorded reference-only FTP download amendment is used for POV-Ray; the original failure remains recorded and model inputs/environments are unchanged.",
     "Fresh Netcup-host evidence, separate from historical Mac qualification."
   ]
 }
