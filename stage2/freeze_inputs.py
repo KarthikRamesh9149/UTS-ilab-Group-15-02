@@ -5,7 +5,11 @@ from pathlib import Path
 import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
-DATASET = ROOT / '.cache/datasets/terminal-bench-2-1'
+def dataset_path():
+    provenance = ROOT / 'stage2/dataset_provenance.json'
+    if provenance.exists():
+        return ROOT / json.loads(provenance.read_text())['dataset_path']
+    return ROOT / '.cache/datasets/terminal-bench-2-1'
 
 
 def select_dev(task_ids):
@@ -17,7 +21,7 @@ def select_dev(task_ids):
 
 
 def build():
-    configs = sorted(DATASET.glob('*/task.toml'))
+    configs = sorted(dataset_path().glob('*/task.toml'))
     ids = [p.parent.name for p in configs]
     dev = select_dev(ids)
     pilot = set((ROOT / 'configs/progress_subset.txt').read_text().splitlines())

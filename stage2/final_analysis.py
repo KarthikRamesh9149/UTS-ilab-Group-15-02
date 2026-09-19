@@ -6,6 +6,7 @@ outputs are exploratory and do not certify the full project as complete.
 from decimal import Decimal
 from math import comb, isfinite
 from final_schedule import schedule
+from study_budget import TRIAL_CAP
 
 ROLES = ('terminus-2', 'openhands', 'custom')
 
@@ -77,7 +78,7 @@ def analyze(records, *, all_tasks, development_tasks, custom_condition, custom_p
             metrics[key] = value
         cost = Decimal(str(billing['charged_usd']))
         seconds = record.get('phase_seconds', {}).get('agent')
-        if not cost.is_finite() or not 0 <= cost <= Decimal('.055'):
+        if not cost.is_finite() or not 0 <= cost <= Decimal(TRIAL_CAP):
             raise ValueError('Invalid final cost')
         if type(seconds) not in (int, float) or not isfinite(seconds) or seconds < 0:
             raise ValueError('Measured finite agent runtime required')

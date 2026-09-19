@@ -8,6 +8,7 @@ from budget_ledger import UNIT, dollars
 from gateway_core import reconcile_receipt
 from gateway_policy import MODEL, ENDPOINT
 from model_protocol import read_protocol
+from study_budget import SCORED_CEILING, TRIAL_CAP, STAGE_CAPS
 
 
 def read_json(path):
@@ -28,10 +29,10 @@ def audit_trial(runtime, trial_id, stage):
         db.execute('BEGIN')
         if db.execute('PRAGMA quick_check').fetchall() != [('ok',)]:
             raise ValueError('Ledger integrity failure')
-        if db.execute('SELECT ceiling,trial_cap FROM policy WHERE id=1').fetchone() != (dollars('21.285'), dollars('.055')):
+        if db.execute('SELECT ceiling,trial_cap FROM policy WHERE id=1').fetchone() != (dollars(SCORED_CEILING), dollars(TRIAL_CAP)):
             raise ValueError('Scored budget policy drift')
         caps = dict(db.execute('SELECT name,cap FROM stages'))
-        if caps != {'development': dollars('6.600'), 'final': dollars('14.685')}:
+        if caps != {name: dollars(cap) for name, cap in STAGE_CAPS.items()}:
             raise ValueError('Stage allocation drift')
         if stage not in caps:
             raise ValueError('Unknown stage')
@@ -42,7 +43,7 @@ def audit_trial(runtime, trial_id, stage):
         if db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
             raise ValueError('Billing incident; halt')
         total = db.execute('SELECT COALESCE(SUM(charged),0) FROM requests').fetchone()[0]
-        if total > dollars('21.285'):
+        if total > dollars(SCORED_CEILING):
             raise ValueError('Aggregate ceiling exceeded')
         for name, cap in caps.items():
             amount = db.execute('''SELECT COALESCE(SUM(r.charged),0) FROM requests r
@@ -99,7 +100,7 @@ def audit_trial(runtime, trial_id, stage):
                 value = response.get('usage', {}).get(key)
                 usage[key].append(value if type(value) is int and value >= 0 else None)
         charged = sum(by_generation.values())
-        if charged > dollars('.055'):
+        if charged > dollars(TRIAL_CAP):
             raise ValueError('Trial charge exceeded approved estimated admission cap')
         return {'billing_verified': True, 'requests': len(rows),
                 'budget_stop_count': len(stops),

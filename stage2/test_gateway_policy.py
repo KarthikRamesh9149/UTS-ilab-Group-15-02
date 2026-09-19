@@ -3,6 +3,18 @@ from gateway_policy import MODEL, prepare_request
 
 
 class GatewayPolicyTests(unittest.TestCase):
+    def test_identical_reasoning_aliases_collapse_without_mutation(self):
+        original = self.request(reasoning_effort='high', reasoning={'effort': 'high'})
+        prepared = prepare_request(original)
+        self.assertEqual(prepared['reasoning'], {'effort': 'high'})
+        self.assertNotIn('reasoning_effort', prepared)
+        self.assertEqual(original['reasoning_effort'], 'high')
+
+    def test_conflicting_or_additional_reasoning_aliases_rejected(self):
+        for reasoning in [{'effort': 'low'}, {'effort': 'high', 'exclude': True}, {}, None]:
+            with self.subTest(reasoning=reasoning), self.assertRaises(ValueError):
+                prepare_request(self.request(reasoning_effort='high', reasoning=reasoning))
+
     def test_completion_limit_alias_is_canonical_without_mutation(self):
         original = self.request()
         original['max_completion_tokens'] = original.pop('max_tokens')
