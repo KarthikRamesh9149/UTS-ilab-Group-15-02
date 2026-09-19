@@ -6,6 +6,7 @@ Generation must be enabled explicitly by a qualified gateway, never by a client.
 from decimal import Decimal
 import json
 from pathlib import Path
+import re
 import stat
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -17,7 +18,42 @@ MAX_RESPONSE = 16 * 1024 * 1024
 
 
 class TransportError(RuntimeError):
-    pass
+    def __init__(self, message='', *, diagnostic=None):
+        super().__init__(message)
+        self.diagnostic = diagnostic
+
+
+ERROR_TYPES = frozenset(('context_length_exceeded', 'max_tokens_exceeded',
+    'token_limit_exceeded', 'string_too_long', 'authentication', 'permission_denied',
+    'payment_required', 'rate_limit_exceeded', 'provider_overloaded',
+    'provider_unavailable', 'invalid_request', 'invalid_prompt', 'not_found',
+    'precondition_failed', 'payload_too_large', 'unprocessable',
+    'content_policy_violation', 'refusal', 'invalid_image', 'image_too_large',
+    'image_too_small', 'unsupported_image_format', 'image_not_found',
+    'image_download_failed', 'server', 'timeout', 'unmapped'))
+
+
+def error_diagnostic(document=None, *, status=None, headers=None):
+    """Retain reconciliation identifiers, never error prose or provider payloads.
+
+    No status code or identifier here establishes a charge or releases funds.
+    https://openrouter.ai/docs/api/reference/errors-and-debugging
+    """
+    document = document if isinstance(document, dict) else {}
+    error = document.get('error')
+    error = error if isinstance(error, dict) else {}
+    metadata = error.get('metadata')
+    metadata = metadata if isinstance(metadata, dict) else {}
+    headers = headers or {}
+    kind = metadata.get('error_type')
+    def identifier(value, prefix):
+        return value if isinstance(value, str) and re.fullmatch(prefix + r'-[A-Za-z0-9_-]{1,250}', value) else None
+    return {'http_status': status if type(status) is int and 100 <= status <= 599 else None,
+        'error_code': error.get('code') if type(error.get('code')) is int and 100 <= error['code'] <= 599 else None,
+        'error_type': kind if isinstance(kind, str) and kind in ERROR_TYPES else None,
+        'generation_id': identifier(document.get('id'), 'gen') or identifier(headers.get('X-Generation-Id'), 'gen'),
+        'request_id': identifier(headers.get('X-Request-Id'), 'req'),
+        'billing_outcome': 'unknown_reservation_retained'}
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -61,10 +97,23 @@ class OpenRouter:
                     raise TransportError('Response too large; outcome may be ambiguous')
                 result = json.loads(raw, parse_float=Decimal)
                 if not isinstance(result, dict) or 'error' in result:
-                    raise TransportError('Provider returned an error')
+                    raise TransportError('Provider returned an error', diagnostic=error_diagnostic(
+                        result, status=getattr(response, 'status', None), headers=getattr(response, 'headers', None)))
                 return result
         except HTTPError as exc:
-            raise TransportError('OpenRouter HTTP status ' + str(exc.code)) from None
+            # HTTP error bodies can contain task text or upstream secrets. Read
+            # only a bounded envelope and retain strictly allowlisted metadata.
+            document = None
+            try:
+                raw = exc.read(65537)
+                if len(raw) <= 65536:
+                    document = json.loads(raw)
+            except (OSError, ValueError, TypeError):
+                pass
+            finally:
+                exc.close()
+            raise TransportError('OpenRouter HTTP status ' + str(exc.code),
+                diagnostic=error_diagnostic(document, status=exc.code, headers=exc.headers)) from None
         except (URLError, TimeoutError, OSError, ValueError):
             raise TransportError('OpenRouter response unavailable or invalid') from None
 

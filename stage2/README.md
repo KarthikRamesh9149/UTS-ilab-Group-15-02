@@ -1,14 +1,20 @@
 # Stage 2 execution status
 
-## Current track, 19 September 2026
+## Current track, 20 September 2026
 
 The active authorised track is now [Netcup native Linux + OpenRouter](NETCUP.md),
 on branch `codex/netcup-openrouter-study`. This restores the one-model paid
 study on a dedicated x86-64 Docker server. The user capped further spending at
 the observed US$12.031657772 remaining balance; no top-ups are authorised.
 The amended caps are in `budget_policy.json` and `study_budget.py`.
-Server setup and qualification are in progress. No new scored result is
-implied by the historical records below.
+All 20 development environments and three live harness/model fixtures passed
+qualification. Paid execution then stopped on an unresolved provider response
+in the first scored Terminus trial. Its reward zero and original result are
+preserved; there is no completed comparison or demonstrated custom win.
+Langfuse service readback is verified for the setup traces, not final results.
+See [the current checkpoint](NETCUP.md) and
+[billing recovery evidence](netcup/BILLING_RECOVERY.md). The older running
+statuses and budget amounts below are historical, not the current policy.
 
 ## Previous track, 17 September 2026
 

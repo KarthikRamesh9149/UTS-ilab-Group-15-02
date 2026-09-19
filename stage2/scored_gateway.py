@@ -20,6 +20,7 @@ from receipt_polling import read_receipt
 from setup_probe import full_context_bound, validate_metadata
 from trial_estimator import trial_charge_estimator
 from study_budget import SCORED_CEILING, TRIAL_CAP, STAGE_CAPS
+from openrouter_transport import TransportError
 
 
 def private_directory(path):
@@ -115,6 +116,10 @@ class ScoredSession:
         try:
             response = self.client.complete(request)  # Exactly one dispatch; no retries.
             status = 'ok'
+        except TransportError as exc:
+            if exc.diagnostic is not None:
+                durable_json(self.evidence / (self.active_prefix + '.transport-error.json'), exc.diagnostic)
+            raise
         finally:
             durable_json(self.evidence / (self.active_prefix + '.timing.json'), {
                 'started_ns': started_ns, 'ended_ns': time.time_ns(),
