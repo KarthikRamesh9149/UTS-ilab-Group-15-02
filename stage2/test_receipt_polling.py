@@ -4,6 +4,21 @@ from receipt_polling import read_receipt
 
 
 class ReceiptPollingTests(unittest.TestCase):
+    def test_receipt_delayed_beyond_old_twenty_second_window(self):
+        now = [0.0]
+        calls = []
+        def sleep(delay):
+            now[0] += delay
+        def reader(identifier):
+            calls.append(identifier)
+            if now[0] < 25:
+                raise TransportError('Not yet available')
+            return {'id': identifier}
+        self.assertEqual(read_receipt(reader, 'same', clock=lambda: now[0], sleep=sleep), {'id': 'same'})
+        self.assertGreater(now[0], 20)
+        self.assertLess(now[0], 40)
+        self.assertEqual(set(calls), {'same'})
+
     def test_delayed_read_reuses_same_generation(self):
         calls = []
         delays = []

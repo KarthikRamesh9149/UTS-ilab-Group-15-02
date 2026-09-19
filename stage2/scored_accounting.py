@@ -29,6 +29,8 @@ def audit_trial(runtime, trial_id, stage):
         db.execute('BEGIN')
         if db.execute('PRAGMA quick_check').fetchall() != [('ok',)]:
             raise ValueError('Ledger integrity failure')
+        if db.execute("SELECT COUNT(*) FROM receipt_checks WHERE state='pending'").fetchone()[0]:
+            raise ValueError('Post-trial receipt cross-check incomplete')
         if db.execute('SELECT ceiling,trial_cap FROM policy WHERE id=1').fetchone() != (dollars(SCORED_CEILING), dollars(TRIAL_CAP)):
             raise ValueError('Scored budget policy drift')
         caps = dict(db.execute('SELECT name,cap FROM stages'))

@@ -22,7 +22,7 @@ class NativeFixtureProviderTests(unittest.TestCase):
                 self.assertIn('command' if expected == names[0] else 'summary' if custom else 'message', arguments)
                 self.assertEqual(provider.generation(reply['id'])['total_cost'], '.000001')
             with self.assertRaises(ValueError): provider.complete(request)
-        with patch('scored_gateway.serve', side_effect=serve):
+        with patch('scored_gateway.serve', side_effect=serve), patch('scored_gateway.durable_json'):
             gateway_fixture(native_openhands=not custom, native_custom=custom)
 
     def test_custom_tool_sequence(self): self.run_sequence(True)

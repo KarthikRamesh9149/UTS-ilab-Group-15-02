@@ -31,7 +31,7 @@ class AccountingTests(unittest.TestCase):
         settings = ModelSettings(64, 1., 'high')
         freeze_protocol(private_directory(self.runtime), settings)
         with ScoredSession(self.root, 'test', 'development', self.token, self.client,
-                           estimator=lambda request: '.01', settings=settings) as session:
+                           estimator=lambda request: '.01', settings=settings, receipt_timing='inline') as session:
             if generate: session.complete(self.token, self.payload)
         return self.runtime / 'scored-attempts/test'
 

@@ -21,6 +21,8 @@ from scored_gateway import durable_json, private_directory
 from trial_execution import execute_phases
 from scored_accounting import audit_trial
 from model_protocol import ModelSettings, freeze_protocol
+from paid_trace import PaidTrialTrace
+from post_trial_receipts import collect_receipts
 
 
 def docker(*args):
@@ -60,7 +62,8 @@ def audit_task(inspected, config, paths):
 
 
 async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
-                    gateway_image, guard_image, setup_timeout_seconds, model_settings):
+                    gateway_image, guard_image, setup_timeout_seconds, model_settings,
+                    billing_runtime=None, billing_kind='scored'):
     """Run one qualified native agent; factory gets only task timeout, not tests.
 
     Factory arguments: paths, host_api_base, container_api_base, trial_token,
@@ -116,7 +119,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                   'model_protocol_sha256': protocol_hash,
                   'status': 'starting', 'project': project}
         durable_json(trial / 'started.json', result)
-        environment, bridge = None, None
+        environment, bridge, trace = None, None, None
         try:
             compose = compose_runtime(gateway_image=gateway_image, guard_image=guard_image,
                 state_dir=runtime, tokenizer_dir=root / '.cache/stage2-tokenizer',
@@ -142,6 +145,9 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             agent = agent_factory(paths=paths, host_api_base=bridge.base_url,
                 container_api_base='http://127.0.0.1:8765/v1', trial_token=token,
                 agent_timeout_seconds=task.config.agent.timeout_sec)
+            if result['harness'] in {'terminus-2', 'openhands', 'C0', 'C1', 'C2'}:
+                trace = PaidTrialTrace(trial / 'traces', trial_id=trial_id, task_id=task_id,
+                    harness=result['harness'], protocol_sha256=protocol_hash)
             async def revoke():
                 # Stop upstream access first, even if a host request is hung.
                 await environment.stop_service('model-gateway')
@@ -151,7 +157,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 await asyncio.to_thread(bridge.__exit__, None, None, None)
             result.update(await execute_phases(agent=agent, environment=environment,
                 task=task, paths=paths, revoke_model=revoke,
-                setup_timeout_seconds=setup_timeout_seconds))
+                setup_timeout_seconds=setup_timeout_seconds, phase_observer=trace))
         except BaseException as exc:
             result.update(status='interrupted' if isinstance(exc, asyncio.CancelledError) else 'infrastructure_failed',
                           error_type=type(exc).__name__)
@@ -180,10 +186,18 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 if not result[resource + '_removed']:
                     result['status'] = 'cleanup_failed'
             try:
+                await asyncio.to_thread(collect_receipts, billing_runtime or runtime, trial_id, kind=billing_kind)
                 result['billing'] = audit_trial(runtime, trial_id, stage)
             except Exception as exc:
                 result['billing'] = {'billing_verified': False, 'error_type': type(exc).__name__}
                 if result['status'] == 'verified':
                     result['status'] = 'billing_unresolved'
+            if trace is not None:
+                try:
+                    evidence = Path(billing_runtime or runtime) / ('native-setup-attempts' if billing_kind == 'setup' else 'scored-attempts') / trial_id
+                    result['trace'] = trace.finish(evidence, result['billing'])
+                except Exception as exc:
+                    # Preserve the actual verifier outcome; never invent spans.
+                    result['trace'] = {'status': 'incomplete', 'error_type': type(exc).__name__}
             durable_json(trial / 'result.json', result)
         return result

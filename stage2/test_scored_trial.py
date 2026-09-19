@@ -50,6 +50,7 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
             with ExitStack() as stack:
                 replacements = {'check_host': lambda: {}, 'frozen_dataset': lambda root: root,
                     'audit_trial': lambda *args: {'billing_verified': True},
+                    'collect_receipts': lambda *args, **kwargs: None,
                     'compose_runtime': lambda **kwargs: {}, 'service': lambda *args: inspection,
                     'HostModelBridge': Bridge, 'execute_phases': phases,
                     'docker': lambda *args: 'leftover' if leftovers else ''}

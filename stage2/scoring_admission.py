@@ -10,6 +10,8 @@ from model_protocol import ModelSettings
 
 RUNTIME_FILES = ('budget_ledger.py', 'gateway_core.py', 'gateway_policy.py',
     'study_budget.py', 'linux_host_health.py', 'qualify_oracle.py',
+    'paid_trace.py', 'local_trace.py', 'post_trial_receipts.py',
+    'native_setup_gateway.py', 'native_setup_accounting.py', 'custom-requirements.lock',
     'gateway_http.py', 'scored_gateway.py', 'scored_accounting.py', 'model_protocol.py',
     'trial_estimator.py', 'openrouter_transport.py', 'receipt_polling.py',
     'production_compose.py', 'guarded_runtime.py', 'container_model_relay.py',
@@ -24,7 +26,7 @@ RUNTIME_CHECKS = {'verifier_reward_one', 'model_revoked', 'clean_status', 'billi
                   'host_environment_unchanged'}
 LIVE_CHECKS = {'agent_created_file', 'native_tool_roundtrip', 'settings_on_wire',
                'billing_verified', 'cleanup_verified', 'trajectory_written', 'runtime_images_preserved',
-               'host_environment_unchanged'}
+               'host_environment_unchanged', 'metadata_trace_complete'}
 
 
 def source_hashes(root):

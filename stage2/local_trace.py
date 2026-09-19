@@ -16,7 +16,7 @@ STATUSES = {'ok', 'error', 'timeout', 'interrupted'}
 HARNESS = {'terminus-2', 'openhands', 'C0', 'C1', 'C2', 'C3', 'C4'}
 LABEL = re.compile(r'[a-zA-Z0-9][a-zA-Z0-9_.-]{0,160}\Z')
 HASH = re.compile(r'[a-f0-9]{64}\Z')
-COUNTS = {'input_tokens', 'output_tokens', 'requests', 'tool_calls', 'repairs'}
+COUNTS = {'input_tokens', 'output_tokens', 'requests', 'tool_calls', 'repairs', 'charged_nanodollars'}
 NUMBERS = {'duration_seconds', 'gpu_allocation_seconds', 'cpu_allocation_seconds'}
 
 

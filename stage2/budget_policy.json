@@ -18,5 +18,9 @@
   "core_maximum": "9.901",
   "contingency_maximum": "0.130657772",
   "fresh_balance_check_required": true,
+  "immediate_charge_source": "OpenRouter response usage.cost",
+  "historical_receipt_check": "after_revocation_before_next_trial",
+  "receipt_wait_excluded_from_agent_time": true,
+  "receipt_mismatch_persists_halt": true,
   "automatic_top_up": false
 }

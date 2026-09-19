@@ -3,7 +3,7 @@ import time
 from openrouter_transport import TransportError
 
 
-def read_receipt(reader, identifier, *, deadline_seconds=20, max_attempts=8,
+def read_receipt(reader, identifier, *, deadline_seconds=40, max_attempts=12,
                  clock=time.monotonic, sleep=time.sleep):
     if not 0 < deadline_seconds <= 60 or not 1 <= max_attempts <= 16:
         raise ValueError('Invalid receipt polling bounds')

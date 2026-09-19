@@ -12,9 +12,10 @@ from pathlib import Path
 import re
 import stat
 import signal
+import time
 
 from budget_ledger import Ledger, BudgetExceeded
-from gateway_core import Gateway, Trial, token_digest
+from gateway_core import Gateway, GatewayError, Trial, token_digest
 from receipt_polling import read_receipt
 from setup_probe import full_context_bound, validate_metadata
 from trial_estimator import trial_charge_estimator
@@ -45,7 +46,7 @@ def durable_json(path, value):
 
 
 class ScoredSession:
-    def __init__(self, root, trial_id, stage, token, client, *, estimator=None, settings=None):
+    def __init__(self, root, trial_id, stage, token, client, *, estimator=None, settings=None, receipt_timing='post_trial'):
         if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]{0,119}', trial_id):
             raise ValueError('Invalid trial identifier')
         if stage not in {'development', 'final'} or not isinstance(token, str) or len(token) < 32:
@@ -71,7 +72,7 @@ class ScoredSession:
             self.available_balance()
             self.ledger = Ledger(runtime / 'scored_budget.sqlite', SCORED_CEILING, TRIAL_CAP,
                 STAGE_CAPS, allow_estimated_trials=True)
-            if self.ledger.pending():
+            if self.ledger.pending() or self.ledger.pending_receipts():
                 raise BudgetExceeded('Resolve prior pending billing before another trial')
             if self.ledger.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Prior billing incident blocks trial startup')
@@ -81,11 +82,13 @@ class ScoredSession:
             durable_json(self.evidence / 'started.json', {
                 'trial_id': trial_id, 'stage': stage, 'status': 'started',
                 'model_protocol_sha256': settings.fingerprint() if settings is not None else None,
-                'estimated_trial_cap_usd': TRIAL_CAP, 'aggregate_cap_usd': SCORED_CEILING})
+                'estimated_trial_cap_usd': TRIAL_CAP, 'aggregate_cap_usd': SCORED_CEILING,
+                'receipt_timing': receipt_timing, 'inline_charge_source': 'openrouter_response_usage_cost'})
             self.gateway = Gateway(self.ledger, Trial(trial_id, stage, token_digest(token)),
                 self.available_balance, full_context_bound, self.generate, self.receipt,
                 trial_estimate=estimator or trial_charge_estimator(root),
-                request_policy=settings.enforce if settings is not None else None)
+                request_policy=settings.enforce if settings is not None else None,
+                receipt_timing=receipt_timing)
         except BaseException:
             self.close()
             raise
@@ -107,12 +110,25 @@ class ScoredSession:
         self.sequence += 1
         self.active_prefix = f'{self.sequence:06d}'
         durable_json(self.evidence / (self.active_prefix + '.request.json'), request)
-        response = self.client.complete(request)  # Exactly one dispatch; no retries.
+        started_ns, started = time.time_ns(), time.monotonic()
+        status = 'error'
+        try:
+            response = self.client.complete(request)  # Exactly one dispatch; no retries.
+            status = 'ok'
+        finally:
+            durable_json(self.evidence / (self.active_prefix + '.timing.json'), {
+                'started_ns': started_ns, 'ended_ns': time.time_ns(),
+                'seconds': time.monotonic() - started, 'status': status})
         durable_json(self.evidence / (self.active_prefix + '.response.json'), response)
         return response
 
     def receipt(self, identifier):
-        receipt = read_receipt(self.client.generation, identifier)
+        try:
+            receipt = read_receipt(self.client.generation, identifier)
+        except Exception as exc:
+            durable_json(self.evidence / (self.active_prefix + '.receipt-error.json'), {
+                'error_type': type(exc).__name__})
+            raise
         durable_json(self.evidence / (self.active_prefix + '.receipt.json'), receipt)
         return receipt
 
@@ -126,6 +142,21 @@ class ScoredSession:
             durable_json(self.evidence / f'{self.budget_stop_sequence:06d}.budget-stop.json', {
                 'trial_id': self.gateway.trial.identifier, 'stage': self.gateway.trial.stage,
                 'kind': 'budget_stop', 'generation_sequence': self.sequence})
+            raise
+        except GatewayError as exc:
+            safe = {'Unauthorised trial', 'No qualified request charge bound',
+                    'No billing reconciliation reader', 'Invalid request charge bound',
+                    'Upstream outcome unknown; reservation retained',
+                    'Unverified response identity; reservation retained',
+                    'Unverified response provider; reservation retained',
+                    'Missing billing evidence; reservation retained',
+                    'Invalid billing evidence; reservation retained',
+                    'Inexact billing evidence; reservation retained',
+                    'Billing reconciliation incomplete; reservation retained'}
+            label = str(exc) if str(exc) in safe else 'Unclassified gateway failure'
+            path = self.evidence / ((self.active_prefix or 'pre-dispatch') + '.gateway-error.json')
+            if not path.exists():
+                durable_json(path, {'error_type': 'GatewayError', 'category': label})
             raise
 
     def close(self):
