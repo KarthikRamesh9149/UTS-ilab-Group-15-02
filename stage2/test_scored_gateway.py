@@ -11,6 +11,7 @@ from gateway_core import GatewayError
 from gateway_policy import MODEL, ENDPOINT
 from scored_gateway import ScoredSession, serve
 from setup_probe import CONTEXT
+from openrouter_transport import TransportError, error_diagnostic
 
 
 class Client:
@@ -100,6 +101,19 @@ class ScoredGatewayTests(unittest.TestCase):
         with self.assertRaises(BudgetExceeded):
             self.session('trial-2')
         self.assertEqual(self.client.calls, 1)
+
+    def test_transport_diagnostic_is_durable_without_settlement_or_replay(self):
+        diagnostic = error_diagnostic({'id': 'gen-failed', 'error': {'code': 502}}, status=502)
+        with self.session() as session, patch.object(self.client, 'complete',
+                side_effect=TransportError('Safe error', diagnostic=diagnostic)) as complete:
+            with self.assertRaises(GatewayError): session.complete(self.token, self.payload)
+            path = session.evidence / '000001.transport-error.json'
+            self.assertEqual(json.loads(path.read_text()), diagnostic)
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            self.assertEqual(len(session.ledger.pending()), 1)
+            self.assertFalse((session.evidence / '000001.response.json').exists())
+            complete.assert_called_once()
+        with self.assertRaises(BudgetExceeded): self.session('next-trial')
 
     def test_fresh_key_allowance_prevents_dispatch(self):
         with self.session() as session:

@@ -1,0 +1,13 @@
+{
+  "observed_at_utc": "2026-09-19T19:18:47.680911+00:00",
+  "account_balance_usd": "12.028551872",
+  "key_usage_usd": "0.00773598",
+  "generation_calls": 0,
+  "settled_setup_usd": "0.00736152",
+  "settled_scored_usd": "0.00037446",
+  "unresolved_reserved_usd": "0.106496",
+  "missing_request_individually_reconciled": false,
+  "ledger_changed": false,
+  "original_result_changed": false,
+  "project_complete": false
+}

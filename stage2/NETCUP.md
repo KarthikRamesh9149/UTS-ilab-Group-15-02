@@ -1,5 +1,65 @@
 # Netcup + OpenRouter continuation
 
+## Current checkpoint, 20 September 2026 (Sydney)
+
+**Paid execution is stopped, not complete. No harness victory is established.**
+The earlier running/queued checkpoints below are historical.
+
+- All 20 fixed development environments qualified: 19 original reference
+  passes and the disclosed reference-only POV-Ray download repair. These are
+  not model scores. All three `netcupv5` live model/tool fixtures passed with
+  independently matched billing, tracing and cleanup.
+- The first scored Terminus trial, `dev-terminus-2-00-video-processing`,
+  retained reward zero and `APIError`. Its third upstream request returned no
+  usable response or generation identity. The result is `billing_unresolved`,
+  not a verified completed cell. No second scored cell or replacement attempt
+  was launched. Containers, networks and volumes from this trial were removed.
+- Both known request receipts were recovered without another generation.
+  At the recorded 19 September 14:53 UTC account check, cumulative setup cost
+  was $0.00736152, known scored cost $0.00037446, and key usage $0.00773598.
+  The account had $12.028551872 available. The unresolved request retains its
+  $0.106496 upper-bound reservation; this is not a confirmed charge. Aggregate
+  key usage matching known charges does not individually reconcile that call.
+  See `netcup/billing_interruption_20260919.json` and
+  [the exact recovery handoff](netcup/BILLING_RECOVERY.md).
+- Two historical local retry markers are named `budget-stop.json`, because
+  the pending-request barrier uses the same exception as budget admission.
+  They are preserved. They do **not** establish exhausted credit or duplicate
+  upstream dispatches. This trial cannot enter an audited comparison yet.
+- Transport errors now retain allowlisted HTTP status, error category and
+  request/generation identifiers when provided. No raw error text, credentials
+  or task content is added to diagnostics. Unknown outcomes still retain their
+  reservations and cannot be replayed. The old missing identifier cannot be
+  reconstructed by this fix.
+- The error-diagnostic patch changes runtime hashes. The preserved
+  `admission_netcupv5.json` documents the setup used for the first trial; it
+  is not admission for the patched runtime. New live qualification must wait
+  until billing recovery, then bind the patched sources before paid resumption.
+- Self-hosted Langfuse 4.38.0 was deployed with six content-pinned images and
+  loopback-only ports. Actual observations API readback matched all 22 setup
+  events: seven generations, 22,469 input tokens, 1,202 output tokens and
+  $0.00106914. Exact trial/parent associations, protocol metadata, measured
+  phase durations and official fixture rewards all matched the local spools.
+  See `netcup/langfuse_*_netcupv5_verified_metrics.json`. This is live service
+  evidence, not benchmark accuracy or visual dashboard verification. No raw
+  task text or provider credentials were exported.
+- The first baseline block, development comparisons, finalist freeze, fresh
+  267-cell final evaluation, final evidence bundle and leaderboard submission
+  remain unfinished. Do not fill their tables with setup or historical pilot
+  results. Efficiency-only assignment success still needs mentor acceptance.
+
+`netcup/deploy_observability.py` refuses a competing benchmark and pins images
+before starting services. `netcup/verify_observability.py` performs post-run
+metadata readback without model calls. Stop dashboard services before any timed
+benchmark resumes; retain their volumes and private credentials for restoration.
+
+The final checkpoint has 433 tests passing on each host, private archives of
+runtime evidence and stopped dashboard volumes saved outside the rental, and
+all six dashboard services stopped. The 19 September 19:18 UTC read-only account
+recheck showed unchanged credit and known usage; the missing request remains
+unreconciled. See [verification and backup details](netcup/verification_20260920.md).
+The rental still incurs recurring charges until its contract is terminated.
+
 ## Scope and accounting
 
 Authorised 19 September 2026: use the provisioned Netcup x86-64 server and finish
