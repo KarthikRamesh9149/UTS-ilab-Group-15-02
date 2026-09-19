@@ -1,0 +1,55 @@
+{
+  "kind": "reference_solution_runtime_qualification_not_model_score",
+  "reference_run": "netcup",
+  "source_namespace": "oracle-dev20-snapshot-v4",
+  "status": "partial_snapshot",
+  "snapshot_utc": "2026-09-19T14:03:44.615105+00:00",
+  "frozen_development_tasks": 20,
+  "valid_results_in_snapshot": 1,
+  "reference_passes_in_snapshot": 1,
+  "live_api_calls": 0,
+  "runtime_revision": "bullseye-security-snapshot-v4",
+  "completed_outcomes": 1,
+  "results": [
+    {
+      "task": "qemu-startup",
+      "status": "verified",
+      "time_utc": "2026-09-19T13:56:02.827801+00:00",
+      "elapsed_seconds": 107.411,
+      "cleanup_verified": true,
+      "image_id": "sha256:1a666e049db553c5e713830b1f5de1953210ab7c99212d006bb4e46cbc6b6d04",
+      "resource_limits_verified": true,
+      "cpus": 1,
+      "memory_mb": 4096,
+      "agent_timeout_sec": 900.0,
+      "verifier_timeout_sec": 900.0,
+      "reward": 1.0
+    }
+  ],
+  "pending_tasks": [
+    "video-processing",
+    "build-pov-ray",
+    "mailman",
+    "constraints-scheduling",
+    "overfull-hbox",
+    "reshard-c4-data",
+    "install-windows-3.11",
+    "openssl-selfsigned-cert",
+    "regex-chess",
+    "polyglot-rust-c",
+    "adaptive-rejection-sampler",
+    "qemu-alpine-ssh",
+    "modernize-scientific-stack",
+    "distribution-search",
+    "merge-diff-arc-agi-task",
+    "sqlite-db-truncate",
+    "prove-plus-comm",
+    "db-wal-recovery",
+    "nginx-request-logging"
+  ],
+  "limitations": [
+    "Reference results are not baseline or custom-model scores.",
+    "Reward-zero results are preserved and do not qualify a task as reference-passing.",
+    "Fresh Netcup-host evidence, separate from historical Mac qualification."
+  ]
+}

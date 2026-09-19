@@ -6,13 +6,15 @@ from pathlib import Path
 
 
 RUNS = {'original': ('oracle-dev20-v2', 'oracle_qualification_progress.json'),
-        'rosetta': ('oracle-dev20-rosetta-v1', 'oracle_rosetta_qualification_progress.json')}
+        'rosetta': ('oracle-dev20-rosetta-v1', 'oracle_rosetta_qualification_progress.json'),
+        'netcup': ('oracle-dev20-snapshot-v4', 'oracle_netcup_qualification_progress.json')}
 
 
 def summary(root, run='original'):
     if run not in RUNS:
         raise ValueError('Unknown reference run')
     namespace, _ = RUNS[run]
+    revision = 'bullseye-security-snapshot-v4' if run == 'netcup' else 'explicit-log-mounts-v2'
     selected = json.loads((root / 'stage2/input_manifest.json').read_text())['development_ids']
     if len(selected) != 20 or len(set(selected)) != 20:
         raise ValueError('Expected frozen unique dev20')
@@ -23,7 +25,7 @@ def summary(root, run='original'):
             pending.append(task)
             continue
         value = json.loads(source.read_text())
-        if value['task'] != task or value['live_api_calls'] != 0 or value.get('runtime_revision') != 'explicit-log-mounts-v2':
+        if value['task'] != task or value['live_api_calls'] != 0 or value.get('runtime_revision') != revision:
             raise ValueError('Unexpected qualification identity')
         row = {key: value[key] for key in ['task', 'status', 'time_utc', 'elapsed_seconds', 'cleanup_verified']}
         for key in ['image_id', 'resource_limits_verified', 'error_type']:
@@ -44,11 +46,12 @@ def summary(root, run='original'):
         'status': 'all_references_passed' if qualified else 'qualification_incomplete' if not pending else 'partial_snapshot',
         'snapshot_utc': datetime.now(timezone.utc).isoformat(), 'frozen_development_tasks': 20,
         'valid_results_in_snapshot': valid, 'reference_passes_in_snapshot': passed,
-        'live_api_calls': 0, 'runtime_revision': 'explicit-log-mounts-v2',
+        'live_api_calls': 0, 'runtime_revision': revision,
         'completed_outcomes': len(results), 'results': results, 'pending_tasks': pending,
         'limitations': ['Reference results are not baseline or custom-model scores.',
-            'The original uncollected video-processing attempt is retained locally; only log mounts changed for v2.',
-            'Reward-zero results are preserved and do not qualify a task as reference-passing.']}
+            'Reward-zero results are preserved and do not qualify a task as reference-passing.'] +
+            (['Fresh Netcup-host evidence, separate from historical Mac qualification.'] if run == 'netcup' else
+             ['The original uncollected video-processing attempt is retained locally; only log mounts changed for v2.'])}
 
 
 if __name__ == '__main__':

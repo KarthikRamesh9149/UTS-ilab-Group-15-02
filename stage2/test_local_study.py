@@ -155,6 +155,15 @@ class TraceTests(unittest.TestCase):
                 self.assertEqual(export(tmp, **kwargs)['status'], 'previously_acknowledged')
                 self.assertEqual(opener.return_value.open.call_count, 1)
 
+    def test_self_hosted_origin_requires_exact_loopback_and_paid_track(self):
+        for base, track in [('http://127.0.0.1:3300', 'cetus-local'),
+                            ('http://localhost:3300', 'netcup-openrouter'),
+                            ('http://127.0.0.1:3301', 'netcup-openrouter'),
+                            ('http://example.com:3300', 'netcup-openrouter')]:
+            with self.assertRaises(ValueError):
+                export('/unused', base_url=base, public_key='pk-lf-test',
+                       secret_key='sk-lf-test', track=track)
+
     def test_failed_export_keeps_spool(self):
         with tempfile.TemporaryDirectory() as tmp:
             TraceSpool(tmp).record(self.event())

@@ -17,6 +17,7 @@ from gateway_policy import MODEL as OPENROUTER_MODEL
 from local_trace import TraceSpool, validate
 
 BASES = {'https://cloud.langfuse.com', 'https://us.cloud.langfuse.com', 'https://jp.cloud.langfuse.com'}
+SELF_HOSTED_BASE = 'http://127.0.0.1:3300'
 
 
 def attribute(key, value):
@@ -85,7 +86,7 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 def export(spool, *, base_url, public_key, secret_key, track='cetus-local'):
-    if base_url not in BASES:
+    if base_url not in BASES and not (track == 'netcup-openrouter' and base_url == SELF_HOSTED_BASE):
         raise ValueError('Unapproved Langfuse Cloud origin')
     if not public_key.startswith('pk-lf-') or not secret_key.startswith('sk-lf-'):
         raise ValueError('Langfuse project credentials required')

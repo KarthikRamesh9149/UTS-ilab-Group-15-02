@@ -21,6 +21,7 @@ import uuid
 
 from guarded_runtime import with_task_guard
 from scored_gateway import durable_json, private_directory
+from task_preparation import refresh_package_metadata
 
 
 def check_host():
@@ -61,7 +62,7 @@ def frozen_dataset(root):
     return dataset
 
 
-async def run_one(root, dataset, task_id, attempts, guard_image):
+async def run_one(root, dataset, task_id, attempts, guard_image, *, refresh_metadata=False):
     from harbor.agents.oracle import OracleAgent
     from pinned_docker import PinnedImageDockerEnvironment as DockerEnvironment
     from harbor.models.agent.context import AgentContext
@@ -101,7 +102,7 @@ async def run_one(root, dataset, task_id, attempts, guard_image):
                 {'type': 'bind', 'source': str(paths.verifier_dir.resolve()), 'target': '/logs/verifier'}])
     result = {'kind': 'reference_solution_runtime_qualification_not_model_score', 'task': task_id,
         'time_utc': datetime.now(timezone.utc).isoformat(), 'live_api_calls': 0,
-        'runtime_revision': 'explicit-log-mounts-v2',
+        'runtime_revision': 'bullseye-security-snapshot-v4' if refresh_metadata else 'explicit-log-mounts-v2',
         'task_limits': {'cpus': config.cpus, 'memory_mb': config.memory_mb,
                         'agent_timeout_sec': task.config.agent.timeout_sec,
                         'verifier_timeout_sec': task.config.verifier.timeout_sec},
@@ -121,6 +122,8 @@ async def run_one(root, dataset, task_id, attempts, guard_image):
         if host['Privileged'] or host['PortBindings'] or host['CapAdd']:
             raise RuntimeError('Unexpected task privilege or host ports')
         result['resource_limits_verified'] = True
+        if refresh_metadata:
+            result['environment_preparation'] = await refresh_package_metadata(env)
         await env.ensure_dirs(['/logs/agent', '/logs/verifier'])
         agent = OracleAgent(logs_dir=paths.agent_dir, task_dir=dataset / task_id,
                             trial_paths=paths, agent_timeout_sec=task.config.agent.timeout_sec)
@@ -166,6 +169,9 @@ async def main(task_id=None, rosetta_requalification=False):
         # v1 omitted stock Harbor log mounts and could not collect any reward.
         # Keep its failed attempt untouched; v2 corrects only infrastructure.
         namespace = 'oracle-dev20-v2'
+        refresh_metadata = platform.system() == 'Linux'
+        if refresh_metadata:
+            namespace = 'oracle-dev20-snapshot-v4'
         if rosetta_requalification:
             translation = subprocess.check_output(
                 ['colima', 'ssh', '--', 'cat', '/proc/sys/fs/binfmt_misc/rosetta'],
@@ -182,7 +188,8 @@ async def main(task_id=None, rosetta_requalification=False):
                 'time_utc': datetime.now(timezone.utc).isoformat()})
         guard_image = subprocess.check_output(['docker', 'image', 'inspect', 'uts-stage2-egress-fixture:1', '--format', '{{.Id}}'], text=True).strip()
         for identifier in selected:
-            result = await run_one(root, dataset, identifier, attempts, guard_image)
+            result = await run_one(root, dataset, identifier, attempts, guard_image,
+                                   refresh_metadata=refresh_metadata)
             print(json.dumps(result), flush=True)
             if result['status'] != 'verified':
                 break
