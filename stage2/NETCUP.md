@@ -12,9 +12,12 @@ not their historical facts. It does not permit a third automatic exception.
 The [offline receipt repair](netcup/receipt_flag_repair_20260920.md) is applied
 and verified: only five already-settled receipt flags changed; charges,
 reservations and all six results are unchanged. No API calls occurred.
-The new continuation implementation is still being validated; deployment,
-sidecar registration and fresh source-bound qualification must precede paid
-resumption. Both full 89-task baseline runs remain unstarted.
+The reviewed candidate passed 633 tests on both hosts, was deployed, and its
+v2 sidecar was registered without changing either ledger or any old result.
+At 02:45 UTC the new `uts-stage2-qualification-netcupv7.service` was active,
+qualifying the rebuilt runtime before resuming only missing first-20 cells.
+Both full 89-task baseline runs remain unstarted. See the
+[activation evidence](netcup/completion_continuation_20260920.md).
 
 ## Earlier stopped checkpoint, 20 September 2026, 01:38 UTC
 
@@ -417,3 +420,18 @@ metadata spools and dashboard data outside the rental before cancellation.
 
 References: [official Docker Compose guide](https://langfuse.com/self-hosting/deployment/docker-compose)
 and [headless initialization](https://langfuse.com/self-hosting/administration/headless-initialization).
+
+## Current checkpoint: 20 September 2026, 02:53 UTC
+
+Reviewed commit `9384d84` and the exact two-hold completion amendment are
+deployed. The fresh synthetic check passed, but
+`uts-stage2-qualification-netcupv7.service` failed on its first real Terminus
+setup call: OpenRouter returned HTTP 429, with no available billing receipt.
+The new US$0.106496 setup reservation remains pending and blocks paid work;
+the approved US$0.212992 historical scored holds remain separate. No additional
+scored task ran. Do not restart or rotate probe labels to bypass this state.
+
+See [completion and failure evidence](netcup/completion_continuation_20260920.md)
+for identifiers, test/deployment evidence and recovery boundary. The live panel
+now tracks the v7 service and distinguishes stopped qualification from the
+still-unstarted fresh 89-task runs. Spending-PDF work remains paused.
