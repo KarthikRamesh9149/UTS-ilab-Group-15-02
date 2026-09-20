@@ -2,16 +2,16 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T06:05:03Z",
-    "status": "Initial scored Terminus block running; full baselines next",
-    "detail": "Reviewed commit 17f342a passed 721 tests on both hosts. All fresh integration checks passed and admission netcupv8 remains valid. At this checkpoint, 17 initial tasks had finished with six verifier passes, and task 18 had started. Live metadata below supplies the current counts. The 178 full-89 baseline cells are next after the initial systemic review, ahead of custom development. Unresolved charges remain reserved without blocking subsequent tasks.",
+    "updated_at_utc": "2026-09-20T06:47:40Z",
+    "status": "Full 178-task baseline service launched",
+    "detail": "The initial20 Terminus block finished with seven official passes and 13 failures; 12 have verified billing and eight retain unresolved billing. The evidence-bound parser, routing and environment review cleared continuation under the approved amendments, not the original performance gate. At 06:47:40 UTC the persistent full-baseline service started with PID 1437990. It targets 89 Terminus-2 and 89 OpenHands tasks before custom development. Live metadata below supplies current counts. No model, provider, limit, scoring code or prior result changed.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
-    {"name": "Initial baseline qualification", "state": "Scored tasks running", "detail": "Netcupv8 resumed only missing initial tasks and retains every prior outcome. Live metadata supplies current attempted and verified counts. Failed setup fixtures are not scored benchmark tasks."},
+    {"name": "Initial baseline qualification", "state": "20/20 finished; technical review complete", "detail": "Seven official passes and 13 failures retained. Twelve billing-verified trials and eight unresolved-billing trials are distinct. The original performance gate failed; the user-approved continuation amendment permits full collection."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
-    {"name": "Fresh full evaluation", "state": "Not started; baselines prioritised", "detail": "89 Terminus-2 and 89 OpenHands final tasks will run before custom development, then be retained in the same 267-cell comparison alongside 89 frozen-custom tasks. Development runs are separate."},
+    {"name": "Fresh full evaluation", "state": "Full baseline service launched", "detail": "The sequential runner targets all 89 Terminus-2 and all 89 OpenHands final tasks. Those 178 results form the baseline portion of the same 267-cell comparison; 89 frozen-custom tasks come later. Initial development results are not substituted into final scores."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
   ],
   "financial_snapshot": {

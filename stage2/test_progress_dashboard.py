@@ -42,9 +42,9 @@ def remote(records=None):
 
 class CountTests(unittest.TestCase):
     def test_reader_tracks_the_newly_launched_service(self):
-        self.assertEqual(panel.SERVICE, 'uts-stage2-qualification-netcupv8.service')
+        self.assertEqual(panel.SERVICE, 'uts-stage2-baselines-netcupv8.service')
         self.assertIn(panel.SERVICE, panel.REMOTE_READER)
-        self.assertNotIn('uts-stage2-qualification-netcupv7.service', panel.REMOTE_READER)
+        self.assertNotIn('uts-stage2-qualification-netcupv8.service', panel.REMOTE_READER)
 
     def test_checkpoint_and_excluded_pilots(self):
         data = panel.summarise(six_records()+[record(trial_id='fixture-old')],MANIFEST)
