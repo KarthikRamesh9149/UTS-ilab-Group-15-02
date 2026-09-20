@@ -11,9 +11,14 @@ liability reserved; no actual charge, pass or efficiency win is invented.
 Original budgets, reserve, task limits, model and cleanup requirements remain.
 Implementation, verification and live activation are separate checkpoints.
 The candidate passed 721 tests on each host, is deployed, and the standing
-policy is active. At 04:09 UTC all fresh integration checks passed and the
-persistent `netcupv8` job resumed scored execution on `install-windows-3.11`.
-Neither full-89 baseline had started yet; both are next, before custom development. See the
+policy is active. The initial 20 Terminus tasks are now complete: seven official
+passes and 13 failures, with 12 billing-verified and eight unresolved-billing
+results retained. The evidence-bound technical review cleared continuation
+under the approved amendments; the original performance gate did not pass.
+At **06:47:40 UTC**, `uts-stage2-baselines-netcupv8.service` started. The canonical
+matrix contains **89 Terminus-2 plus 89 OpenHands tasks**, and the first final
+Terminus task was verified active at 06:48 UTC. Both full baseline runs are now
+scheduled in that one sequential service, ahead of custom development. See the
 [verified activation checkpoint](netcup/baseline_first_activation_20260920.md).
 
 ## Approved continuation and receipt repair, 20 September 2026

@@ -26,7 +26,7 @@ POLL_SECONDS = 60
 STALE_SECONDS = 120
 HOST = '127.0.0.1'
 REMOTE_HOST = 'root@62.83.32.126'
-SERVICE = 'uts-stage2-qualification-netcupv8.service'
+SERVICE = 'uts-stage2-baselines-netcupv8.service'
 MAX_METADATA_BYTES = 2 * 1024 * 1024
 SAFE_ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,199}\Z')
 
@@ -66,7 +66,7 @@ for trial in directories:
         records.append(row)
     except (OSError,ValueError,TypeError):
         errors.append({'trial_id':trial.name,'kind':'metadata_unreadable'})
-service=subprocess.run(['systemctl','show','uts-stage2-qualification-netcupv8.service',
+service=subprocess.run(['systemctl','show','uts-stage2-baselines-netcupv8.service',
                         '--property=ActiveState','--property=SubState'],capture_output=True,text=True,timeout=5,check=True)
 state={}
 for line in service.stdout.splitlines():

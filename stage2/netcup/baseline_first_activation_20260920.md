@@ -83,3 +83,49 @@ At this activation checkpoint neither full-89 baseline had started. Software
 tests and successful setup fixtures are not scored benchmark successes. The
 background continuation is enabled, and the progress panel separates these
 states. No spending PDF, assignment report or final ZIP was generated.
+
+## Initial review completed; full baseline matrix started
+
+The last initial20 result was written at **06:16 UTC**, and the service's
+successful exit was subsequently verified. All 20 immutable
+results were subsequently re-audited: seven official verifier passes and 13
+failures, no verifier execution errors, and complete model revocation and
+container/network/volume cleanup. Twelve trials have verified billing; two
+historical holds and six registered standing deferrals preserve the other
+eight results without asserting complete billing. Six trials stopped at the
+registered estimated allowance. The original performance gate remains failed.
+
+The [attributed systemic review](../terminus20_review_netcupv8.json) binds the
+exact 20 result hashes, both approved amendments and all six deferral hashes.
+It covers all 116 recorded requests, 108 durable responses, 92 native tool
+steps and the current 50-source admission. No model/provider drift or current
+systemic parser/environment integration defect was observed. Sixteen responses
+ended at the frozen output limit; those outcomes, task timeouts, provider
+errors and budget stops are retained, not repaired through selective reruns.
+This initial20 review does not certify the remaining 69 task environments.
+
+The real host evaluation returned `billing_deferral_expansion_allowed`, with
+no remaining deferral-gate reasons, while keeping `paid_expansion_allowed`
+and complete-financial-evidence claims false. Before dispatch, the qualification
+service was inactive with exit code zero, all execution locks were free and no
+study containers were running. No additional setup model calls were made.
+
+At **06:47:40 UTC**, the persistent service
+`uts-stage2-baselines-netcupv8.service` started with PID **1437990**. At
+**06:48:14 UTC**, direct inspection confirmed an active service, all three
+ownership locks held, one isolated task environment and the first canonical
+final cell started at **06:47:54 UTC**:
+`final-terminus-2-00-adaptive-rejection-sampler`.
+
+The pre-dispatch baseline registration contains exactly **178 unique cells**,
+**89 Terminus-2 and 89 OpenHands**, and 54 source/input bindings. Registration
+SHA-256 is `faaaf4db94302fd11a27251f1ff4b871b12a346c7a7cf423ba152cc628bf8f14`.
+Review-file SHA-256 is
+`83de53fe7336357b10a8560f48eb531a7e02d5976a2accf303506d203e66bd23`.
+Private service log: `.runtime/stage2/netcup-baselines-v8.log`.
+
+The two full baselines are interleaved in the registered, sequential schedule;
+they are not concurrent matrices. Original initial20 outcomes remain
+development-only. No baseline score or custom win is claimed at launch. The
+same model, provider, limits and paid runtime remain unchanged. The local
+read-only dashboard now tracks the new service; its 12 offline tests pass.
