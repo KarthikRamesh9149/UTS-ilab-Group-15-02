@@ -130,18 +130,18 @@ development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
 
-## Completion-metadata checkpoint, 15:06 UTC
+## Completion-metadata checkpoint, 15:39 UTC
 
-The same service and PID remain active. **81 of 178 final trials** have binary
-verifier results: 40 Terminus-2 and 41 OpenHands. All 81 have confirmed
-revocation and resource cleanup. Fifty-five have verified billing; twenty-six retain
+The same service and PID remain active. **87 of 178 final trials** have binary
+verifier results: 43 Terminus-2 and 44 OpenHands. All 87 have confirmed
+revocation and resource cleanup. Sixty-one have verified billing; twenty-six retain
 unresolved billing and are not represented as financially verified. Individual
 non-development outcomes were not inspected or used for custom development.
 
-The 82nd canonical cell, `final-terminus-2-40-largest-eigenval`, was active
-at inspection. Its official agent and verifier limits are each 900 seconds;
+The 88th canonical cell, `final-terminus-2-43-mailman`, was active
+at inspection. Its official agent and verifier limits are each 1800 seconds;
 the environment-build limit is 600 seconds. Request and trajectory artifact
-modification times show activity at 15:06:41 and 15:06:37 UTC respectively.
+modification times show activity at 15:38:19 and 15:38:15 UTC respectively.
 Their contents were not inspected.
 The initial20 development results remain separate from these final trials.
 The registration hash is unchanged,
