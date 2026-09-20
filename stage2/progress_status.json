@@ -2,14 +2,14 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T03:41:03Z",
-    "status": "Preparing baseline-first resumption",
-    "detail": "User approved standing continuation with terminal unknown charges fully reserved. The candidate now supports conservative deferrals and 178 baseline-first final cells; tests and independent review are in progress before deployment. Existing raw results and uncertain charges remain unchanged. No new benchmark task has run yet; full89 scoring has not started.",
+    "updated_at_utc": "2026-09-20T04:01:10Z",
+    "status": "Live qualification running for baseline-first resumption",
+    "detail": "Reviewed commit 17f342a passed 721 tests on both Mac and native Linux, was deployed under ownership locks, and retained original ledger/result bytes. Standing terminal billing continuation is active with full unresolved liability reserved. Persistent netcupv8 job is running fresh native qualification before resuming missing initial tasks. The 178 full-89 baseline cells remain the next priority; they are not yet running.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
-    {"name": "Initial baseline qualification", "state": "Resumption implementation being verified", "detail": "Six of 20 Terminus-2 development tasks attempted. The new user-approved rule will keep terminal unknown charges reserved rather than blocking the next task. Native runtime qualification and safe cleanup remain required; the failed setup fixture is not a scored task."},
+    {"name": "Initial baseline qualification", "state": "Live runtime requalification running", "detail": "Six of 20 Terminus-2 development tasks attempted. Netcupv8 will resume only the missing 14 after fresh model/tool checks pass. Terminal unknown charges now remain reserved without blocking a new task. Failed setup fixtures are not scored benchmark tasks."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
     {"name": "Fresh full evaluation", "state": "Not started; baselines prioritised", "detail": "89 Terminus-2 and 89 OpenHands final tasks will run before custom development, then be retained in the same 267-cell comparison alongside 89 frozen-custom tasks. Development runs are separate."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}

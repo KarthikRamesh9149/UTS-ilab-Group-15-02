@@ -10,6 +10,10 @@ terminal attempts may be carried forward with their complete worst-case
 liability reserved; no actual charge, pass or efficiency win is invented.
 Original budgets, reserve, task limits, model and cleanup requirements remain.
 Implementation, verification and live activation are separate checkpoints.
+The candidate passed 721 tests on each host, is deployed, and the standing
+policy is active. At 04:01 UTC the persistent `netcupv8` qualification job was
+running; neither full-89 baseline had started yet. See the
+[verified activation checkpoint](netcup/baseline_first_activation_20260920.md).
 
 ## Approved continuation and receipt repair, 20 September 2026
 
