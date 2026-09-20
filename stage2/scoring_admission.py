@@ -8,7 +8,7 @@ import host_environment
 from gateway_policy import MODEL, ENDPOINT
 from model_protocol import ModelSettings
 
-RUNTIME_FILES = ('budget_ledger.py', 'gateway_core.py', 'gateway_policy.py',
+RUNTIME_FILES = ('budget_ledger.py', 'historical_hold.py', 'gateway_core.py', 'gateway_policy.py',
     'study_budget.py', 'linux_host_health.py', 'qualify_oracle.py', 'reference_download_repair.py',
     'paid_trace.py', 'local_trace.py', 'post_trial_receipts.py',
     'task_preparation.py',
@@ -19,7 +19,9 @@ RUNTIME_FILES = ('budget_ledger.py', 'gateway_core.py', 'gateway_policy.py',
     'container_gateway_rpc.py', 'host_model_bridge.py', 'trial_execution.py',
     'scored_trial.py', 'pinned_docker.py', 'host_environment.py', 'native_agents.py', 'custom_backend.py', 'custom_runner.py',
     'custom_model.py', 'custom_control.py', 'custom_jobs.py', 'custom_harbor_agent.py',
-    'openhands-requirements.lock')
+    'openhands-requirements.lock', 'matrix_resume.py', 'qualification_gate.py',
+    'qualification_review.py', 'run_qualification.py', 'run_development.py',
+    'run_diagnostic.py', 'run_final.py', 'export_final.py')
 
 RUNTIME_CHECKS = {'verifier_reward_one', 'model_revoked', 'clean_status', 'billing_verified',
                   'containers_removed', 'networks_removed', 'volumes_removed',

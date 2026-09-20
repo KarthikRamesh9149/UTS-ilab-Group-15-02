@@ -104,3 +104,61 @@ class DeferredReceiptsTests(unittest.TestCase):
             collect_receipts(self.runtime, 'fixture', kind='setup', client=SimpleNamespace(generation=reader),
                              deadline_seconds=1, clock=lambda: now[0], sleep=sleep)
         self.assertFalse((self.evidence / '000001.receipt.json').exists())
+
+
+class HistoricalHoldReceiptTests(unittest.TestCase):
+    def setUp(self):
+        from test_historical_hold import HoldFixture
+        from test_scored_gateway import HoldClient, ScoredSession
+        self.temp = tempfile.TemporaryDirectory()
+        self.fixture = HoldFixture(self.temp.name)
+        self.runtime = self.fixture.runtime
+        self.client = HoldClient()
+        token = 'hold-receipt-token-' * 4
+        payload = {'model': MODEL, 'max_tokens': 64, 'temperature': 1.,
+                   'reasoning': {'effort': 'high'},
+                   'messages': [{'role': 'user', 'content': 'synthetic'}]}
+        with ScoredSession(self.fixture.root, 'new', 'development', token, self.client,
+                           estimator=lambda _: '.01', settings=self.fixture.settings) as session:
+            session.complete(token, payload)
+
+    def tearDown(self):
+        self.fixture.close()
+        self.temp.cleanup()
+
+    def test_new_trial_receipts_can_reconcile_but_old_charge_stays_unknown(self):
+        import historical_hold as hh
+        original = self.fixture.result.read_bytes()
+        report = collect_receipts(self.runtime, 'new', client=self.client)
+        self.assertEqual(report, {'receipts_verified': 1, 'generation_calls': 0})
+        self.assertEqual(self.client.calls, 1)
+        self.assertEqual(self.fixture.result.read_bytes(), original)
+        ledger = self.fixture.ledger()
+        try:
+            self.assertEqual(ledger.pending(), [(hh.REQUEST_ID, hh.TRIAL_ID, 106496000, None)])
+            self.assertEqual(ledger.pending_receipts(), [])
+        finally:
+            ledger.close()
+        with self.assertRaises(BudgetExceeded): collect_receipts(self.runtime, hh.TRIAL_ID, client=self.client)
+
+    def test_new_trial_missing_generation_is_not_hidden_by_join(self):
+        ledger = self.fixture.ledger()
+        try:
+            ledger.db.execute("DELETE FROM generations WHERE request_id IN (SELECT id FROM requests WHERE trial='new')")
+            self.assertEqual(len(ledger.pending_receipts()), 1)
+            self.assertIsNone(ledger.pending_receipts()[0][2])
+        finally:
+            ledger.close()
+        with self.assertRaises(ValueError): collect_receipts(self.runtime, 'new', client=self.client)
+
+    def test_new_mismatch_records_incident_and_blocks_all_further_admission(self):
+        self.client.cost = '.002'
+        with self.assertRaisesRegex(ValueError, 'ledger halted'):
+            collect_receipts(self.runtime, 'new', client=self.client)
+        ledger = self.fixture.ledger()
+        try:
+            self.assertEqual(ledger.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0], 1)
+            with self.assertRaises(BudgetExceeded):
+                ledger.reserve('another', 'another', '.1', '12', 'development', trial_estimate='.01')
+        finally:
+            ledger.close()

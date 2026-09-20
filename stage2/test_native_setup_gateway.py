@@ -3,13 +3,16 @@ from pathlib import Path
 import tempfile
 import unittest
 import json
+import hashlib
+from decimal import Decimal
 
 from budget_ledger import Ledger, BudgetExceeded, dollars
 from gateway_policy import MODEL
 from model_protocol import ModelSettings
-from native_setup_gateway import NativeSetupSession
+from native_setup_gateway import NativeSetupSession, scored_pending_liability
 from native_setup_accounting import audit_setup
 from test_scored_gateway import Client
+from test_historical_hold import HoldFixture
 
 
 class NativeSetupTests(unittest.TestCase):
@@ -74,6 +77,61 @@ class NativeSetupTests(unittest.TestCase):
             request = self.request()
             request['temperature'] = 0
             with self.assertRaises(ValueError): session.complete('a' * 64, request)
+        self.assertEqual(self.client.calls, 0)
+
+    def held_scored_request(self):
+        fixture = HoldFixture(self.root)
+        self.addCleanup(fixture.close)
+        path = self.runtime / 'scored_budget.sqlite'
+        path.chmod(0o600)
+        return path
+
+    def test_unregistered_scored_unknown_blocks_setup(self):
+        self.held_scored_request()
+        (self.runtime / 'historical-hold-v1.json').unlink()
+        with self.assertRaises(BudgetExceeded): self.session()
+        self.assertEqual(self.client.calls, 0)
+
+    def test_second_scored_unknown_blocks_setup_even_with_credit(self):
+        path = self.held_scored_request()
+        import sqlite3
+        with sqlite3.connect(path) as db:
+            db.execute("INSERT INTO requests VALUES ('second','new',106496000,NULL,'pending')")
+        self.client.allowance = '12'
+        with self.assertRaises(ValueError): self.session()
+        self.assertEqual(self.client.calls, 0)
+
+    def test_scored_unverified_receipt_blocks_setup(self):
+        path = self.held_scored_request()
+        import sqlite3
+        with sqlite3.connect(path) as db:
+            db.execute("INSERT INTO receipt_checks VALUES ('unverified','pending')")
+        with self.assertRaises(ValueError): self.session()
+        self.assertEqual(self.client.calls, 0)
+
+    def test_setup_protects_separate_scored_hold_without_mutating_it(self):
+        path = self.held_scored_request()
+        before = hashlib.sha256(path.read_bytes()).hexdigest()
+        self.client.allowance = '2.15'
+        with self.session() as session:
+            with self.assertRaises(BudgetExceeded): session.complete('a' * 64, self.request())
+        self.assertEqual(self.client.calls, 0)
+        self.assertEqual(scored_pending_liability(self.runtime), Decimal('.106496'))
+        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), before)
+
+    def test_separate_hold_is_deducted_exactly_once(self):
+        self.held_scored_request()
+        self.client.allowance = '2.22'
+        with self.session() as session:
+            session.complete('a' * 64, self.request())
+        self.assertEqual(self.client.calls, 1)
+
+    def test_scored_ledger_symlink_is_rejected_before_setup_call(self):
+        path = self.held_scored_request()
+        other = self.runtime / 'original-scored.sqlite'
+        path.rename(other)
+        path.symlink_to(other)
+        with self.assertRaises(ValueError): self.session()
         self.assertEqual(self.client.calls, 0)
 
     def make_auditable_call(self):

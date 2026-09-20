@@ -488,7 +488,7 @@ def main():
     csv_path = OUT / 'recorded_generation_requests.csv'
     fields = [k for k in data['requests'][0] if k != 'sources'] + ['source_filenames', 'source_sha256']
     with csv_path.open('w', newline='') as fh:
-        writer = csv.DictWriter(fh, fieldnames=fields); writer.writeheader()
+        writer = csv.DictWriter(fh, fieldnames=fields, lineterminator='\n'); writer.writeheader()
         for row in data['requests']:
             flat = {k:v for k,v in row.items() if k != 'sources'}
             flat['source_filenames'] = '; '.join(s['filename'] for s in row['sources'])

@@ -4,11 +4,12 @@ import tempfile
 import unittest
 
 from budget_ledger import Ledger, dollars
-from endpoint_recheck import ReservedClient, run, scored_state
+from endpoint_recheck import SingleDispatchClient, run, scored_state
 from model_protocol import ModelSettings, freeze_protocol
 from scored_gateway import durable_json, private_directory
 from study_budget import SCORED_CEILING, STAGE_CAPS, TRIAL_CAP
 from test_scored_gateway import Client
+from test_historical_hold import HoldFixture
 
 
 class Fixture(Client):
@@ -29,12 +30,9 @@ class EndpointRecheckTests(unittest.TestCase):
         setup = Ledger(self.runtime/'setup_budget.sqlite', '1', '1', {'setup':'1'})
         setup.reserve('prior', 'prior', '.01', '12', 'setup'); setup.settle('prior', '.001'); setup.close()
         (self.runtime/'setup_budget.sqlite').chmod(0o600)
-        scored = Ledger(self.runtime/'scored_budget.sqlite', SCORED_CEILING, TRIAL_CAP, STAGE_CAPS, allow_estimated_trials=True)
-        scored.reserve('unknown', 'old-trial', '.106496', '12', 'development', trial_estimate='.001')
-        scored.close()
-        path = private_directory(self.runtime/'scored-trials/old-trial')
-        durable_json(path/'result.json', {'status':'billing_unresolved', 'reward':0})
-        freeze_protocol(self.runtime, ModelSettings(8192, 1., 'high'))
+        fixture = HoldFixture(self.root)
+        self.addCleanup(fixture.close)
+        (self.runtime/'scored_budget.sqlite').chmod(0o600)
         self.client = Fixture()
         self.before = scored_state(self.runtime)
 
@@ -75,7 +73,7 @@ class EndpointRecheckTests(unittest.TestCase):
         self.assertEqual(self.client.calls, 0)
 
     def test_guard_permits_only_one_generation(self):
-        guarded = ReservedClient(self.client, self.before[0])
+        guarded = SingleDispatchClient(self.client)
         guarded.complete({})
         with self.assertRaises(ValueError): guarded.complete({})
         self.assertEqual(self.client.calls, 1)

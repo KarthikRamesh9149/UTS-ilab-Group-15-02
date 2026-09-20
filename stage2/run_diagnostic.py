@@ -9,7 +9,7 @@ from pathlib import Path
 from finalist_freeze import verify
 from matrix_resume import completed_cell
 from native_agents import agent_factory
-from qualification_review import assess
+from qualification_review import assess, expansion_allowed
 from scored_gateway import private_directory, durable_json
 from scored_trial import run_trial
 from scoring_admission import validate
@@ -33,7 +33,7 @@ async def run(root, freeze, review):
     fd = os.open(runtime / 'matrix.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, 'r+') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        if assess(root, admission, review).get('paid_expansion_allowed') is not True:
+        if not expansion_allowed(root, assess(root, admission, review)):
             raise ValueError('Qualification has not cleared expansion')
         descriptor = {'kind': 'frozen_diagnostic_not_selection', 'freeze': freeze,
                       'review': review, 'cells': cells}
@@ -50,7 +50,7 @@ async def run(root, freeze, review):
         results = []
         for cell in cells:
             verify(root, freeze)
-            if assess(root, admission, review).get('paid_expansion_allowed') is not True:
+            if not expansion_allowed(root, assess(root, admission, review)):
                 raise ValueError('Qualification no longer clears expansion')
             row = completed_cell(root, cell, settings)
             if row is None:

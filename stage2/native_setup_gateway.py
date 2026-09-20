@@ -3,6 +3,8 @@
 Never a scored trial. The host must hold scored.lock across the entire runtime.
 This entry point cannot create a new setup allowance or select a spending cap.
 """
+from contextlib import closing
+from decimal import Decimal
 import fcntl
 import json
 import os
@@ -10,12 +12,43 @@ from pathlib import Path
 import re
 import stat
 import signal
+import sqlite3
 
-from budget_ledger import Ledger, BudgetExceeded
+from budget_ledger import Ledger, BudgetExceeded, UNIT
+from historical_hold import validate_historical_hold
 from gateway_core import Gateway, Trial, token_digest
 from model_protocol import ModelSettings
 from scored_gateway import ScoredSession, durable_json, private_directory
 from setup_probe import full_context_bound
+
+
+def scored_pending_liability(runtime):
+    """Read, never mutate, outstanding exposure in the separate scored ledger.
+
+    Setup uses its original $1 ledger. Its fresh account/key balance must also
+    protect scored reservations that may not yet appear in provider balances.
+    This does not resolve a request or allow scored execution to resume.
+    """
+    path = Path(runtime) / 'scored_budget.sqlite'
+    if not path.exists() and not path.is_symlink():
+        return Decimal(0)
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_mode & 0o077:
+        raise ValueError('Private regular scored ledger required')
+    with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        db.execute('BEGIN')
+        if db.execute('PRAGMA quick_check').fetchall() != [('ok',)]:
+            raise ValueError('Scored ledger integrity failure')
+        if db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
+            raise BudgetExceeded('Scored billing incident requires review before setup spending')
+        rows = db.execute("SELECT reserved FROM requests WHERE state='pending'").fetchall()
+        if any(type(row[0]) is not int or row[0] <= 0 for row in rows):
+            raise ValueError('Invalid scored reservation')
+        if rows and validate_historical_hold(runtime, db) is None:
+            raise BudgetExceeded('Only the exact registered historical scored hold permits new setup')
+        if db.execute("SELECT COUNT(*) FROM receipt_checks WHERE state='pending'").fetchone()[0]:
+            raise BudgetExceeded('Unverified scored receipts block new setup spending')
+    return Decimal(sum(row[0] for row in rows)) / UNIT
 
 
 class NativeSetupSession(ScoredSession):
@@ -30,6 +63,7 @@ class NativeSetupSession(ScoredSession):
         self.sequence = self.budget_stop_sequence = 0
         self.active_prefix = None
         runtime = private_directory(Path(root).resolve() / '.runtime/stage2')
+        self.setup_runtime = runtime
         # Require the already-existing shared account of ALL previous setup
         # work. Do not silently start another $1 allowance in a fixture folder.
         ledger_path = runtime / 'setup_budget.sqlite'
@@ -58,6 +92,14 @@ class NativeSetupSession(ScoredSession):
         except BaseException:
             self.close()
             raise
+
+    def available_balance(self):
+        # Scored gateways already account for their own pending reservations in
+        # Ledger.reserve; only this separate setup ledger needs the deduction.
+        available = super().available_balance() - scored_pending_liability(self.setup_runtime)
+        if available < 0:
+            raise BudgetExceeded('Scored liabilities exceed available credit')
+        return available
 
 
 def serve(root, trial_id, token_file, credential_file, socket_path, settings_file):
