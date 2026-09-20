@@ -154,3 +154,76 @@ and model gateway locks all remain held by the active run. Only that trial's
 four study containers are running.
 No runner was restarted, no extra matrix was launched, and no paid runtime or
 prior result was changed.
+
+## Stopped checkpoint and read-only diagnosis, 18:59 UTC
+
+The service exited at 18:06:16 UTC with `ValueError: Stage ceiling exceeded`.
+Inspection at 18:58 UTC found 119 final results: 60 Terminus-2 and 59 OpenHands.
+All 119 have binary verifier results and confirmed cleanup. Seventy-six have
+verified billing and 43 remain unresolved. Exactly 59 canonical cells are
+unstarted; there are no partial trials, running containers or held execution
+locks. All admitted source hashes and baseline registration bindings still
+validate. No non-development task outcomes were inspected for tuning.
+
+Read-only original-ledger validation found final-stage known charges of
+US$0.31113252, pending reservations of US$4.472832 and additional missing-receipt
+exposure of US$1.37999696. The resulting US$6.16396148 is US$0.02296148 above
+the unchanged US$6.141 stage cap. This is conservative exposure, not actual
+confirmed spending, and the account is not exhausted: a direct read-only check
+at 18:59 UTC returned US$11.650824872 available and US$0.38546298 key usage.
+
+Nine one-shot historical-generation lookups made no new generation calls.
+Four settled-response receipts were available and exactly matched original
+costs; four unknown requests still returned 404. One other request returned a
+cancelled-generation receipt but has no durable model response, so it was not
+declared reconciled. No original ledger, result, registry or evidence file was
+changed. Existing direct-settlement helpers would invalidate standing deferral
+snapshots and were not run. Safe additive receipt recovery remains engineering
+work; neither the baseline service nor custom evaluation has resumed.
+
+## Delayed-receipt staging completed, 19:09 UTC
+
+The host-only `collect_deferred_receipts.py` maintenance utility recovered all
+13 missing historical receipts for already-settled scored requests. Every
+receipt matched its original generation, model, provider, exact charge,
+non-BYOK/uncancelled flags and provider-native prompt/completion token counts.
+It uses only the documented [historical generation metadata endpoint](https://openrouter.ai/docs/api/api-reference/generations/get-request-&-usage-metadata-for-a-generation),
+not new generation calls. Requests with no complete response are deliberately
+outside this collector's scope; a 404 is never converted into a zero charge.
+
+The receipts are append-only, private files under
+`.runtime/stage2/deferred-receipt-recovery-v1`, not inside any immutable
+original attempt or deferral folder. Across collection, SHA-256 comparison
+confirmed all 8,596 protected original files and all 50 admitted source hashes
+were unchanged. No original result, ledger, deferral, admission or registration
+was rewritten, and no benchmark service was started. The collector cannot
+release funds or authorise continuation.
+
+These 13 matches support a potential US$1.37999696 reduction in extra receipt
+holds. **No reduction has yet been applied.** It would reduce final-stage
+conservative exposure from US$6.16396148 to US$4.78396452, leaving US$1.35703548
+within the original final-stage cap. This is not a refund, additional credit,
+complete financial certification or a guarantee of funding all remaining work.
+All truly unknown request reservations stay reserved.
+
+The final collector has 15 offline tests passing locally and on the native
+server, including immutable originals, no repeat GETs, small-batch progress,
+receipt conflicts, token mismatch, execution ownership, private files and
+symlink refusal. The dashboard's 12 tests also pass. The collector remains
+separate from paid runtime code; no replacement qualification was fabricated.
+The final local candidate passed the 688-test Stage 2 suite (tracked tests plus
+the new collector tests); paused, untracked spending-checkpoint tests were
+excluded. Native repeat collection verified all 13 stored records
+with zero additional receipt GETs and zero generation calls.
+
+All 13 staged files are backed up privately on the Mac under
+`.runtime/netcup/receipt-recovery-20260920-awnbB0/deferred-receipt-recovery-v1`.
+The local and remote filename/SHA-256 manifest digests both equal
+`659074c0a4a3e4b6abde41822be6795b1c0b58612f2a5aa8f6ada3ddd1c44ebb`.
+These private receipts are excluded from Git. No spending PDF/report was made.
+
+Next implementation work is a source-qualified additive accounting consumer:
+revalidate each staged receipt and its original binding before reducing the
+extra hold, preserve unknown requests and all original bytes, and test stage,
+aggregate and account conservation before any paid resumption. Existing
+direct-settlement tools and a blind restart are not safe substitutes.
