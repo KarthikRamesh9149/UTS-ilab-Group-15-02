@@ -130,18 +130,22 @@ development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
 
-## Completion-metadata checkpoint, 07:56 UTC
+## Completion-metadata checkpoint, 08:29 UTC
 
-The same service and PID remain active. **14 of 178 final trials** have binary
-verifier results: seven Terminus-2 and seven OpenHands. All 14 have confirmed
-revocation and resource cleanup. Seven have verified billing; seven retain
+The same service and PID remain active. **18 of 178 final trials** have binary
+verifier results: nine Terminus-2 and nine OpenHands. All 18 have confirmed
+revocation and resource cleanup. Nine have verified billing; nine retain
 unresolved billing and are not represented as financially verified. Individual
 non-development outcomes were not inspected or used for custom development.
 
-The 15th canonical cell, `final-openhands-07-cancel-async-tasks`, started at
-07:55:18 UTC and was active at inspection. The registration hash is unchanged,
+The 19th canonical cell, `final-terminus-2-09-circuit-fibsqrt`, started at
+08:12:27 UTC and was active at inspection. A follow-up at 08:30 UTC confirmed
+recent request and trajectory activity at 08:29:55 UTC. Its official agent and
+verifier limits are each 3600 seconds, with a 600-second environment-build limit;
+the longer duration is not evidence of a stalled process or an exceeded limit.
+The registration hash is unchanged,
 all 50 admitted scoring sources validate, and no unexpected final keys exist.
-The host has approximately 452 GiB free disk and 13.6 GiB available RAM;
-reported ten-second memory-pressure averages are 0.29 (some) and 0.28 (full).
+The host has approximately 453 GiB free disk and 14.4 GiB available RAM;
+reported current memory-pressure averages are zero.
 All three execution locks are held by the active run. No runner was restarted, no extra
 matrix was launched, and no paid runtime or prior result was changed.
