@@ -100,3 +100,21 @@ handoff bundle. Self-hosted Langfuse is deployed after timed runs to avoid
 resource contention; export/dashboard verification is separate from local traces.
 Leaderboard eligibility/submission and scientific success are separate from
 working code. Neither a fixture pass nor an incomplete matrix proves completion.
+
+## Later prospective amendment: fixed-study completion, 20 September 2026
+
+The user explicitly approved [the fixed-study completion amendment](COMPLETION_AMENDMENT_20260920.md)
+after the first six development outcomes. The preceding original protocol and
+one-hold amendment remain preserved as historical rules. For the separately
+validated v2 continuation only, the first-20 thresholds of ten passes and at
+most two budget-stopped trials become reported, nonblocking performance
+observations. Exactly two evidence-bound historical unknown requests retain
+their combined US$0.212992 reservation; neither becomes a known charge or a
+verified-billing result. The original qualification gate remains failed.
+
+This supersedes only the original performance stop rule and the one-hold
+maximum for the exact named second request. It does not supersede systemic
+review, fresh source-bound qualification, complete first-20 evidence, cleanup,
+new-request billing verification, fair limits, existing allowances, the US$2
+reserve, selection/freeze rules or the matched 267-cell fresh final evaluation.
+No third unknown-request exception or increase in spending is authorised.

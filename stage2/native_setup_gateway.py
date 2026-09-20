@@ -15,7 +15,7 @@ import signal
 import sqlite3
 
 from budget_ledger import Ledger, BudgetExceeded, UNIT
-from historical_hold import validate_historical_hold
+from historical_hold import validate_historical_hold, SIDECAR, SIDECAR_V2
 from gateway_core import Gateway, Trial, token_digest
 from model_protocol import ModelSettings
 from scored_gateway import ScoredSession, durable_json, private_directory
@@ -31,7 +31,11 @@ def scored_pending_liability(runtime):
     This does not resolve a request or allow scored execution to resume.
     """
     path = Path(runtime) / 'scored_budget.sqlite'
+    registered_hold = any((Path(runtime) / name).exists() or (Path(runtime) / name).is_symlink()
+                          for name in (SIDECAR, SIDECAR_V2))
     if not path.exists() and not path.is_symlink():
+        if registered_hold:
+            raise ValueError('Registered historical holds require the canonical scored ledger')
         return Decimal(0)
     info = path.lstat()
     if not stat.S_ISREG(info.st_mode) or info.st_mode & 0o077:
@@ -45,8 +49,9 @@ def scored_pending_liability(runtime):
         rows = db.execute("SELECT reserved FROM requests WHERE state='pending'").fetchall()
         if any(type(row[0]) is not int or row[0] <= 0 for row in rows):
             raise ValueError('Invalid scored reservation')
-        if rows and validate_historical_hold(runtime, db) is None:
-            raise BudgetExceeded('Only the exact registered historical scored hold permits new setup')
+        hold = validate_historical_hold(runtime, db) if rows or registered_hold else None
+        if rows and hold is None:
+            raise BudgetExceeded('Only exact registered historical scored holds permit new setup')
         if db.execute("SELECT COUNT(*) FROM receipt_checks WHERE state='pending'").fetchone()[0]:
             raise BudgetExceeded('Unverified scored receipts block new setup spending')
     return Decimal(sum(row[0] for row in rows)) / UNIT

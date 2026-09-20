@@ -86,3 +86,19 @@ efficiency claims remain contingent on complete final receipts. The eventual
 project-wide spending report must continue to list the historical unresolved
 charge, even if every final trial is fully reconciled. Working infrastructure,
 a bounded budget and a partial score are not proof of the requested harness win.
+
+## Later explicit approval: prospective v2 supersession
+
+After the second interrupted request and six development outcomes, the user
+explicitly approved [the fixed-study completion amendment](COMPLETION_AMENDMENT_20260920.md).
+The one-hold rules above and their original private sidecar remain unchanged
+historical evidence. Only the separately validated v2 sidecar permits exactly
+the second named hold, for US$0.212992 combined unresolved reservation, and the
+separately labelled continuation despite low preliminary pass counts or more
+than two genuine estimated-budget stops. This is not a pass under the original
+qualification rule and not retroactive repair of either historical attempt.
+
+All other financial, evidence, cleanup, source qualification, systemic-review,
+fixed-task, no-replay and final-scoring requirements remain binding. The v1
+sidecar alone cannot activate v2, and neither sidecar authorises a third unknown
+charge, a fabricated receipt, more credit or a relaxed per-trial allowance.

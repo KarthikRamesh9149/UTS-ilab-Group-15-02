@@ -11,6 +11,7 @@ import unittest
 from unittest.mock import patch
 
 from export_development import collect, export, CONDITIONS, HELD_TERMINAL
+import historical_hold as hh
 from historical_hold import canonical_hold_document
 from model_protocol import ModelSettings
 
@@ -100,6 +101,8 @@ class DevelopmentExportTests(unittest.TestCase):
         self.assertFalse(bundle['all_primary_cells_terminal'])
         self.assertFalse(bundle['final_accuracy_or_win_claimed'])
         self.assertFalse(bundle['selection_or_expansion_authorized'])
+        self.assertEqual(bundle['provenance']['historical_hold_count'], 0)
+        self.assertEqual(bundle['provenance']['historical_hold_original_result_sha256'], {})
         for condition in bundle['conditions'].values():
             self.assertEqual(condition['intended_cells'], 20)
             self.assertEqual(condition['unstarted_cells'], 20)
@@ -175,6 +178,9 @@ class DevelopmentExportTests(unittest.TestCase):
         self.assertTrue(summary['timing_complete'])
         self.assertEqual(summary['full_agent_seconds'], 30.)
         self.assertEqual(bundle['provenance']['historical_hold_sha256'], hold['sidecar_sha256'])
+        self.assertEqual(bundle['provenance']['historical_hold_count'], 1)
+        self.assertEqual(bundle['provenance']['historical_hold_original_result_sha256'], {
+            hold['trial_id']: hold['original_result_sha256']})
         self.assertEqual(path.read_bytes(), before)
 
     def test_csv_and_json_are_deterministic_allowlisted_and_checksummed(self):
@@ -350,6 +356,161 @@ class DevelopmentExportTests(unittest.TestCase):
             self.persist(row)
             with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, 'must be an object'):
                 collect(self.root, self.admission)
+
+
+class TwoHistoricalHoldExportTests(unittest.TestCase):
+    """Exercise the real exact-two-hold validator, not a permissive stand-in."""
+
+    identifier = DevelopmentExportTests.identifier
+    write_result = DevelopmentExportTests.write_result
+    persist = DevelopmentExportTests.persist
+    runtime_bytes = DevelopmentExportTests.runtime_bytes
+
+    def setUp(self):
+        from test_historical_hold import HoldFixtureV2
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.fixture = HoldFixtureV2(self.root)
+        self.addCleanup(self.fixture.close)
+        self.runtime = self.fixture.runtime
+        self.settings = self.fixture.settings
+        (self.runtime / 'matrix.lock').touch(mode=0o600)
+        (self.root / 'stage2').mkdir()
+        self.tasks = ['video-processing'] + [f'fixture-{index}' for index in range(1, 20)]
+        self.tasks[5] = 'reshard-c4-data'
+        (self.root / 'stage2/input_manifest.json').write_text(json.dumps({'development_ids': self.tasks}))
+        self.admission = {'fixture_only': True, 'secret_not_for_export': 'DO_NOT_EXPORT_PRIVATE_DATA'}
+        self.records = {}
+        for target, arguments in {
+            'export_development.validate': {'return_value': self.settings},
+            'matrix_resume.audit_trial': {'side_effect': lambda runtime, identifier, stage: copy.deepcopy(self.records[identifier]['billing'])},
+        }.items():
+            patched = patch(target, **arguments)
+            patched.start()
+            self.addCleanup(patched.stop)
+
+    def complete_terminus(self):
+        for index in range(20):
+            if index not in (0, 5):
+                self.write_result('terminus-2', index, int(index < 12))
+
+    def test_two_held_zeros_sum_liability_without_imputing_full_cost_or_usage(self):
+        self.complete_terminus()
+        before = self.runtime_bytes()
+        held = hh.hold_entries(hh.validate_historical_hold(self.runtime))
+        bundle = collect(self.root, self.admission)
+        summary = bundle['conditions']['terminus-2']
+        self.assertEqual((summary['terminal_cells'], summary['verified_cells'], summary['held_cells']), (20, 18, 2))
+        self.assertEqual((summary['passes'], summary['terminal_zero_rewards']), (10, 10))
+        self.assertEqual(summary['pass_rate_fixed_20'], .5)
+        self.assertEqual(Decimal(summary['known_billed_subtotal_usd']), Decimal('.036') +
+                         sum(Decimal(entry['settled_subtotal_nanodollars']) for entry in held) / Decimal(10**9))
+        self.assertEqual(Decimal(summary['known_billed_subtotal_usd']), Decimal('.03925122'))
+        liability = sum(Decimal(entry['reserved_nanodollars']) for entry in held) / Decimal(10**9)
+        self.assertEqual(liability, Decimal('.212992'))
+        self.assertEqual(Decimal(summary['known_retained_liability_usd']), liability)
+        self.assertEqual(Decimal(summary['retained_liability_usd']), liability)
+        self.assertEqual(summary['unknown_terminal_cost_cells'], 2)
+        self.assertFalse(summary['billing_complete'])
+        self.assertFalse(summary['usage_complete'])
+        for field in ('full_cost_usd', 'full_prompt_tokens', 'full_completion_tokens', 'full_requests'):
+            self.assertIsNone(summary[field])
+        self.assertEqual(summary['known_prompt_tokens_subtotal'], 1800)
+        self.assertEqual(summary['known_completion_tokens_subtotal'], 360)
+        self.assertEqual(summary['known_requests_subtotal'], 36)
+        for field in ('prompt_tokens', 'completion_tokens', 'requests'):
+            self.assertEqual(summary['cells_with_known_' + field], 18)
+        self.assertEqual(summary['historical_pending_barrier_markers'],
+                         sum(entry['budget_stop_count'] for entry in held))
+        self.assertEqual(summary['known_capacity_budget_stopped_trials'], 0)
+        rows = {row['trial_id']: row for row in bundle['rows']}
+        for entry in held:
+            row = rows[entry['trial_id']]
+            self.assertEqual((row['state'], row['status'], row['reward']), (HELD_TERMINAL, 'billing_unresolved', 0))
+            self.assertIs(row['billing_verified'], False)
+            self.assertEqual(row['historical_hold_sha256'], entry['sidecar_sha256'])
+            for field in ('charged_usd', 'prompt_tokens', 'completion_tokens', 'requests'):
+                self.assertIsNone(row[field])
+            original = json.loads(self.fixture.results[entry['trial_id']].read_text())
+            for phase in ('setup', 'agent', 'verifier'):
+                self.assertEqual(row[phase + '_seconds'], (original.get('phase_seconds') or {}).get(phase))
+        provenance = bundle['provenance']
+        self.assertEqual(provenance['historical_hold_count'], 2)
+        self.assertEqual(provenance['historical_hold_sha256'], held[0]['sidecar_sha256'])
+        self.assertEqual(provenance['historical_hold_original_result_sha256'], {
+            entry['trial_id']: entry['original_result_sha256'] for entry in held})
+        self.assertFalse(bundle['final_accuracy_or_win_claimed'])
+        self.assertFalse(bundle['selection_or_expansion_authorized'])
+        self.assertEqual(before, self.runtime_bytes())
+
+    def test_tampering_either_original_result_fails_before_output(self):
+        for path in self.fixture.results.values():
+            original = path.read_bytes()
+            try:
+                path.write_bytes(original + b' ')
+                with self.subTest(trial=path.parent.name), self.assertRaises(ValueError):
+                    export(self.root, self.admission, self.root / 'tampered-export')
+                self.assertFalse((self.root / 'tampered-export').exists())
+            finally:
+                path.write_bytes(original)
+
+    def test_neither_hold_can_be_substituted_by_another_trial_identity(self):
+        for identifier in self.fixture.results:
+            replacement = self.runtime / 'scored-trials' / (identifier + '-replacement')
+            replacement.mkdir()
+            try:
+                with self.subTest(trial=identifier), self.assertRaisesRegex(ValueError, 'no substitutions'):
+                    collect(self.root, self.admission)
+            finally:
+                replacement.rmdir()
+
+    def test_a_third_unresolved_result_is_not_a_held_zero(self):
+        row = self.write_result('terminus-2', 6)
+        row['status'] = 'billing_unresolved'
+        row['billing']['billing_verified'] = False
+        self.persist(row)
+        with self.assertRaisesRegex(RuntimeError, 'Unverified attempt'):
+            export(self.root, self.admission, self.root / 'unknown-export')
+        self.assertFalse((self.root / 'unknown-export').exists())
+
+    def test_a_third_pending_ledger_request_blocks_the_snapshot(self):
+        ledger = self.fixture.ledger()
+        try:
+            ledger.db.execute("INSERT INTO requests VALUES ('third-unknown','third-trial',1,NULL,'pending')")
+        finally:
+            ledger.close()
+        with self.assertRaises(ValueError):
+            export(self.root, self.admission, self.root / 'third-hold-export')
+        self.assertFalse((self.root / 'third-hold-export').exists())
+
+    def test_forged_zero_charge_is_rejected_for_either_held_view(self):
+        from matrix_resume import completed_cell
+        for identifier in self.fixture.results:
+            def impute(root, cell, settings):
+                row = completed_cell(root, cell, settings)
+                if row is not None and row['trial_id'] == identifier:
+                    row['billing']['charged_usd'] = '0'
+                return row
+            with self.subTest(trial=identifier), patch('export_development.completed_cell', side_effect=impute):
+                with self.assertRaisesRegex(ValueError, 'differs from immutable'):
+                    collect(self.root, self.admission)
+
+    def test_two_hold_csv_remains_allowlisted_and_read_only(self):
+        before = self.runtime_bytes()
+        destination = export(self.root, self.admission, self.root / 'two-hold-export')
+        with (destination / 'development_trials.csv').open() as handle:
+            rows = list(csv.DictReader(handle))
+        held_rows = [row for row in rows if row['state'] == HELD_TERMINAL]
+        self.assertEqual({row['trial_id'] for row in held_rows}, set(self.fixture.results))
+        self.assertEqual(len(held_rows), 2)
+        self.assertTrue(all(row['reward'] == '0' for row in held_rows))
+        for row in held_rows:
+            for field in ('charged_usd', 'prompt_tokens', 'completion_tokens', 'requests'):
+                self.assertEqual(row[field], '')
+        for path in destination.iterdir():
+            self.assertNotIn('DO_NOT_EXPORT_PRIVATE_DATA', path.read_text())
+        self.assertEqual(before, self.runtime_bytes())
 
 
 if __name__ == '__main__':

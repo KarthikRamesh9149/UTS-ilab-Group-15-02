@@ -3,7 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from historical_hold import validate_historical_hold
+from historical_hold import hold_entries, validate_historical_hold
 from matrix_resume import completed_cell
 from qualification_gate import evaluate
 from scoring_admission import validate
@@ -13,10 +13,28 @@ def expansion_allowed(root, report):
     """Consume either the original pass or the explicit validated amendment."""
     if report.get('paid_expansion_allowed') is True:
         return True
+    if report.get('completion_amendment_expansion_allowed') is True:
+        hold = validate_historical_hold(Path(root) / '.runtime/stage2')
+        return (hold is not None and hold.get('schema_version') == 2
+                and len(hold_entries(hold)) == 2
+                and report.get('status') == 'completion_amendment_expansion_allowed'
+                and report.get('paid_expansion_allowed') is False
+                and report.get('accounting_bounded_expansion_allowed') is False
+                and report.get('original_billing_completeness_satisfied') is False
+                and report.get('actual_charge_and_token_totals_complete') is False
+                and report.get('historical_hold_sha256') == hold['sidecar_sha256']
+                and report.get('completion_amendment_sha256') == hold['sidecar_sha256']
+                and report.get('model_protocol_sha256') == hold['model_protocol_sha256']
+                and report.get('held_terminal_trials') == 2
+                and report.get('held_trial_ids') == sorted(entry['trial_id'] for entry in hold_entries(hold))
+                and report.get('expected_trials') == report.get('observed_trials') == 20
+                and type(report.get('verified_successes')) is int and 0 <= report['verified_successes'] <= 18
+                and type(report.get('budget_exhausted_trials')) is int and 0 <= report['budget_exhausted_trials'] <= 20
+                and report.get('completion_amendment_reasons') == [])
     if report.get('accounting_bounded_expansion_allowed') is not True:
         return False
     hold = validate_historical_hold(Path(root) / '.runtime/stage2')
-    return (hold is not None
+    return (hold is not None and hold.get('schema_version') != 2
             and report.get('status') == 'accounting_bounded_expansion_allowed'
             and report.get('paid_expansion_allowed') is False
             and report.get('original_billing_completeness_satisfied') is False
@@ -63,6 +81,9 @@ def assess(root, admission, review):
     hold = validate_historical_hold(runtime)
     if review.get('historical_hold_sha256') != (hold['sidecar_sha256'] if hold else None):
         raise ValueError('Review does not bind the exact historical accounting hold')
+    completion_sha = hold['sidecar_sha256'] if hold and hold.get('schema_version') == 2 else None
+    if review.get('completion_amendment_sha256') != completion_sha:
+        raise ValueError('Review does not bind the exact prospective completion amendment')
     return evaluate(records, task_ids=tasks, protocol_sha256=settings.fingerprint(),
                     systemic_review_clear=all(finding['clear'] for finding in findings.values()),
                     runtime=runtime)

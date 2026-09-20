@@ -7,7 +7,7 @@ from threading import Barrier
 
 import historical_hold as hh
 from budget_ledger import BudgetExceeded, Ledger, dollars
-from test_historical_hold import HoldFixture
+from test_historical_hold import HoldFixture, HoldFixtureV2
 
 
 class BudgetTests(unittest.TestCase):
@@ -378,6 +378,65 @@ class HistoricalHoldBudgetTests(unittest.TestCase):
                 self.assertEqual(self.ledger.exposure(), self.original_exposure)
                 self.assertEqual(self.original_rows(), sorted(hh.ORIGINAL_ROWS))
                 self.assertEqual(self.ledger.blocking_pending(), [])
+
+
+class TwoHistoricalHoldBudgetTests(HistoricalHoldBudgetTests):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.fixture = HoldFixtureV2(self.temp.name)
+        self.ledger = self.fixture.ledger()
+        self.original_exposure = (hh.SETTLED_NANODOLLARS + hh.SECOND_SETTLED_NANODOLLARS
+                                  + 2 * hh.RESERVED_NANODOLLARS)
+
+    def test_account_floor_counts_full_hold_and_new_reservation_exactly(self):
+        self.assertEqual(self.ledger.exposure(), self.original_exposure)
+        with self.assertRaises(BudgetExceeded):
+            self.ledger.reserve('short', 'fresh', '.1', '2.312991999',
+                                'development', trial_estimate='.01')
+        self.assert_request_absent('short')
+        self.ledger.reserve('exact', 'fresh', '.1', '2.312992',
+                            'development', trial_estimate='.01')
+        self.assertEqual(self.ledger.exposure(), self.original_exposure + dollars('.1'))
+        self.assertEqual(sum(row[2] for row in self.ledger.pending()), dollars('.312992'))
+        with self.assertRaises(BudgetExceeded): self.ledger.blocking_pending()
+
+    def test_two_connections_admit_only_one_new_request_beside_hold(self):
+        barrier = Barrier(2)
+        def attempt(identifier):
+            ledger = self.fixture.ledger()
+            try:
+                barrier.wait(timeout=5)
+                ledger.reserve(identifier, identifier, '.1', '25', 'development', trial_estimate='.01')
+                return identifier, True
+            except BudgetExceeded:
+                return identifier, False
+            finally:
+                ledger.close()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            outcomes = dict(pool.map(attempt, ('new-a', 'new-b')))
+        self.assertEqual(sorted(outcomes.values()), [False, True])
+        winner = next(identifier for identifier, accepted in outcomes.items() if accepted)
+        self.assertEqual({row[0] for row in self.ledger.pending()},
+                         {hh.REQUEST_ID, hh.SECOND_REQUEST_ID, winner})
+        with self.assertRaises(BudgetExceeded): self.ledger.blocking_pending()
+        self.ledger.settle(winner, '.01')
+        self.assertEqual(self.ledger.blocking_pending(), [])
+        self.assertEqual({row[0] for row in self.ledger.pending()}, {hh.REQUEST_ID, hh.SECOND_REQUEST_ID})
+
+    def test_historical_rows_and_unknown_pending_survive_new_work_and_restart(self):
+        before = self.ledger.db.execute('SELECT * FROM requests ORDER BY id').fetchall()
+        self.ledger.reserve('new', 'fresh', '.1', '25', 'development', trial_estimate='.01')
+        self.ledger.settle('new', '.01')
+        self.ledger.close()
+        self.ledger = self.fixture.ledger()
+        after = self.ledger.db.execute("SELECT * FROM requests WHERE id!='new' ORDER BY id").fetchall()
+        self.assertEqual(after, before)
+        self.assertEqual(self.ledger.exposure(), self.original_exposure + dollars('.01'))
+        self.assertEqual(self.ledger.blocking_pending(), [])
+        for trial in (hh.TRIAL_ID, hh.SECOND_TRIAL_ID):
+            with self.assertRaises(BudgetExceeded):
+                self.ledger.reserve('replay', trial, '.1', '25', 'development', trial_estimate='.01')
+        self.assertEqual({row[0] for row in self.ledger.pending()}, {hh.REQUEST_ID, hh.SECOND_REQUEST_ID})
 
 
 if __name__ == '__main__':

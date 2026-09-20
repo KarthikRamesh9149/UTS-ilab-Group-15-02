@@ -65,6 +65,52 @@ class HoldFixture:
         self.patches.close()
 
 
+class HoldFixtureV2(HoldFixture):
+    """Synthetic immutable two-hold registry, with verified known receipts."""
+    def __init__(self, root, *, registered=True):
+        super().__init__(root, registered=False)
+        self.second_attempt = private_directory(self.runtime / 'scored-attempts' / hh.SECOND_TRIAL_ID)
+        hashes = {}
+        for name in hh.SECOND_ATTEMPT_HASHES:
+            durable_json(self.second_attempt / name, {'synthetic_second_evidence': name})
+            hashes[name] = hashlib.sha256((self.second_attempt / name).read_bytes()).hexdigest()
+        self.patches.enter_context(patch.object(hh, 'SECOND_ATTEMPT_HASHES', hashes))
+        folder = private_directory(self.runtime / 'scored-trials' / hh.SECOND_TRIAL_ID)
+        self.second_result = folder / 'result.json'
+        self.results = {hh.TRIAL_ID: self.result, hh.SECOND_TRIAL_ID: self.second_result}
+        self.attempts = {hh.TRIAL_ID: self.attempt, hh.SECOND_TRIAL_ID: self.second_attempt}
+        for trial, task, constant in ((hh.TRIAL_ID, 'video-processing', 'RESULT_SHA256'),
+                                      (hh.SECOND_TRIAL_ID, 'reshard-c4-data', 'SECOND_RESULT_SHA256')):
+            value = {'trial_id': trial, 'task_id': task, 'stage': 'development', 'harness': 'terminus-2',
+                     'model_protocol_sha256': self.settings.fingerprint(), 'status': 'billing_unresolved',
+                     'billing': {'billing_verified': False}, 'verifier_result': {'rewards': {'reward': 0}},
+                     'agent_error_type': 'APIError', 'model_revoked': True, 'containers_removed': True,
+                     'networks_removed': True, 'volumes_removed': True}
+            path = self.results[trial]
+            if path.exists():
+                path.write_text(json.dumps(value, sort_keys=True))
+            else:
+                durable_json(path, value)
+            self.patches.enter_context(patch.object(hh, constant, hashlib.sha256(path.read_bytes()).hexdigest()))
+        ledger = self.ledger(enabled=False)
+        with ledger.transaction():
+            ledger.db.execute('INSERT INTO trial_stages VALUES (?,?)', (hh.SECOND_TRIAL_ID, 'development'))
+            for identifier, reserved, charge, state, estimate, generation, receipt_state in hh.SECOND_ORIGINAL_ROWS:
+                ledger.db.execute('INSERT INTO requests VALUES (?,?,?,?,?)',
+                                  (identifier, hh.SECOND_TRIAL_ID, reserved, charge, state))
+                ledger.db.execute('INSERT INTO trial_estimates VALUES (?,?)', (identifier, estimate))
+                if generation is not None:
+                    ledger.db.execute('INSERT INTO generations VALUES (?,?)', (identifier, generation))
+                if receipt_state is not None:
+                    ledger.db.execute('INSERT INTO receipt_checks VALUES (?,?)', (identifier, receipt_state))
+        ledger.close()
+        durable_json(self.runtime / hh.SIDECAR, hh.canonical_hold_document())
+        self.patches.enter_context(patch.object(hh, 'PRIOR_SIDECAR_SHA256',
+            hashlib.sha256((self.runtime / hh.SIDECAR).read_bytes()).hexdigest()))
+        if registered:
+            durable_json(self.runtime / hh.SIDECAR_V2, hh.canonical_v2_document())
+
+
 class HistoricalHoldTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -163,6 +209,114 @@ class HistoricalHoldTests(unittest.TestCase):
 
     def test_validator_requires_transaction_on_canonical_connection(self):
         with self.assertRaises(ValueError): hh.validate_historical_hold(self.runtime, self.ledger.db)
+
+
+class TwoHistoricalHoldTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.fixture = HoldFixtureV2(self.temp.name)
+        self.runtime = self.fixture.runtime
+        self.ledger = self.fixture.ledger()
+
+    def tearDown(self):
+        self.ledger.close()
+        self.fixture.close()
+        self.temp.cleanup()
+
+    def test_two_exact_unknowns_are_preserved_and_read_only(self):
+        paths = [self.runtime / 'scored_budget.sqlite', self.runtime / hh.SIDECAR, *self.fixture.results.values()]
+        before = [path.read_bytes() for path in paths]
+        registry = hh.validate_historical_hold(self.runtime)
+        self.assertEqual(registry['schema_version'], 2)
+        self.assertEqual(registry['reserved_nanodollars'], 212992000)
+        self.assertFalse(registry['billing_verified'])
+        self.assertIsNone(registry['charged_nanodollars'])
+        self.assertFalse(registry['original_qualification_gate_satisfied'])
+        self.assertEqual({entry['request_id'] for entry in hh.hold_entries(registry)},
+                         {hh.REQUEST_ID, hh.SECOND_REQUEST_ID})
+        for trial in self.fixture.results:
+            entry = hh.hold_for_trial(registry, trial)
+            self.assertIsNone(entry['charged_nanodollars'])
+            self.assertFalse(entry['billing_verified'])
+            self.assertEqual(entry['reserved_nanodollars'], 106496000)
+            self.assertEqual(entry['sidecar_sha256'], registry['sidecar_sha256'])
+        second = hh.hold_for_trial(registry, hh.SECOND_TRIAL_ID)
+        self.assertEqual((second['budget_stop_count'], second['capacity_budget_stop_count']), (0, 0))
+        self.assertEqual(second['budget_stop_classification'], 'no_budget_stop')
+        self.assertEqual(len(self.ledger.pending()), 2)
+        self.assertEqual(self.ledger.blocking_pending(), [])
+        self.assertEqual(before, [path.read_bytes() for path in paths])
+
+    def test_prior_amendment_bytes_required_and_v1_does_not_authorize_second(self):
+        prior = self.runtime / hh.SIDECAR
+        original = prior.read_bytes()
+        prior.write_bytes(original + b'\n')
+        with self.assertRaisesRegex(ValueError, 'Original historical hold amendment'):
+            hh.validate_historical_hold(self.runtime)
+        prior.write_bytes(original)
+        (self.runtime / hh.SIDECAR_V2).unlink()
+        with self.assertRaisesRegex(ValueError, 'Another unresolved'):
+            hh.validate_historical_hold(self.runtime)
+        self.assertEqual(prior.read_bytes(), original)
+
+    def test_either_evidence_result_or_known_receipt_tamper_blocks(self):
+        paths = [*self.fixture.results.values(), self.fixture.attempt / '000003.request.json',
+                 self.fixture.second_attempt / '000006.request.json',
+                 self.fixture.second_attempt / '000005.receipt.json']
+        for path in paths:
+            with self.subTest(path=path):
+                original = path.read_bytes()
+                path.write_bytes(b'{}')
+                with self.assertRaises(ValueError): hh.validate_historical_hold(self.runtime)
+                path.write_bytes(original)
+        durable_json(self.fixture.second_attempt / '000006.response.json', {'invented': True})
+        with self.assertRaises(ValueError): hh.validate_historical_hold(self.runtime)
+
+    def test_third_unknown_incident_and_unverified_known_receipts_block(self):
+        for statement in (
+            "INSERT INTO requests VALUES ('third','new',106496000,NULL,'pending')",
+            "INSERT INTO incidents VALUES ('unknown',1)",
+            "INSERT INTO receipt_checks VALUES ('orphan','pending')",
+            "UPDATE receipt_checks SET state='pending' WHERE request_id='7648c6c2-a378-4dc3-8f7e-45929c96d7d9'",
+        ):
+            with self.subTest(statement=statement):
+                self.ledger.db.execute('BEGIN IMMEDIATE')
+                try:
+                    self.ledger.db.execute(statement)
+                    with self.assertRaises(ValueError): hh.validate_historical_hold(self.runtime, self.ledger.db)
+                finally:
+                    self.ledger.db.execute('ROLLBACK')
+
+    def test_both_historical_trials_reject_replay(self):
+        for trial in self.fixture.results:
+            with self.assertRaises(BudgetExceeded):
+                self.ledger.reserve('replay', trial, '.1', '25', 'development', trial_estimate='.01')
+        self.assertEqual(self.ledger.db.execute('SELECT COUNT(*) FROM requests').fetchone()[0], 9)
+
+    def test_second_original_ledger_facts_cannot_be_corrected_by_the_hold(self):
+        for statement in (
+            "UPDATE requests SET charged=0 WHERE id='" + hh.SECOND_REQUEST_ID + "'",
+            "UPDATE trial_estimates SET amount=1 WHERE request_id='" + hh.SECOND_REQUEST_ID + "'",
+            "INSERT INTO generations VALUES ('" + hh.SECOND_REQUEST_ID + "','fabricated')",
+            "UPDATE requests SET charged=1 WHERE id='7648c6c2-a378-4dc3-8f7e-45929c96d7d9'",
+        ):
+            self.ledger.db.execute('BEGIN IMMEDIATE')
+            try:
+                self.ledger.db.execute(statement)
+                with self.assertRaises(ValueError): hh.validate_historical_hold(self.runtime, self.ledger.db)
+            finally:
+                self.ledger.db.execute('ROLLBACK')
+
+    def test_registry_cannot_authorize_a_third_hold_or_higher_limit(self):
+        path = self.runtime / hh.SIDECAR_V2
+        original = path.read_bytes()
+        for change in ({'reserved_nanodollars': 0}, {'aggregate_cap_nanodollars': 9_000_000_000},
+                       {'holds': hh.canonical_v2_document()['holds'] * 2},
+                       {'additional_unknown_hold_authorized': True}, {'billing_verified': True}):
+            with self.subTest(change=change):
+                path.write_text(json.dumps(dict(hh.canonical_v2_document(), **change)))
+                with self.assertRaises(ValueError): hh.validate_historical_hold(self.runtime)
+                path.write_bytes(original)
 
 
 if __name__ == '__main__':

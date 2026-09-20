@@ -181,3 +181,38 @@ class HistoricalHoldAccountingTests(unittest.TestCase):
         finally:
             ledger.close()
         with self.assertRaisesRegex(ValueError, 'Stage ceiling'): audit_trial(self.runtime, 'new', 'development')
+
+
+class TwoHistoricalHoldAccountingTests(HistoricalHoldAccountingTests):
+    def setUp(self):
+        from test_historical_hold import HoldFixtureV2
+        from test_scored_gateway import HoldClient
+        self.temp = tempfile.TemporaryDirectory()
+        self.fixture = HoldFixtureV2(self.temp.name)
+        self.runtime = self.fixture.runtime
+        self.client = HoldClient()
+        self.token = 'synthetic-token-' * 4
+        self.payload = {'model': MODEL, 'max_tokens': 64, 'temperature': 1.,
+                        'reasoning': {'effort': 'high'},
+                        'messages': [{'role': 'user', 'content': 'synthetic'}]}
+
+    def test_new_trial_verified_with_separate_actual_and_unknown_exposure(self):
+        import historical_hold as hh
+        self.create(calls=2)
+        result = audit_trial(self.runtime, 'new', 'development')
+        self.assertTrue(result['billing_verified'])
+        self.assertEqual(result['charged_usd'], '0.002')
+        self.assertEqual(result['aggregate_charged_usd'], '0.00525122')
+        self.assertEqual(result['unresolved_reserved_usd'], '0.212992')
+        self.assertEqual(result['aggregate_exposure_usd'], '0.21824322')
+        self.assertEqual((result['prompt_tokens'], result['completion_tokens']), (14, 6))
+        self.assertIsNone(result['historical_hold_request_id'])
+        self.assertEqual(result['historical_hold_request_ids'], [hh.REQUEST_ID, hh.SECOND_REQUEST_ID])
+        for entry in hh.hold_entries(hh.validate_historical_hold(self.runtime)):
+            self.assertIsNone(entry['charged_nanodollars'])
+            with self.assertRaises(ValueError): audit_trial(self.runtime, entry['trial_id'], 'development')
+
+    def test_third_future_unknown_is_not_accepted_for_accounting(self):
+        self.client.fail = True
+        with self.assertRaises(GatewayError): self.create()
+        with self.assertRaises(ValueError): audit_trial(self.runtime, 'new', 'development')

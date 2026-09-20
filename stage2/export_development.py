@@ -19,7 +19,7 @@ import re
 import sqlite3
 import stat
 
-from historical_hold import validate_historical_hold
+from historical_hold import hold_entries, validate_historical_hold
 from development_selection import select
 from matrix_resume import completed_cell, validated_held_cell, HELD_TERMINAL
 from scoring_admission import validate
@@ -281,7 +281,7 @@ def collect(root, admission):
             'all_primary_cells_terminal': all(value['terminal_cells'] == 20 for value in summaries.values()),
             'conditions': summaries, 'rows': rows,
             'limitations': ['Partial conditions have no pass rate; unstarted and incomplete cells are not scored failures.',
-                'The historical held zero remains in its fixed-20 denominator; its complete cost and token totals are unknown.',
+                'Historical held zeros remain in their fixed-20 denominators; their complete cost and token totals are unknown.',
                 'Known billed subtotals exclude unknown charges. Retained liability is not an actual charge.',
                 'Known billed, usage and liability subtotals cover audited terminal evidence only; incomplete attempts may contain additional settled charges or reservations.',
                 'Phase durations use recorded setup, agent and verifier measurements; full totals require all 20 measurements, and missing durations are not zero.',
@@ -289,6 +289,9 @@ def collect(root, admission):
             'provenance': {'model_protocol_sha256': protocol, 'manifest_sha256': _digest(manifest_raw),
                 'admission_sha256': _digest(_json_bytes(admission)),
                 'historical_hold_sha256': hold['sidecar_sha256'] if hold else None,
+                'historical_hold_count': len(hold_entries(hold)),
+                'historical_hold_original_result_sha256': {
+                    entry['trial_id']: entry['original_result_sha256'] for entry in hold_entries(hold)},
                 'c2_registration_sha256': (_digest(watched[runtime / 'development-blocks/C2.json'])
                     if watched[runtime / 'development-blocks/C2.json'] is not None else None),
                 'result_sha256': {row['trial_id']: row['result_sha256'] for row in rows if row['result_sha256'] is not None}}}

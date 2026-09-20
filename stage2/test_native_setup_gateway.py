@@ -14,7 +14,7 @@ from native_setup_gateway import NativeSetupSession, scored_pending_liability, s
 from openrouter_transport import error_diagnostic
 from native_setup_accounting import audit_setup
 from test_scored_gateway import Client
-from test_historical_hold import HoldFixture
+from test_historical_hold import HoldFixture, HoldFixtureV2
 
 
 class NativeSetupTests(unittest.TestCase):
@@ -176,6 +176,79 @@ class NativeSetupTests(unittest.TestCase):
         with self.session() as session:
             session.complete('a' * 64, self.request())
         self.assertEqual(self.client.calls, 1)
+
+    def two_held_scored_requests(self):
+        fixture = HoldFixtureV2(self.root)
+        self.addCleanup(fixture.close)
+        path = self.runtime / 'scored_budget.sqlite'
+        path.chmod(0o600)
+        return path
+
+    def test_two_scored_holds_preserve_full_reservations_and_setup_floor(self):
+        path = self.two_held_scored_requests()
+        before = path.read_bytes()
+        self.assertEqual(scored_pending_liability(self.runtime), Decimal('.212992'))
+        self.client.allowance = '2.319487999'
+        with self.session() as session:
+            with self.assertRaises(BudgetExceeded): session.complete('a' * 64, self.request())
+        self.assertEqual(self.client.calls, 0)
+        self.client.allowance = '2.319488'
+        with self.session('setup-native-fixture2') as session:
+            session.complete('a' * 64, self.request())
+            self.assertEqual(session.ledger.ceiling, dollars('1'))
+        self.assertEqual(self.client.calls, 1)
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_third_scored_unknown_blocks_setup_under_two_hold_amendment(self):
+        path = self.two_held_scored_requests()
+        import sqlite3
+        with sqlite3.connect(path) as db:
+            db.execute("INSERT INTO requests VALUES ('third','new',106496000,NULL,'pending')")
+        with self.assertRaises(ValueError): self.session()
+        self.assertEqual(self.client.calls, 0)
+
+    def test_two_holds_do_not_restore_previously_spent_setup_allowance(self):
+        self.two_held_scored_requests()
+        ledger = Ledger(self.runtime / 'setup_budget.sqlite', '1', '1', {'setup': '1'})
+        ledger.reserve('earlier', 'earlier', '.95', '25', 'setup')
+        ledger.settle('earlier', '.95')
+        ledger.close()
+        with self.session() as session:
+            with self.assertRaises(BudgetExceeded): session.complete('a' * 64, self.request())
+            self.assertEqual(session.ledger.exposure(), dollars('.95'))
+        self.assertEqual(self.client.calls, 0)
+
+    def test_registered_holds_cannot_hide_liability_by_removing_scored_ledger(self):
+        for fixture_type in (HoldFixture, HoldFixtureV2):
+            with self.subTest(version=fixture_type.__name__), tempfile.TemporaryDirectory() as directory:
+                fixture = fixture_type(directory)
+                try:
+                    path = fixture.runtime / 'scored_budget.sqlite'
+                    path.rename(fixture.runtime / 'preserved.sqlite')
+                    with self.assertRaises(ValueError):
+                        NativeSetupSession(fixture.root, 'setup-native-missing', 'a' * 64,
+                                           self.client, settings=self.settings)
+                finally:
+                    fixture.close()
+        self.assertEqual(self.client.calls, 0)
+
+    def test_registered_holds_validate_original_rows_even_when_no_pending_rows_remain(self):
+        for fixture_type in (HoldFixture, HoldFixtureV2):
+            with self.subTest(version=fixture_type.__name__), tempfile.TemporaryDirectory() as directory:
+                fixture = fixture_type(directory)
+                try:
+                    path = fixture.runtime / 'scored_budget.sqlite'
+                    path.chmod(0o600)
+                    ledger = fixture.ledger(enabled=False)
+                    with ledger.transaction():
+                        ledger.db.execute("UPDATE requests SET state='settled',charged=0 WHERE state='pending'")
+                    ledger.close()
+                    with self.assertRaises(ValueError):
+                        NativeSetupSession(fixture.root, 'setup-native-empty', 'a' * 64,
+                                           self.client, settings=self.settings)
+                finally:
+                    fixture.close()
+        self.assertEqual(self.client.calls, 0)
 
     def test_scored_ledger_symlink_is_rejected_before_setup_call(self):
         path = self.held_scored_request()
