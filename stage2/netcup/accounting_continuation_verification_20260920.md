@@ -86,3 +86,44 @@ may be built only if all three live checks pass. The persistent service is
 `uts-stage2-qualification-netcupv6p.service`; its private log is
 `.runtime/stage2/netcup-qualification-v6p.log`. It then runs only the first-20
 Terminus block and stops for the actual evidence review before expansion.
+
+## Live qualification passed and scoring resumed
+
+All three corrected live fixtures passed every required check: native tool
+execution, exact model settings, receipt/usage reconciliation, metadata trace,
+runtime identity and cleanup. Costs below are setup costs, not benchmark scores.
+
+| Harness | Calls | Input tokens | Output tokens | USD |
+|---|---:|---:|---:|---:|
+| Terminus-2 | 2 | 1770 | 519 | 0.00015354 |
+| OpenHands | 3 | 20415 | 236 | 0.00126738 |
+| Custom C0 | 2 | 6463 | 304 | 0.00044250 |
+| Total | 7 | 28648 | 1059 | 0.00186342 |
+
+The cumulative original setup ledger was $0.00923412 after these checks.
+`admission_netcupv6p.json` was built from the passed proofs and independently
+validated against current native-host sources and images. Model fingerprint
+remained `b9f42d3bcc9a4f416bcaaf8ee0f175d96a2bbd493943c64199d46e671719e27f`.
+
+The same persistent service then resumed the first-20 Terminus block, retained
+the original terminal-held zero, and started the untouched `build-pov-ray`
+cell. An in-progress task has no score yet. Qualification, comparisons, the
+finalist freeze and fresh final evaluation remain subject to their existing
+evidence and funding requirements.
+
+## Separate development snapshot exporter
+
+The new host-side `export_development.py` collects the five primary fixed-20
+conditions only (100 planned cells, diagnostics excluded), under the existing
+nonblocking matrix lock. It validates canonical evidence and admission without
+editing the runtime, dispatching a task or changing source admission. Partial
+conditions have no pass rate; unstarted cells are not counted as failures.
+Unknown full costs, token totals and incomplete liabilities remain unknown,
+separate from known subtotals. The original held zero and exact evidence hashes
+are preserved. C2's parent must match audited C0/C1 selection.
+
+All 14 reporter tests passed, and independent review cleared the corrected
+candidate. Full local suites then passed 461 Stage 2 + 30 custom + 2 graph +
+12 legacy = 505 tests. The new reporter is not a paid-runtime source change;
+the previously verified 491-test native runner and live admission remain
+unchanged. No additional native test load was introduced during timed scoring.
