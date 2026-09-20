@@ -129,3 +129,18 @@ they are not concurrent matrices. Original initial20 outcomes remain
 development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
+
+## Completion-metadata checkpoint, 07:23 UTC
+
+The same service and PID remain active. **Six of 178 final trials** have binary
+verifier results: three Terminus-2 and three OpenHands. All six have confirmed
+revocation and resource cleanup. Two have verified billing; four retain
+unresolved billing and are not represented as financially verified. Individual
+non-development outcomes were not inspected or used for custom development.
+
+The seventh canonical cell, `final-terminus-2-03-build-cython-ext`, started at
+07:21:16 UTC and was active at inspection. The registration hash is unchanged,
+all 50 admitted scoring sources validate, and no unexpected final keys exist.
+The host has approximately 455 GiB free disk, 14.6 GiB available RAM and zero
+reported current memory-pressure averages. No runner was restarted, no extra
+matrix was launched, and no paid runtime or prior result was changed.
