@@ -9,6 +9,16 @@ replay the failed trial, change the task list or lower qualification thresholds.
 The original billing-completeness rule remains unsatisfied and is reported
 separately from any amended clearance.
 
+Current continuation service: `uts-stage2-qualification-netcupv6p.service`,
+private log `.runtime/stage2/netcup-qualification-v6p.log`. The final candidate
+passed 491 tests on each host and independent source review. The synthetic
+runtime passed. The initial live check stopped before any dispatch on a legacy
+ledger-file permission mismatch; that precise configuration was corrected
+without changing ledger bytes. See
+[activation and verification evidence](netcup/accounting_continuation_verification_20260920.md).
+An active service is not evidence that live qualification or benchmark scoring
+has completed.
+
 The implementation preserves the full $0.106496 reservation and original
 ledger rows/result bytes. It checks both setup and scoring ledgers before
 new spending. Any additional unknown request, pending prior-trial receipt or

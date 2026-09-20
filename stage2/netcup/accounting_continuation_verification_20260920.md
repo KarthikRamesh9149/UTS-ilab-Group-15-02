@@ -56,3 +56,33 @@ These tests and review do not replace live provider qualification. The old
 source-bound synthetic and real-model harness checks are required before the
 remaining first-20 Terminus block. Full baseline and final scores are not
 established by this document.
+
+## Native activation and zero-dispatch permissions correction
+
+The historical sidecar was registered under all three ownership locks. Its
+SHA-256 is `0b0d8f9419ab41f3b2f4cb7e4407e02a461de8b9f1b7d772385462755be43c92`.
+The scored ledger, setup ledger and original result hashes remained unchanged;
+the actual retained cell resolved to the explicit historical-held zero, still
+with `billing_verified=false`. Registration made no model call.
+
+The `netcupv6` full synthetic runtime check passed all checks with zero live
+API calls. The subsequent Terminus setup stopped before its gateway became
+healthy: the legacy scored ledger was mode 0644 inside its private 0700
+directory, whereas the new cross-ledger guard requires the file itself to be
+private. Exact-image, read-only, network-disabled reproduction identified this
+specific failure. The paid-provider ledger stayed at 43 setup requests and
+three scored requests, with no new reservation or charge. Docker cleanup was
+verified. The original failed setup proof is retained, not marked passed.
+
+Only `/opt/uts-capstone/.runtime/stage2/scored_budget.sqlite` was changed to
+mode 0600. Both ledger byte hashes stayed unchanged. Repeating the read-only
+check in the same gateway image then returned the correct retained liability,
+0.106496. No source, prompt, model setting, task input or budget changed.
+
+Fresh live setup attempts use the explicit `netcupv6p` label after that
+configuration correction. They reuse the successful `netcupv6` synthetic
+proof because its exact sources, host and image are unchanged. A new admission
+may be built only if all three live checks pass. The persistent service is
+`uts-stage2-qualification-netcupv6p.service`; its private log is
+`.runtime/stage2/netcup-qualification-v6p.log`. It then runs only the first-20
+Terminus block and stops for the actual evidence review before expansion.
