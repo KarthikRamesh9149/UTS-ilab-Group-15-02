@@ -40,7 +40,8 @@ class DeferredReceiptsTests(unittest.TestCase):
         response = self.gateway.complete('token', self.payload)
         self.assertEqual(response['id'], 'g1')
         self.assertEqual(self.receipt_calls, [])
-        self.assertEqual(self.ledger.exposure(), dollars('.001'))
+        self.assertEqual(self.ledger.trial_admission_expenditure('fixture'), dollars('.001'))
+        self.assertEqual(self.ledger.exposure(), dollars('.1'))
         self.assertEqual(len(self.ledger.pending_receipts()), 1)
         with self.assertRaises(BudgetExceeded):
             self.ledger.reserve('r2', 'next-trial', '.1', '12', 'setup')
@@ -49,6 +50,7 @@ class DeferredReceiptsTests(unittest.TestCase):
         self.assertEqual(report['receipts_verified'], 1)
         self.assertEqual(self.receipt_calls, ['g1'])
         self.assertEqual(self.ledger.pending_receipts(), [])
+        self.assertEqual(self.ledger.exposure(), dollars('.001'))
         self.ledger.reserve('r2', 'next-trial', '.1', '12', 'setup')
 
     def test_wrong_provider_stays_pending_and_blocks_dispatch(self):

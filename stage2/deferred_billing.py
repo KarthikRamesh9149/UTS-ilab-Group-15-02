@@ -295,7 +295,10 @@ def validate_deferrals(runtime, db=None, *, kind='scored', active_trial=None):
             raise ValueError('Deferred ledger, result or evidence changed')
         digest = hashlib.sha256(raw).hexdigest()
         entries.append(dict(entry, sidecar_sha256=digest, registration_sha256=digest))
-    return tuple(entries)
+    from receipt_accounting import activated_receipt_adjustments
+    adjustments = activated_receipt_adjustments(runtime, entries, kind=kind)
+    return tuple(dict(entry, receipt_recovery=adjustments[entry['trial_id']])
+                 if entry['trial_id'] in adjustments else entry for entry in entries)
 
 
 def register_terminal_deferral(runtime, *, kind, trial_id, result_path):
@@ -332,8 +335,16 @@ def validate_terminal_deferral(runtime, trial_id, raw_result, *, kind='scored'):
 
 
 def extra_exposure_nanodollars(entries, *, trial=None, stage=None):
-    return sum(entry['extra_reserved_nanodollars'] for entry in entries
-               if (trial is None or entry['trial_id'] == trial) and (stage is None or entry['stage'] == stage))
+    total = 0
+    for entry in entries:
+        if (trial is not None and entry['trial_id'] != trial) or (stage is not None and entry['stage'] != stage):
+            continue
+        original = entry['extra_reserved_nanodollars']
+        recovered = entry.get('receipt_recovery', {}).get('hold_reduction_nanodollars', 0)
+        if type(recovered) is not int or not 0 <= recovered <= original:
+            raise ValueError('Recovered receipt hold exceeds original extra liability')
+        total += original - recovered
+    return total
 
 
 def deferred_request_ids(entries):
@@ -342,12 +353,42 @@ def deferred_request_ids(entries):
 
 def unresolved_liability_nanodollars(db, entries):
     pending = db.execute("SELECT COALESCE(SUM(reserved),0) FROM requests WHERE state='pending'").fetchone()[0]
-    return pending + extra_exposure_nanodollars(entries)
+    return (pending + extra_exposure_nanodollars(entries)
+            + unregistered_receipt_liability_nanodollars(db, entries))
+
+
+def unregistered_receipt_liability_nanodollars(db, entries, *, trial=None, stage=None):
+    """Keep active receipt bounds reserved before a terminal deferral exists.
+
+    Deferral-covered receipt rows are excluded to avoid double counting. Only
+    separately activated exact receipts reduce those terminal receipt holds.
+    Truly unknown requests retain their original full pending reservation.
+    """
+    covered = {identifier for entry in entries for identifier in entry['unverified_receipt_request_ids']}
+    rows = db.execute('''SELECT r.id,r.trial,r.reserved,r.charged,r.state,s.stage
+        FROM receipt_checks c LEFT JOIN requests r ON r.id=c.request_id
+        LEFT JOIN trial_stages s ON s.trial=r.trial WHERE c.state='pending' ''').fetchall()
+    total = 0
+    for identifier, owner, reserved, charged, state, linked_stage in rows:
+        if (state != 'settled' or type(reserved) is not int or type(charged) is not int
+                or not 0 <= charged <= reserved):
+            raise ValueError('Pending receipt requires an existing bounded settled charge')
+        if identifier in covered:
+            continue
+        if (trial is not None and owner != trial) or (stage is not None and linked_stage != stage):
+            continue
+        total += reserved - charged
+    return total
 
 
 def deferred_audit(entry):
     """Explicitly incomplete cost/usage, separate from the known subtotal."""
-    return {key: entry[key] for key in ('billing_verified', 'charged_usd', 'prompt_tokens',
+    result = {key: entry[key] for key in ('billing_verified', 'charged_usd', 'prompt_tokens',
             'completion_tokens', 'model_protocol_sha256', 'budget_stop_count', 'reserved_nanodollars',
             'retained_liability_nanodollars', 'known_charged_nanodollars', 'sidecar_sha256')} | {
                 'requests': None, 'billing_deferred': True, 'accounting_bounded': True}
+    if 'receipt_recovery' in entry:
+        result['original_retained_liability_nanodollars'] = result['retained_liability_nanodollars']
+        result['retained_liability_nanodollars'] -= entry['receipt_recovery']['hold_reduction_nanodollars']
+        result['receipt_recovery'] = entry['receipt_recovery']
+    return result

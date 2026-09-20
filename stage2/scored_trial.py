@@ -96,6 +96,9 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         factory_protocol = getattr(agent_factory, 'model_protocol_sha256', protocol_hash)
         if factory_protocol != protocol_hash:
             raise ValueError('Agent factory and gateway model settings differ')
+        from receipt_runtime_transition import gateway_for_trial
+        gateway_image, accounting_transition = gateway_for_trial(
+            root, gateway_image, guard_image, model_settings)
         manifest = json.loads((root / 'stage2/input_manifest.json').read_text())
         allowed = manifest['development_ids' if stage == 'development' else 'all_task_ids']
         if task_id not in allowed:
@@ -122,6 +125,9 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                   'started_utc': datetime.now(timezone.utc).isoformat(), 'host': health,
                   'model_protocol_sha256': protocol_hash,
                   'status': 'starting', 'project': project}
+        if accounting_transition is not None:
+            result['accounting_runtime_transition_sha256'] = accounting_transition
+            result['gateway_image_id'] = gateway_image
         durable_json(trial / 'started.json', result)
         environment, bridge, trace = None, None, None
         try:

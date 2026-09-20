@@ -91,8 +91,20 @@ class Ledger:
         query = 'SELECT COALESCE(SUM(COALESCE(charged,reserved)),0) FROM requests'
         base = self.db.execute(query + (' WHERE trial=?' if trial is not None else ''),
                                (trial,) if trial is not None else ()).fetchone()[0]
-        from deferred_billing import extra_exposure_nanodollars
-        return base + extra_exposure_nanodollars(self.deferred_entries(), trial=trial)
+        from deferred_billing import extra_exposure_nanodollars, unregistered_receipt_liability_nanodollars
+        entries = self.deferred_entries()
+        return (base + extra_exposure_nanodollars(entries, trial=trial)
+                + unregistered_receipt_liability_nanodollars(self.db, entries, trial=trial))
+
+    def trial_admission_expenditure(self, trial):
+        """Actual response charges govern the approved per-trial estimate only.
+
+        Full outstanding receipt bounds still govern hard project, stage and
+        account exposure; counting them against an estimated trial allowance
+        would silently replace that separately approved allowance.
+        """
+        return self.db.execute('SELECT COALESCE(SUM(COALESCE(charged,reserved)),0) '
+                               'FROM requests WHERE trial=?', (trial,)).fetchone()[0]
 
     def reserve(self, request_id, trial, maximum, available_account_credit, stage=None, *, trial_estimate=None):
         amount = dollars(maximum)
@@ -109,7 +121,8 @@ class Ledger:
         with self.transaction():
             if self.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Ledger halted by billing incident')
-            from deferred_billing import unresolved_liability_nanodollars, extra_exposure_nanodollars
+            from deferred_billing import (unresolved_liability_nanodollars, extra_exposure_nanodollars,
+                                          unregistered_receipt_liability_nanodollars)
             entries = self.deferred_entries(active_trial=trial)
             pending = unresolved_liability_nanodollars(self.db, entries)
             if self.blocking_pending(trial=trial):
@@ -126,13 +139,14 @@ class Ledger:
                 spent = self.db.execute('''SELECT COALESCE(SUM(COALESCE(r.charged,r.reserved)),0)
                     FROM requests r JOIN trial_stages t ON r.trial=t.trial WHERE t.stage=?''', (stage,)).fetchone()[0]
                 spent += extra_exposure_nanodollars(entries, stage=stage)
+                spent += unregistered_receipt_liability_nanodollars(self.db, entries, stage=stage)
                 if spent + amount > stages[stage]:
                     raise BudgetExceeded('Stage allocation exhausted')
                 self.db.execute('INSERT OR IGNORE INTO trial_stages VALUES (?,?)', (trial, stage))
             # Earlier requests are settled or the exact historical hold.
             # Only the per-trial admission uses an approved estimate. Project,
             # stage and account checks retain the entire worst-case charge.
-            if self.exposure() + amount > self.ceiling or self.exposure(trial) + trial_amount > self.trial_cap or pending + amount > available:
+            if self.exposure() + amount > self.ceiling or self.trial_admission_expenditure(trial) + trial_amount > self.trial_cap or pending + amount > available:
                 raise BudgetExceeded('Reservation refused before dispatch')
             self.db.execute('INSERT INTO requests VALUES (?,?,?,NULL,?)',
                             (request_id, trial, amount, 'pending'))
