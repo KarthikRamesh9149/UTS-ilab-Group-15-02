@@ -27,13 +27,18 @@ from production_runtime_probe import synthetic_gateway_command
 LOADED_SOURCE_HASHES = source_hashes(Path(__file__).resolve().parents[1])
 
 
-async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', full_install=False):
+async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', full_install=False,
+                gateway_image_id=None):
     if not label.isalnum():
         raise ValueError('Alphanumeric unique evidence label required')
     if harness not in {'marker', 'openhands', 'custom'}:
         raise ValueError('Unknown infrastructure probe harness')
     if full_install and harness != 'openhands':
         raise ValueError('Full installation qualification is OpenHands-only')
+    if gateway_image_id is not None:
+        import re
+        if rebuild_gateway or not re.fullmatch(r'sha256:[a-f0-9]{64}', gateway_image_id):
+            raise ValueError('Explicit immutable existing gateway image required')
     os.umask(0o077)
     root = Path(__file__).resolve().parents[1]
     runtime = private_directory(root / '.runtime/stage2')
@@ -71,7 +76,9 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
         (fixture_root / 'stage2').mkdir(mode=0o700)
         durable_json(fixture_root / 'stage2/input_manifest.json', {'development_ids': ['lifecycle']})
         (fixture_root / '.env').write_text('OPENROUTER_API_KEY=synthetic-not-a-real-key\n')
-        gateway_image = docker('image', 'inspect', 'uts-stage2-gateway:1', '--format', '{{.Id}}')
+        gateway_image = docker('image', 'inspect', gateway_image_id or 'uts-stage2-gateway:1', '--format', '{{.Id}}')
+        if gateway_image_id is not None and gateway_image != gateway_image_id:
+            raise ValueError('Explicit gateway image differs from inspected image')
         guard_image = docker('image', 'inspect', 'uts-stage2-egress-fixture:1', '--format', '{{.Id}}')
         from harbor.models.task.task import Task
         task = Task(root / 'stage2/fixtures/lifecycle')
@@ -196,8 +203,9 @@ if __name__ == '__main__':
     parser.add_argument('--label', required=True)
     parser.add_argument('--wait', action='store_true')
     parser.add_argument('--rebuild-gateway', action='store_true')
+    parser.add_argument('--gateway-image-id', help='Qualify an immutable candidate without retagging the live image')
     parser.add_argument('--harness', choices=['marker', 'openhands', 'custom'], default='marker')
     parser.add_argument('--full-install', action='store_true', help='Qualify the production OpenHands installer')
     args = parser.parse_args()
     asyncio.run(probe(args.label, wait=args.wait, rebuild_gateway=args.rebuild_gateway,
-                      harness=args.harness, full_install=args.full_install))
+                      harness=args.harness, full_install=args.full_install, gateway_image_id=args.gateway_image_id))

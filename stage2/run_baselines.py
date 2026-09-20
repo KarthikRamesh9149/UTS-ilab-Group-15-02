@@ -19,6 +19,7 @@ from qualification_review import assess, expansion_allowed
 from scored_gateway import private_directory, durable_json
 from scored_trial import run_trial
 from scoring_admission import source_hashes, validate
+from receipt_runtime_transition import descriptor_matches
 
 
 BASELINE_ROLES = ('terminus-2', 'openhands')
@@ -144,7 +145,8 @@ def validate_registration(root, admission):
         raise ValueError('Invalid baseline registration')
     settings = validate(root, admission)
     review = descriptor.get('qualification_review')
-    if not isinstance(review, dict) or descriptor != _descriptor(root, admission, review, settings):
+    if not isinstance(review, dict) or not descriptor_matches(
+            root, admission, descriptor, _descriptor(root, admission, review, settings)):
         raise ValueError('Baseline configuration or evidence changed; resume refused')
     if not expansion_allowed(root, assess(root, admission, review)):
         raise ValueError('Qualification no longer clears baseline expansion')
@@ -166,7 +168,7 @@ async def run(root, admission, review):
         if descriptor is None:
             durable_json(runtime / REGISTRATION, expected)
             descriptor = validate_registration(root, admission)
-        if descriptor != expected:
+        if not descriptor_matches(root, admission, descriptor, expected):
             raise ValueError('Baseline review or registration changed; resume refused')
         results = []
         for cell in descriptor['cells']:

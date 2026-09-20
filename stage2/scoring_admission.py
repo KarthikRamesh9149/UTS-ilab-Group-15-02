@@ -8,7 +8,9 @@ import host_environment
 from gateway_policy import MODEL, ENDPOINT
 from model_protocol import ModelSettings
 
-RUNTIME_FILES = ('budget_ledger.py', 'historical_hold.py', 'deferred_billing.py', 'gateway_core.py', 'gateway_policy.py',
+RUNTIME_FILES = ('budget_ledger.py', 'historical_hold.py', 'deferred_billing.py',
+    'receipt_accounting.py', 'collect_deferred_receipts.py', 'receipt_runtime_transition.py',
+    'scoring_admission.py', 'gateway_core.py', 'gateway_policy.py',
     'study_budget.py', 'linux_host_health.py', 'qualify_oracle.py', 'reference_download_repair.py',
     'paid_trace.py', 'local_trace.py', 'post_trial_receipts.py',
     'task_preparation.py',
@@ -44,8 +46,11 @@ def validate(root, document):
     if document.get('host_environment') != host_environment.snapshot():
         raise ValueError('Execution host changed since qualification')
     settings = ModelSettings(**document['settings'])
-    if document.get('source_hashes') != source_hashes(root):
-        raise ValueError('Runtime code changed since qualification')
+    current_sources = source_hashes(root)
+    if document.get('source_hashes') != current_sources:
+        from receipt_runtime_transition import qualified_transition
+        if qualified_transition(root, document, current_sources) is None:
+            raise ValueError('Runtime code changed since qualification')
     for field in ['gateway_image', 'guard_image']:
         if not re.fullmatch(r'sha256:[a-f0-9]{64}', document.get(field, '')):
             raise ValueError('Pinned runtime images required')

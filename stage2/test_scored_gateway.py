@@ -306,7 +306,10 @@ class HistoricalHoldGatewayTests(unittest.TestCase):
         with self.session() as session:
             session.complete(self.token, self.payload)
             self.assertEqual(session.ledger.pending()[0][0], hh.REQUEST_ID)
-            self.assertEqual(session.ledger.exposure(), 107870460)
+            # Historical hold and known cost, plus the active receipt's full
+            # 64-output-token request bound until its independent receipt arrives.
+            self.assertEqual(session.ledger.exposure(), 211740860)
+            self.assertEqual(session.ledger.trial_admission_expenditure('new'), dollars('.001'))
         with self.assertRaises(BudgetExceeded): self.session(hh.TRIAL_ID)
         self.assertEqual(self.client.calls, 1)
 
@@ -394,6 +397,7 @@ class HistoricalHoldGatewayTests(unittest.TestCase):
         setup.reserve('setup-unknown', 'setup-probe', '.1', '12', 'setup')
         setup.close()
         validated = [{'deferred_request_ids': ['setup-unknown'],
+                      'unverified_receipt_request_ids': [],
                       'extra_reserved_nanodollars': 0}]
         import deferred_billing
         original = deferred_billing.validate_deferrals
@@ -414,6 +418,7 @@ class HistoricalHoldGatewayTests(unittest.TestCase):
         setup.settle('setup-receipt', '.001', receipt_pending=True)
         setup.close()
         validated = [{'deferred_request_ids': ['setup-receipt'],
+                      'unverified_receipt_request_ids': ['setup-receipt'],
                       'extra_reserved_nanodollars': dollars('.099')}]
         with patch('deferred_billing.validate_deferrals', return_value=validated):
             self.assertEqual(require_clear_setup_ledger(self.fixture.runtime), Decimal('.099'))
