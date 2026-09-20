@@ -2,16 +2,16 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T07:23:38Z",
-    "status": "Full baselines running: six trial results collected",
-    "detail": "At this checkpoint, three Terminus-2 and three OpenHands final trials had official binary verifier results and confirmed cleanup. Two have verified billing; four retain unresolved billing under the approved continuation rule. The seventh canonical cell, Terminus-2 build-cython-ext, was active. The same persistent service targets all 178 baseline cells before custom development, and all 50 admitted scoring-source hashes still validate. The initial20 run remains separate. Live metadata below supplies current attempted and billing-verified counts, not a completed full-study score.",
+    "updated_at_utc": "2026-09-20T07:56:42Z",
+    "status": "Full baselines running: 14 trial results collected",
+    "detail": "At this checkpoint, seven Terminus-2 and seven OpenHands final trials had official binary verifier results and confirmed cleanup. Seven have verified billing; seven retain unresolved billing under the approved continuation rule. The 15th canonical cell, OpenHands cancel-async-tasks, was active. The same persistent service targets all 178 baseline cells before custom development, and all 50 admitted scoring-source hashes still validate. The initial20 run remains separate. Live metadata below supplies current attempted and billing-verified counts, not a completed full-study score.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
     {"name": "Initial baseline qualification", "state": "20/20 finished; technical review complete", "detail": "Seven official passes and 13 failures retained. Twelve billing-verified trials and eight unresolved-billing trials are distinct. The original performance gate failed; the user-approved continuation amendment permits full collection."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
-    {"name": "Fresh full evaluation", "state": "Full baselines running", "detail": "Six of 178 trial results existed at the 07:23 UTC checkpoint; the seventh task was active. Both harnesses have begun their full89 schedules. The 178 baseline results will join 89 later frozen-custom trials; initial development results are not substituted into final scores."},
+    {"name": "Fresh full evaluation", "state": "Full baselines running", "detail": "14 of 178 trial results existed at the 07:56 UTC checkpoint; the 15th task was active. Both harnesses have begun their full89 schedules. The 178 baseline results will join 89 later frozen-custom trials; initial development results are not substituted into final scores."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
   ],
   "financial_snapshot": {
