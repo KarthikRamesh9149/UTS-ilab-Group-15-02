@@ -65,6 +65,13 @@ Its two requests cost US$0.00019314, with 1,752 prompt and 617 completion tokens
 This is setup evidence, not a scored benchmark task. OpenHands and custom
 qualification were still pending at that observation.
 
+At **04:09 UTC**, all three actual harness checks had passed and
+`admission_netcupv8.json` existed. Terminus-2 and custom each used two requests;
+OpenHands used three. Total receipt-matched setup cost for these seven requests
+was US$0.00131724. The same persistent service then resumed the first missing
+scored cell, `dev-terminus-2-06-install-windows-3.11`, without replacing any of
+the six prior outcomes. This is actual resumed scoring, not full-89 completion.
+
 After the initial 20-task systemic review, `run_baselines.py` is the next
 priority: exactly **89 Terminus-2 + 89 OpenHands final tasks**, registered before
 dispatch. Those same 178 results will be retained in the final comparison;
