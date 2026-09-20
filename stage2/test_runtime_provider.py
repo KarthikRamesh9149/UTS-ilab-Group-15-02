@@ -9,11 +9,12 @@ class ProviderFixtureTests(unittest.TestCase):
                 'tools': [{'function': {'name': name}} for name in ['execute_bash', 'finish']]}
 
     def with_provider(self, check):
-        def serve(*args):
+        def serve(*args, completion_wait_seconds):
+            self.assertEqual(completion_wait_seconds, 240.)
             from openrouter_transport import OpenRouter
             check(OpenRouter())  # Patched by the fixture; never a real transport.
         with patch('scored_gateway.serve', side_effect=serve), patch('scored_gateway.durable_json'):
-            gateway_fixture(native_openhands=True)
+            gateway_fixture(native_openhands=True, completion_wait_seconds=240.)
 
     def test_native_tool_sequence_and_no_third_call(self):
         def check(provider):

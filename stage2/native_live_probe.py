@@ -22,6 +22,16 @@ from qualify_oracle import check_host
 from scored_gateway import durable_json, private_directory
 from scored_trial import run_trial, docker
 from scoring_admission import source_hashes
+from completion_wait import validate_completion_wait
+
+
+def native_setup_command(trial_id, config_name, completion_wait_seconds):
+    wait_seconds = validate_completion_wait(completion_wait_seconds)
+    return ['--root', '/study', '--trial', trial_id,
+        '--token-file', '/run/trial-token', '--credential-file', '/run/openrouter.env',
+        '--socket', '/socket/private/model.sock', '--settings-file',
+        '/study/.runtime/stage2/native-setup-configs/' + config_name,
+        '--completion-wait-seconds', str(wait_seconds)]
 
 
 async def probe(harness, label, settings, *, execute=False, wait=False):
@@ -72,10 +82,8 @@ async def probe(harness, label, settings, *, execute=False, wait=False):
             value = compose_runtime(**kwargs)
             service = value['services']['model-gateway']
             service['entrypoint'] = ['python', '/study/stage2/native_setup_gateway.py']
-            service['command'] = ['--root', '/study', '--trial', trial_id,
-                '--token-file', '/run/trial-token', '--credential-file', '/run/openrouter.env',
-                '--socket', '/socket/private/model.sock', '--settings-file',
-                '/study/.runtime/stage2/native-setup-configs/' + config.name]
+            service['command'] = native_setup_command(trial_id, config.name,
+                                                      kwargs['completion_wait_seconds'])
             return value
         factory = agent_factory('C0' if harness == 'custom' else harness, settings,
                                 **({'custom_max_model_calls': 6} if harness == 'custom' else {}))

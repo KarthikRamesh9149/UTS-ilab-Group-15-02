@@ -20,6 +20,7 @@ from gateway_core import Gateway, Trial, token_digest
 from model_protocol import ModelSettings
 from scored_gateway import ScoredSession, durable_json, private_directory
 from setup_probe import full_context_bound
+from completion_wait import validate_completion_wait
 
 
 def scored_pending_liability(runtime):
@@ -62,6 +63,7 @@ class NativeSetupSession(ScoredSession):
         self.client = client
         self.sequence = self.budget_stop_sequence = 0
         self.active_prefix = None
+        self.reservation_id = None
         runtime = private_directory(Path(root).resolve() / '.runtime/stage2')
         self.setup_runtime = runtime
         # Require the already-existing shared account of ALL previous setup
@@ -88,7 +90,8 @@ class NativeSetupSession(ScoredSession):
                 'receipt_timing': receipt_timing, 'inline_charge_source': 'openrouter_response_usage_cost'})
             self.gateway = Gateway(self.ledger, Trial(trial_id, 'setup', token_digest(token)),
                 self.available_balance, full_context_bound, self.generate, self.receipt,
-                request_policy=settings.enforce, receipt_timing=receipt_timing)
+                request_policy=settings.enforce, receipt_timing=receipt_timing,
+                on_reserved=self.record_reservation)
         except BaseException:
             self.close()
             raise
@@ -102,10 +105,11 @@ class NativeSetupSession(ScoredSession):
         return available
 
 
-def serve(root, trial_id, token_file, credential_file, socket_path, settings_file):
+def serve(root, trial_id, token_file, credential_file, socket_path, settings_file, *, completion_wait_seconds):
     """Explicit container entry point; never called by importing this module."""
     from gateway_http import make_unix_server
     from openrouter_transport import OpenRouter, load_key
+    completion_wait_seconds = validate_completion_wait(completion_wait_seconds)
     def private_text(filename):
         path = Path(filename)
         info = path.lstat()
@@ -116,7 +120,8 @@ def serve(root, trial_id, token_file, credential_file, socket_path, settings_fil
     settings = ModelSettings(**json.loads(private_text(settings_file)))
     socket_path = Path(socket_path)
     private_directory(socket_path.parent)
-    client = OpenRouter(load_key(credential_file), generation_enabled=True)
+    client = OpenRouter(load_key(credential_file), generation_enabled=True,
+                        completion_wait_seconds=completion_wait_seconds)
     def interrupted(signum, frame): raise KeyboardInterrupt
     previous = signal.signal(signal.SIGTERM, interrupted)
     server = None
@@ -136,9 +141,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ['root', 'trial', 'token-file', 'credential-file', 'socket', 'settings-file']:
         parser.add_argument('--' + name, required=True)
+    parser.add_argument('--completion-wait-seconds', required=True, type=float)
     args = parser.parse_args()
     try:
-        serve(args.root, args.trial, args.token_file, args.credential_file, args.socket, args.settings_file)
+        serve(args.root, args.trial, args.token_file, args.credential_file, args.socket, args.settings_file,
+              completion_wait_seconds=args.completion_wait_seconds)
     except KeyboardInterrupt:
         pass
     except Exception as exc:

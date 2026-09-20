@@ -50,7 +50,7 @@ class HarborGatewayTests(unittest.IsolatedAsyncioTestCase):
                 agent = agent_factory('terminus-2', ModelSettings(64, 1., 'high'))(
                     paths=SimpleNamespace(agent_dir=Path(directory)), host_api_base=base,
                     container_api_base='http://127.0.0.1:8765/v1', trial_token='fixture',
-                    agent_timeout_seconds=60)
+                    agent_timeout_seconds=60, completion_wait_seconds=721.5)
                 # Actual production factory and its native client serialization.
                 response = await agent._llm.call('Synthetic client fixture', **agent._llm_call_kwargs)
                 self.assertEqual(response.content, 'UTS_FIXTURE')

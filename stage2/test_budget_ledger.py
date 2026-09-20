@@ -55,6 +55,89 @@ class BudgetTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.ledger.settle('a', '.02')
 
+    def test_generation_header_keeps_full_pending_reservation_without_charge(self):
+        self.ledger.reserve('a', 'trial', '.055', '25')
+        before = self.ledger.db.execute('SELECT * FROM requests').fetchall()
+        self.ledger.attach_generation('a', 'generation-a')
+        self.assertEqual(self.ledger.db.execute('SELECT * FROM requests').fetchall(), before)
+        self.assertEqual(self.ledger.pending(), [('a', 'trial', dollars('.055'), 'generation-a')])
+        self.assertEqual(self.ledger.db.execute(
+            'SELECT reserved,charged,state FROM requests WHERE id=?', ('a',)).fetchone(),
+            (dollars('.055'), None, 'pending'))
+        self.assertEqual(self.ledger.exposure(), dollars('.055'))
+        self.assertEqual(self.ledger.db.execute('SELECT * FROM receipt_checks').fetchall(), [])
+        self.assertEqual(self.ledger.db.execute('SELECT * FROM incidents').fetchall(), [])
+
+    def test_identical_generation_attachment_is_idempotent_across_connections(self):
+        self.ledger.reserve('a', 'trial', '.055', '25')
+        self.ledger.attach_generation('a', 'generation-a')
+        other = Ledger(self.path, '.10', '.055')
+        try:
+            other.attach_generation('a', 'generation-a')
+            self.assertFalse(other.db.in_transaction)
+        finally:
+            other.close()
+        self.assertEqual(self.ledger.db.execute('SELECT * FROM generations').fetchall(),
+                         [('a', 'generation-a')])
+        self.assertEqual(self.ledger.db.execute(
+            'SELECT reserved,charged,state FROM requests WHERE id=?', ('a',)).fetchone(),
+            (dollars('.055'), None, 'pending'))
+        self.assertEqual(self.ledger.exposure(), dollars('.055'))
+
+    def test_conflicting_generation_cannot_replace_existing_attachment(self):
+        self.ledger.reserve('a', 'trial', '.055', '25')
+        self.ledger.attach_generation('a', 'generation-a')
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.ledger.attach_generation('a', 'generation-b')
+        self.assertFalse(self.ledger.db.in_transaction)
+        self.assertEqual(self.ledger.db.execute('SELECT * FROM generations').fetchall(),
+                         [('a', 'generation-a')])
+        self.assertEqual(self.ledger.exposure(), dollars('.055'))
+
+    def test_generation_cannot_be_attached_to_another_request(self):
+        self.ledger.reserve('a', 'trial-a', '.055', '25')
+        self.ledger.attach_generation('a', 'generation-a')
+        self.ledger.settle('a', '.001')
+        self.ledger.reserve('b', 'trial-b', '.055', '25')
+        before = self.ledger.db.execute('SELECT * FROM requests ORDER BY id').fetchall()
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.ledger.attach_generation('b', 'generation-a')
+        self.assertFalse(self.ledger.db.in_transaction)
+        self.assertEqual(self.ledger.db.execute('SELECT * FROM generations').fetchall(),
+                         [('a', 'generation-a')])
+        self.assertEqual(self.ledger.db.execute('SELECT * FROM requests ORDER BY id').fetchall(), before)
+
+    def test_generation_attachment_rejects_unknown_request(self):
+        with self.assertRaisesRegex(ValueError, 'Unknown request'):
+            self.ledger.attach_generation('unknown', 'generation-a')
+        self.assertFalse(self.ledger.db.in_transaction)
+        self.assertEqual(self.ledger.db.execute('SELECT * FROM generations').fetchall(), [])
+        self.assertEqual(self.ledger.exposure(), 0)
+
+    def test_concurrent_conflicting_generation_attachments_keep_one_identity(self):
+        self.ledger.reserve('a', 'trial', '.055', '25')
+        barrier = Barrier(2)
+
+        def attach(generation):
+            ledger = Ledger(self.path, '.10', '.055')
+            try:
+                barrier.wait(timeout=5)
+                ledger.attach_generation('a', generation)
+                return generation, True
+            except sqlite3.IntegrityError:
+                self.assertFalse(ledger.db.in_transaction)
+                return generation, False
+            finally:
+                ledger.close()
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            outcomes = dict(pool.map(attach, ('generation-a', 'generation-b')))
+        self.assertEqual(sorted(outcomes.values()), [False, True])
+        winner = next(generation for generation, accepted in outcomes.items() if accepted)
+        self.assertEqual(self.ledger.db.execute('SELECT * FROM generations').fetchall(), [('a', winner)])
+        self.assertEqual(self.ledger.pending(), [('a', 'trial', dollars('.055'), winner)])
+        self.assertEqual(self.ledger.exposure(), dollars('.055'))
+
     def test_overcharge_not_silently_accepted(self):
         self.ledger.reserve('a', 'trial', '.01', '25')
         with self.assertRaises(BudgetExceeded):

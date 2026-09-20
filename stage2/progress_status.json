@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
+  "engineering": {
+    "updated_at_utc": "2026-09-20T02:09:00Z",
+    "status": "Offline engineering active",
+    "detail": "563 offline tests passed on the Mac and in an isolated native environment. The runtime candidate has not been deployed or requalified. Paid benchmark execution remains stopped; the project is not complete.",
+    "source": "Curated engineering checkpoint; separate from live trial metadata"
+  },
+  "pipeline": [
+    {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
+    {"name": "Initial baseline qualification", "state": "Stopped at checkpoint", "detail": "Six of 20 Terminus-2 development tasks attempted. Three budget-stopped trials exceed the original maximum of two. Expansion is not established."},
+    {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
+    {"name": "Fresh full evaluation", "state": "Not started", "detail": "89 fresh tasks per baseline and 89 for a frozen custom finalist remain separate from development runs."},
+    {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
+  ],
+  "financial_snapshot": {
+    "observed_at_utc": "2026-09-20T01:38:37Z",
+    "available_account_credit_usd": "12.015073652",
+    "known_project_charges_usd": "0.02061936",
+    "unresolved_holds_usd": "0.212992",
+    "note": "Recorded snapshot only; this panel makes no account or billing API calls. Holds are not confirmed charges. Account credit is separate from the key allowance."
+  },
+  "last_remote_snapshot": {
+    "observed_at_utc": "2026-09-20T01:38:36Z",
+    "service": {"ActiveState": "failed", "SubState": "failed"},
+    "tracks": {
+      "final_terminus": {"target": 89, "attempted": 0, "verified": 0, "passes": 0, "unknown": 0, "budget_stops": 0},
+      "final_openhands": {"target": 89, "attempted": 0, "verified": 0, "passes": 0, "unknown": 0, "budget_stops": 0},
+      "custom_development": {"target": 20, "attempted": 0, "verified": 0, "passes": 0, "unknown": 0, "budget_stops": 0},
+      "final_custom": {"target": 89, "attempted": 0, "verified": 0, "passes": 0, "unknown": 0, "budget_stops": 0},
+      "initial_terminus": {"target": 20, "attempted": 6, "billing_verified": 4, "verified": 4, "passes": 1, "unknown": 2, "budget_stops": 3},
+      "openhands_development": {"target": 20, "attempted": 0, "verified": 0, "passes": 0, "unknown": 0, "budget_stops": 0}
+    },
+    "custom_variants": {
+      "C0": {"attempted": 0, "verified": 0, "passes": 0, "unknown": 0},
+      "C1": {"attempted": 0, "verified": 0, "passes": 0, "unknown": 0},
+      "C2": {"attempted": 0, "verified": 0, "passes": 0, "unknown": 0}
+    },
+    "initial_trials": [],
+    "duplicate_cells": [],
+    "rejected_records": [],
+    "ignored_records": 0
+  }
+}

@@ -53,11 +53,11 @@ class SingleDispatchClient:
     def balance(self): return self.client.balance()
     def key_status(self): return self.client.key_status()
 
-    def complete(self, request):
+    def complete(self, request, *, on_response_headers=None):
         if self.calls:
             raise ValueError('Diagnostic permits exactly one upstream dispatch')
         self.calls += 1
-        return self.client.complete(request)
+        return self.client.complete(request, on_response_headers=on_response_headers)
 
 
 def run(root, label, *, execute=False, client=None):

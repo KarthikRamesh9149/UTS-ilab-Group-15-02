@@ -156,11 +156,18 @@ class Ledger:
             raise BudgetExceeded('Charge exceeds reservation or trial estimate; ledger halted')
 
     def attach_generation(self, request_id, generation_id):
+        """Retain an identity without settling billing; identical evidence is safe to repeat."""
         if not isinstance(generation_id, str) or not generation_id or len(generation_id) > 256:
             raise ValueError('Invalid generation identifier')
         with self.transaction():
             if not self.db.execute('SELECT 1 FROM requests WHERE id=?', (request_id,)).fetchone():
                 raise ValueError('Unknown request')
+            existing = self.db.execute('SELECT generation_id FROM generations WHERE request_id=?',
+                                       (request_id,)).fetchone()
+            if existing == (generation_id,):
+                return
+            # Keep both uniqueness constraints authoritative for conflicting
+            # evidence, including attachments from another ledger connection.
             self.db.execute('INSERT INTO generations VALUES (?,?)', (request_id, generation_id))
 
     def record_receipt_incident(self, request_id, actual):

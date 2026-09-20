@@ -22,6 +22,7 @@ from scored_trial import run_trial, docker
 from gateway_policy import MODEL
 from model_protocol import ModelSettings
 from scoring_admission import source_hashes
+from production_runtime_probe import synthetic_gateway_command
 
 LOADED_SOURCE_HASHES = source_hashes(Path(__file__).resolve().parents[1])
 
@@ -87,11 +88,9 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
             kwargs['tokenizer_dir'] = root / '.cache/stage2-tokenizer'
             result = compose_runtime(**kwargs)
             result['services']['model-gateway']['entrypoint'] = ['python', '/study/stage2/production_runtime_probe.py']
-            result['services']['model-gateway']['command'] = ['--gateway']
-            if harness == 'openhands':
-                result['services']['model-gateway']['command'].append('--native-openhands')
-            if harness == 'custom':
-                result['services']['model-gateway']['command'].append('--native-custom')
+            result['services']['model-gateway']['command'] = synthetic_gateway_command(
+                kwargs['completion_wait_seconds'], native_openhands=harness == 'openhands',
+                native_custom=harness == 'custom')
             return result
         def factory(**kwargs):
             if harness == 'custom':
@@ -132,7 +131,7 @@ async def probe(label, *, wait=False, rebuild_gateway=False, harness='marker', f
                         req = urllib.request.Request(kwargs['host_api_base'] + '/chat/completions',
                             data=json.dumps(payload).encode(), headers={
                                 'Authorization': 'Bearer ' + kwargs['trial_token'], 'Content-Type': 'application/json'})
-                        with urllib.request.urlopen(req, timeout=60) as response:
+                        with urllib.request.urlopen(req, timeout=kwargs['completion_wait_seconds']) as response:
                             return json.load(response)
                     response = await asyncio.to_thread(request)
                     observed['real_host_bridge_roundtrip'] = response['choices'][0]['message']['content'] == 'UTS_RUNTIME_OK'

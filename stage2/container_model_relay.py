@@ -11,13 +11,15 @@ import socket
 
 from gateway_http import Handler
 from gateway_policy import MAX_BODY
+from completion_wait import validate_completion_wait
 
 MAX_RESPONSE = 16 * 1024 * 1024
 
 
 class UnixConnection(http.client.HTTPConnection):
-    def __init__(self, path, timeout=90):
-        super().__init__('private-model-gateway', timeout=timeout)
+    def __init__(self, path, *, completion_wait_seconds):
+        super().__init__('private-model-gateway',
+                         timeout=validate_completion_wait(completion_wait_seconds))
         self.path = str(path)
 
     def connect(self):
@@ -49,7 +51,8 @@ class RelayHandler(Handler):
         except (ValueError, OSError):
             self.reply(400, {'error': {'message': 'Invalid request body'}})
             return
-        connection = UnixConnection(self.server.socket_path)
+        connection = UnixConnection(self.server.socket_path,
+            completion_wait_seconds=self.server.completion_wait_seconds)
         try:
             connection.request('POST', '/v1/chat/completions', body,
                                {'Authorization': credentials[0], 'Content-Type': 'application/json'})
@@ -69,9 +72,11 @@ class RelayHandler(Handler):
             connection.close()
 
 
-def make_relay(socket_path, port=0):
+def make_relay(socket_path, port=0, *, completion_wait_seconds):
+    completion_wait_seconds = validate_completion_wait(completion_wait_seconds)
     server = HTTPServer(('127.0.0.1', port), RelayHandler)
     server.socket_path = str(socket_path)
+    server.completion_wait_seconds = completion_wait_seconds
     return server
 
 
@@ -79,6 +84,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--socket', required=True)
     parser.add_argument('--port', type=int, default=8765)
+    parser.add_argument('--completion-wait-seconds', type=float, required=True)
     args = parser.parse_args()
-    with make_relay(args.socket, args.port) as server:
+    with make_relay(args.socket, args.port, completion_wait_seconds=args.completion_wait_seconds) as server:
         server.serve_forever()

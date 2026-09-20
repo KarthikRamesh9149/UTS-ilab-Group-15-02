@@ -5,8 +5,9 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 
-from container_model_relay import make_relay
+from container_model_relay import make_relay, UnixConnection
 from gateway_core import GatewayError
 from gateway_http import make_unix_server
 
@@ -24,7 +25,7 @@ class RelayTests(unittest.TestCase):
                 outer.calls.append(payload)
                 return {'id': 'synthetic', 'choices': [{'message': {'content': 'OK'}}]}
         self.gateway = make_unix_server(Stub, self.path)
-        self.relay = make_relay(self.path)
+        self.relay = make_relay(self.path, completion_wait_seconds=960)
         self.threads = []
         for server in (self.gateway, self.relay):
             thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -39,10 +40,11 @@ class RelayTests(unittest.TestCase):
             thread.join(timeout=3)
         self.temp.cleanup()
 
-    def call(self, token='fixture', path='/v1/chat/completions', headers=None):
+    def call(self, token='fixture', path='/v1/chat/completions', headers=None, payload=None):
         client = http.client.HTTPConnection(*self.relay.server_address, timeout=3)
         try:
-            client.request('POST', path, '{}', headers if headers is not None else {'Authorization': 'Bearer ' + token})
+            client.request('POST', path, json.dumps({} if payload is None else payload),
+                           headers if headers is not None else {'Authorization': 'Bearer ' + token})
             response = client.getresponse()
             return response.status, response.read()
         finally:
@@ -83,3 +85,22 @@ class RelayTests(unittest.TestCase):
         status, _ = self.call(headers={'Authorization': 'Bearer fixture', 'Transfer-Encoding': 'chunked'})
         self.assertEqual(status, 400)
         self.assertFalse(self.calls)
+
+    def test_trusted_wait_reaches_socket_and_payload_cannot_override(self):
+        with patch('container_model_relay.UnixConnection', wraps=UnixConnection) as connection:
+            self.assertEqual(self.call(payload={'completion_wait_seconds': .001})[0], 200)
+            connection.assert_called_once_with(str(self.path), completion_wait_seconds=960.)
+        self.assertEqual(self.relay.completion_wait_seconds, 960.)
+
+
+class RelayWaitValidationTests(unittest.TestCase):
+    def test_socket_timeout_and_invalid_waits(self):
+        connection = UnixConnection('/fixture', completion_wait_seconds=960)
+        self.assertEqual(connection.timeout, 960.)
+        connection.close()
+        for value in (None, True, '960', 0, -1, float('nan'), float('inf')):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    UnixConnection('/fixture', completion_wait_seconds=value)
+                with self.assertRaises(ValueError):
+                    make_relay('/fixture', completion_wait_seconds=value)

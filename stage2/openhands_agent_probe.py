@@ -9,9 +9,17 @@ from pathlib import Path
 import subprocess
 import tempfile
 import uuid
+from completion_wait import completion_wait_for, validate_completion_wait
 
 TOKEN = 'synthetic-openhands-fixture'
 SOCKET = '/socket/private/model.sock'
+
+
+def relay_command(completion_wait_seconds):
+    wait_seconds = validate_completion_wait(completion_wait_seconds)
+    return ('python /code/container_model_relay.py --socket /socket/private/model.sock '
+            '--port 8765 --completion-wait-seconds ' + str(wait_seconds) +
+            ' >/tmp/model-relay.log 2>&1 &')
 
 
 def serve_gateway():
@@ -53,12 +61,14 @@ def serve_gateway():
 
 async def main(label, guarded=False):
     os.umask(0o077)
-    from harbor.agents.installed.openhands import OpenHands
+    from native_agents import CompatibleOpenHands
     from harbor.environments.docker.docker import DockerEnvironment
     from harbor.models.agent.context import AgentContext
     from harbor.models.task.config import EnvironmentConfig
     from harbor.models.trial.paths import TrialPaths
     from gateway_policy import MODEL
+    synthetic_timeout_seconds = 180  # Existing fixture agent deadline.
+    completion_wait_seconds = completion_wait_for(synthetic_timeout_seconds)
     root = Path(__file__).resolve().parents[1]
     if not label.isalnum():
         raise ValueError('Alphanumeric evidence label required')
@@ -93,7 +103,7 @@ async def main(label, guarded=False):
         session_id=name, trial_paths=paths,
         task_env_config=EnvironmentConfig(docker_image=image, cpus=2, memory_mb=4096),
         extra_docker_compose=[override])
-    class PreparedOpenHands(OpenHands):
+    class PreparedOpenHands(CompatibleOpenHands):
         async def install(self, environment):
             result = await environment.exec(self.get_version_command(), timeout_sec=30)
             if result.return_code != 0:
@@ -124,15 +134,16 @@ async def main(label, guarded=False):
             network_check = await environment.exec("python -c \"import urllib.request; assert urllib.request.urlopen('https://openrouter.ai/api/v1/models', timeout=20).status == 200\"", timeout_sec=30)
             evidence['checks']['public_https_works'] = network_check.return_code == 0
         await environment.ensure_dirs(['/logs/agent'])
-        await environment.exec('python /code/container_model_relay.py --socket /socket/private/model.sock --port 8765 >/tmp/model-relay.log 2>&1 &', timeout_sec=10)
+        await environment.exec(relay_command(completion_wait_seconds), timeout_sec=10)
         await asyncio.sleep(.5)
         agent = PreparedOpenHands(logs_dir=paths.agent_dir, model_name='openai/' + MODEL,
             version='0.62.0', python_version='3.12', api_base='http://127.0.0.1:8765/v1',
-            extra_env={'LLM_API_KEY': TOKEN}, num_retries=0, max_iterations=4,
+            extra_env={'LLM_API_KEY': TOKEN, 'LLM_TIMEOUT': str(int(completion_wait_seconds))},
+            num_retries=0, max_iterations=4,
             model_info={'max_input_tokens': 1048576, 'max_output_tokens': 2048})
         await asyncio.wait_for(agent.setup(environment), timeout=60)
         context = AgentContext()
-        await asyncio.wait_for(agent.run('Create /tmp/uts-openhands-result.txt containing exactly UTS_OPENHANDS_OK.', environment, context), timeout=180)
+        await asyncio.wait_for(agent.run('Create /tmp/uts-openhands-result.txt containing exactly UTS_OPENHANDS_OK.', environment, context), timeout=synthetic_timeout_seconds)
         result = await environment.exec('cat /tmp/uts-openhands-result.txt', timeout_sec=10)
         evidence['checks']['agent_created_file'] = result.return_code == 0 and result.stdout == 'UTS_OPENHANDS_OK'
         evidence['context'] = context.model_dump(exclude={'rollout_details'})

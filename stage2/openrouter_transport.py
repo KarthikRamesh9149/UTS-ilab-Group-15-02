@@ -4,6 +4,7 @@ No retries, no redirects carrying credentials, no raw HTTP exception bodies.
 Generation must be enabled explicitly by a qualified gateway, never by a client.
 """
 from decimal import Decimal
+from http.client import HTTPException
 import json
 from pathlib import Path
 import re
@@ -11,6 +12,8 @@ import stat
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 from urllib.parse import urlencode
+
+from completion_wait import validate_completion_wait
 
 BASE = 'https://openrouter.ai/api/v1'
 ENDPOINTS = '/models/deepseek/deepseek-v4-flash-20260731/endpoints'
@@ -48,12 +51,38 @@ def error_diagnostic(document=None, *, status=None, headers=None):
     kind = metadata.get('error_type')
     def identifier(value, prefix):
         return value if isinstance(value, str) and re.fullmatch(prefix + r'-[A-Za-z0-9_-]{1,250}', value) else None
-    return {'http_status': status if type(status) is int and 100 <= status <= 599 else None,
+    def header(name, prefix):
+        if hasattr(headers, 'get_all'):
+            values = headers.get_all(name, []) or []
+        else:
+            values = [value for key, value in headers.items() if key.lower() == name.lower()]
+        conflict = len(values) > 1 and any(value != values[0] for value in values[1:])
+        return (None if conflict or not values else identifier(values[0], prefix)), conflict
+    header_generation, generation_conflict = header('X-Generation-Id', 'gen')
+    request_id, request_conflict = header('X-Request-Id', 'req')
+    body_generation = identifier(document.get('id'), 'gen')
+    if body_generation and header_generation and body_generation != header_generation:
+        generation_conflict = True
+    result = {'http_status': status if type(status) is int and 100 <= status <= 599 else None,
         'error_code': error.get('code') if type(error.get('code')) is int and 100 <= error['code'] <= 599 else None,
         'error_type': kind if isinstance(kind, str) and kind in ERROR_TYPES else None,
-        'generation_id': identifier(document.get('id'), 'gen') or identifier(headers.get('X-Generation-Id'), 'gen'),
-        'request_id': identifier(headers.get('X-Request-Id'), 'req'),
+        'generation_id': None if generation_conflict else body_generation or header_generation,
+        'request_id': request_id,
         'billing_outcome': 'unknown_reservation_retained'}
+    if generation_conflict or request_conflict:
+        result['identifier_conflict'] = True
+    return result
+
+
+def sanitize_diagnostic(value):
+    """Revalidate the small diagnostic contract before writing private evidence."""
+    value = value if isinstance(value, dict) else {}
+    result = error_diagnostic({'id': value.get('generation_id'), 'error': {
+        'code': value.get('error_code'), 'metadata': {'error_type': value.get('error_type')}}},
+        status=value.get('http_status'), headers={'X-Request-Id': value.get('request_id')})
+    if value.get('identifier_conflict') is True:
+        result['identifier_conflict'] = True
+    return result
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -76,25 +105,38 @@ def load_key(path):
 
 
 class OpenRouter:
-    def __init__(self, key, generation_enabled=False, opener=None):
+    def __init__(self, key, generation_enabled=False, opener=None, *, completion_wait_seconds=45):
+        self.completion_wait_seconds = validate_completion_wait(completion_wait_seconds)
         self._key = key
         self.generation_enabled = generation_enabled
         self.opener = opener or build_opener(NoRedirect())
 
-    def _request(self, path, payload=None):
+    def _request(self, path, payload=None, *, on_response_headers=None):
         if path not in {'/credits', '/key', ENDPOINTS, '/chat/completions'} and not path.startswith('/generation?id='):
             raise TransportError('Unapproved API path')
         if path == '/chat/completions' and (not self.generation_enabled or payload is None):
             raise TransportError('Generation is disabled')
+        if on_response_headers is not None and (path != '/chat/completions' or not callable(on_response_headers)):
+            raise ValueError('Completion header observer must be callable')
         body = None if payload is None else json.dumps(payload, allow_nan=False).encode()
         req = Request(BASE + path, data=body, headers={
             'Authorization': 'Bearer ' + self._key, 'Content-Type': 'application/json',
         })
+        diagnostic = None
+        def observe_headers(status, headers):
+            nonlocal diagnostic
+            diagnostic = error_diagnostic(status=status, headers=headers)
+            if on_response_headers is not None:
+                on_response_headers(diagnostic)
+            if diagnostic.get('identifier_conflict'):
+                raise TransportError('Conflicting response identifiers', diagnostic=diagnostic)
         try:
-            with self.opener.open(req, timeout=45) as response:
+            timeout = self.completion_wait_seconds if path == '/chat/completions' else 45
+            with self.opener.open(req, timeout=timeout) as response:
+                observe_headers(getattr(response, 'status', None), getattr(response, 'headers', None))
                 raw = response.read(MAX_RESPONSE + 1)
                 if len(raw) > MAX_RESPONSE:
-                    raise TransportError('Response too large; outcome may be ambiguous')
+                    raise TransportError('Response too large; outcome may be ambiguous', diagnostic=diagnostic)
                 result = json.loads(raw, parse_float=Decimal)
                 if not isinstance(result, dict) or 'error' in result:
                     raise TransportError('Provider returned an error', diagnostic=error_diagnostic(
@@ -105,17 +147,22 @@ class OpenRouter:
             # only a bounded envelope and retain strictly allowlisted metadata.
             document = None
             try:
-                raw = exc.read(65537)
-                if len(raw) <= 65536:
-                    document = json.loads(raw)
-            except (OSError, ValueError, TypeError):
-                pass
+                try:
+                    observe_headers(exc.code, exc.headers)
+                except (OSError, ValueError, HTTPException):
+                    raise TransportError('Response evidence unavailable', diagnostic=diagnostic) from None
+                try:
+                    raw = exc.read(65537)
+                    if len(raw) <= 65536:
+                        document = json.loads(raw)
+                except (OSError, ValueError, TypeError, HTTPException):
+                    pass
             finally:
                 exc.close()
             raise TransportError('OpenRouter HTTP status ' + str(exc.code),
                 diagnostic=error_diagnostic(document, status=exc.code, headers=exc.headers)) from None
-        except (URLError, TimeoutError, OSError, ValueError):
-            raise TransportError('OpenRouter response unavailable or invalid') from None
+        except (URLError, TimeoutError, OSError, ValueError, HTTPException):
+            raise TransportError('OpenRouter response unavailable or invalid', diagnostic=diagnostic) from None
 
     def balance(self):
         data = self._request('/credits')['data']
@@ -131,8 +178,8 @@ class OpenRouter:
         data = self._request('/key')['data']
         return {k: data.get(k) for k in ('limit', 'limit_remaining', 'usage', 'limit_reset')}
 
-    def complete(self, payload):
-        return self._request('/chat/completions', payload)
+    def complete(self, payload, *, on_response_headers=None):
+        return self._request('/chat/completions', payload, on_response_headers=on_response_headers)
 
     def generation(self, identifier):
         if not isinstance(identifier, str) or not identifier or len(identifier) > 256:

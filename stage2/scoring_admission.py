@@ -14,7 +14,7 @@ RUNTIME_FILES = ('budget_ledger.py', 'historical_hold.py', 'gateway_core.py', 'g
     'task_preparation.py',
     'native_setup_gateway.py', 'native_setup_accounting.py', 'custom-requirements.lock',
     'gateway_http.py', 'scored_gateway.py', 'scored_accounting.py', 'model_protocol.py',
-    'trial_estimator.py', 'openrouter_transport.py', 'receipt_polling.py',
+    'trial_estimator.py', 'openrouter_transport.py', 'receipt_polling.py', 'completion_wait.py',
     'production_compose.py', 'guarded_runtime.py', 'container_model_relay.py',
     'container_gateway_rpc.py', 'host_model_bridge.py', 'trial_execution.py',
     'scored_trial.py', 'pinned_docker.py', 'host_environment.py', 'native_agents.py', 'custom_backend.py', 'custom_runner.py',

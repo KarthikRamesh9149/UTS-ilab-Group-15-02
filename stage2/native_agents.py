@@ -9,11 +9,18 @@ from pathlib import Path
 
 from harbor.agents.installed.openhands import OpenHands
 from harbor.agents.terminus_2.terminus_2 import Terminus2
+from completion_wait import validate_completion_wait
 from gateway_policy import MODEL
 from model_protocol import ModelSettings
 
 
 class NoRetryTerminus(Terminus2):
+    # Harbor also retries at the agent layer, outside the LLM adapter below.
+    # Bind its unchanged body: preserve native context/output recovery, but
+    # propagate connection failures without replaying an uncertain request.
+    # Fail closed if the pinned library's wrapper contract disappears.
+    _query_llm = Terminus2._query_llm.__wrapped__
+
     def _init_llm(self, *args, **kwargs):
         client = super()._init_llm(*args, **kwargs)
         # The adapter's retry decorator is additional to LiteLLM num_retries.
@@ -69,19 +76,26 @@ def agent_factory(harness, settings, *, custom_max_model_calls=None, parent=None
     elif parent is not None or custom_max_model_calls is not None:
         raise ValueError('Custom-only options on baseline')
 
-    def create(*, paths, host_api_base, container_api_base, trial_token, agent_timeout_seconds):
+    def create(*, paths, host_api_base, container_api_base, trial_token, agent_timeout_seconds,
+               completion_wait_seconds):
+        completion_wait_seconds = validate_completion_wait(completion_wait_seconds)
         shared = dict(logs_dir=paths.agent_dir, model_name='openai/' + MODEL,
                       temperature=settings.temperature, reasoning_effort=settings.reasoning_effort,
                       model_info=settings.model_info)
         if harness == 'terminus-2':
             return NoRetryTerminus(**shared, api_base=host_api_base,
-                llm_kwargs={'api_key': trial_token, 'num_retries': 0, 'timeout': 120},
+                llm_kwargs={'api_key': trial_token, 'num_retries': 0, 'timeout': completion_wait_seconds},
                 llm_call_kwargs={'max_tokens': settings.max_output_tokens,
                     'extra_body': {'reasoning': {'effort': settings.reasoning_effort}}})
         if harness == 'openhands':
+            # OpenHands 0.62 casts LLM_TIMEOUT with int(value), silently
+            # ignoring fractional strings. Reject instead of losing the wait.
+            if not completion_wait_seconds.is_integer():
+                raise ValueError('OpenHands requires an integral completion wait')
             return CompatibleOpenHands(**shared, version='0.62.0', python_version='3.12',
                 top_p=1.0,
-                api_base=container_api_base, extra_env={'LLM_API_KEY': trial_token, 'LLM_TIMEOUT': '120',
+                api_base=container_api_base, extra_env={'LLM_API_KEY': trial_token,
+                    'LLM_TIMEOUT': str(int(completion_wait_seconds)),
                     'LLM_COMPLETION_KWARGS': repr({'extra_body': {'reasoning': {'effort': settings.reasoning_effort}}})},
                 num_retries=0)
         # Import only in the separately pinned Deep Agents environment.
@@ -90,7 +104,7 @@ def agent_factory(harness, settings, *, custom_max_model_calls=None, parent=None
             api_base=host_api_base, trial_token=trial_token,
             max_output_tokens=settings.max_output_tokens, max_model_calls=custom_max_model_calls,
             temperature=settings.temperature, reasoning_effort=settings.reasoning_effort,
-            trial_timeout_seconds=agent_timeout_seconds)
+            trial_timeout_seconds=agent_timeout_seconds, completion_wait_seconds=completion_wait_seconds)
     create.harness = harness
     create.model_protocol_sha256 = settings.fingerprint()
     return create

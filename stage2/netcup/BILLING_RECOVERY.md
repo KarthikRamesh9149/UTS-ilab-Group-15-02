@@ -1,4 +1,25 @@
-# One unresolved OpenRouter request
+# Unresolved OpenRouter requests
+
+## Additional stopped request, 20 September 2026
+
+The continuation stopped on a second unknown request at approximately
+**20 September 2026 01:27:16–01:28:24 UTC**, on the same model/provider/settings.
+Trial: `dev-terminus-2-05-reshard-c4-data`.
+Local request: `5464bb2d-0767-42ff-86d7-66b11ab737ad` (not a provider ID).
+The preceding complete generation was
+`gen-1789867430-CnN2r9EJ5IN1pky315wV`, charged USD 0.00168114. Its known receipt
+has been recovered. The following request has no saved response or generation
+ID, so its USD 0.106496 reservation remains unresolved. Do not infer its charge
+from the aggregate key-usage difference or replay it. The one-historical-hold
+amendment does not cover this request.
+
+[Incident evidence and implementation correction](timeout_incident_20260920.md)
+separate the verified duplicate dispatch from the inferred teardown mechanism.
+Provider Activity evidence or an exact billing confirmation is still needed;
+no password, API key or new credit is requested. The existing result remains
+reward zero and cannot be replaced by a new attempt.
+
+## Original historical request
 
 This is a technical recovery handoff, not a benchmark result or a request to
 buy credit. Do not send an API key, password or verification code in chat.

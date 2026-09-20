@@ -10,6 +10,7 @@ from harbor.agents.base import BaseAgent
 from langchain_core.messages import messages_to_dict
 from langsmith.run_helpers import tracing_context
 
+from completion_wait import validate_completion_wait
 from custom_backend import HarborSandbox
 from custom_control import Condition
 from custom_model import gateway_model
@@ -27,7 +28,7 @@ class CustomHarborAgent(BaseAgent):
         return 'stage2-candidate-0.1.0'
 
     def __init__(self, logs_dir, *, condition, parent=None, api_base, trial_token,
-                 max_output_tokens, max_model_calls, trial_timeout_seconds,
+                 max_output_tokens, max_model_calls, trial_timeout_seconds, completion_wait_seconds,
                  model_name=MODEL, temperature=None, reasoning_effort=None, **kwargs):
         if model_name != MODEL:
             raise ValueError('Pinned model required')
@@ -35,10 +36,12 @@ class CustomHarborAgent(BaseAgent):
             raise ValueError('Official positive task timeout required')
         if type(max_model_calls) is not int or max_model_calls <= 0:
             raise ValueError('Explicit shared model-call limit required')
+        completion_wait_seconds = validate_completion_wait(completion_wait_seconds)
         super().__init__(logs_dir=Path(logs_dir), model_name=model_name, **kwargs)
         self.condition = Condition(condition, parent)
         self.model = gateway_model(api_base, trial_token, max_output_tokens=max_output_tokens,
-                                   temperature=temperature, reasoning_effort=reasoning_effort)
+                                   temperature=temperature, reasoning_effort=reasoning_effort,
+                                   completion_wait_seconds=completion_wait_seconds)
         self.max_model_calls = max_model_calls
         self.timeout = trial_timeout_seconds
         self.used = False

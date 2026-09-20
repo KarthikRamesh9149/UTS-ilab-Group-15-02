@@ -34,6 +34,27 @@ class GatewayTests(unittest.TestCase):
         self.assertEqual(len(self.calls), 1)
         self.assertEqual(self.ledger.exposure(), dollars('.001'))
 
+    def test_optional_reservation_hook_observes_committed_identity_before_dispatch(self):
+        observed = []
+        def reserved(identifier):
+            self.assertEqual(self.calls, [])
+            self.assertEqual(self.ledger.pending()[0][0], identifier)
+            observed.append(identifier)
+        self.gateway.on_reserved = reserved
+        self.gateway.complete('test-token', self.payload)
+        self.assertEqual(len(observed), 1)
+        self.assertEqual(self.ledger.db.execute('SELECT request_id FROM generations').fetchone()[0], observed[0])
+
+    def test_reservation_hook_failure_never_dispatches_or_releases(self):
+        def reserved(identifier):
+            raise RuntimeError('secret-canary')
+        self.gateway.on_reserved = reserved
+        with self.assertRaises(GatewayError) as caught: self.gateway.complete('test-token', self.payload)
+        self.assertNotIn('secret-canary', str(caught.exception))
+        self.assertEqual(self.calls, [])
+        self.assertEqual(self.ledger.exposure(), dollars('.01'))
+        self.assertEqual(self.ledger.db.execute('SELECT charged,state FROM requests').fetchone(), (None, 'pending'))
+
     def test_auth_and_revocation_precede_dispatch(self):
         with self.assertRaises(GatewayError):
             self.gateway.complete('bad', self.payload)

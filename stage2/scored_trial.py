@@ -24,6 +24,7 @@ from model_protocol import ModelSettings, freeze_protocol
 from paid_trace import PaidTrialTrace
 from post_trial_receipts import collect_receipts
 from task_preparation import refresh_package_metadata
+from completion_wait import completion_wait_for
 
 
 def docker(*args):
@@ -68,7 +69,8 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
     """Run one qualified native agent; factory gets only task timeout, not tests.
 
     Factory arguments: paths, host_api_base, container_api_base, trial_token,
-    agent_timeout_seconds. It is trusted orchestration code, never model input.
+    agent_timeout_seconds, completion_wait_seconds. These are trusted
+    orchestration values, never model input; the official deadline is unchanged.
     Billing reconciliation/selection and final protocol admission remain the
     matrix's responsibility. An interrupted attempt is retained and not resumed.
     """
@@ -99,6 +101,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         if task_id not in allowed:
             raise ValueError('Task outside frozen split')
         task = Task(frozen_dataset(root) / task_id)
+        completion_wait_seconds = completion_wait_for(task.config.agent.timeout_sec)
         if task.has_steps or task.config.verifier.environment is not None:
             raise ValueError('Unqualified separate verifier or multistep runtime')
         if task.config.environment.network_mode.value != 'public' or task.config.agent.network_mode is not None or task.config.verifier.network_mode is not None:
@@ -125,7 +128,8 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             compose = compose_runtime(gateway_image=gateway_image, guard_image=guard_image,
                 state_dir=runtime, tokenizer_dir=root / '.cache/stage2-tokenizer',
                 credential_file=root / '.env', token_file=token_file,
-                trial_id=trial_id, stage=stage, uid=0, gid=0)
+                trial_id=trial_id, stage=stage, uid=0, gid=0,
+                completion_wait_seconds=completion_wait_seconds)
             override = trial / 'compose.json'
             durable_json(override, compose)
             environment = DockerEnvironment(environment_dir=task.paths.environment_dir,
@@ -141,11 +145,12 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             relay = await asyncio.to_thread(service, project, 'model-relay')
             if relay['Image'] != gateway_image:
                 raise RuntimeError('Unexpected relay image')
-            bridge = HostModelBridge(relay['Id'])
+            bridge = HostModelBridge(relay['Id'], completion_wait_seconds=completion_wait_seconds)
             bridge.__enter__()
             agent = agent_factory(paths=paths, host_api_base=bridge.base_url,
                 container_api_base='http://127.0.0.1:8765/v1', trial_token=token,
-                agent_timeout_seconds=task.config.agent.timeout_sec)
+                agent_timeout_seconds=task.config.agent.timeout_sec,
+                completion_wait_seconds=completion_wait_seconds)
             if result['harness'] in {'terminus-2', 'openhands', 'C0', 'C1', 'C2'}:
                 trace = PaidTrialTrace(trial / 'traces', trial_id=trial_id, task_id=task_id,
                     harness=result['harness'], protocol_sha256=protocol_hash)

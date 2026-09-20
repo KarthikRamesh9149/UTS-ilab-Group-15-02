@@ -21,7 +21,8 @@ from receipt_polling import read_receipt
 from setup_probe import full_context_bound, validate_metadata
 from trial_estimator import trial_charge_estimator
 from study_budget import SCORED_CEILING, TRIAL_CAP, STAGE_CAPS
-from openrouter_transport import TransportError
+from openrouter_transport import TransportError, sanitize_diagnostic
+from completion_wait import validate_completion_wait
 
 
 def private_directory(path):
@@ -92,6 +93,7 @@ class ScoredSession:
         self.sequence = 0
         self.budget_stop_sequence = 0
         self.active_prefix = None
+        self.reservation_id = None
         root = Path(root).resolve()
         runtime = private_directory(root / '.runtime' / 'stage2')
         self.runtime = runtime
@@ -122,7 +124,7 @@ class ScoredSession:
                 self.scored_available_balance, full_context_bound, self.generate, self.receipt,
                 trial_estimate=estimator or trial_charge_estimator(root),
                 request_policy=settings.enforce if settings is not None else None,
-                receipt_timing=receipt_timing)
+                receipt_timing=receipt_timing, on_reserved=self.record_reservation)
         except BaseException:
             self.close()
             raise
@@ -144,24 +146,55 @@ class ScoredSession:
             raise BudgetExceeded('Invalid available credit')
         return min(key, account)
 
+    def record_reservation(self, identifier):
+        # Gateway invokes this under its single-flight lock, after commit and
+        # before exactly one transport dispatch. Model input cannot select it.
+        self.reservation_id = identifier
+
     def generate(self, request):
+        reservation_id, self.reservation_id = self.reservation_id, None
+        if reservation_id is None:
+            raise RuntimeError('Committed reservation required before dispatch')
         self.sequence += 1
         self.active_prefix = f'{self.sequence:06d}'
-        durable_json(self.evidence / (self.active_prefix + '.request.json'), request)
+        prefix = self.active_prefix
+        identity = {'reservation_id': reservation_id, 'trial_id': self.gateway.trial.identifier,
+                    'sequence': self.sequence}
+        durable_json(self.evidence / (prefix + '.reservation.json'), identity)
+        durable_json(self.evidence / (prefix + '.request.json'), request)
+        def attach_diagnostic(diagnostic):
+            if diagnostic.get('identifier_conflict'):
+                raise TransportError('Conflicting response identifiers', diagnostic=diagnostic)
+            if diagnostic['generation_id'] is not None:
+                self.ledger.attach_generation(reservation_id, diagnostic['generation_id'])
+        def response_headers(value):
+            diagnostic = sanitize_diagnostic(value)
+            durable_json(self.evidence / (prefix + '.response-headers.json'),
+                         dict(identity, diagnostic=diagnostic))
+            attach_diagnostic(diagnostic)
         started_ns, started = time.time_ns(), time.monotonic()
         status = 'error'
         try:
-            response = self.client.complete(request)  # Exactly one dispatch; no retries.
+            # Never retry without the callback if a client violates this
+            # interface: the first call might already have reached a provider.
+            response = self.client.complete(request, on_response_headers=response_headers)
             status = 'ok'
         except TransportError as exc:
             if exc.diagnostic is not None:
-                durable_json(self.evidence / (self.active_prefix + '.transport-error.json'), exc.diagnostic)
+                diagnostic = sanitize_diagnostic(exc.diagnostic)
+                durable_json(self.evidence / (prefix + '.transport-error.json'), diagnostic)
+                attach_diagnostic(diagnostic)
+            raise
+        except KeyboardInterrupt:
+            status = 'interrupted'
+            durable_json(self.evidence / (prefix + '.interruption.json'),
+                         dict(identity, category='gateway_interrupted_outcome_unknown'))
             raise
         finally:
-            durable_json(self.evidence / (self.active_prefix + '.timing.json'), {
+            durable_json(self.evidence / (prefix + '.timing.json'), {
                 'started_ns': started_ns, 'ended_ns': time.time_ns(),
                 'seconds': time.monotonic() - started, 'status': status})
-        durable_json(self.evidence / (self.active_prefix + '.response.json'), response)
+        durable_json(self.evidence / (prefix + '.response.json'), response)
         return response
 
     def receipt(self, identifier):
@@ -190,6 +223,7 @@ class ScoredSession:
                     'No billing reconciliation reader', 'Invalid request charge bound',
                     'Upstream outcome unknown; reservation retained',
                     'Unverified response identity; reservation retained',
+                    'Conflicting or invalid generation identity; reservation retained',
                     'Unverified response provider; reservation retained',
                     'Missing billing evidence; reservation retained',
                     'Invalid billing evidence; reservation retained',
@@ -221,7 +255,7 @@ class ScoredSession:
         self.close()
 
 
-def serve(root, trial_id, stage, token_file, credential_file, socket_path):
+def serve(root, trial_id, stage, token_file, credential_file, socket_path, *, completion_wait_seconds):
     """Private-container entry point. The orchestrator must remove its container
     at the agent/verifier boundary, revoking the task's model access.
     No credential or token is accepted on the command line or copied to logs.
@@ -229,6 +263,7 @@ def serve(root, trial_id, stage, token_file, credential_file, socket_path):
     from gateway_http import make_unix_server
     from openrouter_transport import OpenRouter, load_key
     from model_protocol import read_protocol
+    completion_wait_seconds = validate_completion_wait(completion_wait_seconds)
     settings = read_protocol(Path(root) / '.runtime/stage2')
     token_path = Path(token_file)
     info = token_path.lstat()
@@ -239,7 +274,8 @@ def serve(root, trial_id, stage, token_file, credential_file, socket_path):
         raise ValueError('Expected a random 32-byte hexadecimal token')
     socket_path = Path(socket_path)
     private_directory(socket_path.parent)
-    client = OpenRouter(load_key(credential_file), generation_enabled=True)
+    client = OpenRouter(load_key(credential_file), generation_enabled=True,
+                        completion_wait_seconds=completion_wait_seconds)
     def interrupted(signum, frame):
         raise KeyboardInterrupt
     previous = signal.signal(signal.SIGTERM, interrupted)
@@ -265,9 +301,11 @@ if __name__ == '__main__':
     parser.add_argument('--token-file', required=True)
     parser.add_argument('--credential-file', required=True)
     parser.add_argument('--socket', required=True)
+    parser.add_argument('--completion-wait-seconds', required=True, type=float)
     args = parser.parse_args()
     try:
-        serve(args.root, args.trial, args.stage, args.token_file, args.credential_file, args.socket)
+        serve(args.root, args.trial, args.stage, args.token_file, args.credential_file, args.socket,
+              completion_wait_seconds=args.completion_wait_seconds)
     except KeyboardInterrupt:
         pass
     except Exception as exc:

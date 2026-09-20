@@ -70,6 +70,12 @@ class AdmissionTests(unittest.TestCase):
         (self.root / 'stage2/scored_trial.py').write_text('changed synthetic source')
         with self.assertRaises(ValueError): validate(self.root, self.document)
 
+    def test_transport_wait_is_bound_to_qualified_sources(self):
+        self.assertIn('completion_wait.py', RUNTIME_FILES)
+        (self.root / 'stage2/completion_wait.py').write_text('changed wait policy')
+        with self.assertRaisesRegex(ValueError, 'Runtime code changed'):
+            validate(self.root, self.document)
+
     def test_changed_model_settings_are_rejected(self):
         self.document['settings']['temperature'] = 0.
         with self.assertRaises(ValueError): validate(self.root, self.document)

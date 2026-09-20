@@ -27,9 +27,10 @@ class NativeHostBridgeTests(unittest.TestCase):
                     'message': {'role': 'assistant', 'content': 'UTS_BRIDGE_OK'}}],
                 'usage': {'prompt_tokens': 5, 'completion_tokens': 3, 'total_tokens': 8}}
             return SimpleNamespace(returncode=0, stdout=json.dumps({'status': 200, 'body': body}).encode())
-        with HostModelBridge('a' * 64) as bridge:
+        with HostModelBridge('a' * 64, completion_wait_seconds=721.5) as bridge:
             bridge.gateway.run = rpc
-            model = gateway_model(bridge.base_url, 'synthetic-token', max_output_tokens=64)
+            model = gateway_model(bridge.base_url, 'synthetic-token', max_output_tokens=64,
+                                  completion_wait_seconds=721.5)
             response = model.invoke('Synthetic transport fixture')
             self.assertEqual(response.content, 'UTS_BRIDGE_OK')
             self.assertEqual(len(calls), 1)
@@ -58,11 +59,11 @@ class NativeGraphBridgeTests(unittest.IsolatedAsyncioTestCase):
                             'name': 'complete_task', 'arguments': json.dumps({'summary': 'Synthetic fixture complete'})}}]}}],
                 'usage': {'prompt_tokens': 10, 'completion_tokens': 10, 'total_tokens': 20}}
             return SimpleNamespace(returncode=0, stdout=json.dumps({'status': 200, 'body': body}).encode())
-        with tempfile.TemporaryDirectory() as directory, HostModelBridge('b' * 64) as bridge:
+        with tempfile.TemporaryDirectory() as directory, HostModelBridge('b' * 64, completion_wait_seconds=721.5) as bridge:
             bridge.gateway.run = rpc
             agent = CustomHarborAgent(Path(directory), condition='C0', api_base=bridge.base_url,
                 trial_token='synthetic-token', max_output_tokens=128, max_model_calls=2,
-                trial_timeout_seconds=15)
+                trial_timeout_seconds=15, completion_wait_seconds=721.5)
             context = AgentContext()
             await agent.run('Synthetic fixture, no task data', FakeEnvironment(), context)
             self.assertEqual(len(calls), 1)

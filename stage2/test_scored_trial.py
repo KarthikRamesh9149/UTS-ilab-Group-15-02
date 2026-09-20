@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from scored_trial import run_trial, audit_task
 from model_protocol import ModelSettings
+from completion_wait import completion_wait_for
 
 
 class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
@@ -20,7 +21,7 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
             (root / 'stage2/input_manifest.json').write_text(json.dumps({'development_ids': ['fixture']}))
             task = NS(paths=NS(environment_dir=root), has_steps=False, instruction='fixture',
                 config=NS(environment=NS(network_mode=NS(value='public'), build_timeout_sec=1),
-                    agent=NS(network_mode=None, timeout_sec=1),
+                    agent=NS(network_mode=None, timeout_sec=180),
                     verifier=NS(network_mode=None, environment=None)))
             events = []
             class Env:
@@ -30,28 +31,38 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
                 async def stop_service(self, name): events.append('revoke')
             class Bridge:
                 base_url = 'http://127.0.0.1:1234/v1'
-                def __init__(self, container): pass
+                def __init__(bridge_self, container, *, completion_wait_seconds):
+                    self.assertEqual(completion_wait_seconds, 240.)
                 def __enter__(self): events.append('bridge-start'); return self
                 def __exit__(self, *args): events.append('bridge-stop')
             def factory(**kwargs):
                 self.assertNotIn('task', kwargs)
                 self.assertEqual(kwargs['container_api_base'], 'http://127.0.0.1:8765/v1')
+                self.assertEqual(kwargs['agent_timeout_seconds'], 180)
+                self.assertEqual(kwargs['completion_wait_seconds'], 240.)
                 if factory_error: raise RuntimeError('fixture')
                 return object()
             async def phases(**kwargs):
+                self.assertIs(kwargs['task'], task)
+                self.assertEqual(kwargs['task'].config.agent.timeout_sec, 180)
                 await kwargs['revoke_model']()
                 events.append('verify')
                 return {'status': 'verified', 'verifier_result': {'rewards': {'reward': 0}}}
+            def compose(**kwargs):
+                self.assertEqual(kwargs['completion_wait_seconds'], 240.)
+                return {}
             inspection = {'Id': 'a' * 64, 'Image': 'sha256:' + 'b' * 64, 'State': {'Running': False}}
             args = dict(root=root, trial_id='test', task_id='fixture', stage='development',
                         agent_factory=factory, gateway_image=inspection['Image'],
                         model_settings=ModelSettings(64, 1., 'high'),
                         guard_image=inspection['Image'], setup_timeout_seconds=1)
             with ExitStack() as stack:
+                derive_wait = stack.enter_context(patch('scored_trial.completion_wait_for',
+                                                        wraps=completion_wait_for))
                 replacements = {'check_host': lambda: {}, 'frozen_dataset': lambda root: root,
                     'audit_trial': lambda *args: {'billing_verified': True},
                     'collect_receipts': lambda *args, **kwargs: None,
-                    'compose_runtime': lambda **kwargs: {}, 'service': lambda *args: inspection,
+                    'compose_runtime': compose, 'service': lambda *args: inspection,
                     'HostModelBridge': Bridge, 'execute_phases': phases,
                     'docker': lambda *args: 'leftover' if leftovers else ''}
                 for key, value in replacements.items(): stack.enter_context(patch('scored_trial.' + key, value))
@@ -62,6 +73,7 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
                     with self.assertRaises(RuntimeError): await run_trial(**args)
                 else:
                     await run_trial(**args)
+                derive_wait.assert_called_once_with(180)
                 result = json.loads((root / '.runtime/stage2/scored-trials/test/result.json').read_text())
                 with self.assertRaises(FileExistsError): await run_trial(**args)
             return result, events
