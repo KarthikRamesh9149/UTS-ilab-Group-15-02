@@ -130,28 +130,27 @@ development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
 
-## Completion-metadata checkpoint, 17:15 UTC
+## Completion-metadata checkpoint, 17:48 UTC
 
-The same service and PID remain active. **109 of 178 final trials** have binary
-verifier results: 55 Terminus-2 and 54 OpenHands. All 109 have confirmed
-revocation and resource cleanup. Seventy-three have verified billing; thirty-six retain
+The same service and PID remain active. **117 of 178 final trials** have binary
+verifier results: 58 Terminus-2 and 59 OpenHands. All 117 have confirmed
+revocation and resource cleanup. Seventy-six have verified billing; forty-one retain
 unresolved billing and are not represented as financially verified. Individual
 non-development outcomes were not inspected or used for custom development.
 
-The 110th canonical cell, `final-openhands-54-openssl-selfsigned-cert`, was
-in verification at inspection. Its official agent and verifier limits are
-each 900 seconds; the environment-build limit is 600 seconds. Verifier
-artifact activity was observed at 17:15:44 UTC. Contents and individual
-task outcomes were not inspected.
+The 118th canonical cell, `final-terminus-2-58-path-tracing-reverse`, was active
+at inspection. Its official agent and verifier limits are each 1800 seconds;
+the environment-build limit is 600 seconds. Request and trajectory artifact
+modification times show activity at 17:48:07 and 17:48:02 UTC respectively.
+Contents and individual task outcomes were not inspected.
 The initial20 development results remain separate from these final trials.
 The registration hash is unchanged,
 all 50 admitted scoring sources and 54 registration bindings validate, and
 the registered 178 unique cells match the canonical schedule. No unexpected
 final keys or incomplete cleanup in collected results were found.
-The host has approximately 426 GiB free disk and 13.9 GiB available RAM.
-Memory-pressure averages remain low: avg10 0.07, avg60 0.04 and avg300 0.00
-for both some and full pressure. The matrix and scored-trial locks remain
-held by the active run. The model gateway lock is free and its container
-has stopped; the other three trial containers remain during verification.
+The host has approximately 426 GiB free disk and 14.2 GiB available RAM;
+reported current memory-pressure averages are zero. The matrix, scored-trial
+and model gateway locks all remain held by the active run. Only that trial's
+four study containers are running.
 No runner was restarted, no extra matrix was launched, and no paid runtime or
 prior result was changed.
