@@ -130,22 +130,21 @@ development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
 
-## Completion-metadata checkpoint, 08:29 UTC
+## Completion-metadata checkpoint, 09:03 UTC
 
-The same service and PID remain active. **18 of 178 final trials** have binary
-verifier results: nine Terminus-2 and nine OpenHands. All 18 have confirmed
-revocation and resource cleanup. Nine have verified billing; nine retain
+The same service and PID remain active. **23 of 178 final trials** have binary
+verifier results: 12 Terminus-2 and 11 OpenHands. All 23 have confirmed
+revocation and resource cleanup. Thirteen have verified billing; ten retain
 unresolved billing and are not represented as financially verified. Individual
 non-development outcomes were not inspected or used for custom development.
 
-The 19th canonical cell, `final-terminus-2-09-circuit-fibsqrt`, started at
-08:12:27 UTC and was active at inspection. A follow-up at 08:30 UTC confirmed
-recent request and trajectory activity at 08:29:55 UTC. Its official agent and
-verifier limits are each 3600 seconds, with a 600-second environment-build limit;
-the longer duration is not evidence of a stalled process or an exceeded limit.
-The registration hash is unchanged,
+The 24th canonical cell, `final-openhands-11-code-from-image`, started at
+09:02:40 UTC and was active at inspection. Its official agent and verifier limits
+are each 1200 seconds, with a 600-second environment-build limit. No model request
+had yet been recorded for this newly started cell. Both longer circuit-fibsqrt
+trials now have retained completed results. The registration hash is unchanged,
 all 50 admitted scoring sources validate, and no unexpected final keys exist.
-The host has approximately 453 GiB free disk and 14.4 GiB available RAM;
+The host has approximately 452 GiB free disk and 14.0 GiB available RAM;
 reported current memory-pressure averages are zero.
 All three execution locks are held by the active run. No runner was restarted, no extra
 matrix was launched, and no paid runtime or prior result was changed.
