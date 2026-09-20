@@ -6,8 +6,63 @@ import unittest
 from unittest.mock import patch
 
 from historical_hold import canonical_hold_document, hold_entries, validate_historical_hold
-from matrix_resume import completed_cell, validated_held_cell, HELD_TERMINAL
+from matrix_resume import completed_cell, validated_held_cell, validated_deferred_cell, HELD_TERMINAL, DEFERRED_TERMINAL
 from model_protocol import ModelSettings
+
+
+class DeferredCellFixture:
+    """Portable real-registration fixture with no provider or mocked validator."""
+    def __init__(self, root, cell, *, reward=0, settings=None):
+        from budget_ledger import Ledger, dollars
+        from deferred_billing import register_policy, register_terminal_deferral
+        from gateway_policy import MODEL, prepare_request
+        from model_protocol import freeze_protocol
+        from scored_gateway import durable_json, private_directory
+        from study_budget import SCORED_CEILING, TRIAL_CAP, STAGE_CAPS
+        from setup_probe import full_context_bound
+        self.root, self.cell = Path(root), dict(cell)
+        self.runtime = private_directory(self.root / '.runtime/stage2')
+        self.settings = settings or ModelSettings(8192, 1., 'high')
+        freeze_protocol(self.runtime, self.settings)
+        self.policy = register_policy(self.runtime)
+        identifier = cell['trial_id']
+        self.original = dict(cell, status='billing_unresolved',
+            model_protocol_sha256=self.settings.fingerprint(),
+            model_revoked=True, containers_removed=True, networks_removed=True, volumes_removed=True,
+            cleanup_errors=[], verifier_error_type=None, agent_error_type='APIError',
+            phase_seconds={'setup': .2, 'agent': 1., 'verifier': .3},
+            billing={'billing_verified': False}, verifier_result={'rewards': {'reward': reward}},
+            agent_context={'metadata': {'custom_parent': cell.get('parent')}})
+        output = private_directory(private_directory(self.runtime / 'scored-trials') / identifier)
+        self.result_path = output / 'result.json'
+        durable_json(self.result_path, self.original)
+        evidence = private_directory(private_directory(self.runtime / 'scored-attempts') / identifier)
+        durable_json(evidence / 'started.json', {'trial_id': identifier, 'stage': cell['stage'],
+            'model_protocol_sha256': self.settings.fingerprint()})
+        request_id = 'fixture-pending-' + identifier
+        durable_json(evidence / '000001.reservation.json', {'trial_id': identifier,
+            'reservation_id': request_id, 'sequence': 1})
+        request = self.settings.enforce(prepare_request({'model': MODEL, 'max_tokens': 64,
+            'temperature': 1., 'reasoning': {'effort': 'high'},
+            'messages': [{'role': 'user', 'content': 'Synthetic deferral fixture.'}]}))
+        durable_json(evidence / '000001.request.json', request)
+        self.reserved_nanodollars = dollars(full_context_bound(request))
+        self.database = self.runtime / 'scored_budget.sqlite'
+        ledger = Ledger(self.database, SCORED_CEILING, TRIAL_CAP, STAGE_CAPS, allow_estimated_trials=True)
+        try:
+            with ledger.transaction():
+                ledger.db.execute('INSERT INTO trial_stages VALUES (?,?)', (identifier, cell['stage']))
+                ledger.db.execute("INSERT INTO requests VALUES (?,?,?,NULL,'pending')",
+                                  (request_id, identifier, self.reserved_nanodollars))
+                ledger.db.execute('INSERT INTO trial_estimates VALUES (?,10000000)', (request_id,))
+        finally:
+            ledger.close()
+        self.database.chmod(0o600)
+        self.entry = register_terminal_deferral(self.runtime, kind='scored', trial_id=identifier,
+                                               result_path=self.result_path)
+
+    def view(self):
+        return completed_cell(self.root, self.cell, self.settings)
 
 
 class ResumeTests(unittest.TestCase):
@@ -239,3 +294,70 @@ class TwoHoldResumeTests(unittest.TestCase):
         path.write_text(json.dumps(row))
         with self.assertRaises(RuntimeError):
             completed_cell(self.root, self.cell(row), self.settings)
+
+
+class DeferredResumeTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.fixture = DeferredCellFixture(temporary.name,
+            dict(trial_id='dev-C0-00-synthetic', task_id='synthetic', stage='development', harness='C0'), reward=1)
+
+    def test_registered_terminal_reward_preserved_without_unknown_billing_imputation(self):
+        fixture = self.fixture
+        before = fixture.result_path.read_bytes()
+        with patch('matrix_resume.audit_trial') as audit:
+            row = fixture.view()
+            audit.assert_not_called()
+        self.assertEqual(row['resume_disposition'], DEFERRED_TERMINAL)
+        self.assertEqual(row['verifier_result']['rewards']['reward'], 1)
+        self.assertEqual(row['status'], 'billing_unresolved')
+        self.assertIs(row['billing']['billing_verified'], False)
+        for key in ('charged_usd', 'prompt_tokens', 'completion_tokens', 'requests'):
+            self.assertIsNone(row['billing'][key])
+        self.assertEqual(row['billing']['retained_reservation_nanodollars'], fixture.reserved_nanodollars)
+        self.assertEqual(validated_deferred_cell(fixture.runtime, row, fixture.settings.fingerprint()), fixture.entry)
+        self.assertEqual(fixture.result_path.read_bytes(), before)
+
+    def test_registered_result_cannot_replay_or_invent_complete_metrics(self):
+        fixture = self.fixture
+        with self.assertRaisesRegex(ValueError, 'substitute'):
+            completed_cell(fixture.root, dict(fixture.cell, trial_id='replacement'), fixture.settings)
+        for key in ('charged_usd', 'prompt_tokens', 'completion_tokens', 'requests'):
+            row = fixture.view()
+            row['billing'][key] = 0
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                validated_deferred_cell(fixture.runtime, row, fixture.settings.fingerprint())
+
+    def test_result_tamper_missing_registration_and_missing_runtime_reject(self):
+        from deferred_billing import DIRECTORY
+        fixture = self.fixture
+        row = fixture.view()
+        with self.assertRaises(ValueError): validated_deferred_cell(None, row, fixture.settings.fingerprint())
+        original = fixture.result_path.read_bytes()
+        fixture.result_path.write_bytes(original + b'\n')
+        with self.assertRaises(ValueError): fixture.view()
+        fixture.result_path.write_bytes(original)
+        (fixture.runtime / DIRECTORY / ('scored--' + fixture.cell['trial_id'] + '.json')).unlink()
+        with self.assertRaises(ValueError): validated_deferred_cell(fixture.runtime, row, fixture.settings.fingerprint())
+
+    def test_cleanup_infrastructure_or_invalid_reward_never_become_terminal(self):
+        from matrix_resume import _deferred_view
+        fixture = self.fixture
+        for key, value in [('status', 'infrastructure_failed'), ('containers_removed', False),
+                           ('cleanup_errors', ['failure']), ('verifier_error_type', 'RuntimeError')]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                _deferred_view(dict(fixture.original, **{key: value}), fixture.entry)
+        for reward in (True, 2, None):
+            changed = dict(fixture.original, verifier_result={'rewards': {'reward': reward}})
+            with self.subTest(reward=reward), self.assertRaises(ValueError):
+                _deferred_view(changed, fixture.entry)
+
+    def test_own_trial_audit_is_explicitly_incomplete_and_keeps_stage_binding(self):
+        from scored_accounting import audit_trial
+        fixture = self.fixture
+        result = audit_trial(fixture.runtime, fixture.cell['trial_id'], 'development')
+        self.assertIs(result['billing_verified'], False)
+        self.assertIsNone(result['charged_usd'])
+        with self.assertRaisesRegex(ValueError, 'stage'):
+            audit_trial(fixture.runtime, fixture.cell['trial_id'], 'final')

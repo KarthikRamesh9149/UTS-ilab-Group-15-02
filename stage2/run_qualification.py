@@ -13,7 +13,7 @@ from pathlib import Path
 from native_agents import agent_factory
 from qualification_gate import evaluate
 from scoring_admission import validate
-from matrix_resume import completed_cell, validated_held_cell
+from matrix_resume import completed_cell, validated_held_cell, validated_deferred_cell
 from scored_gateway import private_directory, durable_json
 from scored_trial import run_trial
 
@@ -44,7 +44,8 @@ async def run(root, admission):
                 if result is None:
                     raise RuntimeError('Trial returned without durable evidence')
             held = validated_held_cell(runtime, result, settings.fingerprint())
-            if held is None and (result.get('status') != 'verified' or result.get('billing', {}).get('billing_verified') is not True):
+            deferred = validated_deferred_cell(runtime, result, settings.fingerprint())
+            if held is None and deferred is None and (result.get('status') != 'verified' or result.get('billing', {}).get('billing_verified') is not True):
                 raise RuntimeError('Trial infrastructure or billing requires inspection: ' + trial_id)
             if not all(result.get(key) is True for key in ['containers_removed', 'networks_removed', 'volumes_removed']):
                 raise RuntimeError('Unverified cleanup; next trial not started')

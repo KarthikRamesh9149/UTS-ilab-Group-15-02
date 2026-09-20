@@ -7,6 +7,7 @@ import re
 from development_selection import select
 from qualification_review import assess, expansion_allowed
 from scored_accounting import audit_trial
+from matrix_resume import completed_cell
 from scored_gateway import durable_json
 from scoring_admission import RUNTIME_FILES, validate
 
@@ -109,11 +110,17 @@ def build(root, *, admission, trials, c2_parent, custom_max_model_calls):
             row = json.loads(raw)
             if any(row.get(key) != cell[key] for key in ('trial_id', 'task_id', 'harness', 'stage')):
                 raise ValueError('Trial path, task or registered condition identity differs')
-            row['billing'] = audit_trial(root / '.runtime/stage2', identifier, 'development')
+            if row.get('status') == 'billing_unresolved':
+                row = completed_cell(root, cell, settings)
+                if row is None:
+                    raise ValueError('Deferred custom development result is missing')
+            else:
+                row['billing'] = audit_trial(root / '.runtime/stage2', identifier, 'development')
             blocks[condition].append(row)
             evidence[identifier] = hashlib.sha256(raw).hexdigest()
     selection = select(blocks, task_ids=manifest['development_ids'],
-                       protocol=settings.fingerprint(), c2_parent=c2_parent)
+                       protocol=settings.fingerprint(), c2_parent=c2_parent,
+                       runtime=root / '.runtime/stage2')
     return {'kind': 'frozen_custom_finalist_not_final_score', 'selection': selection,
             'admission': admission, 'custom_max_model_calls': custom_max_model_calls,
             'development_evidence': evidence, 'files': file_hashes(root),

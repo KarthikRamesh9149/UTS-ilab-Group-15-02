@@ -7,6 +7,7 @@ from budget_ledger import dollars, UNIT
 from gateway_core import reconcile_receipt
 from gateway_policy import MODEL, ENDPOINT
 from scored_accounting import read_json
+from deferred_billing import validate_deferrals, deferred_request_ids, extra_exposure_nanodollars, deferred_audit
 
 
 def audit_setup(runtime, trial_id, settings):
@@ -19,7 +20,9 @@ def audit_setup(runtime, trial_id, settings):
         db.execute('BEGIN')
         if db.execute('PRAGMA quick_check').fetchall() != [('ok',)]:
             raise ValueError('Ledger integrity failure')
-        if db.execute("SELECT COUNT(*) FROM receipt_checks WHERE state='pending'").fetchone()[0]:
+        entries = validate_deferrals(runtime, db, kind='setup')
+        exempt = deferred_request_ids(entries)
+        if any(identifier not in exempt for (identifier,) in db.execute("SELECT request_id FROM receipt_checks WHERE state='pending'")):
             raise ValueError('Post-trial receipt cross-check incomplete')
         if db.execute('SELECT ceiling,trial_cap FROM policy WHERE id=1').fetchone() != (dollars('1'), dollars('1')):
             raise ValueError('Setup allowance changed')
@@ -27,11 +30,17 @@ def audit_setup(runtime, trial_id, settings):
             raise ValueError('Setup stage changed')
         if db.execute('SELECT enabled FROM estimation_policy WHERE id=1').fetchone() != (0,):
             raise ValueError('Setup requires hard reservations')
-        if db.execute("SELECT COUNT(*) FROM requests WHERE state!='settled' OR charged IS NULL").fetchone()[0] or db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
+        if any(identifier not in exempt for (identifier,) in db.execute("SELECT id FROM requests WHERE state!='settled' OR charged IS NULL")) or db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
             raise ValueError('Unresolved billing; retain reservations')
         total = db.execute('SELECT COALESCE(SUM(charged),0) FROM requests').fetchone()[0]
-        if not 0 <= total <= dollars('1'):
+        exposure = db.execute('SELECT COALESCE(SUM(COALESCE(charged,reserved)),0) FROM requests').fetchone()[0] + extra_exposure_nanodollars(entries)
+        if not 0 <= total <= exposure <= dollars('1'):
             raise ValueError('Setup ceiling exceeded')
+        deferred = next((entry for entry in entries if entry['trial_id'] == trial_id), None)
+        if deferred is not None:
+            if deferred['model_protocol_sha256'] != settings.fingerprint():
+                raise ValueError('Deferred setup model mismatch')
+            return deferred_audit(deferred)
         rows = db.execute('''SELECT g.generation_id,r.charged FROM requests r
             LEFT JOIN generations g ON g.request_id=r.id WHERE r.trial=?''', (trial_id,)).fetchall()
         charges = dict(rows)

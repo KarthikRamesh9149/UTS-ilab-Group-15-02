@@ -1,24 +1,27 @@
 """Registered development selection; consumes audited metadata, never task text."""
 from decimal import Decimal
 import math
+from matrix_resume import validated_deferred_cell
 from study_budget import TRIAL_CAP
 
 
-def summarize(records, *, condition, task_ids, protocol, parent=None):
+def summarize(records, *, condition, task_ids, protocol, parent=None, runtime=None):
     if condition not in {'C0', 'C1', 'C2'}:
         raise ValueError('Unregistered custom condition')
     if (condition == 'C2' and parent not in {'C0', 'C1'}) or (condition != 'C2' and parent is not None):
         raise ValueError('Invalid condition parent')
     if len(task_ids) != 20 or len(set(task_ids)) != 20 or len(records) != 20:
         raise ValueError('Complete fixed development subset required')
-    observed, passes, cost, runtime = set(), 0, Decimal(0), 0.
+    observed, passes, cost, elapsed = set(), 0, Decimal(0), 0.
+    deferred_count, retained = 0, 0
     for row in records:
+        deferred = validated_deferred_cell(runtime, row, protocol)
         task = row.get('task_id')
         if task not in task_ids or task in observed:
             raise ValueError('Unexpected or duplicate task')
         observed.add(task)
-        if (row.get('harness'), row.get('stage'), row.get('status'), row.get('model_protocol_sha256')) != (
-                condition, 'development', 'verified', protocol):
+        if (row.get('harness'), row.get('stage'), row.get('model_protocol_sha256')) != (
+                condition, 'development', protocol) or (row.get('status') != 'verified' and deferred is None):
             raise ValueError('Condition/protocol/status mismatch')
         if not all(row.get(key) is True for key in ('model_revoked', 'containers_removed', 'networks_removed', 'volumes_removed')):
             raise ValueError('Unverified trial cleanup')
@@ -28,26 +31,37 @@ def summarize(records, *, condition, task_ids, protocol, parent=None):
         if type(reward) not in (int, float) or reward not in (0, 1):
             raise ValueError('Binary verifier reward required')
         billing = row.get('billing') or {}
-        if billing.get('billing_verified') is not True or billing.get('model_protocol_sha256') != protocol:
+        if deferred is None and (billing.get('billing_verified') is not True or billing.get('model_protocol_sha256') != protocol):
             raise ValueError('Reaudited billing required')
-        for key in ('prompt_tokens', 'completion_tokens', 'requests'):
-            if type(billing.get(key)) is not int or billing[key] < 0:
-                raise ValueError('Complete usage required')
-        charge = Decimal(str(billing['charged_usd']))
+        if deferred is None:
+            for key in ('prompt_tokens', 'completion_tokens', 'requests'):
+                if type(billing.get(key)) is not int or billing[key] < 0:
+                    raise ValueError('Complete usage required')
+            charge = Decimal(str(billing['charged_usd']))
+            if not charge.is_finite() or not 0 <= charge <= Decimal(TRIAL_CAP):
+                raise ValueError('Invalid charge')
+        else:
+            deferred_count += 1
+            charge = Decimal(deferred['known_charged_nanodollars']) / 1_000_000_000
+            retained += deferred['retained_liability_nanodollars']
         seconds = row.get('phase_seconds', {}).get('agent')
-        if not charge.is_finite() or not 0 <= charge <= Decimal(TRIAL_CAP):
-            raise ValueError('Invalid charge')
         if type(seconds) not in (int, float) or not math.isfinite(seconds) or seconds < 0:
             raise ValueError('Measured agent runtime required')
         passes += int(reward)
         cost += charge
-        runtime += seconds
-    return {'condition': condition, 'parent': parent, 'passes': passes,
-            'charged_usd': str(cost), 'agent_seconds': runtime,
+        elapsed += seconds
+    result = {'condition': condition, 'parent': parent, 'passes': passes,
+            'charged_usd': str(cost) if not deferred_count else None, 'agent_seconds': elapsed,
             'complexity': int(condition == 'C1' or parent == 'C1') + int(condition == 'C2')}
+    if deferred_count:
+        result.update(billing_complete=False, billing_deferred_trials=deferred_count,
+                      known_billed_subtotal_usd=str(cost),
+                      retained_liability_usd=str(Decimal(retained) / 1_000_000_000),
+                      efficiency_win_accepted=False)
+    return result
 
 
-def select(blocks, *, task_ids, protocol, c2_parent=None):
+def select(blocks, *, task_ids, protocol, c2_parent=None, runtime=None):
     """C0/C1 parent selection, or final C0/C1/C2 selection after parent freeze.
 
     Caller must re-audit receipts first and persist the chosen parent/finalist
@@ -56,13 +70,18 @@ def select(blocks, *, task_ids, protocol, c2_parent=None):
     if set(blocks) not in ({'C0', 'C1'}, {'C0', 'C1', 'C2'}):
         raise ValueError('Complete registered comparison required')
     rows = {condition: summarize(records, condition=condition, task_ids=task_ids,
-                                protocol=protocol, parent=c2_parent if condition == 'C2' else None)
+                                protocol=protocol, parent=c2_parent if condition == 'C2' else None,
+                                runtime=runtime)
             for condition, records in blocks.items()}
-    def key(condition):
+    complete_costs = all(value['charged_usd'] is not None for value in rows.values())
+    parent_complete_costs = all(rows[condition]['charged_usd'] is not None for condition in ('C0', 'C1'))
+    def key(condition, *, use_cost=complete_costs):
         value = rows[condition]
-        return (-value['passes'], Decimal(value['charged_usd']), value['complexity'],
+        return (-value['passes'], *((Decimal(value['charged_usd']),) if use_cost else ()), value['complexity'],
                 value['agent_seconds'], condition)
-    parent = min(('C0', 'C1'), key=key)
+    # Parent was frozen before C2. Later C2 uncertainty cannot retrospectively
+    # alter which C0/C1 parent the registered run was required to use.
+    parent = min(('C0', 'C1'), key=lambda condition: key(condition, use_cost=parent_complete_costs))
     if 'C2' in rows and c2_parent != parent:
         raise ValueError('C2 did not use the registered selected parent')
     winner = min(rows, key=key)
@@ -83,5 +102,9 @@ def select(blocks, *, task_ids, protocol, c2_parent=None):
         else:
             diagnostic = {'kind': 'unchanged_repeat', 'condition': winner,
                           'parent': parent if winner == 'C2' else None}
-    return {'selected': winner, 'selected_parent': parent, 'summaries': rows,
+    result = {'selected': winner, 'selected_parent': parent, 'summaries': rows,
             'diagnostic': diagnostic, 'final_evaluation_success_claimed': False}
+    if not complete_costs:
+        result.update(cost_tiebreak_used=False, parent_cost_tiebreak_used=parent_complete_costs,
+                      selection_billing_complete=False, efficiency_win_accepted=False)
+    return result

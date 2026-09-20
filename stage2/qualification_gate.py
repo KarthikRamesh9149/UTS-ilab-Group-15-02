@@ -4,7 +4,8 @@ No calls, task replacements, resampling, allowances or model selection occur her
 """
 from decimal import Decimal, InvalidOperation
 from historical_hold import hold_entries, validate_historical_hold
-from matrix_resume import HELD_TERMINAL, validated_held_cell
+from deferred_billing import validate_policy
+from matrix_resume import HELD_TERMINAL, DEFERRED_TERMINAL, validated_held_cell, validated_deferred_cell
 from study_budget import TRIAL_CAP
 
 
@@ -18,17 +19,26 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
     reasons, amended_reasons, completion_reasons, observed, passes, stops = [], [], [], set(), 0, 0
     holds, raw_stops, pending_barrier_stops = [], 0, 0
     completion_amendment = None
+    deferral_policy, deferrals, continuation_reasons = None, [], []
 
-    def reject(reason, *, historical_exception=False, completion_exception=False):
+    def reject(reason, *, historical_exception=False, completion_exception=False, deferral_exception=False):
         reasons.append(reason)
         if not historical_exception:
             amended_reasons.append(reason)
         if not historical_exception and not completion_exception:
             completion_reasons.append(reason)
+            if not (deferral_exception and deferral_policy is not None):
+                continuation_reasons.append(reason)
 
     # A caller cannot enable the approved completion amendment with a flag.
     # Its exact private sidecar, immutable results and live ledger must validate.
     if runtime is not None:
+        try:
+            deferral_policy = validate_policy(runtime)
+            if deferral_policy is not None and deferral_policy['model_protocol_sha256'] != protocol_sha256:
+                reject('billing_deferral_policy_invalid')
+        except (ValueError, OSError, KeyError):
+            reject('billing_deferral_policy_invalid')
         try:
             registered = validate_historical_hold(runtime)
             if registered is not None and registered.get('schema_version') == 2:
@@ -44,6 +54,7 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
         reject('incomplete_or_extra_trials')
     for row in records:
         held = None
+        deferred = None
         if row.get('resume_disposition') == HELD_TERMINAL:
             try:
                 held = validated_held_cell(runtime, row, protocol_sha256)
@@ -51,6 +62,16 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
                 reject('historical_hold_invalid')
             if held is not None:
                 holds.append(held)
+        if row.get('resume_disposition') == DEFERRED_TERMINAL:
+            try:
+                deferred = validated_deferred_cell(runtime, row, protocol_sha256)
+                if deferred is None or deferral_policy is None or deferred['policy_sha256'] != deferral_policy['sidecar_sha256']:
+                    reject('billing_deferral_invalid')
+                    deferred = None
+            except (ValueError, OSError, KeyError):
+                reject('billing_deferral_invalid')
+            if deferred is not None:
+                deferrals.append(deferred)
         task = row.get('task_id')
         expected_unique = task in task_ids and task not in observed
         if not expected_unique:
@@ -61,17 +82,17 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
         if row.get('model_protocol_sha256') != protocol_sha256:
             reject('model_protocol_mismatch')
         if row.get('status') != 'verified' or row.get('model_revoked') is not True:
-            reject('trial_not_verified', historical_exception=held is not None)
+            reject('trial_not_verified', historical_exception=held is not None, deferral_exception=deferred is not None)
         if not all(row.get(key) is True for key in ['containers_removed', 'networks_removed', 'volumes_removed']):
             reject('cleanup_unverified')
         reward = (row.get('verifier_result') or {}).get('rewards', {}).get('reward')
         if type(reward) not in (int, float) or reward not in (0, 1):
             reject('invalid_verifier_reward')
-        elif expected_unique and (row.get('status') == 'verified' or held is not None) and row.get('harness') == 'terminus-2' and row.get('stage') == 'development':
+        elif expected_unique and (row.get('status') == 'verified' or held is not None or deferred is not None) and row.get('harness') == 'terminus-2' and row.get('stage') == 'development':
             passes += int(reward)
         billing = row.get('billing') or {}
         if billing.get('billing_verified') is not True or billing.get('model_protocol_sha256') != protocol_sha256:
-            reject('billing_unverified', historical_exception=held is not None)
+            reject('billing_unverified', historical_exception=held is not None, deferral_exception=deferred is not None)
         count = billing.get('budget_stop_count')
         if type(count) is not int or count < 0:
             reject('budget_stop_status_unknown')
@@ -93,13 +114,13 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
                 stops += int(count > 0)
         for key in ['prompt_tokens', 'completion_tokens', 'requests']:
             if type(billing.get(key)) is not int or billing[key] < 0:
-                reject('usage_missing', historical_exception=held is not None)
+                reject('usage_missing', historical_exception=held is not None, deferral_exception=deferred is not None)
         try:
             cost = Decimal(str(billing['charged_usd']))
             if not cost.is_finite() or not 0 <= cost <= Decimal(TRIAL_CAP):
-                reject('invalid_trial_charge', historical_exception=held is not None)
+                reject('invalid_trial_charge', historical_exception=held is not None, deferral_exception=deferred is not None)
         except (KeyError, InvalidOperation, ValueError):
-            reject('invalid_trial_charge', historical_exception=held is not None)
+            reject('invalid_trial_charge', historical_exception=held is not None, deferral_exception=deferred is not None)
     registered_ids = ({entry['trial_id'] for entry in hold_entries(completion_amendment)}
                       if completion_amendment else set())
     exact_completion_holds = (completion_amendment is not None and len(holds) == 2
@@ -117,12 +138,15 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
     if not systemic_review_clear: reject('systemic_failure_review_required')
     bounded_allowed = completion_amendment is None and len(holds) == 1 and not amended_reasons
     completion_allowed = exact_completion_holds and not completion_reasons
+    continuation_allowed = (deferral_policy is not None and not continuation_reasons
+        and (completion_amendment is None or exact_completion_holds))
     billing_complete = (len(records) == 20 and observed == set(task_ids)
         and not set(reasons).intersection({'billing_unverified', 'usage_missing', 'invalid_trial_charge'}))
     return {'paid_expansion_allowed': not reasons, 'verified_successes': passes,
             'budget_exhausted_trials': stops, 'reasons': sorted(set(reasons)),
             'expected_trials': 20, 'observed_trials': len(records),
             'status': ('original_qualification_passed' if not reasons else
+                       'billing_deferral_expansion_allowed' if continuation_allowed else
                        'completion_amendment_expansion_allowed' if completion_allowed else
                        'accounting_bounded_expansion_allowed' if bounded_allowed else 'qualification_not_cleared'),
             'model_protocol_sha256': protocol_sha256,
@@ -140,4 +164,10 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
             'completion_amendment_reasons': sorted(set(completion_reasons)),
             'budget_stop_markers': raw_stops,
             'historical_pending_barrier_markers': pending_barrier_stops,
+            'billing_deferral_expansion_allowed': continuation_allowed,
+            'billing_deferral_policy_sha256': deferral_policy['sidecar_sha256'] if deferral_policy else None,
+            'billing_deferred_trials': len(deferrals),
+            'billing_deferred_trial_ids': sorted(entry['trial_id'] for entry in deferrals),
+            'deferred_billing_result_registrations': {entry['trial_id']: entry['sidecar_sha256'] for entry in deferrals},
+            'billing_deferral_reasons': sorted(set(continuation_reasons)),
             'actual_charge_and_token_totals_complete': billing_complete}

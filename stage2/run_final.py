@@ -61,6 +61,12 @@ async def run(root, freeze, review):
         evidence = prerequisites(root, freeze, review, manifest['development_ids'], settings)
         descriptor = {'kind': 'final_evaluation_started', 'freeze': freeze, 'review': review,
                       'development_evidence': evidence, 'cells': cells}
+        baseline_path = runtime / 'baseline-matrix.json'
+        baseline_registration = None
+        if baseline_path.exists() or baseline_path.is_symlink():
+            from run_baselines import validate_registration
+            baseline_registration = validate_registration(root, admission)
+            descriptor['baseline_registration_sha256'] = hashlib.sha256(baseline_path.read_bytes()).hexdigest()
         path = runtime / 'final-matrix.json'
         if path.is_symlink():
             raise ValueError('Unsafe final descriptor')
@@ -68,12 +74,21 @@ async def run(root, freeze, review):
             if json.loads(path.read_text()) != descriptor:
                 raise ValueError('Final configuration or evidence changed; resume refused')
         else:
-            if any((runtime / 'scored-trials' / cell['trial_id']).exists() for cell in cells):
-                raise ValueError('Final attempts lack frozen registration')
+            baseline_ids = {cell['trial_id'] for cell in baseline_registration['cells']} if baseline_registration else set()
+            for cell in cells:
+                attempt = runtime / 'scored-trials' / cell['trial_id']
+                if attempt.exists() or attempt.is_symlink():
+                    if (cell['role'] == 'custom' or cell['trial_id'] not in baseline_ids
+                            or completed_cell(root, cell, settings) is None):
+                        raise ValueError('Final attempt lacks its original baseline or frozen registration')
             durable_json(path, descriptor)
         results = []
         for cell in cells:
             verify(root, freeze)
+            if baseline_registration is not None:
+                validate_registration(root, admission)
+                if hashlib.sha256(baseline_path.read_bytes()).hexdigest() != descriptor['baseline_registration_sha256']:
+                    raise ValueError('Original baseline registration changed during final run')
             if not expansion_allowed(root, assess(root, admission, review)):
                 raise ValueError('Qualification no longer clears expansion')
             row = completed_cell(root, cell, settings)

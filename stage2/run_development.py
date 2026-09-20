@@ -55,7 +55,7 @@ async def run(root, admission, review, block):
         parent = None
         if block == 'C2':
             parent = select({key: prior[key] for key in ('C0', 'C1')}, task_ids=tasks,
-                            protocol=settings.fingerprint())['selected_parent']
+                            protocol=settings.fingerprint(), runtime=runtime)['selected_parent']
         registered = limits(root) if block != 'openhands' else None
         for predecessor in ('C0', 'C1'):
             if predecessor not in prior:

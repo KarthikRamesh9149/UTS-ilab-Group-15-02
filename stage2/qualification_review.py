@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from historical_hold import hold_entries, validate_historical_hold
+from deferred_billing import validate_policy, validate_deferrals
 from matrix_resume import completed_cell
 from qualification_gate import evaluate
 from scoring_admission import validate
@@ -13,6 +14,31 @@ def expansion_allowed(root, report):
     """Consume either the original pass or the explicit validated amendment."""
     if report.get('paid_expansion_allowed') is True:
         return True
+    if report.get('billing_deferral_expansion_allowed') is True:
+        runtime = Path(root) / '.runtime/stage2'
+        policy = validate_policy(runtime)
+        hold = validate_historical_hold(runtime)
+        entries = [entry for entry in validate_deferrals(runtime)
+                   if entry['stage'] == 'development' and entry['harness'] == 'terminus-2'
+                   and entry['trial_id'].startswith('dev-terminus-2-')]
+        registrations = {entry['trial_id']: entry['sidecar_sha256'] for entry in entries}
+        return (policy is not None
+                and report.get('status') == 'billing_deferral_expansion_allowed'
+                and report.get('paid_expansion_allowed') is False
+                and report.get('billing_deferral_policy_sha256') == policy['sidecar_sha256']
+                and report.get('model_protocol_sha256') == policy['model_protocol_sha256']
+                and report.get('deferred_billing_result_registrations') == registrations
+                and report.get('billing_deferred_trial_ids') == sorted(registrations)
+                and report.get('billing_deferred_trials') == len(registrations)
+                and report.get('historical_hold_sha256') == (hold['sidecar_sha256'] if hold else None)
+                and report.get('held_trial_ids') == sorted(entry['trial_id'] for entry in hold_entries(hold))
+                and report.get('held_terminal_trials') == len(hold_entries(hold))
+                and report.get('expected_trials') == report.get('observed_trials') == 20
+                and type(report.get('verified_successes')) is int and 0 <= report['verified_successes'] <= 20
+                and type(report.get('budget_exhausted_trials')) is int and 0 <= report['budget_exhausted_trials'] <= 20
+                and report.get('original_billing_completeness_satisfied') is False
+                and report.get('actual_charge_and_token_totals_complete') is False
+                and report.get('billing_deferral_reasons') == [])
     if report.get('completion_amendment_expansion_allowed') is True:
         hold = validate_historical_hold(Path(root) / '.runtime/stage2')
         return (hold is not None and hold.get('schema_version') == 2
@@ -84,6 +110,13 @@ def assess(root, admission, review):
     completion_sha = hold['sidecar_sha256'] if hold and hold.get('schema_version') == 2 else None
     if review.get('completion_amendment_sha256') != completion_sha:
         raise ValueError('Review does not bind the exact prospective completion amendment')
+    policy = validate_policy(runtime)
+    if review.get('billing_deferral_policy_sha256') != (policy['sidecar_sha256'] if policy else None):
+        raise ValueError('Review does not bind the exact standing billing deferral policy')
+    registrations = {entry['trial_id']: entry['sidecar_sha256'] for entry in validate_deferrals(runtime)
+                     if entry['trial_id'] in hashes}
+    if (policy is not None or registrations) and review.get('deferred_billing_result_registrations') != registrations:
+        raise ValueError('Review does not bind the exact first-20 billing deferrals')
     return evaluate(records, task_ids=tasks, protocol_sha256=settings.fingerprint(),
                     systemic_review_clear=all(finding['clear'] for finding in findings.values()),
                     runtime=runtime)

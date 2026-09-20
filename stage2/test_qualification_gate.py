@@ -11,6 +11,46 @@ from matrix_resume import completed_cell
 from qualification_gate import evaluate
 
 
+class StandingGateFixture:
+    """Real two-hold registry plus a new independently registered deferral."""
+    def __init__(self, root):
+        from test_historical_hold import HoldFixtureV2
+        from test_matrix_resume import DeferredCellFixture
+        from historical_hold import hold_entries, validate_historical_hold
+        self.held = HoldFixtureV2(root)
+        self.root, self.runtime, self.settings = self.held.root, self.held.runtime, self.held.settings
+        self.tasks = [f'synthetic-{i}' for i in range(20)]
+        holds = hold_entries(validate_historical_hold(self.runtime))
+        for hold in holds:
+            index = int(hold['trial_id'].split('-')[3])
+            self.tasks[index] = hold['task_id']
+        self.rows = []
+        for index, task in enumerate(self.tasks):
+            cell = dict(trial_id=f'dev-terminus-2-{index:02d}-{task}', task_id=task,
+                        harness='terminus-2', stage='development')
+            if any(entry['trial_id'] == cell['trial_id'] for entry in holds):
+                row = completed_cell(self.root, cell, self.settings)
+            else:
+                row = dict(cell, model_protocol_sha256=self.settings.fingerprint(), status='verified',
+                    model_revoked=True, containers_removed=True, networks_removed=True, volumes_removed=True,
+                    verifier_result={'rewards': {'reward': 0}},
+                    billing={'billing_verified': True, 'model_protocol_sha256': self.settings.fingerprint(),
+                        'charged_usd': '.001', 'prompt_tokens': 10, 'completion_tokens': 2, 'requests': 1,
+                        'budget_stop_count': 0})
+            self.rows.append(row)
+        self.deferred = DeferredCellFixture(self.root,
+            {key: self.rows[7][key] for key in ('trial_id', 'task_id', 'stage', 'harness')},
+            reward=1, settings=self.settings)
+        self.rows[7] = self.deferred.view()
+
+    def evaluate(self, rows=None, *, reviewed=True):
+        return evaluate(self.rows if rows is None else rows, task_ids=self.tasks,
+            protocol_sha256=self.settings.fingerprint(), systemic_review_clear=reviewed, runtime=self.runtime)
+
+    def close(self):
+        self.held.close()
+
+
 class QualificationGateTests(unittest.TestCase):
     def setUp(self):
         self.tasks = ['synthetic-' + str(i) for i in range(20)]
@@ -233,3 +273,44 @@ class QualificationGateTests(unittest.TestCase):
         rows[5]['billing']['charged_usd'] = '0'
         self.assertFalse(self.evaluate(rows)['completion_amendment_expansion_allowed'])
         self.assertFalse(self.evaluate(self.rows[:5] + self.rows[6:])['completion_amendment_expansion_allowed'])
+
+
+class StandingDeferralGateTests(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.fixture = StandingGateFixture(temp.name)
+        self.addCleanup(self.fixture.close)
+
+    def test_registered_deferral_allows_completion_without_claiming_billing_or_performance_pass(self):
+        fixture = self.fixture
+        result = fixture.evaluate()
+        self.assertTrue(result['billing_deferral_expansion_allowed'])
+        self.assertEqual(result['status'], 'billing_deferral_expansion_allowed')
+        self.assertFalse(result['paid_expansion_allowed'])
+        self.assertFalse(result['original_billing_completeness_satisfied'])
+        self.assertFalse(result['original_performance_gate_satisfied'])
+        self.assertEqual(result['verified_successes'], 1)
+        self.assertEqual(result['held_terminal_trials'], 2)
+        self.assertEqual(result['billing_deferred_trials'], 1)
+        self.assertEqual(result['deferred_billing_result_registrations'],
+                         {fixture.deferred.cell['trial_id']: fixture.deferred.entry['sidecar_sha256']})
+        self.assertEqual(result['billing_deferral_reasons'], [])
+
+    def test_standing_policy_does_not_allow_unregistered_uncertainty_or_bad_cleanup(self):
+        fixture = self.fixture
+        for altered in [dict(fixture.rows[8], status='billing_unresolved', billing={'billing_verified': False}),
+                        dict(fixture.rows[8], containers_removed=False)]:
+            rows = copy.deepcopy(fixture.rows)
+            rows[8] = altered
+            self.assertFalse(fixture.evaluate(rows)['billing_deferral_expansion_allowed'])
+        self.assertFalse(fixture.evaluate(reviewed=False)['billing_deferral_expansion_allowed'])
+
+    def test_standing_policy_or_deferral_tamper_is_not_a_flag_bypass(self):
+        fixture = self.fixture
+        rows = copy.deepcopy(fixture.rows)
+        rows[7]['billing']['charged_usd'] = '0'
+        self.assertFalse(fixture.evaluate(rows)['billing_deferral_expansion_allowed'])
+        from deferred_billing import POLICY
+        (fixture.runtime / POLICY).write_text('{}')
+        self.assertFalse(fixture.evaluate()['billing_deferral_expansion_allowed'])

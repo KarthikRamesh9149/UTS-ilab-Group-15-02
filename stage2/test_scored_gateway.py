@@ -386,3 +386,34 @@ class HistoricalHoldGatewayTests(unittest.TestCase):
             with self.assertRaisesRegex(BudgetExceeded, 'Original setup ledger required'):
                 session.complete(self.token, self.payload)
         self.assertEqual(self.client.calls, 0)
+
+    def test_validated_setup_deferral_is_still_deducted_from_scored_credit(self):
+        from budget_ledger import Ledger
+        from scored_gateway import require_clear_setup_ledger
+        setup = Ledger(self.fixture.runtime / 'setup_budget.sqlite', '1', '1', {'setup': '1'})
+        setup.reserve('setup-unknown', 'setup-probe', '.1', '12', 'setup')
+        setup.close()
+        validated = [{'deferred_request_ids': ['setup-unknown'],
+                      'extra_reserved_nanodollars': 0}]
+        import deferred_billing
+        original = deferred_billing.validate_deferrals
+        def validate(runtime, db=None, *, kind='scored', active_trial=None):
+            return validated if kind == 'setup' else original(runtime, db, kind=kind, active_trial=active_trial)
+        with patch('deferred_billing.validate_deferrals', side_effect=validate):
+            self.assertEqual(require_clear_setup_ledger(self.fixture.runtime), Decimal('.1'))
+            with self.session() as session:
+                self.client.allowance = '2.3'
+                with self.assertRaises(BudgetExceeded): session.complete(self.token, self.payload)
+        self.assertEqual(self.client.calls, 0)
+
+    def test_receipt_only_setup_deferral_deducts_only_unbilled_difference(self):
+        from budget_ledger import Ledger
+        from scored_gateway import require_clear_setup_ledger
+        setup = Ledger(self.fixture.runtime / 'setup_budget.sqlite', '1', '1', {'setup': '1'})
+        setup.reserve('setup-receipt', 'setup-probe', '.1', '12', 'setup')
+        setup.settle('setup-receipt', '.001', receipt_pending=True)
+        setup.close()
+        validated = [{'deferred_request_ids': ['setup-receipt'],
+                      'extra_reserved_nanodollars': dollars('.099')}]
+        with patch('deferred_billing.validate_deferrals', return_value=validated):
+            self.assertEqual(require_clear_setup_ledger(self.fixture.runtime), Decimal('.099'))

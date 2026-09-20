@@ -136,3 +136,40 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
                 await run(root, admission)
         self.assertEqual(calls, [f'dev-terminus-2-01-{tasks[1]}'])
         self.assertEqual(path.read_bytes(), raw)
+
+    async def test_registered_new_deferral_continues_other_cells_without_retry(self):
+        from test_matrix_resume import DeferredCellFixture
+        from scored_gateway import durable_json, private_directory
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            tasks = [f'fixture-{i}' for i in range(20)]
+            fixture = DeferredCellFixture(root,
+                dict(trial_id='dev-terminus-2-00-fixture-0', task_id=tasks[0],
+                     stage='development', harness='terminus-2'))
+            (root / 'stage2').mkdir()
+            (root / 'stage2/input_manifest.json').write_text(json.dumps({'development_ids': tasks}))
+            billing = {'billing_verified': True, 'model_protocol_sha256': fixture.settings.fingerprint(),
+                'charged_usd': '.001', 'requests': 1, 'prompt_tokens': 2, 'completion_tokens': 1,
+                'budget_stop_count': 0}
+            calls = []
+            async def execute(**kwargs):
+                calls.append(kwargs['trial_id'])
+                row = dict(fixture.original, trial_id=kwargs['trial_id'], task_id=kwargs['task_id'],
+                           status='verified', billing=billing, verifier_result={'rewards': {'reward': 1}})
+                output = private_directory(fixture.runtime / 'scored-trials' / kwargs['trial_id'])
+                durable_json(output / 'result.json', row)
+            original = fixture.result_path.read_bytes()
+            admission = {'gateway_image': 'fixture', 'guard_image': 'fixture', 'setup_timeout_seconds': 30}
+            with patch('run_qualification.validate', return_value=fixture.settings), \
+                 patch('run_qualification.run_trial', side_effect=execute), \
+                 patch('matrix_resume.audit_trial', return_value=billing), patch('builtins.print'):
+                first = await run(root, admission)
+                second = await run(root, admission)
+            self.assertEqual(len(calls), 19)
+            self.assertEqual(len(set(calls)), 19)
+            self.assertNotIn(fixture.cell['trial_id'], calls)
+            self.assertEqual(first, second)
+            self.assertEqual(first['observed_trials'], 20)
+            self.assertEqual(first['billing_deferred_trials'], 1)
+            self.assertFalse(first['actual_charge_and_token_totals_complete'])
+            self.assertEqual(fixture.result_path.read_bytes(), original)

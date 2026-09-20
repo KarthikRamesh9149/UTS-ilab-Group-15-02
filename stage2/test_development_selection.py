@@ -1,4 +1,6 @@
 import unittest
+import tempfile
+from decimal import Decimal
 from development_selection import select
 
 
@@ -50,3 +52,44 @@ class SelectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.run_selection({'C0': self.block('C0'), 'C1': self.block('C1'),
                                 'C2': self.block('C2', parent='C1')}, 'C1')
+
+    def test_registered_unknown_cost_uses_accuracy_and_symmetric_non_cost_tiebreak(self):
+        from test_matrix_resume import DeferredCellFixture
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = DeferredCellFixture(directory,
+                dict(trial_id='dev-C1-00-task-0', task_id=self.tasks[0], harness='C1', stage='development'), reward=1)
+            blocks = {'C0': self.block('C0', cost='.002'), 'C1': self.block('C1', cost='.0001')}
+            for block in blocks.values():
+                for row in block:
+                    row['model_protocol_sha256'] = fixture.settings.fingerprint()
+                    row['billing']['model_protocol_sha256'] = fixture.settings.fingerprint()
+            blocks['C1'][0] = fixture.view()
+            result = select(blocks, task_ids=self.tasks, protocol=fixture.settings.fingerprint(), runtime=fixture.runtime)
+            self.assertEqual(result['selected'], 'C0')
+            self.assertFalse(result['cost_tiebreak_used'])
+            self.assertIsNone(result['summaries']['C1']['charged_usd'])
+            self.assertEqual(result['summaries']['C1']['retained_liability_usd'],
+                             str(Decimal(fixture.reserved_nanodollars) / 1_000_000_000))
+            blocks['C1'][15]['verifier_result']['rewards']['reward'] = 1
+            result = select(blocks, task_ids=self.tasks, protocol=fixture.settings.fingerprint(), runtime=fixture.runtime)
+            self.assertEqual(result['selected'], 'C1')
+            with self.assertRaises(ValueError):
+                select(blocks, task_ids=self.tasks, protocol=fixture.settings.fingerprint())
+
+    def test_later_c2_uncertainty_does_not_rewrite_frozen_parent_cost_tiebreak(self):
+        from test_matrix_resume import DeferredCellFixture
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = DeferredCellFixture(directory,
+                dict(trial_id='dev-C2-00-task-0', task_id=self.tasks[0], harness='C2', stage='development', parent='C1'), reward=1)
+            blocks = {'C0': self.block('C0', cost='.002'), 'C1': self.block('C1', cost='.0001'),
+                      'C2': self.block('C2', parent='C1')}
+            for block in blocks.values():
+                for row in block:
+                    row['model_protocol_sha256'] = fixture.settings.fingerprint()
+                    row['billing']['model_protocol_sha256'] = fixture.settings.fingerprint()
+            blocks['C2'][0] = fixture.view()
+            result = select(blocks, task_ids=self.tasks, protocol=fixture.settings.fingerprint(),
+                            c2_parent='C1', runtime=fixture.runtime)
+            self.assertEqual(result['selected_parent'], 'C1')
+            self.assertTrue(result['parent_cost_tiebreak_used'])
+            self.assertFalse(result['cost_tiebreak_used'])

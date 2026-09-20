@@ -513,5 +513,42 @@ class TwoHistoricalHoldExportTests(unittest.TestCase):
         self.assertEqual(before, self.runtime_bytes())
 
 
+class DeferredDevelopmentExportTests(unittest.TestCase):
+    def test_real_registered_terminal_keeps_accuracy_and_exports_unknown_cost_as_blank(self):
+        from test_matrix_resume import DeferredCellFixture
+        from matrix_resume import DEFERRED_TERMINAL
+        fixture = DevelopmentExportTests()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        fixture.settings = ModelSettings(8192, 1., 'high')
+        fixture.write_block('C0', passes=10)
+        (fixture.runtime / 'scored-trials').chmod(0o700)
+        path = fixture.runtime / 'scored-trials' / fixture.identifier('C0', 0) / 'result.json'
+        path.unlink()
+        path.parent.chmod(0o700)
+        deferred = DeferredCellFixture(fixture.root,
+            dict(trial_id=fixture.identifier('C0', 0), task_id=fixture.tasks[0], stage='development', harness='C0'),
+            reward=1, settings=fixture.settings)
+        before = fixture.runtime_bytes()
+        with patch('export_development.validate', return_value=fixture.settings):
+            bundle = collect(fixture.root, fixture.admission)
+            destination = export(fixture.root, fixture.admission, fixture.root / 'deferred-export')
+        summary = bundle['conditions']['C0']
+        self.assertEqual(summary['terminal_cells'], 20)
+        self.assertEqual(summary['billing_deferred_cells'], 1)
+        self.assertEqual(summary['pass_rate_fixed_20'], .5)
+        self.assertIsNone(summary['full_cost_usd'])
+        self.assertFalse(summary['billing_complete'])
+        self.assertEqual(summary['known_retained_liability_usd'],
+                         str(Decimal(deferred.reserved_nanodollars) / 1_000_000_000))
+        with (destination / 'development_trials.csv').open() as handle:
+            rows = list(csv.DictReader(handle))
+        row = next(row for row in rows if row['state'] == DEFERRED_TERMINAL)
+        for field in ('charged_usd', 'prompt_tokens', 'completion_tokens', 'requests'):
+            self.assertEqual(row[field], '')
+        self.assertEqual(row['reward'], '1')
+        self.assertEqual(before, fixture.runtime_bytes())
+
+
 if __name__ == '__main__':
     unittest.main()
