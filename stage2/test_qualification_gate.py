@@ -151,3 +151,85 @@ class QualificationGateTests(unittest.TestCase):
         self.rows[1]['billing']['billing_verified'] = False
         self.assertFalse(self.evaluate()['accounting_bounded_expansion_allowed'])
         self.assertFalse(self.evaluate(self.rows[1:])['accounting_bounded_expansion_allowed'])
+
+    def install_completion_amendment(self):
+        first = self.install_hold()
+        second = dict(first, trial_id='dev-terminus-2-05-reshard-c4-data',
+            task_id='reshard-c4-data', request_id='5464bb2d-0767-42ff-86d7-66b11ab737ad',
+            budget_stop_count=0, budget_stop_classification='no_budget_stop')
+        self.tasks[5] = second['task_id']
+        cell = {key: second[key] for key in ('trial_id', 'task_id', 'harness', 'stage')}
+        original = dict(copy.deepcopy(self.rows[5]), **cell, status='billing_unresolved',
+                        billing={'billing_verified': False}, verifier_result={'rewards': {'reward': 0}})
+        path = self.runtime / 'scored-trials' / second['trial_id'] / 'result.json'
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(original))
+        second['original_result_sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+        document = {'schema_version': 2, 'sidecar_sha256': first['sidecar_sha256'],
+                    'model_protocol_sha256': self.fingerprint, 'holds': [first, second]}
+        for target in ('matrix_resume.validate_historical_hold', 'qualification_gate.validate_historical_hold'):
+            validator = patch(target, return_value=document)
+            validator.start()
+            self.addCleanup(validator.stop)
+        self.rows[5] = completed_cell(self.runtime.parent.parent, cell,
+                                     SimpleNamespace(fingerprint=lambda: self.fingerprint))
+        for row in self.rows:
+            row['verifier_result']['rewards']['reward'] = 0
+        self.rows[3]['billing']['budget_stop_count'] = 1
+        return document
+
+    def test_completion_amendment_retains_original_failure_without_performance_stop(self):
+        document = self.install_completion_amendment()
+        before = copy.deepcopy(self.rows)
+        result = self.evaluate()
+        self.assertFalse(result['paid_expansion_allowed'])
+        self.assertFalse(result['accounting_bounded_expansion_allowed'])
+        self.assertFalse(result['original_performance_gate_satisfied'])
+        self.assertFalse(result['actual_charge_and_token_totals_complete'])
+        self.assertTrue(result['completion_amendment_expansion_allowed'])
+        self.assertEqual(result['status'], 'completion_amendment_expansion_allowed')
+        self.assertEqual(result['verified_successes'], 0)
+        self.assertEqual(result['budget_exhausted_trials'], 3)
+        self.assertEqual(result['held_terminal_trials'], 2)
+        self.assertEqual(result['historical_hold_sha256'], document['sidecar_sha256'])
+        self.assertEqual(result['completion_amendment_sha256'], document['sidecar_sha256'])
+        self.assertEqual(result['completion_amendment_reasons'], [])
+        self.assertIn('fewer_than_ten_successes', result['reasons'])
+        self.assertIn('more_than_two_budget_stops', result['reasons'])
+        self.assertIn('more_than_one_historical_hold', result['reasons'])
+        self.assertEqual(before, self.rows)
+
+    def test_completion_amendment_requires_complete_fixed_set_and_systemic_review(self):
+        self.install_completion_amendment()
+        for rows, reviewed in ((self.rows[:6], True), (self.rows, False),
+                               (self.rows[:-1] + [copy.deepcopy(self.rows[1])], True)):
+            with self.subTest(observed=len(rows), reviewed=reviewed):
+                self.assertFalse(self.evaluate(rows, reviewed)['completion_amendment_expansion_allowed'])
+
+    def test_completion_amendment_does_not_relax_new_billing_cleanup_or_protocol(self):
+        self.install_completion_amendment()
+        for field, value in [('billing_verified', False), ('charged_usd', None),
+                             ('charged_usd', '0.024'), ('requests', None), ('budget_stop_count', None)]:
+            rows = copy.deepcopy(self.rows)
+            rows[1]['billing'][field] = value
+            with self.subTest(field=field, value=value):
+                self.assertFalse(self.evaluate(rows)['completion_amendment_expansion_allowed'])
+        for field, value in [('containers_removed', False), ('model_revoked', False),
+                             ('model_protocol_sha256', 'b' * 64), ('harness', 'openhands')]:
+            rows = copy.deepcopy(self.rows)
+            rows[1][field] = value
+            with self.subTest(field=field):
+                self.assertFalse(self.evaluate(rows)['completion_amendment_expansion_allowed'])
+
+    def test_completion_amendment_requires_exact_registered_v2_and_both_held_views(self):
+        document = self.install_completion_amendment()
+        for validated in (None, document['holds'][0], dict(document, sidecar_sha256='d' * 64),
+                          dict(document, model_protocol_sha256='d' * 64)):
+            with patch('qualification_gate.validate_historical_hold', return_value=validated):
+                self.assertFalse(self.evaluate()['completion_amendment_expansion_allowed'])
+        with patch('qualification_gate.validate_historical_hold', side_effect=ValueError('third unresolved call')):
+            self.assertFalse(self.evaluate()['completion_amendment_expansion_allowed'])
+        rows = copy.deepcopy(self.rows)
+        rows[5]['billing']['charged_usd'] = '0'
+        self.assertFalse(self.evaluate(rows)['completion_amendment_expansion_allowed'])
+        self.assertFalse(self.evaluate(self.rows[:5] + self.rows[6:])['completion_amendment_expansion_allowed'])

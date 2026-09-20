@@ -1,11 +1,12 @@
 """Read and reaudit completed cells; never replay an existing attempt."""
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 import re
 
 from scored_accounting import audit_trial
-from historical_hold import validate_historical_hold
+from historical_hold import hold_entries, hold_for_trial, validate_historical_hold
 
 
 HELD_TERMINAL = 'historical_accounting_hold_terminal'
@@ -45,10 +46,16 @@ def validated_held_cell(runtime, row, protocol_sha256):
     if runtime is None:
         raise ValueError('Historical hold requires canonical runtime evidence')
     runtime = Path(runtime)
-    hold = validate_historical_hold(runtime)
-    if hold is None or hold['model_protocol_sha256'] != protocol_sha256:
+    registry = validate_historical_hold(runtime)
+    if registry is None or registry['model_protocol_sha256'] != protocol_sha256:
         raise ValueError('Historical hold missing or model protocol changed')
-    original = json.loads((runtime / 'scored-trials' / hold['trial_id'] / 'result.json').read_text())
+    hold = hold_for_trial(registry, row.get('trial_id'))
+    if hold is None:
+        raise ValueError('Historical held trial is not registered')
+    raw = (runtime / 'scored-trials' / hold['trial_id'] / 'result.json').read_bytes()
+    if hashlib.sha256(raw).hexdigest() != hold['original_result_sha256']:
+        raise ValueError('Historical result changed after validation')
+    original = json.loads(raw)
     if json.dumps(row, sort_keys=True) != json.dumps(_held_view(original, hold), sort_keys=True):
         raise ValueError('Historical held result view differs from immutable evidence')
     return hold
@@ -63,31 +70,36 @@ def completed_cell(root, cell, settings):
     if (cell['harness'] == 'C2' and cell.get('parent') not in {'C0', 'C1'}) or (cell['harness'] != 'C2' and cell.get('parent') is not None):
         raise ValueError('Invalid custom parent')
     runtime = Path(root) / '.runtime/stage2'
-    hold = validate_historical_hold(runtime)
-    if hold is not None:
-        if hold['model_protocol_sha256'] != settings.fingerprint():
+    registry = validate_historical_hold(runtime)
+    if registry is not None:
+        if registry['model_protocol_sha256'] != settings.fingerprint():
             raise ValueError('Historical hold model protocol mismatch')
+    for hold in hold_entries(registry):
         same_cell = all(cell.get(key) == hold[key] for key in ('task_id', 'stage', 'harness'))
         if same_cell and identifier != hold['trial_id']:
             raise ValueError('Historical held cell cannot be replayed under a substitute trial identity')
+    hold = hold_for_trial(registry, identifier)
     attempt = runtime / 'scored-trials' / identifier
     if attempt.is_symlink():
         raise ValueError('Unsafe attempt path')
     if not attempt.exists():
-        if hold is not None and identifier == hold['trial_id']:
+        if hold is not None:
             raise ValueError('Historical held attempt is missing; replay forbidden')
         return None
     path = attempt / 'result.json'
     if path.is_symlink() or not path.is_file():
         raise RuntimeError('Interrupted attempt requires audit, not replay: ' + identifier)
-    result = json.loads(path.read_text())
+    raw = path.read_bytes()
+    if hold is not None and hashlib.sha256(raw).hexdigest() != hold['original_result_sha256']:
+        raise ValueError('Historical result changed after validation')
+    result = json.loads(raw)
     if any(result.get(key) != cell[key] for key in ('trial_id', 'task_id', 'stage', 'harness')):
         raise ValueError('Existing attempt identity mismatch')
     if result.get('model_protocol_sha256') != settings.fingerprint():
         raise ValueError('Existing attempt model protocol mismatch')
     if cell['harness'] == 'C2' and (result.get('agent_context') or {}).get('metadata', {}).get('custom_parent') != cell.get('parent'):
         raise ValueError('Existing custom parent mismatch')
-    if hold is not None and identifier == hold['trial_id']:
+    if hold is not None:
         return _held_view(result, hold)
     if result.get('status') != 'verified' or not all(result.get(key) is True for key in
             ('model_revoked', 'containers_removed', 'networks_removed', 'volumes_removed')):

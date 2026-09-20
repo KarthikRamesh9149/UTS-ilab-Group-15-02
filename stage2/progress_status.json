@@ -2,9 +2,9 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T02:09:00Z",
-    "status": "Offline engineering active",
-    "detail": "563 offline tests passed on the Mac and in an isolated native environment. The runtime candidate has not been deployed or requalified. Paid benchmark execution remains stopped; the project is not complete.",
+    "updated_at_utc": "2026-09-20T02:33:37Z",
+    "status": "Approved continuation being validated",
+    "detail": "The user approved bounded continuation despite preliminary scores. Five already-settled receipt flags were repaired offline on the server after 14 local and 14 native tests; charges, both unknown reservations and all six results stayed unchanged. The new runtime has not been deployed or requalified. Paid execution remains stopped.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [

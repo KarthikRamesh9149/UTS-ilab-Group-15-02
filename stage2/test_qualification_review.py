@@ -108,3 +108,54 @@ class ReviewTests(unittest.TestCase):
         with patch('qualification_review.validate_historical_hold', side_effect=ValueError('New pending dispatch')):
             with self.assertRaisesRegex(ValueError, 'pending'):
                 expansion_allowed(self.root, report)
+
+    def completion_document(self):
+        return {'schema_version': 2, 'sidecar_sha256': 'd' * 64,
+                'model_protocol_sha256': self.settings.fingerprint(),
+                'holds': [{'trial_id': 'dev-terminus-2-00-video-processing'},
+                          {'trial_id': 'dev-terminus-2-05-reshard-c4-data'}]}
+
+    def completion_report(self):
+        document = self.completion_document()
+        return dict(self.amended_report(), status='completion_amendment_expansion_allowed',
+            accounting_bounded_expansion_allowed=False, completion_amendment_expansion_allowed=True,
+            historical_hold_sha256=document['sidecar_sha256'], completion_amendment_sha256=document['sidecar_sha256'],
+            held_terminal_trials=2, held_trial_ids=sorted(entry['trial_id'] for entry in document['holds']),
+            verified_successes=1, budget_exhausted_trials=3, completion_amendment_reasons=[])
+
+    def test_completion_consumer_accepts_low_scores_only_with_exact_validated_v2(self):
+        document, report = self.completion_document(), self.completion_report()
+        with patch('qualification_review.validate_historical_hold', return_value=document):
+            self.assertTrue(expansion_allowed(self.root, report))
+            for key, value in [('status', 'original_qualification_passed'),
+                ('completion_amendment_sha256', 'e' * 64), ('historical_hold_sha256', 'e' * 64),
+                ('held_terminal_trials', 1), ('held_trial_ids', ['not-the-retained-trial']),
+                ('observed_trials', 19), ('expected_trials', 19), ('verified_successes', True),
+                ('verified_successes', 19), ('budget_exhausted_trials', -1),
+                ('budget_exhausted_trials', 21), ('accounting_bounded_expansion_allowed', True),
+                ('model_protocol_sha256', 'e' * 64), ('original_billing_completeness_satisfied', True),
+                ('actual_charge_and_token_totals_complete', True),
+                ('completion_amendment_reasons', ['cleanup_unverified'])]:
+                with self.subTest(key=key, value=value):
+                    self.assertFalse(expansion_allowed(self.root, dict(report, **{key: value})))
+        for validated in (None, dict(document, schema_version=1)):
+            with patch('qualification_review.validate_historical_hold', return_value=validated):
+                self.assertFalse(expansion_allowed(self.root, report))
+        with patch('qualification_review.validate_historical_hold', return_value=document):
+            self.assertFalse(expansion_allowed(self.root,
+                dict(self.amended_report(), historical_hold_sha256=document['sidecar_sha256'])))
+
+    def test_completion_review_must_bind_prospective_amendment_not_only_old_hash(self):
+        document = self.completion_document()
+        self.review['historical_hold_sha256'] = document['sidecar_sha256']
+        with patch('qualification_review.validate_historical_hold', return_value=document), \
+             patch('qualification_review.evaluate', return_value={'fixture': 'binding only'}) as gate:
+            with self.assertRaisesRegex(ValueError, 'prospective completion amendment'):
+                assess(self.root, {}, self.review)
+            gate.assert_not_called()
+            self.review['completion_amendment_sha256'] = 'e' * 64
+            with self.assertRaises(ValueError):
+                assess(self.root, {}, self.review)
+            self.review['completion_amendment_sha256'] = document['sidecar_sha256']
+            assess(self.root, {}, self.review)
+            self.assertTrue(gate.call_args.kwargs['systemic_review_clear'])

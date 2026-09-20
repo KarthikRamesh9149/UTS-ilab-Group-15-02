@@ -1,6 +1,22 @@
 # Netcup + OpenRouter continuation
 
-## Latest stopped checkpoint, 20 September 2026, 01:38 UTC
+## Approved continuation and receipt repair, 20 September 2026
+
+The user explicitly approved the [prospective completion amendment](COMPLETION_AMENDMENT_20260920.md):
+retain both exact historical unknown charges and all failures, report the
+original preliminary performance gate as failed but nonblocking, and preserve
+all model, task, fairness, new-receipt, cleanup and financial limits. This
+supersedes the earlier one-hold-only/no-further-exception instructions below,
+not their historical facts. It does not permit a third automatic exception.
+
+The [offline receipt repair](netcup/receipt_flag_repair_20260920.md) is applied
+and verified: only five already-settled receipt flags changed; charges,
+reservations and all six results are unchanged. No API calls occurred.
+The new continuation implementation is still being validated; deployment,
+sidecar registration and fresh source-bound qualification must precede paid
+resumption. Both full 89-task baseline runs remain unstarted.
+
+## Earlier stopped checkpoint, 20 September 2026, 01:38 UTC
 
 **Paid execution is stopped after six first-20 Terminus outcomes, not complete.**
 Four outcomes have verified billing and one of those is an official pass; the

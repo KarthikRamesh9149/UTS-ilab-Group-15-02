@@ -8,7 +8,7 @@ from budget_ledger import UNIT, dollars
 from gateway_core import reconcile_receipt
 from gateway_policy import MODEL, ENDPOINT
 from model_protocol import read_protocol
-from historical_hold import validate_historical_hold
+from historical_hold import validate_historical_hold, hold_entries
 from study_budget import SCORED_CEILING, TRIAL_CAP, STAGE_CAPS
 
 
@@ -42,8 +42,10 @@ def audit_trial(runtime, trial_id, stage):
         if db.execute('SELECT enabled FROM estimation_policy WHERE id=1').fetchone() != (1,):
             raise ValueError('Estimated admission policy drift')
         hold = validate_historical_hold(runtime, db, active_trial=trial_id)
+        holds = hold_entries(hold)
+        allowed = {(entry['request_id'], entry['reserved_nanodollars']) for entry in holds}
         unresolved = db.execute("SELECT id,reserved FROM requests WHERE state!='settled' OR charged IS NULL").fetchall()
-        if any(hold is None or row != (hold['request_id'], hold['reserved_nanodollars']) for row in unresolved):
+        if any(row not in allowed for row in unresolved):
             raise ValueError('Unresolved request; retain reservation and halt')
         if db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
             raise ValueError('Billing incident; halt')
@@ -118,7 +120,8 @@ def audit_trial(runtime, trial_id, stage):
                 'aggregate_charged_usd': str(Decimal(total) / UNIT),
                 'unresolved_reserved_usd': str(Decimal(unresolved_reserved) / UNIT),
                 'aggregate_exposure_usd': str(Decimal(exposure) / UNIT),
-                'historical_hold_request_id': hold['request_id'] if hold is not None else None,
+                'historical_hold_request_id': holds[0]['request_id'] if len(holds) == 1 else None,
+                'historical_hold_request_ids': [entry['request_id'] for entry in holds],
                 **{key: None if any(v is None for v in values) else sum(values)
                    for key, values in usage.items()}}
     finally:

@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from historical_hold import canonical_hold_document
+from historical_hold import canonical_hold_document, hold_entries, validate_historical_hold
 from matrix_resume import completed_cell, validated_held_cell, HELD_TERMINAL
 from model_protocol import ModelSettings
 
@@ -136,3 +136,106 @@ class ResumeTests(unittest.TestCase):
         with patch('matrix_resume.validate_historical_hold', side_effect=ValueError('Another unresolved dispatch')):
             with self.assertRaisesRegex(ValueError, 'unresolved'):
                 completed_cell(self.root, self.cell, self.settings)
+
+
+class TwoHoldResumeTests(unittest.TestCase):
+    def setUp(self):
+        from test_historical_hold import HoldFixtureV2
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.fixture = HoldFixtureV2(temporary.name)
+        self.addCleanup(self.fixture.close)
+        self.root, self.runtime, self.settings = self.fixture.root, self.fixture.runtime, self.fixture.settings
+        self.registry = validate_historical_hold(self.runtime)
+        self.holds = hold_entries(self.registry)
+        self.assertEqual(len(self.holds), 2)
+
+    @staticmethod
+    def cell(hold):
+        return {key: hold[key] for key in ('trial_id', 'task_id', 'stage', 'harness')}
+
+    def test_both_exact_held_zeros_retain_original_bytes_and_unknown_billing(self):
+        for hold in self.holds:
+            with self.subTest(trial=hold['trial_id']):
+                path = self.fixture.results[hold['trial_id']]
+                before = path.read_bytes()
+                with patch('matrix_resume.audit_trial') as audit:
+                    row = completed_cell(self.root, self.cell(hold), self.settings)
+                    audit.assert_not_called()
+                self.assertEqual(row['resume_disposition'], HELD_TERMINAL)
+                self.assertEqual(row['status'], 'billing_unresolved')
+                self.assertEqual(row['verifier_result']['rewards']['reward'], 0)
+                self.assertIs(row['billing']['billing_verified'], False)
+                for field in ('charged_usd', 'prompt_tokens', 'completion_tokens', 'requests'):
+                    self.assertIsNone(row['billing'][field])
+                self.assertEqual(row['historical_hold_sha256'], self.registry['sidecar_sha256'])
+                self.assertEqual(row['original_result_sha256'], hold['original_result_sha256'])
+                self.assertEqual(row['billing']['retained_reservation_nanodollars'], hold['reserved_nanodollars'])
+                self.assertEqual(validated_held_cell(self.runtime, row, self.settings.fingerprint()), hold)
+                self.assertEqual(path.read_bytes(), before)
+
+    def test_neither_held_cell_can_use_a_substitute_trial_id(self):
+        for hold in self.holds:
+            substitute = dict(self.cell(hold), trial_id=hold['trial_id'] + '-replacement')
+            with self.subTest(trial=hold['trial_id']), self.assertRaisesRegex(ValueError, 'substitute'):
+                completed_cell(self.root, substitute, self.settings)
+            self.assertFalse((self.runtime / 'scored-trials' / substitute['trial_id']).exists())
+
+    def test_either_original_result_tamper_blocks_future_resume_without_replay(self):
+        future = dict(trial_id='dev-C0-00-future', task_id='future', stage='development', harness='C0')
+        for hold in self.holds:
+            path = self.fixture.results[hold['trial_id']]
+            before = path.read_bytes()
+            try:
+                path.write_bytes(before + b'\n')
+                with self.subTest(trial=hold['trial_id']), self.assertRaises(ValueError):
+                    completed_cell(self.root, future, self.settings)
+            finally:
+                path.write_bytes(before)
+        self.assertFalse((self.runtime / 'scored-trials' / future['trial_id']).exists())
+
+    def test_held_result_byte_hash_is_rechecked_after_registry_validation(self):
+        for hold in self.holds:
+            cell = self.cell(hold)
+            row = completed_cell(self.root, cell, self.settings)
+            path = self.fixture.results[hold['trial_id']]
+            before = path.read_bytes()
+            try:
+                path.write_bytes(before + b'\n')
+                with patch('matrix_resume.validate_historical_hold', return_value=self.registry):
+                    with self.subTest(trial=hold['trial_id']), self.assertRaisesRegex(ValueError, 'changed after validation'):
+                        completed_cell(self.root, cell, self.settings)
+                    with self.assertRaisesRegex(ValueError, 'changed after validation'):
+                        validated_held_cell(self.runtime, row, self.settings.fingerprint())
+            finally:
+                path.write_bytes(before)
+
+    def test_neither_held_view_allows_cost_usage_or_outcome_imputation(self):
+        for hold in self.holds:
+            for field in ('charged_usd', 'prompt_tokens', 'completion_tokens', 'requests'):
+                row = completed_cell(self.root, self.cell(hold), self.settings)
+                row['billing'][field] = 0
+                with self.subTest(trial=hold['trial_id'], field=field), self.assertRaises(ValueError):
+                    validated_held_cell(self.runtime, row, self.settings.fingerprint())
+            row = completed_cell(self.root, self.cell(hold), self.settings)
+            row['verifier_result']['rewards']['reward'] = 1
+            with self.assertRaises(ValueError):
+                validated_held_cell(self.runtime, row, self.settings.fingerprint())
+
+    def test_held_view_cannot_select_other_registered_trial_evidence(self):
+        row = completed_cell(self.root, self.cell(self.holds[0]), self.settings)
+        row['trial_id'] = self.holds[1]['trial_id']
+        with self.assertRaises(ValueError):
+            validated_held_cell(self.runtime, row, self.settings.fingerprint())
+        row['trial_id'] = 'unregistered-hold'
+        with self.assertRaisesRegex(ValueError, 'not registered'):
+            validated_held_cell(self.runtime, row, self.settings.fingerprint())
+
+    def test_two_hold_registry_does_not_admit_a_third_unresolved_result(self):
+        row = json.loads(self.fixture.results[self.holds[0]['trial_id']].read_text())
+        row.update(trial_id='dev-terminus-2-06-third', task_id='third')
+        path = self.runtime / 'scored-trials' / row['trial_id'] / 'result.json'
+        path.parent.mkdir(mode=0o700)
+        path.write_text(json.dumps(row))
+        with self.assertRaises(RuntimeError):
+            completed_cell(self.root, self.cell(row), self.settings)

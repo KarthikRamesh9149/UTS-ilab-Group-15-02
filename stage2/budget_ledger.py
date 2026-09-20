@@ -204,14 +204,17 @@ class Ledger:
         """
         if self.historical_hold_runtime is None:
             return self.pending()
-        from historical_hold import validate_historical_hold
+        from historical_hold import validate_historical_hold, hold_entries
+        def remaining(hold):
+            exempt = {entry['request_id'] for entry in hold_entries(hold)}
+            return [row for row in self.pending() if row[0] not in exempt]
         try:
             if self.db.in_transaction:
                 hold = validate_historical_hold(self.historical_hold_runtime, self.db, active_trial=trial)
-                return [row for row in self.pending() if hold is None or row[0] != hold['request_id']]
+                return remaining(hold)
             with self.transaction():
                 hold = validate_historical_hold(self.historical_hold_runtime, self.db, active_trial=trial)
-                return [row for row in self.pending() if hold is None or row[0] != hold['request_id']]
+                return remaining(hold)
         except ValueError as exc:
             raise BudgetExceeded('Historical hold validation failed; admission halted') from exc
 

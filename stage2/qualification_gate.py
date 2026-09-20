@@ -3,6 +3,7 @@
 No calls, task replacements, resampling, allowances or model selection occur here.
 """
 from decimal import Decimal, InvalidOperation
+from historical_hold import hold_entries, validate_historical_hold
 from matrix_resume import HELD_TERMINAL, validated_held_cell
 from study_budget import TRIAL_CAP
 
@@ -14,13 +15,30 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
         raise ValueError('Frozen protocol fingerprint required')
     if type(systemic_review_clear) is not bool:
         raise ValueError('Explicit systemic failure review status required')
-    reasons, amended_reasons, observed, passes, stops = [], [], set(), 0, 0
+    reasons, amended_reasons, completion_reasons, observed, passes, stops = [], [], [], set(), 0, 0
     holds, raw_stops, pending_barrier_stops = [], 0, 0
+    completion_amendment = None
 
-    def reject(reason, *, historical_exception=False):
+    def reject(reason, *, historical_exception=False, completion_exception=False):
         reasons.append(reason)
         if not historical_exception:
             amended_reasons.append(reason)
+        if not historical_exception and not completion_exception:
+            completion_reasons.append(reason)
+
+    # A caller cannot enable the approved completion amendment with a flag.
+    # Its exact private sidecar, immutable results and live ledger must validate.
+    if runtime is not None:
+        try:
+            registered = validate_historical_hold(runtime)
+            if registered is not None and registered.get('schema_version') == 2:
+                if (registered['model_protocol_sha256'] != protocol_sha256
+                        or len(hold_entries(registered)) != 2):
+                    reject('completion_amendment_invalid')
+                else:
+                    completion_amendment = registered
+        except (ValueError, OSError, KeyError):
+            reject('historical_hold_invalid')
 
     if len(records) != 20:
         reject('incomplete_or_extra_trials')
@@ -62,9 +80,11 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
             # The two immutable old markers came from the pending-request
             # barrier. Their validated classification is not cap exhaustion.
             if held is not None:
-                if (held.get('budget_stop_classification') != 'historical_pending_barrier'
+                if (held.get('budget_stop_classification') not in
+                        {'historical_pending_barrier', 'no_budget_stop'}
                         or type(held.get('capacity_budget_stop_count')) is not int
-                        or held['capacity_budget_stop_count'] != 0):
+                        or held['capacity_budget_stop_count'] != 0
+                        or (held.get('budget_stop_classification') == 'no_budget_stop' and count != 0)):
                     reject('budget_stop_status_unknown')
                 else:
                     pending_barrier_stops += count
@@ -80,25 +100,44 @@ def evaluate(records, *, task_ids, protocol_sha256, systemic_review_clear=False,
                 reject('invalid_trial_charge', historical_exception=held is not None)
         except (KeyError, InvalidOperation, ValueError):
             reject('invalid_trial_charge', historical_exception=held is not None)
-    if len(holds) > 1: reject('more_than_one_historical_hold')
+    registered_ids = ({entry['trial_id'] for entry in hold_entries(completion_amendment)}
+                      if completion_amendment else set())
+    exact_completion_holds = (completion_amendment is not None and len(holds) == 2
+        and {entry['trial_id'] for entry in holds} == registered_ids
+        and all(entry['sidecar_sha256'] == completion_amendment['sidecar_sha256'] for entry in holds))
+    if len(holds) > 1:
+        reject('more_than_one_historical_hold', completion_exception=exact_completion_holds)
+    if completion_amendment is not None and not exact_completion_holds:
+        reject('completion_amendment_held_cells_missing')
     if observed != set(task_ids): reject('frozen_tasks_missing')
-    if passes < 10: reject('fewer_than_ten_successes')
-    if stops > 2: reject('more_than_two_budget_stops')
+    if passes < 10:
+        reject('fewer_than_ten_successes', completion_exception=completion_amendment is not None)
+    if stops > 2:
+        reject('more_than_two_budget_stops', completion_exception=completion_amendment is not None)
     if not systemic_review_clear: reject('systemic_failure_review_required')
-    bounded_allowed = len(holds) == 1 and not amended_reasons
+    bounded_allowed = completion_amendment is None and len(holds) == 1 and not amended_reasons
+    completion_allowed = exact_completion_holds and not completion_reasons
     billing_complete = (len(records) == 20 and observed == set(task_ids)
         and not set(reasons).intersection({'billing_unverified', 'usage_missing', 'invalid_trial_charge'}))
     return {'paid_expansion_allowed': not reasons, 'verified_successes': passes,
             'budget_exhausted_trials': stops, 'reasons': sorted(set(reasons)),
             'expected_trials': 20, 'observed_trials': len(records),
             'status': ('original_qualification_passed' if not reasons else
+                       'completion_amendment_expansion_allowed' if completion_allowed else
                        'accounting_bounded_expansion_allowed' if bounded_allowed else 'qualification_not_cleared'),
             'model_protocol_sha256': protocol_sha256,
             'original_billing_completeness_satisfied': billing_complete,
             'accounting_bounded_expansion_allowed': bounded_allowed,
             'accounting_bounded_reasons': sorted(set(amended_reasons)),
             'held_terminal_trials': len(holds),
-            'historical_hold_sha256': holds[0]['sidecar_sha256'] if len(holds) == 1 else None,
+            'historical_hold_sha256': (completion_amendment['sidecar_sha256'] if exact_completion_holds
+                                      else holds[0]['sidecar_sha256'] if len(holds) == 1 else None),
+            'held_trial_ids': sorted(entry['trial_id'] for entry in holds),
+            'original_performance_gate_satisfied': passes >= 10 and stops <= 2,
+            'completion_amendment_expansion_allowed': completion_allowed,
+            'completion_amendment_sha256': (completion_amendment['sidecar_sha256']
+                                            if completion_amendment else None),
+            'completion_amendment_reasons': sorted(set(completion_reasons)),
             'budget_stop_markers': raw_stops,
             'historical_pending_barrier_markers': pending_barrier_stops,
             'actual_charge_and_token_totals_complete': billing_complete}
