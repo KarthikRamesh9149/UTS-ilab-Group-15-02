@@ -130,18 +130,18 @@ development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
 
-## Completion-metadata checkpoint, 14:34 UTC
+## Completion-metadata checkpoint, 15:06 UTC
 
-The same service and PID remain active. **75 of 178 final trials** have binary
-verifier results: 37 Terminus-2 and 38 OpenHands. All 75 have confirmed
-revocation and resource cleanup. Fifty-two have verified billing; twenty-three retain
+The same service and PID remain active. **81 of 178 final trials** have binary
+verifier results: 40 Terminus-2 and 41 OpenHands. All 81 have confirmed
+revocation and resource cleanup. Fifty-five have verified billing; twenty-six retain
 unresolved billing and are not represented as financially verified. Individual
 non-development outcomes were not inspected or used for custom development.
 
-The 76th canonical cell, `final-terminus-2-37-install-windows-3.11`, was active
-at inspection. Its official agent and verifier limits are each 3600 seconds;
+The 82nd canonical cell, `final-terminus-2-40-largest-eigenval`, was active
+at inspection. Its official agent and verifier limits are each 900 seconds;
 the environment-build limit is 600 seconds. Request and trajectory artifact
-modification times show activity at 14:34:08 and 14:34:04 UTC respectively.
+modification times show activity at 15:06:41 and 15:06:37 UTC respectively.
 Their contents were not inspected.
 The initial20 development results remain separate from these final trials.
 The registration hash is unchanged,

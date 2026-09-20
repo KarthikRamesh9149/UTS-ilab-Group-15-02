@@ -2,16 +2,16 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T14:34:31Z",
-    "status": "Full baselines running: 75 trial results collected",
-    "detail": "At this checkpoint, 37 Terminus-2 and 38 OpenHands final trials had official binary verifier results and confirmed cleanup. Fifty-two have verified billing; twenty-three retain unresolved billing under the approved continuation rule. The 76th canonical cell, Terminus-2 install-windows-3.11, was active, with request activity at 14:34:08 UTC and trajectory activity at 14:34:04 UTC. This task's unchanged official agent and verifier limits are each 3600 seconds. The same persistent service targets all 178 baseline cells before custom development, and all 50 admitted scoring-source hashes and the original registration bindings still validate. The initial20 run remains separate. Live metadata below supplies current attempted and billing-verified counts, not a completed full-study score.",
+    "updated_at_utc": "2026-09-20T15:06:51Z",
+    "status": "Full baselines running: 81 trial results collected",
+    "detail": "At this checkpoint, 40 Terminus-2 and 41 OpenHands final trials had official binary verifier results and confirmed cleanup. Fifty-five have verified billing; twenty-six retain unresolved billing under the approved continuation rule. The 82nd canonical cell, Terminus-2 largest-eigenval, was active, with request activity at 15:06:41 UTC and trajectory activity at 15:06:37 UTC. This task's unchanged official agent and verifier limits are each 900 seconds. The same persistent service targets all 178 baseline cells before custom development, and all 50 admitted scoring-source hashes and the original registration bindings still validate. The initial20 run remains separate. Live metadata below supplies current attempted and billing-verified counts, not a completed full-study score.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
     {"name": "Initial baseline qualification", "state": "20/20 finished; technical review complete", "detail": "Seven official passes and 13 failures retained. Twelve billing-verified trials and eight unresolved-billing trials are distinct. The original performance gate failed; the user-approved continuation amendment permits full collection."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
-    {"name": "Fresh full evaluation", "state": "Full baselines running", "detail": "75 of 178 trial results existed at the 14:34 UTC checkpoint: 37 Terminus-2 and 38 OpenHands. The 76th task was active. The 178 baseline results will join 89 later frozen-custom trials; initial development results are not substituted into final scores."},
+    {"name": "Fresh full evaluation", "state": "Full baselines running", "detail": "81 of 178 trial results existed at the 15:06 UTC checkpoint: 40 Terminus-2 and 41 OpenHands. The 82nd task was active. The 178 baseline results will join 89 later frozen-custom trials; initial development results are not substituted into final scores."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
   ],
   "financial_snapshot": {
