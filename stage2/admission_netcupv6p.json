@@ -1,0 +1,94 @@
+{
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "endpoint": "deepinfra/fp8",
+  "settings": {
+    "max_output_tokens": 8192,
+    "temperature": 1.0,
+    "reasoning_effort": "high"
+  },
+  "source_hashes": {
+    "budget_ledger.py": "514a7a88ef79fd693ba6831ee2ae4b5b07e0bee669c57070d8bca730ebd7dfee",
+    "historical_hold.py": "209e275eec986657db587fefd0847d3208b46260aed832a06f95d4bf94292232",
+    "gateway_core.py": "235c697be021a0b0ce0f04980603d1079174ff36fca49d4d313649198c1c24b7",
+    "gateway_policy.py": "250ecc94dfc269193102f860bd90372198c238e60590f947fa6192f2ffcaedd2",
+    "study_budget.py": "5f4379e07a061b8e012f9075dc74f8f6909d6b0a084d4964e69c0f1160cc87e7",
+    "linux_host_health.py": "ed7ab2c294e1835cf419e258e9b6f5b9b3e823ca58845e9c924ba1e6cf110f45",
+    "qualify_oracle.py": "90718d7ab9b9f5227d3cafa5af21ddc66ecf279fdfdd5e9d6b537b33385a16e3",
+    "reference_download_repair.py": "32fe8544ca31f2608c0285ae5fc483110c2cc0430a18790c4c28bd6f39c70ce5",
+    "paid_trace.py": "f58cfd1fc35116f3cb75e2f9dc3d284f506ffb0223e3e025cb0e31c2c7934ede",
+    "local_trace.py": "d4d41304697fc7dba06b92b7289d7b88c5f0a63a27ac6f2a3d8d23b087093100",
+    "post_trial_receipts.py": "d65a018801c9b831cb9f449a195c1781ac653695aeb323f2b48c1257b6429d92",
+    "task_preparation.py": "fb1cf6c9e3a6ee79579de2ebcbfd0f97cac39e989000bbb77b20a00f114b6815",
+    "native_setup_gateway.py": "366012a0aa54c9857b05b2adec51d4b5ad72b9643b8d2c96f828e355b3cf2a24",
+    "native_setup_accounting.py": "fd4aaccf7794aa36556dd641a10edf3da6bca5f4684b15520fa0c153e912122c",
+    "custom-requirements.lock": "5271e2abf1b15ace1dd280028ca976d5d4229a8eeb44a4520d3c20e8c5c31eb2",
+    "gateway_http.py": "38012e317ebc6c84d53e061fda5fb147ea58b0cb9244edd3c137d06508a78025",
+    "scored_gateway.py": "a0e89ebdd8f4701aa3bccad328356cae5e3671b997431f7eef5a81b2dd545f78",
+    "scored_accounting.py": "5f4f988ecc62fc47e22b6892aee7177d0d84aa89fd128195293c1183b0de53d8",
+    "model_protocol.py": "7a3816ba1b6679d743dc922a351956939fa25e6148faa8c0cfbfa2050d1513e0",
+    "trial_estimator.py": "83e36d69bbfe3fa4bb7104ffa11692ebdff0c544a6de2db622fb86c50d1f8b02",
+    "openrouter_transport.py": "4529c4dbdcec870d6eb6957f6b88f012552afcc99b65cfbadaba095dcb3dcac3",
+    "receipt_polling.py": "be1ed8bd9351004e1b5a7cf1f18177f1e110c41bac673885ad335a7437173b93",
+    "production_compose.py": "58e0ab1d3b8bbb567805b4a25c79c3768756d80b08363091309e6ad0e2de8b41",
+    "guarded_runtime.py": "064840f03b62e3d8dec8ccaa7ac67f04a1649d2704b575f4d25d16f56ae00b4d",
+    "container_model_relay.py": "9e2d67f2c6dae045a3157d7bc0e94b93e3040dccc3c21d13deed3d2680587c21",
+    "container_gateway_rpc.py": "a49281a7f39dfcf1d8b087fd010ba4cc02eb042dce68179e3e5c10a8369a23bb",
+    "host_model_bridge.py": "5b8d730fbd3220d737db6956525cba7f12ac16572c85ace3fb3705bdef3e9f44",
+    "trial_execution.py": "40ca9353c7229cc9d6aa3620ef1c5980ff53adcbd1c824a09dcd403f3b3737d0",
+    "scored_trial.py": "657c4913003ce90ba18a8fa4e0da21e6c3588a9d271d7c65a8b535e342a233b3",
+    "pinned_docker.py": "268099cc21c56c7371fd604137c4629964d9d02800311f0415fff9b276297589",
+    "host_environment.py": "d4add131f63bbf5a38931526aa7a58094ad6b22c0f872c43890048b7da4dccfb",
+    "native_agents.py": "fbe123612474f1f5d5528273ac4edd3e8ef375820efe3f3a1b5a1b4a01332081",
+    "custom_backend.py": "a3fbf3992a6504bd46b785503e20d7dc9843d43993e9a2da1afb3d1387c92d47",
+    "custom_runner.py": "c878a0ca0dd98eb2a4e5c8616b270370148aaaf9d1c42630d412c285c257b686",
+    "custom_model.py": "0273b4ba3fc4c3aee68a911f1c58d8a8ea6beecb6946d6a2e108b509e40f6658",
+    "custom_control.py": "01b6fb09d55d1fe28f53126c7c42350bdacac43b3d2eeb573a1d57dab631484c",
+    "custom_jobs.py": "4d945e1cad89994100fb473d0fbb4abcdc2618d9486869b20c347d618943d1fc",
+    "custom_harbor_agent.py": "7c2585e023b49515ff889b79f2daa55951a96f7dba83413416f9da1a049b4459",
+    "openhands-requirements.lock": "12a2a0964cf8d2e3d82743a73705eb5d46118cd277bea8b532b99b4d502da151",
+    "matrix_resume.py": "408771f70da99444ef14467241cb1b8f101e14f9081a8e11b8c9e8ce221e3c23",
+    "qualification_gate.py": "0e10ed5ebd969e6f1d1f8a94e9ba1108557440658051910ed086908828233bce",
+    "qualification_review.py": "b7bbfe951f73f004c77dcbd59cd90dc40311b77ad3a671d05edc78b7f93cdfe3",
+    "run_qualification.py": "8b101478e4500171970096fd7135028b522351ad93e1fcbeb8a829d0a82e48f6",
+    "run_development.py": "3647ac78aa2559a1f4a51f68f60f6b8f81a20a52cf4928d8f7e9661c9abe5494",
+    "run_diagnostic.py": "9c929e11a46a49fab292c7a9f0e50dcde28d96db483e78ab88f99de0f7a6277a",
+    "run_final.py": "f793c76e4cc585051332833746fd81ddb06130d9179b0e9f19c76da7cccb21ee",
+    "export_final.py": "b11496401b514df8d4f417dd5fec24b9b206a35bdf0935b2e50b0abda026c8ea"
+  },
+  "setup_timeout_seconds": 900,
+  "proofs": {
+    "runtime": {
+      "path": "stage2/scored_runtime_probe_netcupv6.json",
+      "sha256": "4eb72c52d9b42d765d7496965dc8839122fa5db5548c3e2ca13369ec0a0a2aa8"
+    },
+    "terminus_live": {
+      "path": "stage2/native_live_terminus-2_netcupv6p.json",
+      "sha256": "338b4499bea712a18947308a78482b17a91d0903677788c0a2430fa19aea4cc4"
+    },
+    "openhands_live": {
+      "path": "stage2/native_live_openhands_netcupv6p.json",
+      "sha256": "ff9b83187e2fdfb596c2139fc4e7d1828838bdf7f83e6fe3babfd18cb25afafd"
+    },
+    "custom_live": {
+      "path": "stage2/native_live_custom_netcupv6p.json",
+      "sha256": "854dbd78b6fe1645f4b7c029cad9d6041980a856cb68f780181932499b92a1fa"
+    }
+  },
+  "host_environment": {
+    "docker": {
+      "Architecture": "x86_64",
+      "OSType": "linux",
+      "KernelVersion": "6.12.107+deb13-amd64",
+      "ServerVersion": "29.8.1",
+      "NCPU": 8,
+      "MemTotal": 16773283840
+    },
+    "docker_context": "default",
+    "docker_endpoint": "unix:///var/run/docker.sock",
+    "execution_mode": "native_linux_x86_64",
+    "client_kernel": "6.12.107+deb13-amd64",
+    "client_architecture": "x86_64"
+  },
+  "gateway_image": "sha256:62435e7f2d20f8d752785c29355eba23bbed7ce2f0a50192633f9808b5cc5719",
+  "guard_image": "sha256:69a331f7aef9f7c33ede8371fc7109ef0d83fe4f946f05f2a4aad97e65a51cc4"
+}

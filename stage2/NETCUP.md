@@ -10,14 +10,17 @@ The original billing-completeness rule remains unsatisfied and is reported
 separately from any amended clearance.
 
 Current continuation service: `uts-stage2-qualification-netcupv6p.service`,
-private log `.runtime/stage2/netcup-qualification-v6p.log`. The final candidate
+private log `.runtime/stage2/netcup-qualification-v6p.log`. The runner candidate
 passed 491 tests on each host and independent source review. The synthetic
-runtime passed. The initial live check stopped before any dispatch on a legacy
-ledger-file permission mismatch; that precise configuration was corrected
-without changing ledger bytes. See
+runtime and all three fresh live model/harness checks passed. Their seven
+model calls cost $0.00186342 with matching receipts. The initial live check
+had stopped before any dispatch on a legacy ledger-file permission mismatch;
+that precise configuration was corrected without changing ledger bytes. See
 [activation and verification evidence](netcup/accounting_continuation_verification_20260920.md).
-An active service is not evidence that live qualification or benchmark scoring
-has completed.
+`admission_netcupv6p.json` binds the actual passed proofs. At the 20 September
+resumption checkpoint the first-20 Terminus block was active on
+`dev-terminus-2-01-build-pov-ray`, after retaining the historical first cell.
+This is real resumed execution, not a completed benchmark score or a harness win.
 
 The implementation preserves the full $0.106496 reservation and original
 ledger rows/result bytes. It checks both setup and scoring ledgers before
@@ -31,6 +34,17 @@ It lists all 46 recorded generation requests, $0.00774516 confirmed charges
 and the unknown reservation separately. The approximately $13.23 remainder
 of the account-level balance decline cannot be attributed from this project's
 key evidence and is explicitly not described as verified project spending.
+That audit is a dated snapshot; subsequent calls stay in the authoritative
+ledgers and must be included in the next client spending export.
+
+`export_development.py` provides a separate read-only CSV/JSON snapshot of the
+five primary fixed-20 development conditions. It does not authorise spending
+or claim final-89 success. Partial conditions have no accuracy rate; unknown
+costs/tokens stay unknown. Run it on the qualified host only when the matrix
+lock is free, with the current admission and a fresh output directory. The
+reporter has 14 regression tests and an independent read-only review. After
+adding it, all 505 local tests passed; the timed native benchmark was not
+interrupted to rerun unrelated tests.
 
 ## Earlier stopped checkpoint, 20 September 2026 (Sydney)
 
