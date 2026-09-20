@@ -1,5 +1,35 @@
 # Netcup + OpenRouter continuation
 
+## Current stop: 119 of 178 baseline results, 20 September 2026
+
+At 18:06:16 UTC the baseline service stopped with `Stage ceiling exceeded`.
+Fresh inspection at 18:58 UTC confirmed 60 Terminus-2 and 59 OpenHands final
+results, all with official binary verifier outcomes and complete cleanup.
+Seventy-six have verified billing; 43 have unresolved billing. All 59 remaining
+baseline cells are unstarted. No competing runner or leftover container exists.
+
+The final-stage conservative total is US$6.16396148 against its US$6.141 cap:
+US$0.31113252 recorded charges, US$4.472832 pending reservations and
+US$1.37999696 additional exposure for unverified receipt checks. Reservations
+are not confirmed spending. A read-only account check at 18:59 UTC showed
+US$11.650824872 available. Four sampled delayed receipts now exactly match
+their original settled response costs, but none has been applied to the ledger.
+
+The existing maintenance commands mutate original ledger/evidence rows and
+are not compatible with immutable standing deferrals. Do not use them on
+registered deferrals or restart blindly. An additive, source-qualified recovery
+path is needed before those confirmed receipts can safely reduce exposure.
+Original model/settings, results, ledgers, registration and admitted sources
+remain unchanged. The historical running checkpoints below are not live status.
+
+At 19:09 UTC, the separate host-maintenance collector recovered and matched
+all 13 missing receipts for already-settled scored charges. The receipts are
+staged privately outside original attempt/deferral folders. All 8,596 protected
+original files and all admitted sources remained byte-identical. These matches
+support a potential US$1.37999696 hold reduction, but the collector cannot apply
+it, admit spending or resume tasks. Integration with a qualified additive
+accounting path is still required. See the latest activation-log checkpoint.
+
 ## Standing billing continuation and baseline priority, 20 September 2026
 
 The user has now authorised continuing collection despite unresolved provider

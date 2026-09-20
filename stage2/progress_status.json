@@ -2,24 +2,24 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T17:48:10Z",
-    "status": "Full baselines running: 117 trial results collected",
-    "detail": "At this checkpoint, 58 Terminus-2 and 59 OpenHands final trials had official binary verifier results and confirmed cleanup. Seventy-six have verified billing; forty-one retain unresolved billing under the approved continuation rule. The 118th canonical cell, Terminus-2 path-tracing-reverse, was active, with request activity at 17:48:07 UTC and trajectory activity at 17:48:02 UTC. All three execution locks were held and only the active trial's four study containers were running. This task's unchanged official agent and verifier limits are each 1800 seconds. The same persistent service targets all 178 baseline cells before custom development, and all 50 admitted scoring-source hashes and the original registration bindings still validate. The initial20 run remains separate. Live metadata below supplies current attempted and billing-verified counts, not a completed full-study score.",
+    "updated_at_utc": "2026-09-20T19:09:06Z",
+    "status": "Baselines STOPPED: 119 of 178 trial results collected",
+    "detail": "The service exited at 18:06:16 UTC with Stage ceiling exceeded. Sixty Terminus-2 and 59 OpenHands final trials have official binary verifier results and confirmed cleanup; 76 have verified billing and 43 retain unresolved billing. All 59 remaining canonical baseline cells are unstarted. Final-stage recorded charges of US$0.31113252 plus conservative holds of US$5.85282896 total US$6.16396148 against the unchanged US$6.141 cap; holds are not confirmed spending. At 19:09 UTC, a separate read-only collector recovered all 13 delayed receipts for settled charges, supporting a potential US$1.37999696 hold reduction. They are staged but NOT applied: original ledgers/results remain unchanged, no reservation has been released, and the service is still stopped. A qualified additive accounting integration is still needed. All 8,596 protected original files and all 50 admitted source hashes remain unchanged. Latest account check at 18:59 UTC showed US$11.650824872 available. Custom development and the complete comparison remain unfinished.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
     {"name": "Initial baseline qualification", "state": "20/20 finished; technical review complete", "detail": "Seven official passes and 13 failures retained. Twelve billing-verified trials and eight unresolved-billing trials are distinct. The original performance gate failed; the user-approved continuation amendment permits full collection."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
-    {"name": "Fresh full evaluation", "state": "Full baselines running", "detail": "117 of 178 trial results existed at the 17:48 UTC checkpoint: 58 Terminus-2 and 59 OpenHands. The 118th task was active. The 178 baseline results will join 89 later frozen-custom trials; initial development results are not substituted into final scores."},
+    {"name": "Fresh full evaluation", "state": "Stopped at 119/178 baseline results", "detail": "60 Terminus-2 and 59 OpenHands results are saved. The remaining 59 baseline cells have not started. Conservative unresolved-billing exposure exceeds the original final-stage cap; the service is not running. Later frozen-custom final trials have not started."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
   ],
   "financial_snapshot": {
-    "observed_at_utc": "2026-09-20T02:53:27Z",
-    "available_account_credit_usd": "12.015073652",
-    "known_project_charges_usd": "0.02061936",
-    "unresolved_holds_usd": "0.319488",
-    "note": "Recorded snapshot only; this panel makes no account or billing API calls. US$0.212992 covers historical scored holds; US$0.106496 is the unresolved setup reservation. The user now permits conservative terminal deferrals within unchanged caps. Reservations are not confirmed charges. Account credit is separate from the key allowance."
+    "observed_at_utc": "2026-09-20T18:59:31Z",
+    "available_account_credit_usd": "11.650824872",
+    "known_project_charges_usd": "0.38296356",
+    "unresolved_holds_usd": "6.81129296",
+    "note": "Read-only runtime accounting snapshot, not a spending report or complete billing reconciliation. Recorded charges total setup US$0.01055136, development US$0.06127968 and final US$0.31113252. Unresolved holds include pending requests and the additional full-reservation exposure for missing receipts across all stages; they are not confirmed charges. Key-reported usage is US$0.38546298, not fully reconciled to project rows. The final-stage conservative total alone exceeds its cap. The panel itself makes no billing API calls."
   },
   "last_remote_snapshot": {
     "observed_at_utc": "2026-09-20T01:38:36Z",
