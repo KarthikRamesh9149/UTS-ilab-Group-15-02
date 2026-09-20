@@ -2,14 +2,14 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T04:09:10Z",
-    "status": "Scored Terminus tasks resumed; full baselines next",
-    "detail": "Reviewed commit 17f342a passed 721 tests on both hosts and was deployed. All fresh synthetic and real Terminus-2, OpenHands and custom integration checks passed. Admission netcupv8 is active; the first missing scored task, install-windows-3.11, is now running. Six old outcomes remain unchanged. The 178 full-89 baseline cells are next after the initial systemic review, ahead of custom development. Unresolved charges remain reserved within unchanged budgets.",
+    "updated_at_utc": "2026-09-20T04:59:45Z",
+    "status": "Initial scored Terminus block running; full baselines next",
+    "detail": "Reviewed commit 17f342a passed 721 tests on both hosts. All fresh integration checks passed and admission netcupv8 remains valid. At this checkpoint, nine initial tasks had finished with two verifier passes, and task ten had started. Live metadata below supplies the current counts. The 178 full-89 baseline cells are next after the initial systemic review, ahead of custom development. Unresolved charges remain reserved without blocking subsequent tasks.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
-    {"name": "Initial baseline qualification", "state": "Scored tasks running", "detail": "Netcupv8 passed fresh model/tool checks and resumed only the missing initial tasks. Six completed outcomes were retained; install-windows-3.11 was the next task observed running. Live metadata supplies current counts. Failed setup fixtures are not scored benchmark tasks."},
+    {"name": "Initial baseline qualification", "state": "Scored tasks running", "detail": "Netcupv8 resumed only missing initial tasks and retains every prior outcome. Live metadata supplies current attempted and verified counts. Failed setup fixtures are not scored benchmark tasks."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
     {"name": "Fresh full evaluation", "state": "Not started; baselines prioritised", "detail": "89 Terminus-2 and 89 OpenHands final tasks will run before custom development, then be retained in the same 267-cell comparison alongside 89 frozen-custom tasks. Development runs are separate."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
