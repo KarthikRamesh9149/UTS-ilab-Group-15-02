@@ -15,3 +15,5 @@ results/progress_smoke_*/raw/
 results/progress_smoke_*/trials/
 results/progress_smoke_*/commands.log
 
+# User-requested code-free deliverables stay local; never push generated ZIPs.
+output/final-evidence/
