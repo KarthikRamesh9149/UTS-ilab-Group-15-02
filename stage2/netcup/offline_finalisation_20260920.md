@@ -43,14 +43,23 @@ All 211 candidate-file hashes and 1,037 opaque canonical-data hashes were
 verified. All 48 paid-runtime hashes remained identical to deployed commit
 `9384d84`; these offline changes alone do not require new paid qualification.
 The stopped production checkout, ledgers, protocol, admission and hold registry
-were unchanged by the isolated tests. These new finalisation modules are
-committed and native-offline tested, not yet deployed to production.
+were unchanged by the isolated tests.
+
+The four tested finalisation modules were subsequently deployed under all three
+runner ownership locks, with the service stopped and no live containers. Their
+source hashes matched the tested candidate. All 48 paid-runtime source hashes
+and 14 protected evidence/ledger files remained unchanged. Post-deployment
+imports passed without executing the freezer, exporter, packager or paid runner.
+A private remote backup and a hash-verified local copy of the deployment proof
+were retained. This deployment made zero provider calls.
+
+- Deployment proof SHA-256: `24873b5c5ebc0b990387bc61da494e53b018c42a8965305198cfe5b6c4079f90`.
 
 - Final native overlay SHA-256: `eea9ea41f5dfe24fd2e0118f2dfb1ac37fd0bbcf878b5de664911dcc3153c497`.
 - Candidate manifest SHA-256: `16b2d675a2c87167d6211d72e020b5afb83e1d5c1ab228b16be1e3274e8e3fff`.
 - Before/after production verification SHA-256: `ccbe0419ef42e01118c8dcd0e5289b7db1e322d3f92c26cfc532b33630fc91e2`.
 
 The existing v7 setup billing failure still prevents paid resumption. The
-03:00 UTC read-only receipt lookup again returned 404; the service was confirmed
+03:19 UTC read-only receipt lookup again returned 404; the service was confirmed
 failed with no live containers. Retain its original evidence and reservation.
 Passing these tests is not a benchmark score, completed comparison or custom win.
