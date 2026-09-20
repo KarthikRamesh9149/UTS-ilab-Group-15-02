@@ -2,24 +2,24 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T02:33:37Z",
-    "status": "Approved continuation being validated",
-    "detail": "The user approved bounded continuation despite preliminary scores. Five already-settled receipt flags were repaired offline on the server after 14 local and 14 native tests; charges, both unknown reservations and all six results stayed unchanged. The new runtime has not been deployed or requalified. Paid execution remains stopped.",
+    "updated_at_utc": "2026-09-20T02:53:27Z",
+    "status": "Stopped: setup request rate limited; billing unresolved",
+    "detail": "633 offline tests passed on both hosts and the fresh synthetic runtime check passed. The subsequent Terminus setup request received HTTP429; its generation lookup returned404. The new US$0.106496 reservation remains unresolved, separately from the two approved scored holds. No new benchmark task ran, no retry is active, and full89 scoring has not started.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
-    {"name": "Initial baseline qualification", "state": "Stopped at checkpoint", "detail": "Six of 20 Terminus-2 development tasks attempted. Three budget-stopped trials exceed the original maximum of two. Expansion is not established."},
+    {"name": "Initial baseline qualification", "state": "Stopped before resumption", "detail": "Six of 20 Terminus-2 development tasks attempted. The low-score continuation amendment is deployed, but a new setup request has unresolved billing following HTTP429. The stopped setup attempt is not a scored task. Authoritative billing evidence and successful runtime qualification are needed before the next task."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
     {"name": "Fresh full evaluation", "state": "Not started", "detail": "89 fresh tasks per baseline and 89 for a frozen custom finalist remain separate from development runs."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
   ],
   "financial_snapshot": {
-    "observed_at_utc": "2026-09-20T01:38:37Z",
+    "observed_at_utc": "2026-09-20T02:53:27Z",
     "available_account_credit_usd": "12.015073652",
     "known_project_charges_usd": "0.02061936",
-    "unresolved_holds_usd": "0.212992",
-    "note": "Recorded snapshot only; this panel makes no account or billing API calls. Holds are not confirmed charges. Account credit is separate from the key allowance."
+    "unresolved_holds_usd": "0.319488",
+    "note": "Recorded snapshot only; this panel makes no account or billing API calls. US$0.212992 covers the approved historical scored holds; US$0.106496 is a new unresolved setup reservation that blocks spending. Reservations are not confirmed charges. Account credit is separate from the key allowance."
   },
   "last_remote_snapshot": {
     "observed_at_utc": "2026-09-20T01:38:36Z",
