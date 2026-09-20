@@ -130,21 +130,23 @@ development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
 
-## Completion-metadata checkpoint, 09:52 UTC
+## Completion-metadata checkpoint, 10:48 UTC
 
-The same service and PID remain active. **32 of 178 final trials** have binary
-verifier results: 16 Terminus-2 and 16 OpenHands. All 32 have confirmed
-revocation and resource cleanup. Twenty-one have verified billing; eleven retain
+The same service and PID remain active. **40 of 178 final trials** have binary
+verifier results: 20 Terminus-2 and 20 OpenHands. All 40 have confirmed
+revocation and resource cleanup. Twenty-six have verified billing; fourteen retain
 unresolved billing and are not represented as financially verified. Individual
 non-development outcomes were not inspected or used for custom development.
 
-The 33rd canonical cell, `final-openhands-16-crack-7z-hash`, started at
-09:52:19 UTC and was active at inspection. Its official agent limit is 1800
-seconds, verifier limit is 900 seconds and environment-build limit is 600 seconds.
-No model request had yet been recorded for this newly started cell.
+The 41st canonical cell, `final-terminus-2-20-dna-assembly`, started at
+10:33:50 UTC and was active at inspection. Its official agent and verifier
+limits are each 1800 seconds; the environment-build limit is 600 seconds.
+Eight requests and seven durable responses existed, with the latest request
+at 10:48:33 UTC. This is live activity within the unchanged time limit.
+The first 20 final tasks per harness are not the separate fixed development subset.
 The registration hash is unchanged,
 all 50 admitted scoring sources validate, and no unexpected final keys exist.
-The host has approximately 451 GiB free disk and 14.0 GiB available RAM;
+The host has approximately 446 GiB free disk and 14.4 GiB available RAM;
 reported current memory-pressure averages are zero.
 All three execution locks are held by the active run. No runner was restarted, no extra
 matrix was launched, and no paid runtime or prior result was changed.
