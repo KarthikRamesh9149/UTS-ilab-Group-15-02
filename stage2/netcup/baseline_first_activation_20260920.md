@@ -130,23 +130,23 @@ development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
 
-## Completion-metadata checkpoint, 10:48 UTC
+## Completion-metadata checkpoint, 13:06 UTC
 
-The same service and PID remain active. **40 of 178 final trials** have binary
-verifier results: 20 Terminus-2 and 20 OpenHands. All 40 have confirmed
-revocation and resource cleanup. Twenty-six have verified billing; fourteen retain
+The same service and PID remain active. **58 of 178 final trials** have binary
+verifier results: 29 Terminus-2 and 29 OpenHands. All 58 have confirmed
+revocation and resource cleanup. Forty have verified billing; eighteen retain
 unresolved billing and are not represented as financially verified. Individual
 non-development outcomes were not inspected or used for custom development.
 
-The 41st canonical cell, `final-terminus-2-20-dna-assembly`, started at
-10:33:50 UTC and was active at inspection. Its official agent and verifier
-limits are each 1800 seconds; the environment-build limit is 600 seconds.
-Eight requests and seven durable responses existed, with the latest request
-at 10:48:33 UTC. This is live activity within the unchanged time limit.
-The first 20 final tasks per harness are not the separate fixed development subset.
+The 59th canonical cell, `final-terminus-2-29-fix-git`, started at
+13:00:36 UTC and was active at inspection. Its official agent and verifier
+limits are each 900 seconds; the environment-build limit is 600 seconds.
+Ten requests and nine durable responses existed, with the latest request
+at 13:06:11 UTC. This is live activity within the unchanged time limit.
+The initial20 development results remain separate from these final trials.
 The registration hash is unchanged,
 all 50 admitted scoring sources validate, and no unexpected final keys exist.
-The host has approximately 446 GiB free disk and 14.4 GiB available RAM;
+The host has approximately 442 GiB free disk and 14.4 GiB available RAM;
 reported current memory-pressure averages are zero.
 All three execution locks are held by the active run. No runner was restarted, no extra
 matrix was launched, and no paid runtime or prior result was changed.
