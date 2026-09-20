@@ -49,7 +49,8 @@ class DevelopmentExportTests(unittest.TestCase):
         row = {'trial_id': identifier, 'task_id': self.tasks[index], 'harness': condition,
             'stage': 'development', 'status': 'verified', 'model_protocol_sha256': self.settings.fingerprint(),
             'model_revoked': True, 'containers_removed': True, 'networks_removed': True, 'volumes_removed': True,
-            'phase_seconds': {'agent': 1.5}, 'verifier_result': {'rewards': {'reward': reward}},
+            'phase_seconds': {'setup': .5, 'agent': 1.5, 'verifier': .25},
+            'verifier_result': {'rewards': {'reward': reward}},
             'billing': {'billing_verified': True, 'model_protocol_sha256': self.settings.fingerprint(),
                 'charged_usd': '.002', 'prompt_tokens': 100, 'completion_tokens': 20,
                 'requests': 2, 'budget_stop_count': 0},
@@ -106,7 +107,12 @@ class DevelopmentExportTests(unittest.TestCase):
             self.assertEqual(condition['terminal_zero_rewards'], 0)
             for field in ('pass_rate_fixed_20', 'full_cost_usd', 'full_prompt_tokens', 'full_requests'):
                 self.assertIsNone(condition[field])
+            for phase in ('setup', 'agent', 'verifier'):
+                self.assertIsNone(condition['full_' + phase + '_seconds'])
+                self.assertEqual(condition['cells_with_known_' + phase + '_seconds'], 0)
+            self.assertFalse(condition['timing_complete'])
         self.assertTrue(all(row['reward'] is None for row in bundle['rows']))
+        self.assertTrue(all(row['agent_seconds'] is None for row in bundle['rows']))
         self.assertEqual(before, self.runtime_bytes())
 
     def test_partial_gateway_and_ledger_orphans_are_incomplete_not_unstarted(self):
@@ -129,7 +135,9 @@ class DevelopmentExportTests(unittest.TestCase):
         self.assertIsNone(summary['retained_liability_usd'])
 
     def test_complete_verified_condition_has_exact_fixed_twenty_totals(self):
-        self.write_block('openhands', 11)
+        rows = self.write_block('openhands', 11)
+        rows[0]['phase_seconds']['setup'] = 0
+        self.persist(rows[0])
         summary = collect(self.root, self.admission)['conditions']['openhands']
         self.assertEqual(summary['verified_cells'], 20)
         self.assertEqual(summary['pass_rate_fixed_20'], .55)
@@ -137,6 +145,11 @@ class DevelopmentExportTests(unittest.TestCase):
         self.assertEqual(summary['full_prompt_tokens'], 2000)
         self.assertEqual(summary['full_completion_tokens'], 400)
         self.assertTrue(summary['billing_complete'])
+        self.assertTrue(summary['timing_complete'])
+        for phase, total in [('setup', 9.5), ('agent', 30.), ('verifier', 5.)]:
+            self.assertEqual(summary['full_' + phase + '_seconds'], total)
+            self.assertEqual(summary['known_' + phase + '_seconds' + '_subtotal'], total)
+            self.assertEqual(summary['cells_with_known_' + phase + '_seconds'], 20)
 
     def test_historical_zero_and_settled_subtotal_preserve_unknown_full_totals(self):
         self.write_block('terminus-2', 11)
@@ -158,6 +171,9 @@ class DevelopmentExportTests(unittest.TestCase):
         self.assertEqual(row['status'], 'billing_unresolved')
         self.assertEqual(row['reward'], 0)
         self.assertIs(row['billing_verified'], False)
+        self.assertEqual((row['setup_seconds'], row['agent_seconds'], row['verifier_seconds']), (.5, 1.5, .25))
+        self.assertTrue(summary['timing_complete'])
+        self.assertEqual(summary['full_agent_seconds'], 30.)
         self.assertEqual(bundle['provenance']['historical_hold_sha256'], hold['sidecar_sha256'])
         self.assertEqual(path.read_bytes(), before)
 
@@ -176,6 +192,8 @@ class DevelopmentExportTests(unittest.TestCase):
         self.assertEqual(rows[0]['charged_usd'], '')
         self.assertEqual(rows[0]['reward'], '0')
         self.assertEqual(rows[0]['state'], HELD_TERMINAL)
+        self.assertEqual((rows[0]['setup_seconds'], rows[0]['agent_seconds'], rows[0]['verifier_seconds']), ('0.5', '1.5', '0.25'))
+        self.assertEqual(rows[2]['agent_seconds'], '')
         marker = json.loads((first / 'export_complete.json').read_text())
         self.assertTrue(marker['snapshot_export_complete_not_experiment_complete'])
         for name, digest in marker['files'].items():
@@ -277,6 +295,61 @@ class DevelopmentExportTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Admission changed'):
                 export(self.root, self.admission, self.root / 'export')
         self.assertFalse((self.root / 'export').exists())
+
+    def test_partial_condition_reports_only_observed_duration_subtotals(self):
+        self.write_result('openhands', 0, 1)
+        bundle = collect(self.root, self.admission)
+        summary = bundle['conditions']['openhands']
+        self.assertEqual(summary['known_agent_seconds_subtotal'], 1.5)
+        self.assertEqual(summary['cells_with_known_agent_seconds'], 1)
+        for phase in ('setup', 'agent', 'verifier'):
+            self.assertIsNone(summary['full_' + phase + '_seconds'])
+        self.assertFalse(summary['timing_complete'])
+        self.assertIsNone(summary['pass_rate_fixed_20'])
+        self.assertFalse(bundle['final_accuracy_or_win_claimed'])
+
+    def test_missing_and_null_durations_remain_unknown_even_for_terminal_cells(self):
+        rows = self.write_block('openhands', 11)
+        del rows[0]['phase_seconds']['setup']
+        rows[1]['phase_seconds']['agent'] = None
+        rows[2]['phase_seconds'] = None
+        del rows[3]['phase_seconds']
+        for row in rows[:4]: self.persist(row)
+        bundle = collect(self.root, self.admission)
+        summary = bundle['conditions']['openhands']
+        self.assertEqual(summary['terminal_cells'], 20)
+        self.assertEqual(summary['pass_rate_fixed_20'], .55)
+        self.assertEqual(summary['cells_with_known_setup_seconds'], 17)
+        self.assertEqual(summary['cells_with_known_agent_seconds'], 17)
+        self.assertEqual(summary['cells_with_known_verifier_seconds'], 18)
+        self.assertEqual(summary['known_agent_seconds_subtotal'], 25.5)
+        self.assertFalse(summary['timing_complete'])
+        for phase in ('setup', 'agent', 'verifier'):
+            self.assertIsNone(summary['full_' + phase + '_seconds'])
+        exported = [row for row in bundle['rows'] if row['harness'] == 'openhands']
+        self.assertIsNone(exported[0]['setup_seconds'])
+        self.assertIsNone(exported[1]['agent_seconds'])
+        self.assertIsNone(exported[2]['verifier_seconds'])
+
+    def test_invalid_phase_durations_fail_before_creating_export(self):
+        row = self.write_result('openhands', 0)
+        for phase in ('setup', 'agent', 'verifier'):
+            original = row['phase_seconds'][phase]
+            for invalid in (True, '1.5', -1, float('nan'), float('inf')):
+                row['phase_seconds'][phase] = invalid
+                self.persist(row)
+                with self.subTest(phase=phase, invalid=invalid), self.assertRaisesRegex(ValueError, 'finite and nonnegative'):
+                    export(self.root, self.admission, self.root / 'invalid-export')
+                self.assertFalse((self.root / 'invalid-export').exists())
+            row['phase_seconds'][phase] = original
+
+    def test_malformed_phase_container_is_not_treated_as_missing_measurements(self):
+        row = self.write_result('openhands', 0)
+        for invalid in ([], '', False, 0):
+            row['phase_seconds'] = invalid
+            self.persist(row)
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, 'must be an object'):
+                collect(self.root, self.admission)
 
 
 if __name__ == '__main__':

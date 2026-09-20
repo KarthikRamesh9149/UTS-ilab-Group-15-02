@@ -12,6 +12,7 @@ import fcntl
 import hashlib
 import io
 import json
+from math import fsum, isfinite
 import os
 from pathlib import Path
 import re
@@ -28,9 +29,11 @@ from study_budget import TRIAL_CAP
 CONDITIONS = ('terminus-2', 'openhands', 'C0', 'C1', 'C2')
 UNIT = Decimal(1_000_000_000)
 SCOPE = 'fixed_20_development_primary_conditions_not_final_89'
+PHASES = ('setup', 'agent', 'verifier')
 FIELDS = ('trial_id', 'task_id', 'stage', 'harness', 'parent', 'state', 'status',
           'reward', 'billing_verified', 'charged_usd', 'known_billed_subtotal_usd',
           'prompt_tokens', 'completion_tokens', 'requests',
+          'setup_seconds', 'agent_seconds', 'verifier_seconds',
           'budget_stop_markers', 'capacity_budget_stopped', 'historical_pending_barrier_markers',
           'retained_liability_usd', 'result_sha256', 'historical_hold_sha256')
 
@@ -124,6 +127,16 @@ def _terminal_row(root, runtime, cell, row, protocol, raw):
     result = _empty_row(cell, HELD_TERMINAL if held else 'verified_terminal')
     result.update(status=row['status'], reward=int(reward), billing_verified=billing['billing_verified'],
                   result_sha256=_digest(raw))
+    phases = row.get('phase_seconds')
+    if phases is None:
+        phases = {}
+    if not isinstance(phases, dict):
+        raise ValueError('Recorded development phase durations must be an object')
+    for phase in PHASES:
+        seconds = phases.get(phase)
+        if seconds is not None and (type(seconds) not in (int, float) or not isfinite(seconds) or seconds < 0):
+            raise ValueError('Recorded development phase duration must be finite and nonnegative')
+        result[phase + '_seconds'] = seconds
     if held:
         result.update(known_billed_subtotal_usd=str(Decimal(held['settled_subtotal_nanodollars']) / UNIT),
                       retained_liability_usd=str(Decimal(held['reserved_nanodollars']) / UNIT),
@@ -184,6 +197,13 @@ def _summary(rows):
         summary['full_' + key] = sum(known) if len(known) == 20 else None
     summary['usage_complete'] = all(summary['full_' + key] is not None
                                   for key in ('prompt_tokens', 'completion_tokens', 'requests'))
+    for phase in PHASES:
+        key = phase + '_seconds'
+        known = [row[key] for row in rows if row[key] is not None]
+        summary['known_' + key + '_subtotal'] = fsum(known)
+        summary['cells_with_known_' + key] = len(known)
+        summary['full_' + key] = fsum(known) if len(known) == 20 else None
+    summary['timing_complete'] = all(summary['full_' + phase + '_seconds'] is not None for phase in PHASES)
     return summary
 
 
@@ -264,6 +284,7 @@ def collect(root, admission):
                 'The historical held zero remains in its fixed-20 denominator; its complete cost and token totals are unknown.',
                 'Known billed subtotals exclude unknown charges. Retained liability is not an actual charge.',
                 'Known billed, usage and liability subtotals cover audited terminal evidence only; incomplete attempts may contain additional settled charges or reservations.',
+                'Phase durations use recorded setup, agent and verifier measurements; full totals require all 20 measurements, and missing durations are not zero.',
                 'Development outcomes do not establish final-89 performance or a custom-harness win.'],
             'provenance': {'model_protocol_sha256': protocol, 'manifest_sha256': _digest(manifest_raw),
                 'admission_sha256': _digest(_json_bytes(admission)),
