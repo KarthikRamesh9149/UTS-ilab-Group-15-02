@@ -79,3 +79,29 @@ runtime. Report this accounting-only execution amendment in final provenance;
 do not infer a runtime-efficiency victory across versions, especially while
 financial evidence is incomplete. Remaining task costs and the custom-harness
 outcome are not guaranteed by these software tests.
+
+## Verified deployment and restart
+
+The source correction is committed and pushed as
+`6cd018efe5fc4e565e1f90fe68801589696c4170`. Deployment acquired all three canonical
+execution locks, verified the stopped host, backed up the original runtime and
+sources, installed the eight allowlisted files and additive records, then passed
+registration validation in a fresh process importing the deployed sources.
+All 9,236 protected original files and unknown reservations remained unchanged.
+
+The private original-runtime/source archive was copied to the Mac and passed
+gzip integrity validation. Both copies have SHA-256
+`c5a8e166279bd6a7b9b298244cdda886c4a87aee0c1f4d958a72f8aea6e58dd7`.
+Local location:
+`.runtime/netcup/receipt-accounting-qualified-20260921.lESy9P/receipt-accounting-deployment-v1-hu_fibz_/originals.tar.gz`.
+The deployed transition, activation records and qualification proofs are also
+backed up privately outside the rental. They are not included as raw archives
+in this repository.
+
+At **21:05:09 UTC on 20 September**, the existing baseline service restarted
+with PID **3532160**, using the same original admission and review arguments.
+At 21:06 UTC it was active and revalidating the 119 existing results; the next
+59 cells remained unstarted. This is a resumed runner, not an assertion that
+new trials had already finished. The matrix registration still has SHA-256
+`faaaf4db94302fd11a27251f1ff4b871b12a346c7a7cf423ba152cc628bf8f14`.
+Neither full-baseline completion nor a custom-harness win is established yet.

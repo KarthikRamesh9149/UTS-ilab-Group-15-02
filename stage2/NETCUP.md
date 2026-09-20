@@ -1,6 +1,35 @@
 # Netcup + OpenRouter continuation
 
-## Current stop: 119 of 178 baseline results, 20 September 2026
+## Current checkpoint: qualified accounting correction and resumed runner
+
+At **21:05:09 UTC on 20 September**, the existing
+`uts-stage2-baselines-netcupv8.service` resumed with PID **3532160**.
+Inspection at 21:06 UTC confirmed an active process holding the matrix lock
+and revalidating the 119 saved outcomes before the 59 genuinely unstarted cells.
+No additional trial had started at that inspection; revalidation progress is
+not new benchmark completion. Keep the original 60 Terminus-2 and 59 OpenHands
+outcomes, including all failures and unresolved billing, without replay.
+
+The accounting-only correction in pushed commit `6cd018e` passed **776 tests
+on each host**, a copied-real-receipt conservation rehearsal, a network-disabled
+gateway accounting check and a full synthetic Docker/Harbor lifecycle. No paid
+model generations were used for this qualification. The original admission
+and baseline registration are unchanged; an explicit source-qualified additive
+transition binds the actual 54-source runtime and replacement gateway.
+
+Thirteen exact receipts are now activated. Final-stage exposure at deployment
+was **US$4.78396452**, below the unchanged US$6.141 cap, after a US$1.37999696
+reduction in conservative receipt holds. This is not a refund. Unknown request
+reservations remain held, and active receipt liability is no longer dropped
+before terminal deferral. All 9,236 protected original files stayed identical.
+The original-runtime/source archive was copied off-server and hash/integrity
+verified before restart. See [qualification and deployment evidence](
+netcup/accounting_qualification_20260921/README.md).
+
+The older stopped checkpoints below are historical. Baseline completion,
+custom evaluation and a demonstrated harness win remain unfinished.
+
+## Historical stop: 119 of 178 baseline results, 20 September 2026
 
 At 18:06:16 UTC the baseline service stopped with `Stage ceiling exceeded`.
 Fresh inspection at 18:58 UTC confirmed 60 Terminus-2 and 59 OpenHands final
