@@ -130,27 +130,27 @@ development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
 
-## Completion-metadata checkpoint, 14:01 UTC
+## Completion-metadata checkpoint, 14:34 UTC
 
-The same service and PID remain active. **68 of 178 final trials** have binary
-verifier results: 34 Terminus-2 and 34 OpenHands. All 68 have confirmed
-revocation and resource cleanup. Forty-nine have verified billing; nineteen retain
+The same service and PID remain active. **75 of 178 final trials** have binary
+verifier results: 37 Terminus-2 and 38 OpenHands. All 75 have confirmed
+revocation and resource cleanup. Fifty-two have verified billing; twenty-three retain
 unresolved billing and are not represented as financially verified. Individual
 non-development outcomes were not inspected or used for custom development.
 
-The 69th canonical cell, `final-openhands-34-gpt2-codegolf`, was active at
-inspection. Its official agent and verifier limits are each 900 seconds;
-the environment-build limit is 600 seconds. Verifier and trace artifact
-modification times show activity at 14:01:04 UTC. Their contents and the
-individual task's reward were not inspected.
+The 76th canonical cell, `final-terminus-2-37-install-windows-3.11`, was active
+at inspection. Its official agent and verifier limits are each 3600 seconds;
+the environment-build limit is 600 seconds. Request and trajectory artifact
+modification times show activity at 14:34:08 and 14:34:04 UTC respectively.
+Their contents were not inspected.
 The initial20 development results remain separate from these final trials.
 The registration hash is unchanged,
 all 50 admitted scoring sources and 54 registration bindings validate, and
 the registered 178 unique cells match the canonical schedule. No unexpected
 final keys or incomplete cleanup in collected results were found.
-The host has approximately 436 GiB free disk and 13.8 GiB available RAM;
+The host has approximately 437 GiB free disk and 14.2 GiB available RAM;
 reported current memory-pressure averages are zero.
-The matrix and scored-trial locks remain held. The model gateway lock was free
-at this post-agent verification checkpoint; no new gateway was started.
+The matrix, scored-trial and model gateway locks all remain held by the active
+run. Only that trial's four study containers are running.
 No runner was restarted, no extra matrix was launched, and no paid runtime or
 prior result was changed.
