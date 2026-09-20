@@ -21,6 +21,7 @@ from model_protocol import ModelSettings
 from scored_gateway import ScoredSession, durable_json, private_directory
 from setup_probe import full_context_bound
 from completion_wait import validate_completion_wait
+from deferred_billing import POLICY, validate_deferrals, deferred_request_ids, unresolved_liability_nanodollars
 
 
 def scored_pending_liability(runtime):
@@ -32,7 +33,7 @@ def scored_pending_liability(runtime):
     """
     path = Path(runtime) / 'scored_budget.sqlite'
     registered_hold = any((Path(runtime) / name).exists() or (Path(runtime) / name).is_symlink()
-                          for name in (SIDECAR, SIDECAR_V2))
+                          for name in (SIDECAR, SIDECAR_V2, POLICY))
     if not path.exists() and not path.is_symlink():
         if registered_hold:
             raise ValueError('Registered historical holds require the canonical scored ledger')
@@ -49,12 +50,17 @@ def scored_pending_liability(runtime):
         rows = db.execute("SELECT reserved FROM requests WHERE state='pending'").fetchall()
         if any(type(row[0]) is not int or row[0] <= 0 for row in rows):
             raise ValueError('Invalid scored reservation')
+        entries = validate_deferrals(runtime, db, kind='scored')
         hold = validate_historical_hold(runtime, db) if rows or registered_hold else None
-        if rows and hold is None:
-            raise BudgetExceeded('Only exact registered historical scored holds permit new setup')
-        if db.execute("SELECT COUNT(*) FROM receipt_checks WHERE state='pending'").fetchone()[0]:
+        from historical_hold import hold_entries
+        exempt = deferred_request_ids(entries) | {entry['request_id'] for entry in hold_entries(hold)}
+        if any(identifier not in exempt for (identifier,) in db.execute("SELECT id FROM requests WHERE state='pending'")):
+            raise BudgetExceeded('Only validated terminal scored liabilities permit new setup')
+        if any(identifier not in deferred_request_ids(entries) for (identifier,) in
+               db.execute("SELECT request_id FROM receipt_checks WHERE state='pending'")):
             raise BudgetExceeded('Unverified scored receipts block new setup spending')
-    return Decimal(sum(row[0] for row in rows)) / UNIT
+        liability = unresolved_liability_nanodollars(db, entries)
+    return Decimal(liability) / UNIT
 
 
 class NativeSetupSession(ScoredSession):
@@ -82,8 +88,9 @@ class NativeSetupSession(ScoredSession):
             self.lock = os.fdopen(descriptor, 'r+')
             fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self.available_balance()
-            self.ledger = Ledger(ledger_path, '1', '1', {'setup': '1'})
-            if self.ledger.pending() or self.ledger.pending_receipts() or self.ledger.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
+            self.ledger = Ledger(ledger_path, '1', '1', {'setup': '1'},
+                deferred_billing_runtime=runtime, deferred_billing_kind='setup')
+            if self.ledger.blocking_pending(trial=trial_id) or self.ledger.blocking_receipts(trial=trial_id) or self.ledger.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Unresolved setup billing blocks dispatch')
             self.evidence = private_directory(runtime / 'native-setup-attempts') / trial_id
             self.evidence.mkdir(mode=0o700)

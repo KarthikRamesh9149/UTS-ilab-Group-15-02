@@ -20,8 +20,9 @@ import sqlite3
 import stat
 
 from historical_hold import hold_entries, validate_historical_hold
+from deferred_billing import validate_policy, validate_deferrals
 from development_selection import select
-from matrix_resume import completed_cell, validated_held_cell, HELD_TERMINAL
+from matrix_resume import completed_cell, validated_held_cell, validated_deferred_cell, HELD_TERMINAL, DEFERRED_TERMINAL
 from scoring_admission import validate
 from study_budget import TRIAL_CAP
 
@@ -35,7 +36,8 @@ FIELDS = ('trial_id', 'task_id', 'stage', 'harness', 'parent', 'state', 'status'
           'prompt_tokens', 'completion_tokens', 'requests',
           'setup_seconds', 'agent_seconds', 'verifier_seconds',
           'budget_stop_markers', 'capacity_budget_stopped', 'historical_pending_barrier_markers',
-          'retained_liability_usd', 'result_sha256', 'historical_hold_sha256')
+          'retained_liability_usd', 'result_sha256', 'historical_hold_sha256',
+          'deferred_billing_sha256', 'billing_deferral_policy_sha256')
 
 
 def _kind(root, path):
@@ -114,6 +116,7 @@ def _empty_row(cell, state):
 
 def _terminal_row(root, runtime, cell, row, protocol, raw):
     held = validated_held_cell(runtime, row, protocol)
+    deferred = validated_deferred_cell(runtime, row, protocol)
     billing = row.get('billing') or {}
     reward = (row.get('verifier_result') or {}).get('rewards', {}).get('reward')
     if type(reward) not in (int, float) or reward not in (0, 1):
@@ -122,9 +125,9 @@ def _terminal_row(root, runtime, cell, row, protocol, raw):
         raise ValueError('Audited development cell identity mismatch')
     if row.get('model_protocol_sha256') != protocol:
         raise ValueError('Audited development model protocol mismatch')
-    if held is None and (row.get('status') != 'verified' or billing.get('billing_verified') is not True):
+    if held is None and deferred is None and (row.get('status') != 'verified' or billing.get('billing_verified') is not True):
         raise ValueError('Unverified development result cannot be exported as terminal')
-    result = _empty_row(cell, HELD_TERMINAL if held else 'verified_terminal')
+    result = _empty_row(cell, HELD_TERMINAL if held else DEFERRED_TERMINAL if deferred else 'verified_terminal')
     result.update(status=row['status'], reward=int(reward), billing_verified=billing['billing_verified'],
                   result_sha256=_digest(raw))
     phases = row.get('phase_seconds')
@@ -144,6 +147,16 @@ def _terminal_row(root, runtime, cell, row, protocol, raw):
                       capacity_budget_stopped=held['capacity_budget_stop_count'] > 0,
                       historical_pending_barrier_markers=held['budget_stop_count'],
                       historical_hold_sha256=held['sidecar_sha256'])
+    elif deferred:
+        result.update(known_billed_subtotal_usd=str(Decimal(deferred['known_charged_nanodollars']) / UNIT),
+                      retained_liability_usd=str(Decimal(deferred['retained_liability_nanodollars']) / UNIT),
+                      budget_stop_markers=deferred['budget_stop_count'],
+                      # A marker following a provider failure is not proof
+                      # that the monetary allowance was exhausted.
+                      capacity_budget_stopped=None,
+                      historical_pending_barrier_markers=0,
+                      deferred_billing_sha256=deferred['sidecar_sha256'],
+                      billing_deferral_policy_sha256=deferred['policy_sha256'])
     else:
         try:
             charge = Decimal(str(billing['charged_usd']))
@@ -166,7 +179,7 @@ def _terminal_row(root, runtime, cell, row, protocol, raw):
 
 
 def _summary(rows):
-    terminal = [row for row in rows if row['state'] in {'verified_terminal', HELD_TERMINAL}]
+    terminal = [row for row in rows if row['state'] in {'verified_terminal', HELD_TERMINAL, DEFERRED_TERMINAL}]
     passes = sum(row['reward'] for row in terminal)
     complete_cost = len(terminal) == 20 and all(row['charged_usd'] is not None for row in rows)
     known_liability = str(sum((Decimal(row['retained_liability_usd'])
@@ -175,6 +188,7 @@ def _summary(rows):
         'intended_cells': 20, 'terminal_cells': len(terminal),
         'verified_cells': sum(row['state'] == 'verified_terminal' for row in rows),
         'held_cells': sum(row['state'] == HELD_TERMINAL for row in rows),
+        'billing_deferred_cells': sum(row['state'] == DEFERRED_TERMINAL for row in rows),
         'incomplete_cells': sum(row['state'] == 'incomplete' for row in rows),
         'unstarted_cells': sum(row['state'] == 'unstarted' for row in rows),
         'passes': passes, 'terminal_zero_rewards': len(terminal) - passes,
@@ -187,7 +201,8 @@ def _summary(rows):
         'retained_liability_usd': None if any(row['state'] == 'incomplete' for row in rows) else known_liability,
         'billing_complete': len(terminal) == 20 and all(row['billing_verified'] is True for row in rows),
         'known_budget_stop_markers': sum(row['budget_stop_markers'] for row in terminal),
-        'known_capacity_budget_stopped_trials': sum(row['capacity_budget_stopped'] for row in terminal),
+        'known_capacity_budget_stopped_trials': sum(row['capacity_budget_stopped'] is True for row in terminal),
+        'unknown_capacity_budget_status_cells': sum(row['capacity_budget_stopped'] is None for row in terminal),
         'historical_pending_barrier_markers': sum(row['historical_pending_barrier_markers'] for row in terminal),
     }
     for key in ('prompt_tokens', 'completion_tokens', 'requests'):
@@ -227,6 +242,8 @@ def collect(root, admission):
             raise ValueError('Exactly the frozen 20 safe unique development task IDs required')
         watched = {manifest_path: manifest_raw}
         hold = validate_historical_hold(runtime)
+        deferral_policy = validate_policy(runtime)
+        deferred = validate_deferrals(runtime)
         parent = _registered_parent(root, runtime, tasks, admission, watched)
         cells = [_cell(condition, i, task, parent) for condition in CONDITIONS for i, task in enumerate(tasks)]
         expected = {cell['trial_id'] for cell in cells}
@@ -266,7 +283,7 @@ def collect(root, admission):
             audited[cell['harness']].append(row)
             rows.append(_terminal_row(root, runtime, cell, row, protocol, raw))
         if parent is not None and select({condition: audited[condition] for condition in ('C0', 'C1')},
-                task_ids=tasks, protocol=protocol)['selected_parent'] != parent:
+                task_ids=tasks, protocol=protocol, runtime=runtime)['selected_parent'] != parent:
             raise ValueError('C2 parent differs from audited registered selection')
         for path, before in watched.items():
             after = None if _kind(root, path) is None else _read(root, path)
@@ -274,6 +291,8 @@ def collect(root, admission):
                 raise ValueError('Development evidence changed during snapshot')
         if validate_historical_hold(runtime) != hold or validate(root, admission).fingerprint() != protocol:
             raise ValueError('Development protocol or historical hold changed during snapshot')
+        if validate_policy(runtime) != deferral_policy or validate_deferrals(runtime) != deferred:
+            raise ValueError('Billing deferral evidence changed during snapshot')
         summaries = {condition: _summary([row for row in rows if row['harness'] == condition]) for condition in CONDITIONS}
         return {'scope': SCOPE, 'intended_cells': 100, 'tasks_per_condition': 20,
             'diagnostic_trials_included': False, 'final_accuracy_or_win_claimed': False,
@@ -282,6 +301,7 @@ def collect(root, admission):
             'conditions': summaries, 'rows': rows,
             'limitations': ['Partial conditions have no pass rate; unstarted and incomplete cells are not scored failures.',
                 'Historical held zeros remain in their fixed-20 denominators; their complete cost and token totals are unknown.',
+                'Registered billing-deferred terminal rewards remain in the accuracy denominator; missing charges or token totals do not become zero.',
                 'Known billed subtotals exclude unknown charges. Retained liability is not an actual charge.',
                 'Known billed, usage and liability subtotals cover audited terminal evidence only; incomplete attempts may contain additional settled charges or reservations.',
                 'Phase durations use recorded setup, agent and verifier measurements; full totals require all 20 measurements, and missing durations are not zero.',
@@ -290,6 +310,9 @@ def collect(root, admission):
                 'admission_sha256': _digest(_json_bytes(admission)),
                 'historical_hold_sha256': hold['sidecar_sha256'] if hold else None,
                 'historical_hold_count': len(hold_entries(hold)),
+                'billing_deferral_policy_sha256': deferral_policy['sidecar_sha256'] if deferral_policy else None,
+                'deferred_billing_result_registrations': {entry['trial_id']: entry['sidecar_sha256']
+                    for entry in deferred if entry['trial_id'] in expected},
                 'historical_hold_original_result_sha256': {
                     entry['trial_id']: entry['original_result_sha256'] for entry in hold_entries(hold)},
                 'c2_registration_sha256': (_digest(watched[runtime / 'development-blocks/C2.json'])

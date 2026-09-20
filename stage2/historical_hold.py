@@ -248,7 +248,7 @@ def validate_historical_hold(runtime, db=None, *, active_trial=None):
             try:
                 reader.execute('PRAGMA query_only=ON')
                 reader.execute('BEGIN')
-                _validate_rows(reader, active_trial, entries)
+                _validate_rows(reader, active_trial, entries, runtime)
             finally:
                 reader.close()
         else:
@@ -256,7 +256,7 @@ def validate_historical_hold(runtime, db=None, *, active_trial=None):
             if not db.in_transaction or not any(name == 'main' and Path(filename).resolve() == database.resolve()
                                                for _, name, filename in databases):
                 raise ValueError('Historical hold requires canonical transaction')
-            _validate_rows(db, active_trial, entries)
+            _validate_rows(db, active_trial, entries, runtime)
         # Raw markers stay unchanged. Original Ledger.reserve checked the
         # pending barrier before all caps. Both pinned markers occurred after
         # generation 3 failed and retained this reservation, with no dispatch 4.
@@ -275,7 +275,7 @@ def validate_historical_hold(runtime, db=None, *, active_trial=None):
         raise ValueError('Historical hold evidence unavailable or invalid') from exc
 
 
-def _validate_rows(db, active_trial, entries):
+def _validate_rows(db, active_trial, entries, runtime):
     if db.execute('SELECT ceiling,trial_cap FROM policy WHERE id=1').fetchone() != (8_901_000_000, 23_000_000):
         raise ValueError('Historical hold cannot change budget policy')
     if dict(db.execute('SELECT name,cap FROM stages')) != {'development': 2_760_000_000, 'final': 6_141_000_000}:
@@ -294,11 +294,19 @@ def _validate_rows(db, active_trial, entries):
             raise ValueError('Historical trial stage changed')
     if db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
         raise ValueError('Billing incident blocks historical hold admission')
-    excluded = ','.join('?' for entry in entries)
+    # The new standing amendment is separate from these two immutable
+    # historical liabilities. Only independently validated terminal deferrals
+    # may join the exclusion set; an active request still blocks admission.
+    from deferred_billing import validate_deferrals, deferred_request_ids
+    deferred = validate_deferrals(runtime, db, kind='scored', active_trial=active_trial)
+    deferred_ids = deferred_request_ids(deferred)
+    exempt_ids = [entry['request_id'] for entry in entries] + sorted(deferred_ids)
+    excluded = ','.join('?' for _ in exempt_ids)
     if db.execute("SELECT COUNT(*) FROM requests WHERE (state!='settled' OR charged IS NULL) AND id NOT IN ("
-                  + excluded + ')', tuple(entry['request_id'] for entry in entries)).fetchone()[0]:
+                  + excluded + ')', tuple(exempt_ids)).fetchone()[0]:
         raise ValueError('Another unresolved dispatch blocks historical hold admission')
-    if db.execute('''SELECT COUNT(*) FROM receipt_checks c LEFT JOIN requests r ON r.id=c.request_id
+    receipts = db.execute('''SELECT c.request_id FROM receipt_checks c LEFT JOIN requests r ON r.id=c.request_id
         WHERE c.state='pending' AND (r.trial IS NULL OR ? IS NULL OR r.trial!=?)''',
-                  (active_trial, active_trial)).fetchone()[0]:
+                  (active_trial, active_trial)).fetchall()
+    if any(identifier not in deferred_ids for identifier, in receipts):
         raise ValueError('Unverified prior receipts block historical hold admission')

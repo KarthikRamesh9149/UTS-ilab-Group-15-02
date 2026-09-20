@@ -1,5 +1,16 @@
 # Netcup + OpenRouter continuation
 
+## Standing billing continuation and baseline priority, 20 September 2026
+
+The user has now authorised continuing collection despite unresolved provider
+charges and prioritised both full 89-task baselines. The
+[standing deferred-billing amendment](DEFERRED_BILLING_AMENDMENT_20260920.md)
+supersedes earlier two-hold-only and third-unknown-stop rules below. Safely
+terminal attempts may be carried forward with their complete worst-case
+liability reserved; no actual charge, pass or efficiency win is invented.
+Original budgets, reserve, task limits, model and cleanup requirements remain.
+Implementation, verification and live activation are separate checkpoints.
+
 ## Approved continuation and receipt repair, 20 September 2026
 
 The user explicitly approved the [prospective completion amendment](COMPLETION_AMENDMENT_20260920.md):

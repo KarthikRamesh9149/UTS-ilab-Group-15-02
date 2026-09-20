@@ -207,4 +207,13 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                     # Preserve the actual verifier outcome; never invent spans.
                     result['trace'] = {'status': 'incomplete', 'error_type': type(exc).__name__}
             durable_json(trial / 'result.json', result)
+            # Preserve the original result first. A host-only registration may
+            # then carry its bounded billing uncertainty into the NEXT trial;
+            # it cannot retry this attempt or turn uncertainty into a receipt.
+            if result['status'] == 'billing_unresolved':
+                from deferred_billing import validate_policy, register_terminal_deferral
+                account_runtime = Path(billing_runtime or runtime)
+                if validate_policy(account_runtime) is not None:
+                    await asyncio.to_thread(register_terminal_deferral, account_runtime,
+                        kind=billing_kind, trial_id=trial_id, result_path=trial / 'result.json')
         return result

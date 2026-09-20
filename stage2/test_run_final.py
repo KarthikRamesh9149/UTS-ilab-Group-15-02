@@ -61,6 +61,34 @@ class FinalRunnerTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError): await run(self.root, self.freeze, {})
         self.run_trial.assert_not_called()
 
+    async def test_registered_178_baselines_are_retained_and_only_custom_runs(self):
+        from final_schedule import schedule
+        runtime = self.root / '.runtime/stage2'
+        runtime.mkdir(parents=True, mode=0o700)
+        cells = schedule(self.tasks, custom_condition='C2', custom_parent='C1')
+        baselines = [cell for cell in cells if cell['role'] != 'custom']
+        descriptor = {'cells': baselines}
+        (runtime / 'baseline-matrix.json').write_text(json.dumps(descriptor))
+        for cell in baselines:
+            self.rows[cell['trial_id']] = {'verifier_result': {'rewards': {'reward': 0}}}
+            (runtime / 'scored-trials' / cell['trial_id']).mkdir(parents=True)
+        with patch('run_baselines.validate_registration', return_value=descriptor):
+            rows = await run(self.root, self.freeze, {})
+        self.assertEqual(len(rows), 267)
+        self.assertEqual(len(self.calls), 89)
+        self.assertTrue(all(call['agent_factory'] == 'fixture_factory' for call in self.calls))
+        self.assertTrue(all('custom' in call['trial_id'] for call in self.calls))
+        self.assertIn('baseline_registration_sha256', json.loads((runtime / 'final-matrix.json').read_text()))
+
+    async def test_unregistered_existing_baseline_is_not_relabelled(self):
+        from final_schedule import schedule
+        cell = next(cell for cell in schedule(self.tasks, custom_condition='C2', custom_parent='C1')
+                    if cell['role'] == 'terminus-2')
+        (self.root / '.runtime/stage2/scored-trials' / cell['trial_id']).mkdir(parents=True)
+        with self.assertRaises(ValueError):
+            await run(self.root, self.freeze, {})
+        self.run_trial.assert_not_called()
+
     async def test_changed_freeze_stops_between_cells(self):
         self.verify.side_effect = ['C2', 'C2', ValueError('changed')]
         with self.assertRaises(ValueError): await run(self.root, self.freeze, {})

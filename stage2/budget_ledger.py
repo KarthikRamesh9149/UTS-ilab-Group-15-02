@@ -24,9 +24,13 @@ class BudgetExceeded(RuntimeError):
 
 class Ledger:
     def __init__(self, path, ceiling, trial_cap, stage_caps=None, *, allow_estimated_trials=False,
-                 historical_hold_runtime=None):
+                 historical_hold_runtime=None, deferred_billing_runtime=None, deferred_billing_kind='scored'):
         if type(allow_estimated_trials) is not bool:
             raise ValueError('Explicit boolean estimation policy required')
+        if deferred_billing_kind not in {'setup', 'scored'}:
+            raise ValueError('Registered deferred ledger kind required')
+        self.deferred_billing_runtime = deferred_billing_runtime
+        self.deferred_billing_kind = deferred_billing_kind
         self.db = sqlite3.connect(path, timeout=30, isolation_level=None)
         self.db.execute('PRAGMA synchronous=FULL')
         self.db.executescript('''
@@ -85,8 +89,10 @@ class Ledger:
 
     def exposure(self, trial=None):
         query = 'SELECT COALESCE(SUM(COALESCE(charged,reserved)),0) FROM requests'
-        return self.db.execute(query + (' WHERE trial=?' if trial is not None else ''),
+        base = self.db.execute(query + (' WHERE trial=?' if trial is not None else ''),
                                (trial,) if trial is not None else ()).fetchone()[0]
+        from deferred_billing import extra_exposure_nanodollars
+        return base + extra_exposure_nanodollars(self.deferred_entries(), trial=trial)
 
     def reserve(self, request_id, trial, maximum, available_account_credit, stage=None, *, trial_estimate=None):
         amount = dollars(maximum)
@@ -103,11 +109,12 @@ class Ledger:
         with self.transaction():
             if self.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Ledger halted by billing incident')
-            pending = self.db.execute("SELECT COALESCE(SUM(reserved),0) FROM requests WHERE state='pending'").fetchone()[0]
+            from deferred_billing import unresolved_liability_nanodollars, extra_exposure_nanodollars
+            entries = self.deferred_entries(active_trial=trial)
+            pending = unresolved_liability_nanodollars(self.db, entries)
             if self.blocking_pending(trial=trial):
                 raise BudgetExceeded('Resolve the outstanding request before dispatching another')
-            if self.db.execute('''SELECT COUNT(*) FROM receipt_checks c LEFT JOIN requests r ON r.id=c.request_id
-                                  WHERE c.state='pending' AND (r.trial IS NULL OR r.trial!=?)''', (trial,)).fetchone()[0]:
+            if self.blocking_receipts(trial=trial):
                 raise BudgetExceeded('Previous trial receipts must be verified before new trial spending')
             stages = dict(self.db.execute('SELECT name,cap FROM stages'))
             if stages:
@@ -118,6 +125,7 @@ class Ledger:
                     raise ValueError('Trial cannot change stages')
                 spent = self.db.execute('''SELECT COALESCE(SUM(COALESCE(r.charged,r.reserved)),0)
                     FROM requests r JOIN trial_stages t ON r.trial=t.trial WHERE t.stage=?''', (stage,)).fetchone()[0]
+                spent += extra_exposure_nanodollars(entries, stage=stage)
                 if spent + amount > stages[stage]:
                     raise BudgetExceeded('Stage allocation exhausted')
                 self.db.execute('INSERT OR IGNORE INTO trial_stages VALUES (?,?)', (trial, stage))
@@ -196,17 +204,38 @@ class Ledger:
             FROM requests r LEFT JOIN generations g ON r.id=g.request_id
             WHERE r.state='pending' ORDER BY r.id''').fetchall()
 
+    def deferred_entries(self, *, active_trial=None):
+        if self.deferred_billing_runtime is None:
+            return ()
+        from deferred_billing import validate_deferrals
+        try:
+            if self.db.in_transaction:
+                return validate_deferrals(self.deferred_billing_runtime, self.db,
+                                          kind=self.deferred_billing_kind, active_trial=active_trial)
+            with self.transaction():
+                return validate_deferrals(self.deferred_billing_runtime, self.db,
+                                          kind=self.deferred_billing_kind, active_trial=active_trial)
+        except (ValueError, OSError) as exc:
+            raise BudgetExceeded('Terminal billing deferral failed validation') from exc
+
+    def blocking_receipts(self, *, trial=None):
+        from deferred_billing import deferred_request_ids
+        exempt = deferred_request_ids(self.deferred_entries(active_trial=trial))
+        return [row for row in self.pending_receipts() if row[0] not in exempt and (row[1] is None or row[1] != trial)]
+
     def blocking_pending(self, *, trial=None):
         """Raw pending() stays truthful; only a bound amendment can admit work.
 
         Reserve calls this inside its write transaction, preventing competing
         connections from each treating a new unknown request as historical.
         """
+        from deferred_billing import deferred_request_ids
+        deferred = deferred_request_ids(self.deferred_entries(active_trial=trial))
         if self.historical_hold_runtime is None:
-            return self.pending()
+            return [row for row in self.pending() if row[0] not in deferred]
         from historical_hold import validate_historical_hold, hold_entries
         def remaining(hold):
-            exempt = {entry['request_id'] for entry in hold_entries(hold)}
+            exempt = {entry['request_id'] for entry in hold_entries(hold)} | deferred
             return [row for row in self.pending() if row[0] not in exempt]
         try:
             if self.db.in_transaction:

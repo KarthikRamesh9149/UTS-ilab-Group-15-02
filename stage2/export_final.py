@@ -11,8 +11,9 @@ from pathlib import Path
 from final_analysis import analyze
 from final_schedule import schedule
 from finalist_freeze import verify
-from matrix_resume import completed_cell
+from matrix_resume import DEFERRED_TERMINAL, completed_cell
 from qualification_review import assess, expansion_allowed
+from run_baselines import validate_registration
 from run_final import prerequisites
 from scored_gateway import durable_json, private_directory
 from scoring_admission import validate
@@ -40,6 +41,15 @@ def collect(root):
         evidence = prerequisites(root, freeze, review, manifest['development_ids'], settings)
         expected = {'kind': 'final_evaluation_started', 'freeze': freeze, 'review': review,
                     'development_evidence': evidence, 'cells': cells}
+        baseline_path = runtime / 'baseline-matrix.json'
+        baseline_raw = None
+        if baseline_path.exists() or baseline_path.is_symlink():
+            if baseline_path.is_symlink() or not baseline_path.is_file():
+                raise ValueError('Original baseline registration missing or unsafe')
+            baseline_raw = baseline_path.read_bytes()
+            if validate_registration(root, freeze['admission']) is None or baseline_path.read_bytes() != baseline_raw:
+                raise ValueError('Original baseline registration changed during validation')
+            expected['baseline_registration_sha256'] = hashlib.sha256(baseline_raw).hexdigest()
         if descriptor != expected:
             raise ValueError('Final registration or prerequisite evidence changed')
         records, hashes, exported = [], {}, []
@@ -55,24 +65,58 @@ def collect(root):
             hashes[cell['trial_id']] = hashlib.sha256(before).hexdigest()
         summary = analyze(records, all_tasks=manifest['all_task_ids'],
             development_tasks=manifest['development_ids'], custom_condition=selected,
-            custom_parent=parent, protocol=settings.fingerprint())
+            custom_parent=parent, protocol=settings.fingerprint(), runtime=runtime)
+        deferred_hashes = {}
         for cell, row in zip(cells, records):
             billing = row['billing']
+            deferred = row.get('resume_disposition') == DEFERRED_TERMINAL
+            charge = billing['charged_usd']
             exported.append(dict(trial_id=cell['trial_id'], task_id=cell['task_id'],
                 role=cell['role'], harness=cell['harness'], parent=cell['parent'] or '',
                 development_exposed=cell['task_id'] in manifest['development_ids'],
                 model_protocol_sha256=settings.fingerprint(),
+                status=row['status'], billing_verified=billing['billing_verified'],
+                resume_disposition=row.get('resume_disposition', 'verified_terminal'),
+                accounting_coverage='deferred' if deferred else 'complete',
                 reward=row['verifier_result']['rewards']['reward'],
-                charged_usd=str(billing['charged_usd']), prompt_tokens=billing['prompt_tokens'],
+                charged_usd=str(charge) if charge is not None else None,
+                known_billed_subtotal_usd=(billing['known_billed_subtotal_usd'] if deferred else str(charge)),
+                retained_reservation_nanodollars=(billing['retained_reservation_nanodollars'] if deferred else 0),
+                hard_reserved_nanodollars=billing.get('hard_reserved_nanodollars') if deferred else None,
+                result_sha256=hashes[cell['trial_id']],
+                original_result_sha256=row.get('original_result_sha256', hashes[cell['trial_id']]),
+                deferred_billing_sha256=row.get('deferred_billing_sha256'),
+                billing_deferral_policy_sha256=row.get('billing_deferral_policy_sha256'),
+                prompt_tokens=billing['prompt_tokens'],
                 completion_tokens=billing['completion_tokens'], requests=billing['requests'],
                 budget_stop_count=billing['budget_stop_count'], agent_seconds=row['phase_seconds']['agent']))
+            if deferred:
+                deferred_hashes[cell['trial_id']] = {
+                    'registration_sha256': row['deferred_billing_sha256'],
+                    'original_result_sha256': row['original_result_sha256'],
+                    'policy_sha256': row['billing_deferral_policy_sha256']}
         verify(root, freeze)
         if path.read_bytes() != registration_raw:
             raise ValueError('Final registration changed during audit')
+        if baseline_raw is not None:
+            if (validate_registration(root, freeze['admission']) is None
+                    or baseline_path.is_symlink() or not baseline_path.is_file()
+                    or baseline_path.read_bytes() != baseline_raw):
+                raise ValueError('Original baseline registration changed during audit')
+        elif baseline_path.exists() or baseline_path.is_symlink():
+            raise ValueError('Baseline registration appeared during final audit')
         return {'summary': summary, 'rows': exported, 'provenance': {
             'final_registration_sha256': hashlib.sha256(registration_raw).hexdigest(),
+            'baseline_registration_sha256': hashlib.sha256(baseline_raw).hexdigest() if baseline_raw is not None else None,
             'result_sha256': hashes, 'model_protocol_sha256': settings.fingerprint(),
-            'scope': 'final_267_only_not_project_total', 'receipt_reaudited': True}}
+            'scope': 'final_267_only_not_project_total', 'receipt_reaudited': True,
+            'receipt_reaudit_scope': 'available_receipts_and_registered_deferred_evidence',
+            'all_receipts_verified': summary['billing_complete'],
+            'accuracy_complete': summary['accuracy_complete'],
+            'billing_complete': summary['billing_complete'],
+            'billing_deferred_trials': summary['accounting']['billing_deferred_trials'],
+            'accounting_coverage': summary['accounting']['accounting_coverage'],
+            'deferred_billing_registrations': deferred_hashes}}
 
 
 def export(root, destination):

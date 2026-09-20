@@ -14,7 +14,8 @@ from completion_wait import completion_wait_for
 
 
 class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
-    async def run_case(self, *, audit_error=False, factory_error=False, leftovers=False):
+    async def run_case(self, *, audit_error=False, factory_error=False, leftovers=False,
+                       billing_error=False, continuation=False):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / 'stage2').mkdir()
@@ -47,7 +48,8 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(kwargs['task'].config.agent.timeout_sec, 180)
                 await kwargs['revoke_model']()
                 events.append('verify')
-                return {'status': 'verified', 'verifier_result': {'rewards': {'reward': 0}}}
+                return {'status': 'verified', 'model_revoked': True,
+                        'verifier_result': {'rewards': {'reward': 0}}}
             def compose(**kwargs):
                 self.assertEqual(kwargs['completion_wait_seconds'], 240.)
                 return {}
@@ -57,6 +59,18 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
                         model_settings=ModelSettings(64, 1., 'high'),
                         guard_image=inspection['Image'], setup_timeout_seconds=1)
             with ExitStack() as stack:
+                stack.enter_context(patch('deferred_billing.validate_policy',
+                                          return_value={'approved': True} if continuation else None))
+                def register(runtime, *, kind, trial_id, result_path):
+                    saved = json.loads(result_path.read_text())
+                    self.assertEqual(saved['status'], 'billing_unresolved')
+                    self.assertFalse(saved['billing']['billing_verified'])
+                    self.assertTrue(all(saved[key] for key in ('model_revoked', 'containers_removed',
+                                                              'networks_removed', 'volumes_removed')))
+                    self.assertEqual(kind, 'scored')
+                    self.assertEqual(trial_id, 'test')
+                    events.append('registered-after-durable-cleanup')
+                stack.enter_context(patch('deferred_billing.register_terminal_deferral', side_effect=register))
                 derive_wait = stack.enter_context(patch('scored_trial.completion_wait_for',
                                                         wraps=completion_wait_for))
                 replacements = {'check_host': lambda: {}, 'frozen_dataset': lambda root: root,
@@ -66,6 +80,8 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
                     'HostModelBridge': Bridge, 'execute_phases': phases,
                     'docker': lambda *args: 'leftover' if leftovers else ''}
                 for key, value in replacements.items(): stack.enter_context(patch('scored_trial.' + key, value))
+                if billing_error:
+                    stack.enter_context(patch('scored_trial.collect_receipts', side_effect=ValueError('unresolved')))
                 stack.enter_context(patch('scored_trial.audit_task', side_effect=RuntimeError('audit') if audit_error else None))
                 stack.enter_context(patch('harbor.models.task.task.Task', return_value=task))
                 stack.enter_context(patch('pinned_docker.PinnedImageDockerEnvironment', Env))
@@ -100,6 +116,17 @@ class ScoredTrialTests(unittest.IsolatedAsyncioTestCase):
     async def test_leftovers_prevent_verified_status(self):
         result, events = await self.run_case(leftovers=True)
         self.assertEqual(result['status'], 'cleanup_failed')
+
+    async def test_terminal_deferral_is_registered_only_after_durable_cleanup(self):
+        result, events = await self.run_case(billing_error=True, continuation=True)
+        self.assertEqual(result['status'], 'billing_unresolved')
+        self.assertFalse(result['billing']['billing_verified'])
+        self.assertGreater(events.index('registered-after-durable-cleanup'), events.index('stop'))
+
+    async def test_no_policy_or_failed_cleanup_cannot_register_deferral(self):
+        for options in ({'continuation': False}, {'continuation': True, 'leftovers': True}):
+            result, events = await self.run_case(billing_error=True, **options)
+            self.assertNotIn('registered-after-durable-cleanup', events)
 
     async def test_live_owner_lock_prevents_even_preflight(self):
         with tempfile.TemporaryDirectory() as directory:

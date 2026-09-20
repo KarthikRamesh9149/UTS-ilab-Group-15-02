@@ -2,16 +2,16 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T03:24:25Z",
-    "status": "Stopped: setup request rate limited; billing unresolved",
-    "detail": "Offline finalist-selection provenance and code-free final handoff improvements are committed and deployed; 653 tests passed on the Mac and isolated Linux copy, and production imports passed. All 48 paid-runtime hashes and protected billing/evidence files remain unchanged. The v7 setup HTTP429 bill remains unresolved; its US$0.106496 reservation is separate from the two approved scored holds. No new benchmark task ran, no retry is active, and full89 scoring has not started.",
+    "updated_at_utc": "2026-09-20T03:41:03Z",
+    "status": "Preparing baseline-first resumption",
+    "detail": "User approved standing continuation with terminal unknown charges fully reserved. The candidate now supports conservative deferrals and 178 baseline-first final cells; tests and independent review are in progress before deployment. Existing raw results and uncertain charges remain unchanged. No new benchmark task has run yet; full89 scoring has not started.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
-    {"name": "Initial baseline qualification", "state": "Stopped before resumption", "detail": "Six of 20 Terminus-2 development tasks attempted. The low-score continuation amendment is deployed, but a new setup request has unresolved billing following HTTP429. The stopped setup attempt is not a scored task. Authoritative billing evidence and successful runtime qualification are needed before the next task."},
+    {"name": "Initial baseline qualification", "state": "Resumption implementation being verified", "detail": "Six of 20 Terminus-2 development tasks attempted. The new user-approved rule will keep terminal unknown charges reserved rather than blocking the next task. Native runtime qualification and safe cleanup remain required; the failed setup fixture is not a scored task."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
-    {"name": "Fresh full evaluation", "state": "Not started", "detail": "89 fresh tasks per baseline and 89 for a frozen custom finalist remain separate from development runs."},
+    {"name": "Fresh full evaluation", "state": "Not started; baselines prioritised", "detail": "89 Terminus-2 and 89 OpenHands final tasks will run before custom development, then be retained in the same 267-cell comparison alongside 89 frozen-custom tasks. Development runs are separate."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
   ],
   "financial_snapshot": {
@@ -19,7 +19,7 @@
     "available_account_credit_usd": "12.015073652",
     "known_project_charges_usd": "0.02061936",
     "unresolved_holds_usd": "0.319488",
-    "note": "Recorded snapshot only; this panel makes no account or billing API calls. US$0.212992 covers the approved historical scored holds; US$0.106496 is a new unresolved setup reservation that blocks spending. Reservations are not confirmed charges. Account credit is separate from the key allowance."
+    "note": "Recorded snapshot only; this panel makes no account or billing API calls. US$0.212992 covers historical scored holds; US$0.106496 is the unresolved setup reservation. The user now permits conservative terminal deferrals within unchanged caps. Reservations are not confirmed charges. Account credit is separate from the key allowance."
   },
   "last_remote_snapshot": {
     "observed_at_utc": "2026-09-20T01:38:36Z",

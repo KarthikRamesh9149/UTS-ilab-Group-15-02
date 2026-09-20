@@ -83,6 +83,7 @@ class ReviewTests(unittest.TestCase):
             self.assertEqual(gate.call_args.kwargs['runtime'], self.root / '.runtime/stage2')
             self.assertTrue(gate.call_args.kwargs['systemic_review_clear'])
 
+
     def amended_report(self):
         return {'paid_expansion_allowed': False, 'accounting_bounded_expansion_allowed': True,
             'status': 'accounting_bounded_expansion_allowed', 'original_billing_completeness_satisfied': False,
@@ -159,3 +160,62 @@ class ReviewTests(unittest.TestCase):
             self.review['completion_amendment_sha256'] = document['sidecar_sha256']
             assess(self.root, {}, self.review)
             self.assertTrue(gate.call_args.kwargs['systemic_review_clear'])
+
+class StandingDeferralReviewTests(unittest.TestCase):
+    def setUp(self):
+        from test_qualification_gate import StandingGateFixture
+        from historical_hold import validate_historical_hold
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.fixture = StandingGateFixture(temporary.name)
+        self.addCleanup(self.fixture.close)
+        fixture = self.fixture
+        (fixture.root / 'stage2').mkdir(exist_ok=True)
+        (fixture.root / 'stage2/input_manifest.json').write_text(json.dumps({'development_ids': fixture.tasks}))
+        hashes = {}
+        for row in fixture.rows:
+            path = fixture.runtime / 'scored-trials' / row['trial_id'] / 'result.json'
+            if not path.exists():
+                path.parent.mkdir(mode=0o700)
+                path.write_text(json.dumps(row))
+            hashes[row['trial_id']] = hashlib.sha256(path.read_bytes()).hexdigest()
+        held = validate_historical_hold(fixture.runtime)
+        self.review = {'kind': 'terminus20_systemic_review', 'reviewer': 'synthetic-test-reviewer',
+            'model_protocol_sha256': fixture.settings.fingerprint(), 'reviewed_result_hashes': hashes,
+            'historical_hold_sha256': held['sidecar_sha256'], 'completion_amendment_sha256': held['sidecar_sha256'],
+            'billing_deferral_policy_sha256': fixture.deferred.policy['sidecar_sha256'],
+            'deferred_billing_result_registrations': {fixture.deferred.cell['trial_id']: fixture.deferred.entry['sidecar_sha256']},
+            'findings': {key: {'clear': True, 'notes': 'Synthetic validation fixture.'}
+                         for key in ('parser', 'routing', 'environment')}}
+        lookup = {row['trial_id']: row for row in fixture.rows}
+        for patched in (patch('qualification_review.validate', return_value=fixture.settings),
+                        patch('qualification_review.completed_cell', side_effect=lambda _, cell, settings: lookup[cell['trial_id']])):
+            patched.start()
+            self.addCleanup(patched.stop)
+
+    def test_review_requires_exact_policy_and_first_twenty_registration_hashes(self):
+        fixture = self.fixture
+        report = assess(fixture.root, {}, self.review)
+        self.assertTrue(report['billing_deferral_expansion_allowed'])
+        self.assertTrue(expansion_allowed(fixture.root, report))
+        for key, value in [('billing_deferral_policy_sha256', 'b' * 64),
+                           ('deferred_billing_result_registrations', {})]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                assess(fixture.root, {}, dict(self.review, **{key: value}))
+        for key, value in [('billing_deferral_policy_sha256', 'b' * 64),
+                           ('deferred_billing_result_registrations', {}),
+                           ('actual_charge_and_token_totals_complete', True),
+                           ('billing_deferral_reasons', ['cleanup_unverified'])]:
+            with self.subTest(key=key):
+                self.assertFalse(expansion_allowed(fixture.root, dict(report, **{key: value})))
+
+    def test_later_final_registration_does_not_stale_first_twenty_review(self):
+        from test_matrix_resume import DeferredCellFixture
+        fixture = self.fixture
+        before = assess(fixture.root, {}, self.review)
+        DeferredCellFixture(fixture.root,
+            dict(trial_id='final-openhands-00-later', task_id='later', stage='final', harness='openhands'),
+            settings=fixture.settings)
+        after = assess(fixture.root, {}, self.review)
+        self.assertEqual(before, after)
+        self.assertTrue(expansion_allowed(fixture.root, after))

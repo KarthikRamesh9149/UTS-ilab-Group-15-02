@@ -15,7 +15,7 @@ import signal
 import sqlite3
 import time
 
-from budget_ledger import Ledger, BudgetExceeded
+from budget_ledger import Ledger, BudgetExceeded, UNIT
 from gateway_core import Gateway, GatewayError, Trial, token_digest
 from receipt_polling import read_receipt
 from setup_probe import full_context_bound, validate_metadata
@@ -49,19 +49,21 @@ def durable_json(path, value):
 
 
 def require_clear_setup_ledger(runtime):
-    """A new setup incident or unknown dispatch invalidates scored admission.
+    """Validate setup accounting and return its conservatively held liability.
 
     Read the authoritative setup ledger before every paid scored dispatch.
     Settled setup charges are already reflected in the fresh provider balance;
-    this check never subtracts them a second time or edits setup accounting.
+    Deferred terminal attempts may remain uncertain; active requests and real
+    billing incidents still block. Known charges are not subtracted twice.
     """
     database = Path(runtime) / 'setup_budget.sqlite'
     if not database.exists() and not database.is_symlink():
-        from historical_hold import SIDECAR
-        amendment = Path(runtime) / SIDECAR
-        if amendment.exists() or amendment.is_symlink():
+        from historical_hold import SIDECAR, SIDECAR_V2
+        from deferred_billing import POLICY
+        if any((Path(runtime) / name).exists() or (Path(runtime) / name).is_symlink()
+               for name in (SIDECAR, SIDECAR_V2, POLICY)):
             raise BudgetExceeded('Original setup ledger required under historical hold amendment')
-        return
+        return Decimal(0)
     info = database.lstat()
     if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
         raise BudgetExceeded('Original setup ledger required for scored admission')
@@ -69,10 +71,17 @@ def require_clear_setup_ledger(runtime):
     try:
         reader.execute('PRAGMA query_only=ON')
         reader.execute('BEGIN')
-        if (reader.execute("SELECT COUNT(*) FROM requests WHERE state!='settled' OR charged IS NULL").fetchone()[0]
-                or reader.execute("SELECT COUNT(*) FROM receipt_checks WHERE state!='verified'").fetchone()[0]
+        from deferred_billing import validate_deferrals, deferred_request_ids, unresolved_liability_nanodollars
+        entries = validate_deferrals(runtime, reader, kind='setup')
+        exempt = deferred_request_ids(entries)
+        unknown = reader.execute("SELECT id,reserved FROM requests WHERE state!='settled' OR charged IS NULL").fetchall()
+        receipts = reader.execute("SELECT request_id FROM receipt_checks WHERE state!='verified'").fetchall()
+        if (reader.execute('PRAGMA quick_check').fetchall() != [('ok',)]
+                or any(identifier not in exempt for identifier, _ in unknown)
+                or any(identifier not in exempt for identifier, in receipts)
                 or reader.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]):
             raise BudgetExceeded('Unresolved setup billing blocks scored admission')
+        return Decimal(unresolved_liability_nanodollars(reader, entries)) / UNIT
     except sqlite3.Error as exc:
         raise BudgetExceeded('Setup billing could not be verified before scored admission') from exc
     finally:
@@ -107,8 +116,9 @@ class ScoredSession:
             fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             self.scored_available_balance()
             self.ledger = Ledger(runtime / 'scored_budget.sqlite', SCORED_CEILING, TRIAL_CAP,
-                STAGE_CAPS, allow_estimated_trials=True, historical_hold_runtime=runtime)
-            if self.ledger.blocking_pending(trial=trial_id) or self.ledger.pending_receipts():
+                STAGE_CAPS, allow_estimated_trials=True, historical_hold_runtime=runtime,
+                deferred_billing_runtime=runtime, deferred_billing_kind='scored')
+            if self.ledger.blocking_pending(trial=trial_id) or self.ledger.blocking_receipts(trial=trial_id):
                 raise BudgetExceeded('Resolve prior pending billing before another trial')
             if self.ledger.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Prior billing incident blocks trial startup')
@@ -130,8 +140,11 @@ class ScoredSession:
             raise
 
     def scored_available_balance(self):
-        require_clear_setup_ledger(self.runtime)
-        return self.available_balance()
+        liability = require_clear_setup_ledger(self.runtime)
+        available = self.available_balance() - liability
+        if available < 0:
+            raise BudgetExceeded('Setup liabilities exceed available credit')
+        return available
 
     def available_balance(self):
         # Check both account and key allowance before every generation. The
