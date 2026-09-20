@@ -12,7 +12,7 @@ from final_analysis import analyze
 from final_schedule import schedule
 from finalist_freeze import verify
 from matrix_resume import completed_cell
-from qualification_review import assess
+from qualification_review import assess, expansion_allowed
 from run_final import prerequisites
 from scored_gateway import durable_json, private_directory
 from scoring_admission import validate
@@ -32,7 +32,7 @@ def collect(root):
         freeze, review = descriptor['freeze'], descriptor['review']
         selected = verify(root, freeze)
         settings = validate(root, freeze['admission'])
-        if assess(root, freeze['admission'], review).get('paid_expansion_allowed') is not True:
+        if not expansion_allowed(root, assess(root, freeze['admission'], review)):
             raise ValueError('Qualification review does not clear final evaluation')
         manifest = json.loads((root / 'stage2/input_manifest.json').read_text())
         parent = freeze['selection']['selected_parent'] if selected == 'C2' else None

@@ -26,12 +26,15 @@ def collect_receipts(runtime, trial_id, *, kind='scored', client=None,
         raise ValueError('Original ledger required')
     evidence = runtime / ('native-setup-attempts' if kind == 'setup' else 'scored-attempts') / trial_id
     ledger = (Ledger(database, '1', '1', {'setup': '1'}) if kind == 'setup' else
-              Ledger(database, SCORED_CEILING, TRIAL_CAP, STAGE_CAPS, allow_estimated_trials=True))
+              Ledger(database, SCORED_CEILING, TRIAL_CAP, STAGE_CAPS, allow_estimated_trials=True,
+                     historical_hold_runtime=runtime))
     try:
-        if ledger.pending():
+        if ledger.blocking_pending(trial=trial_id):
             raise ValueError('Unknown dispatch outcome requires explicit reconciliation')
         rows = ledger.db.execute('''SELECT r.id,g.generation_id,r.charged FROM requests r
-            JOIN generations g ON r.id=g.request_id WHERE r.trial=?''', (trial_id,)).fetchall()
+            LEFT JOIN generations g ON r.id=g.request_id WHERE r.trial=?''', (trial_id,)).fetchall()
+        if any(not generation or charge is None for _, generation, charge in rows):
+            raise ValueError('Every trial request requires settled cost and generation identity')
         requests = dict((generation, (request, cost)) for request, generation, cost in rows)
         paths = list(evidence.glob('*.response.json'))
         responses = {read_json(path)['id']: path for path in paths}

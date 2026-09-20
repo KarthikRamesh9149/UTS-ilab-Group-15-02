@@ -23,7 +23,8 @@ class BudgetExceeded(RuntimeError):
 
 
 class Ledger:
-    def __init__(self, path, ceiling, trial_cap, stage_caps=None, *, allow_estimated_trials=False):
+    def __init__(self, path, ceiling, trial_cap, stage_caps=None, *, allow_estimated_trials=False,
+                 historical_hold_runtime=None):
         if type(allow_estimated_trials) is not bool:
             raise ValueError('Explicit boolean estimation policy required')
         self.db = sqlite3.connect(path, timeout=30, isolation_level=None)
@@ -68,6 +69,9 @@ class Ledger:
                 raise ValueError('Existing stage allocations are immutable')
         self.ceiling, self.trial_cap = policy
         self.allow_estimated_trials = allow_estimated_trials
+        # Only scored callers explicitly opt in. Native setup and all existing
+        # general-purpose ledgers retain the unconditional pending barrier.
+        self.historical_hold_runtime = historical_hold_runtime
 
     @contextmanager
     def transaction(self):
@@ -100,10 +104,10 @@ class Ledger:
             if self.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Ledger halted by billing incident')
             pending = self.db.execute("SELECT COALESCE(SUM(reserved),0) FROM requests WHERE state='pending'").fetchone()[0]
-            if pending:
+            if self.blocking_pending(trial=trial):
                 raise BudgetExceeded('Resolve the outstanding request before dispatching another')
-            if self.db.execute('''SELECT COUNT(*) FROM receipt_checks c JOIN requests r ON r.id=c.request_id
-                                  WHERE c.state='pending' AND r.trial!=?''', (trial,)).fetchone()[0]:
+            if self.db.execute('''SELECT COUNT(*) FROM receipt_checks c LEFT JOIN requests r ON r.id=c.request_id
+                                  WHERE c.state='pending' AND (r.trial IS NULL OR r.trial!=?)''', (trial,)).fetchone()[0]:
                 raise BudgetExceeded('Previous trial receipts must be verified before new trial spending')
             stages = dict(self.db.execute('SELECT name,cap FROM stages'))
             if stages:
@@ -117,7 +121,7 @@ class Ledger:
                 if spent + amount > stages[stage]:
                     raise BudgetExceeded('Stage allocation exhausted')
                 self.db.execute('INSERT OR IGNORE INTO trial_stages VALUES (?,?)', (trial, stage))
-            # All earlier requests are settled (the pending barrier above).
+            # Earlier requests are settled or the exact historical hold.
             # Only the per-trial admission uses an approved estimate. Project,
             # stage and account checks retain the entire worst-case charge.
             if self.exposure() + amount > self.ceiling or self.exposure(trial) + trial_amount > self.trial_cap or pending + amount > available:
@@ -177,13 +181,32 @@ class Ledger:
 
     def pending_receipts(self):
         return self.db.execute('''SELECT r.id,r.trial,g.generation_id FROM receipt_checks c
-            JOIN requests r ON r.id=c.request_id JOIN generations g ON r.id=g.request_id
-            WHERE c.state='pending' ORDER BY r.id''').fetchall()
+            LEFT JOIN requests r ON r.id=c.request_id LEFT JOIN generations g ON r.id=g.request_id
+            WHERE c.state='pending' ORDER BY c.request_id''').fetchall()
 
     def pending(self):
         return self.db.execute('''SELECT r.id,r.trial,r.reserved,g.generation_id
             FROM requests r LEFT JOIN generations g ON r.id=g.request_id
             WHERE r.state='pending' ORDER BY r.id''').fetchall()
+
+    def blocking_pending(self, *, trial=None):
+        """Raw pending() stays truthful; only a bound amendment can admit work.
+
+        Reserve calls this inside its write transaction, preventing competing
+        connections from each treating a new unknown request as historical.
+        """
+        if self.historical_hold_runtime is None:
+            return self.pending()
+        from historical_hold import validate_historical_hold
+        try:
+            if self.db.in_transaction:
+                hold = validate_historical_hold(self.historical_hold_runtime, self.db, active_trial=trial)
+                return [row for row in self.pending() if hold is None or row[0] != hold['request_id']]
+            with self.transaction():
+                hold = validate_historical_hold(self.historical_hold_runtime, self.db, active_trial=trial)
+                return [row for row in self.pending() if hold is None or row[0] != hold['request_id']]
+        except ValueError as exc:
+            raise BudgetExceeded('Historical hold validation failed; admission halted') from exc
 
     def close(self):
         self.db.close()

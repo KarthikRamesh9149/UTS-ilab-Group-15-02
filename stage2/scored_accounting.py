@@ -8,6 +8,7 @@ from budget_ledger import UNIT, dollars
 from gateway_core import reconcile_receipt
 from gateway_policy import MODEL, ENDPOINT
 from model_protocol import read_protocol
+from historical_hold import validate_historical_hold
 from study_budget import SCORED_CEILING, TRIAL_CAP, STAGE_CAPS
 
 
@@ -40,15 +41,19 @@ def audit_trial(runtime, trial_id, stage):
             raise ValueError('Unknown stage')
         if db.execute('SELECT enabled FROM estimation_policy WHERE id=1').fetchone() != (1,):
             raise ValueError('Estimated admission policy drift')
-        if db.execute("SELECT COUNT(*) FROM requests WHERE state!='settled' OR charged IS NULL").fetchone()[0]:
+        hold = validate_historical_hold(runtime, db, active_trial=trial_id)
+        unresolved = db.execute("SELECT id,reserved FROM requests WHERE state!='settled' OR charged IS NULL").fetchall()
+        if any(hold is None or row != (hold['request_id'], hold['reserved_nanodollars']) for row in unresolved):
             raise ValueError('Unresolved request; retain reservation and halt')
         if db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
             raise ValueError('Billing incident; halt')
         total = db.execute('SELECT COALESCE(SUM(charged),0) FROM requests').fetchone()[0]
-        if total > dollars(SCORED_CEILING):
+        unresolved_reserved = sum(row[1] for row in unresolved)
+        exposure = total + unresolved_reserved
+        if exposure > dollars(SCORED_CEILING):
             raise ValueError('Aggregate ceiling exceeded')
         for name, cap in caps.items():
-            amount = db.execute('''SELECT COALESCE(SUM(r.charged),0) FROM requests r
+            amount = db.execute('''SELECT COALESCE(SUM(COALESCE(r.charged,r.reserved)),0) FROM requests r
                 JOIN trial_stages s ON s.trial=r.trial WHERE s.stage=?''', (name,)).fetchone()[0]
             if amount > cap:
                 raise ValueError('Stage ceiling exceeded')
@@ -100,6 +105,8 @@ def audit_trial(runtime, trial_id, stage):
             seen.add(generation)
             for key in usage:
                 value = response.get('usage', {}).get(key)
+                if hold is not None and (type(value) is not int or value < 0):
+                    raise ValueError('New trial token evidence incomplete under historical hold amendment')
                 usage[key].append(value if type(value) is int and value >= 0 else None)
         charged = sum(by_generation.values())
         if charged > dollars(TRIAL_CAP):
@@ -109,6 +116,9 @@ def audit_trial(runtime, trial_id, stage):
                 'model_protocol_sha256': settings.fingerprint(),
                 'charged_usd': str(Decimal(charged) / UNIT),
                 'aggregate_charged_usd': str(Decimal(total) / UNIT),
+                'unresolved_reserved_usd': str(Decimal(unresolved_reserved) / UNIT),
+                'aggregate_exposure_usd': str(Decimal(exposure) / UNIT),
+                'historical_hold_request_id': hold['request_id'] if hold is not None else None,
                 **{key: None if any(v is None for v in values) else sum(values)
                    for key, values in usage.items()}}
     finally:

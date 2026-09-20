@@ -43,6 +43,14 @@ class Client:
                 'total_cost': self.cost}
 
 
+class HoldClient(Client):
+    def complete(self, request):
+        response = super().complete(request)
+        response['provider'] = 'DeepInfra'
+        response['usage'].update(is_byok=False, prompt_tokens=7, completion_tokens=3)
+        return response
+
+
 class ScoredGatewayTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -122,6 +130,7 @@ class ScoredGatewayTests(unittest.TestCase):
                 session.complete(self.token, self.payload)
         self.assertEqual(self.client.calls, 0)
 
+
     def test_underestimate_halts_future_trials(self):
         self.client.cost = '.011'
         with self.session() as session:
@@ -161,4 +170,109 @@ class ScoredGatewayTests(unittest.TestCase):
         self.assertFalse(sock.exists())
         with self.session('following-trial'):
             pass
+        self.assertEqual(self.client.calls, 0)
+
+
+class HistoricalHoldGatewayTests(unittest.TestCase):
+    def setUp(self):
+        from test_historical_hold import HoldFixture
+        self.temp = tempfile.TemporaryDirectory()
+        self.fixture = HoldFixture(self.temp.name)
+        self.client = HoldClient()
+        self.token = 'synthetic-hold-token-' * 4
+        self.payload = {'model': MODEL, 'messages': [{'role': 'user', 'content': 'test'}],
+                        'max_tokens': 64, 'temperature': 1., 'reasoning': {'effort': 'high'}}
+
+    def tearDown(self):
+        self.fixture.close()
+        self.temp.cleanup()
+
+    def session(self, trial='new'):
+        return ScoredSession(self.fixture.root, trial, 'development', self.token, self.client,
+                             settings=self.fixture.settings, estimator=lambda _: '.01')
+
+    def test_different_trial_can_run_and_old_trial_cannot_replay(self):
+        import historical_hold as hh
+        with self.session() as session:
+            session.complete(self.token, self.payload)
+            self.assertEqual(session.ledger.pending()[0][0], hh.REQUEST_ID)
+            self.assertEqual(session.ledger.exposure(), 107870460)
+        with self.assertRaises(BudgetExceeded): self.session(hh.TRIAL_ID)
+        self.assertEqual(self.client.calls, 1)
+
+    def test_new_trial_pending_receipts_prevent_another_trial_start(self):
+        with self.session() as session:
+            session.complete(self.token, self.payload)
+        with self.assertRaises(BudgetExceeded): self.session('next')
+        self.assertFalse((self.fixture.runtime / 'scored-attempts/next').exists())
+
+    def test_fresh_credit_accounts_for_historical_pending_amount(self):
+        with self.session() as session:
+            self.client.allowance = '2.11'
+            with self.assertRaises(BudgetExceeded): session.complete(self.token, self.payload)
+        self.assertEqual(self.client.calls, 0)
+
+    def test_unknown_new_outcome_blocks_restart_without_releasing_either_hold(self):
+        self.client.fail = True
+        with self.session() as session:
+            with self.assertRaises(GatewayError): session.complete(self.token, self.payload)
+            self.assertEqual(len(session.ledger.pending()), 2)
+        with self.assertRaises(BudgetExceeded): self.session('next')
+        self.assertEqual(self.client.calls, 1)
+
+    def test_setup_unknown_introduced_after_session_admission_blocks_dispatch(self):
+        from budget_ledger import Ledger
+        with self.session() as session:
+            setup = Ledger(self.fixture.runtime / 'setup_budget.sqlite', '1', '1', {'setup': '1'})
+            try:
+                setup.reserve('setup-unknown', 'setup-probe', '.1', '12', 'setup')
+                with self.assertRaises(BudgetExceeded): session.complete(self.token, self.payload)
+            finally:
+                setup.close()
+        self.assertEqual(self.client.calls, 0)
+
+    def test_setup_incident_or_unverified_receipt_blocks_session_start(self):
+        from budget_ledger import Ledger
+        setup = Ledger(self.fixture.runtime / 'setup_budget.sqlite', '1', '1', {'setup': '1'})
+        try:
+            for statement in ["INSERT INTO incidents VALUES ('unknown',1)",
+                              "INSERT INTO receipt_checks VALUES ('orphan','pending')"]:
+                with self.subTest(statement=statement):
+                    setup.db.execute(statement)
+                    with self.assertRaises(BudgetExceeded): self.session('next')
+                    setup.db.execute('DELETE FROM incidents')
+                    setup.db.execute('DELETE FROM receipt_checks')
+        finally:
+            setup.close()
+        self.assertEqual(self.client.calls, 0)
+
+    def test_amended_session_requires_original_setup_ledger_even_for_dangling_sidecar(self):
+        import historical_hold as hh
+        (self.fixture.runtime / 'setup_budget.sqlite').unlink()
+        with self.assertRaisesRegex(BudgetExceeded, 'Original setup ledger required'):
+            self.session()
+        sidecar = self.fixture.runtime / hh.SIDECAR
+        sidecar.unlink()
+        sidecar.symlink_to(self.fixture.runtime / 'missing-amendment')
+        with self.assertRaisesRegex(BudgetExceeded, 'Original setup ledger required'):
+            self.session()
+        self.assertEqual(self.client.calls, 0)
+
+    def test_setup_ledger_removal_after_admission_blocks_dispatch(self):
+        with self.session() as session:
+            (self.fixture.runtime / 'setup_budget.sqlite').unlink()
+            with self.assertRaisesRegex(BudgetExceeded, 'Original setup ledger required'):
+                session.complete(self.token, self.payload)
+        self.assertEqual(self.client.calls, 0)
+
+    def test_setup_ledger_must_stay_private(self):
+        setup_path = self.fixture.runtime / 'setup_budget.sqlite'
+        setup_path.chmod(0o644)
+        with self.assertRaisesRegex(BudgetExceeded, 'Original setup ledger required'):
+            self.session()
+        setup_path.chmod(0o600)
+        with self.session() as session:
+            setup_path.chmod(0o644)
+            with self.assertRaisesRegex(BudgetExceeded, 'Original setup ledger required'):
+                session.complete(self.token, self.payload)
         self.assertEqual(self.client.calls, 0)

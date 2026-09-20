@@ -1,5 +1,13 @@
 import copy
+import hashlib
+import json
+from pathlib import Path
+import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
+from historical_hold import canonical_hold_document
+from matrix_resume import completed_cell
 from qualification_gate import evaluate
 
 
@@ -7,6 +15,7 @@ class QualificationGateTests(unittest.TestCase):
     def setUp(self):
         self.tasks = ['synthetic-' + str(i) for i in range(20)]
         self.fingerprint = 'a' * 64
+        self.runtime = None
         self.rows = [{'task_id': task, 'harness': 'terminus-2', 'stage': 'development',
             'model_protocol_sha256': self.fingerprint, 'status': 'verified', 'model_revoked': True,
             'containers_removed': True, 'networks_removed': True, 'volumes_removed': True,
@@ -17,7 +26,32 @@ class QualificationGateTests(unittest.TestCase):
 
     def evaluate(self, rows=None, reviewed=True):
         return evaluate(self.rows if rows is None else rows, task_ids=self.tasks,
-                        protocol_sha256=self.fingerprint, systemic_review_clear=reviewed)
+                        protocol_sha256=self.fingerprint, systemic_review_clear=reviewed, runtime=self.runtime)
+
+    def install_hold(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        root = Path(temp.name)
+        self.runtime = root / '.runtime/stage2'
+        hold = canonical_hold_document()
+        hold.update(model_protocol_sha256=self.fingerprint, sidecar_sha256='c' * 64,
+            budget_stop_count=2, budget_stop_classification='historical_pending_barrier',
+            capacity_budget_stop_count=0)
+        self.tasks[0] = hold['task_id']
+        cell = {key: hold[key] for key in ('trial_id', 'task_id', 'harness', 'stage')}
+        original = dict(copy.deepcopy(self.rows[0]), **cell, status='billing_unresolved',
+                        billing={'billing_verified': False}, verifier_result={'rewards': {'reward': 0}})
+        path = self.runtime / 'scored-trials' / hold['trial_id'] / 'result.json'
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(original))
+        hold['original_result_sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+        validator = patch('matrix_resume.validate_historical_hold', return_value=hold)
+        validator.start()
+        self.addCleanup(validator.stop)
+        self.rows[0] = completed_cell(root, cell, SimpleNamespace(fingerprint=lambda: self.fingerprint))
+        self.rows[10]['verifier_result']['rewards']['reward'] = 1
+        self.rows[2]['billing']['budget_stop_count'] = 1
+        return hold
 
     def test_exact_threshold_and_no_mutation(self):
         before = copy.deepcopy(self.rows)
@@ -62,3 +96,58 @@ class QualificationGateTests(unittest.TestCase):
         result = self.evaluate()
         self.assertIn('invalid_verifier_reward', result['reasons'])
         self.assertIn('model_protocol_mismatch', result['reasons'])
+
+    def test_amendment_retains_original_gate_failure_and_fixed_zero_denominator(self):
+        self.install_hold()
+        before = copy.deepcopy(self.rows)
+        result = self.evaluate()
+        self.assertFalse(result['paid_expansion_allowed'])
+        self.assertFalse(result['original_billing_completeness_satisfied'])
+        self.assertTrue(result['accounting_bounded_expansion_allowed'])
+        self.assertEqual(result['status'], 'accounting_bounded_expansion_allowed')
+        self.assertEqual(result['verified_successes'], 10)
+        self.assertEqual(result['expected_trials'], 20)
+        self.assertEqual(result['observed_trials'], 20)
+        self.assertEqual(result['budget_exhausted_trials'], 2)
+        self.assertEqual(result['historical_pending_barrier_markers'], 2)
+        self.assertEqual(result['budget_stop_markers'], 4)
+        self.assertFalse(result['actual_charge_and_token_totals_complete'])
+        self.assertIn('billing_unverified', result['reasons'])
+        self.assertIn('usage_missing', result['reasons'])
+        self.assertEqual(before, self.rows)
+
+    def test_historical_hold_does_not_relax_success_stop_or_review_thresholds(self):
+        self.install_hold()
+        self.assertFalse(self.evaluate(reviewed=False)['accounting_bounded_expansion_allowed'])
+        self.rows[10]['verifier_result']['rewards']['reward'] = 0
+        result = self.evaluate()
+        self.assertFalse(result['accounting_bounded_expansion_allowed'])
+        self.assertIn('fewer_than_ten_successes', result['accounting_bounded_reasons'])
+        self.rows[10]['verifier_result']['rewards']['reward'] = 1
+        self.rows[3]['billing']['budget_stop_count'] = 1
+        result = self.evaluate()
+        self.assertFalse(result['accounting_bounded_expansion_allowed'])
+        self.assertIn('more_than_two_budget_stops', result['accounting_bounded_reasons'])
+
+    def test_hold_must_match_evidence_and_never_imputes_missing_charge(self):
+        self.install_hold()
+        for field, value in [('charged_usd', '0'), ('prompt_tokens', 0),
+                             ('billing_verified', True), ('completion_tokens', 0)]:
+            rows = copy.deepcopy(self.rows)
+            rows[0]['billing'][field] = value
+            with self.subTest(field=field):
+                result = self.evaluate(rows)
+                self.assertFalse(result['accounting_bounded_expansion_allowed'])
+                self.assertIn('historical_hold_invalid', result['reasons'])
+        self.runtime = None
+        self.assertFalse(self.evaluate()['accounting_bounded_expansion_allowed'])
+
+    def test_no_replacement_or_second_unresolved_trial_can_use_hold(self):
+        self.install_hold()
+        rows = copy.deepcopy(self.rows)
+        rows[0]['trial_id'] += '-replacement'
+        self.assertFalse(self.evaluate(rows)['accounting_bounded_expansion_allowed'])
+        self.rows[1]['status'] = 'billing_unresolved'
+        self.rows[1]['billing']['billing_verified'] = False
+        self.assertFalse(self.evaluate()['accounting_bounded_expansion_allowed'])
+        self.assertFalse(self.evaluate(self.rows[1:])['accounting_bounded_expansion_allowed'])

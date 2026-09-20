@@ -4,6 +4,14 @@ Registered before the first scored model trial on this host. This document
 describes execution and evidence requirements; it is not a report or a result.
 Historical Mac pilot and CETUS trials are separate and cannot fill these cells.
 
+Post-incident amendment, recorded 20 September 2026:
+[one historical unresolved-charge hold](ACCOUNTING_AMENDMENT_20260920.md).
+It prospectively changes the billing-completeness prerequisite for continuation,
+not the model, tasks, scoring thresholds or financial limits. The original rule
+below is preserved; any amended clearance is reported separately, never as
+passing the original billing-completeness gate. Runtime qualification is still
+required before the amended implementation can execute paid trials.
+
 ## Constant inputs and common limits
 
 - Terminal-Bench 2.1: official revision and exact file hashes in

@@ -10,7 +10,7 @@ from pathlib import Path
 from development_selection import select
 from matrix_resume import completed_cell
 from native_agents import agent_factory
-from qualification_review import assess
+from qualification_review import assess, expansion_allowed
 from scored_gateway import private_directory, durable_json
 from scored_trial import run_trial
 from scoring_admission import validate
@@ -45,7 +45,7 @@ async def run(root, admission, review, block):
     fd = os.open(runtime / 'matrix.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, 'r+') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        if assess(root, admission, review).get('paid_expansion_allowed') is not True:
+        if not expansion_allowed(root, assess(root, admission, review)):
             raise ValueError('First-20 qualification has not cleared expansion')
         prior = {}
         for predecessor in ORDER[:ORDER.index(block)]:
@@ -83,7 +83,7 @@ async def run(root, admission, review, block):
         results = []
         for cell in scheduled:
             validate(root, admission)
-            if assess(root, admission, review).get('paid_expansion_allowed') is not True:
+            if not expansion_allowed(root, assess(root, admission, review)):
                 raise ValueError('Qualification no longer clears expansion')
             if registered is not None and limits(root) != registered:
                 raise ValueError('Custom limits changed during block')

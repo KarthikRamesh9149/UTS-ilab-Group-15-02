@@ -13,7 +13,7 @@ from pathlib import Path
 from native_agents import agent_factory
 from qualification_gate import evaluate
 from scoring_admission import validate
-from matrix_resume import completed_cell
+from matrix_resume import completed_cell, validated_held_cell
 from scored_gateway import private_directory, durable_json
 from scored_trial import run_trial
 
@@ -43,15 +43,18 @@ async def run(root, admission):
                 result = completed_cell(root, cell, settings)
                 if result is None:
                     raise RuntimeError('Trial returned without durable evidence')
-            if result.get('status') != 'verified' or result.get('billing', {}).get('billing_verified') is not True:
+            held = validated_held_cell(runtime, result, settings.fingerprint())
+            if held is None and (result.get('status') != 'verified' or result.get('billing', {}).get('billing_verified') is not True):
                 raise RuntimeError('Trial infrastructure or billing requires inspection: ' + trial_id)
             if not all(result.get(key) is True for key in ['containers_removed', 'networks_removed', 'volumes_removed']):
                 raise RuntimeError('Unverified cleanup; next trial not started')
             results.append(result)
             print(json.dumps({'completed': len(results), 'intended': 20, 'trial_id': trial_id,
                 'reward': result.get('verifier_result', {}).get('rewards', {}),
-                'cost_usd': result['billing']['charged_usd']}), flush=True)
-        gate = evaluate(results, task_ids=task_ids, protocol_sha256=settings.fingerprint())
+                'cost_usd': result['billing']['charged_usd'],
+                'billing_verified': result['billing']['billing_verified'],
+                'resume_disposition': result.get('resume_disposition', 'verified_terminal')}), flush=True)
+        gate = evaluate(results, task_ids=task_ids, protocol_sha256=settings.fingerprint(), runtime=runtime)
         # Explicitly pending trace review; this process never expands spending.
         output = runtime / 'terminus-qualification-pending-review.json'
         if not output.exists(): durable_json(output, gate)

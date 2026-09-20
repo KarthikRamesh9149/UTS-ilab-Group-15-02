@@ -43,21 +43,15 @@ def scored_state(runtime):
     return Decimal(sum(row[0] for row in pending)) / 1_000_000_000, hashes
 
 
-class ReservedClient:
-    def __init__(self, client, liability):
-        self.client, self.liability, self.calls = client, liability, 0
+class SingleDispatchClient:
+    def __init__(self, client):
+        self.client, self.calls = client, 0
 
     def metadata(self): return self.client.metadata()
     def generation(self, identifier): return self.client.generation(identifier)
 
-    def balance(self):
-        return Decimal(str(self.client.balance())) - self.liability
-
-    def key_status(self):
-        result = dict(self.client.key_status())
-        if result['limit_remaining'] is not None:
-            result['limit_remaining'] = Decimal(str(result['limit_remaining'])) - self.liability
-        return result
+    def balance(self): return self.client.balance()
+    def key_status(self): return self.client.key_status()
 
     def complete(self, request):
         if self.calls:
@@ -83,7 +77,9 @@ def run(root, label, *, execute=False, client=None):
         settings = read_protocol(runtime)
         liability, before = scored_state(runtime)
         original = client or OpenRouter(load_key(root / '.env'), generation_enabled=True)
-        guarded = ReservedClient(original, liability)
+        # NativeSetupSession now protects cross-ledger liabilities for every
+        # setup caller. This wrapper only limits dispatch; do not deduct twice.
+        guarded = SingleDispatchClient(original)
         token = secrets.token_hex(32)
         summary = {'kind': 'endpoint_connectivity_diagnostic_not_harness_qualification_or_score',
             'time_utc': datetime.now(timezone.utc).isoformat(), 'model': MODEL, 'endpoint': ENDPOINT,

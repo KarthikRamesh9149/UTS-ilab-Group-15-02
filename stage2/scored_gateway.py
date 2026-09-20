@@ -12,6 +12,7 @@ from pathlib import Path
 import re
 import stat
 import signal
+import sqlite3
 import time
 
 from budget_ledger import Ledger, BudgetExceeded
@@ -46,6 +47,37 @@ def durable_json(path, value):
         os.close(directory)
 
 
+def require_clear_setup_ledger(runtime):
+    """A new setup incident or unknown dispatch invalidates scored admission.
+
+    Read the authoritative setup ledger before every paid scored dispatch.
+    Settled setup charges are already reflected in the fresh provider balance;
+    this check never subtracts them a second time or edits setup accounting.
+    """
+    database = Path(runtime) / 'setup_budget.sqlite'
+    if not database.exists() and not database.is_symlink():
+        from historical_hold import SIDECAR
+        amendment = Path(runtime) / SIDECAR
+        if amendment.exists() or amendment.is_symlink():
+            raise BudgetExceeded('Original setup ledger required under historical hold amendment')
+        return
+    info = database.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
+        raise BudgetExceeded('Original setup ledger required for scored admission')
+    reader = sqlite3.connect(database.absolute().as_uri() + '?mode=ro', uri=True)
+    try:
+        reader.execute('PRAGMA query_only=ON')
+        reader.execute('BEGIN')
+        if (reader.execute("SELECT COUNT(*) FROM requests WHERE state!='settled' OR charged IS NULL").fetchone()[0]
+                or reader.execute("SELECT COUNT(*) FROM receipt_checks WHERE state!='verified'").fetchone()[0]
+                or reader.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]):
+            raise BudgetExceeded('Unresolved setup billing blocks scored admission')
+    except sqlite3.Error as exc:
+        raise BudgetExceeded('Setup billing could not be verified before scored admission') from exc
+    finally:
+        reader.close()
+
+
 class ScoredSession:
     def __init__(self, root, trial_id, stage, token, client, *, estimator=None, settings=None, receipt_timing='post_trial'):
         if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]{0,119}', trial_id):
@@ -62,6 +94,7 @@ class ScoredSession:
         self.active_prefix = None
         root = Path(root).resolve()
         runtime = private_directory(root / '.runtime' / 'stage2')
+        self.runtime = runtime
         try:
             # O_NOFOLLOW avoids following a replaced control-file symlink.
             # The host orchestrator separately holds scored.lock for the whole
@@ -70,10 +103,10 @@ class ScoredSession:
             descriptor = os.open(runtime / 'gateway.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
             self.lock = os.fdopen(descriptor, 'r+')
             fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            self.available_balance()
+            self.scored_available_balance()
             self.ledger = Ledger(runtime / 'scored_budget.sqlite', SCORED_CEILING, TRIAL_CAP,
-                STAGE_CAPS, allow_estimated_trials=True)
-            if self.ledger.pending() or self.ledger.pending_receipts():
+                STAGE_CAPS, allow_estimated_trials=True, historical_hold_runtime=runtime)
+            if self.ledger.blocking_pending(trial=trial_id) or self.ledger.pending_receipts():
                 raise BudgetExceeded('Resolve prior pending billing before another trial')
             if self.ledger.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Prior billing incident blocks trial startup')
@@ -86,13 +119,17 @@ class ScoredSession:
                 'estimated_trial_cap_usd': TRIAL_CAP, 'aggregate_cap_usd': SCORED_CEILING,
                 'receipt_timing': receipt_timing, 'inline_charge_source': 'openrouter_response_usage_cost'})
             self.gateway = Gateway(self.ledger, Trial(trial_id, stage, token_digest(token)),
-                self.available_balance, full_context_bound, self.generate, self.receipt,
+                self.scored_available_balance, full_context_bound, self.generate, self.receipt,
                 trial_estimate=estimator or trial_charge_estimator(root),
                 request_policy=settings.enforce if settings is not None else None,
                 receipt_timing=receipt_timing)
         except BaseException:
             self.close()
             raise
+
+    def scored_available_balance(self):
+        require_clear_setup_ledger(self.runtime)
+        return self.available_balance()
 
     def available_balance(self):
         # Check both account and key allowance before every generation. The

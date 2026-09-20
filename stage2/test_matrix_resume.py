@@ -1,10 +1,12 @@
+import hashlib
 import json
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from matrix_resume import completed_cell
+from historical_hold import canonical_hold_document
+from matrix_resume import completed_cell, validated_held_cell, HELD_TERMINAL
 from model_protocol import ModelSettings
 
 
@@ -65,3 +67,72 @@ class ResumeTests(unittest.TestCase):
         self.write()
         with patch('matrix_resume.audit_trial', side_effect=ValueError('unresolved')):
             with self.assertRaises(ValueError): completed_cell(self.root, self.cell, self.settings)
+
+    def install_hold(self):
+        hold = canonical_hold_document()
+        hold.update(model_protocol_sha256=self.settings.fingerprint(), sidecar_sha256='c' * 64,
+            budget_stop_count=2, budget_stop_classification='historical_pending_barrier',
+            capacity_budget_stop_count=0)
+        self.cell = {key: hold[key] for key in ('trial_id', 'task_id', 'stage', 'harness')}
+        self.row.update(self.cell, status='billing_unresolved', billing={'billing_verified': False})
+        self.row.pop('parent', None)
+        self.path = self.root / '.runtime/stage2/scored-trials' / self.cell['trial_id'] / 'result.json'
+        self.write()
+        hold['original_result_sha256'] = hashlib.sha256(self.path.read_bytes()).hexdigest()
+        validator = patch('matrix_resume.validate_historical_hold', return_value=hold)
+        validator.start()
+        self.addCleanup(validator.stop)
+        return hold
+
+    def test_historical_zero_has_terminal_disposition_without_billing_imputation(self):
+        self.install_hold()
+        before = self.path.read_bytes()
+        with patch('matrix_resume.audit_trial') as audit:
+            row = completed_cell(self.root, self.cell, self.settings)
+            audit.assert_not_called()
+        self.assertEqual(row['resume_disposition'], HELD_TERMINAL)
+        self.assertEqual(row['status'], 'billing_unresolved')
+        self.assertEqual(row['verifier_result']['rewards']['reward'], 0)
+        self.assertIs(row['billing']['billing_verified'], False)
+        for field in ('charged_usd', 'prompt_tokens', 'completion_tokens', 'requests'):
+            self.assertIsNone(row['billing'][field])
+        self.assertEqual(row['billing']['budget_stop_count'], 2)
+        self.assertEqual(row['billing']['capacity_budget_stop_count'], 0)
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertIsNotNone(validated_held_cell(self.root / '.runtime/stage2', row, self.settings.fingerprint()))
+
+    def test_historical_view_rejects_imputed_usage_or_modified_outcome(self):
+        self.install_hold()
+        for field in ('charged_usd', 'prompt_tokens', 'completion_tokens', 'requests'):
+            row = completed_cell(self.root, self.cell, self.settings)
+            row['billing'][field] = 0
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                validated_held_cell(self.root / '.runtime/stage2', row, self.settings.fingerprint())
+        row = completed_cell(self.root, self.cell, self.settings)
+        row['verifier_result']['rewards']['reward'] = 1
+        with self.assertRaises(ValueError):
+            validated_held_cell(self.root / '.runtime/stage2', row, self.settings.fingerprint())
+
+    def test_historical_cell_cannot_be_replayed_with_substitute_identity(self):
+        self.install_hold()
+        substitute = dict(self.cell, trial_id=self.cell['trial_id'] + '-replacement')
+        with self.assertRaisesRegex(ValueError, 'substitute'):
+            completed_cell(self.root, substitute, self.settings)
+        self.path.unlink()
+        self.path.parent.rmdir()
+        with self.assertRaisesRegex(ValueError, 'replay forbidden'):
+            completed_cell(self.root, self.cell, self.settings)
+
+    def test_hold_does_not_accept_another_unresolved_trial(self):
+        self.install_hold()
+        self.cell = dict(self.cell, trial_id='dev-terminus-2-01-other', task_id='other')
+        self.row.update(self.cell)
+        self.path = self.root / '.runtime/stage2/scored-trials' / self.cell['trial_id'] / 'result.json'
+        self.write()
+        with self.assertRaises(RuntimeError):
+            completed_cell(self.root, self.cell, self.settings)
+
+    def test_invalid_historical_evidence_blocks_even_missing_future_cell(self):
+        with patch('matrix_resume.validate_historical_hold', side_effect=ValueError('Another unresolved dispatch')):
+            with self.assertRaisesRegex(ValueError, 'unresolved'):
+                completed_cell(self.root, self.cell, self.settings)

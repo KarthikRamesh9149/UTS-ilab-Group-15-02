@@ -1,6 +1,28 @@
 # Netcup + OpenRouter continuation
 
-## Current checkpoint, 20 September 2026 (Sydney)
+## Prospective continuation amendment, 20 September 2026
+
+The [accounting amendment](ACCOUNTING_AMENDMENT_20260920.md) permits a
+separately labelled, conservatively funded continuation past exactly one
+historical unresolved request. It does not certify that request's charge,
+replay the failed trial, change the task list or lower qualification thresholds.
+The original billing-completeness rule remains unsatisfied and is reported
+separately from any amended clearance.
+
+The implementation preserves the full $0.106496 reservation and original
+ledger rows/result bytes. It checks both setup and scoring ledgers before
+new spending. Any additional unknown request, pending prior-trial receipt or
+billing incident stops continuation. Fresh source-bound native qualification
+is required; the old `netcupv5` admission is not valid for changed code.
+
+The client spending audit, recorded before this continuation, is in
+[`output/spending-audit-20260920`](../output/spending-audit-20260920/README.md).
+It lists all 46 recorded generation requests, $0.00774516 confirmed charges
+and the unknown reservation separately. The approximately $13.23 remainder
+of the account-level balance decline cannot be attributed from this project's
+key evidence and is explicitly not described as verified project spending.
+
+## Earlier stopped checkpoint, 20 September 2026 (Sydney)
 
 **Paid benchmark execution is stopped, not complete. No harness victory is established.**
 The earlier running/queued checkpoints below are historical.
@@ -51,7 +73,8 @@ The earlier running/queued checkpoints below are historical.
 - The error-diagnostic patch changes runtime hashes. The preserved
   `admission_netcupv5.json` documents the setup used for the first trial; it
   is not admission for the patched runtime. New live qualification must wait
-  until billing recovery, then bind the patched sources before paid resumption.
+  until billing recovery or the separately reviewed prospective amendment
+  above, then bind the patched sources before paid resumption.
 - Self-hosted Langfuse 4.38.0 was deployed with six content-pinned images and
   loopback-only ports. Actual observations API readback matched all 22 setup
   events: seven generations, 22,469 input tokens, 1,202 output tokens and

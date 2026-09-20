@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import test_qualification_gate
 from model_protocol import ModelSettings
-from qualification_review import assess
+from qualification_review import assess, expansion_allowed
 
 
 class ReviewTests(unittest.TestCase):
@@ -67,3 +67,44 @@ class ReviewTests(unittest.TestCase):
     def test_review_does_not_override_low_accuracy(self):
         next(iter(self.records.values()))['verifier_result']['rewards']['reward'] = 0
         self.assertFalse(assess(self.root, {}, self.review)['paid_expansion_allowed'])
+
+    def test_amended_review_must_bind_exact_sidecar(self):
+        hold = {'sidecar_sha256': 'c' * 64}
+        with patch('qualification_review.validate_historical_hold', return_value=hold), \
+             patch('qualification_review.evaluate', return_value={'fixture': 'review binding only'}) as gate:
+            with self.assertRaisesRegex(ValueError, 'exact historical accounting hold'):
+                assess(self.root, {}, self.review)
+            gate.assert_not_called()
+            self.review['historical_hold_sha256'] = 'b' * 64
+            with self.assertRaises(ValueError):
+                assess(self.root, {}, self.review)
+            self.review['historical_hold_sha256'] = hold['sidecar_sha256']
+            assess(self.root, {}, self.review)
+            self.assertEqual(gate.call_args.kwargs['runtime'], self.root / '.runtime/stage2')
+            self.assertTrue(gate.call_args.kwargs['systemic_review_clear'])
+
+    def amended_report(self):
+        return {'paid_expansion_allowed': False, 'accounting_bounded_expansion_allowed': True,
+            'status': 'accounting_bounded_expansion_allowed', 'original_billing_completeness_satisfied': False,
+            'actual_charge_and_token_totals_complete': False, 'historical_hold_sha256': 'c' * 64,
+            'model_protocol_sha256': self.settings.fingerprint(), 'held_terminal_trials': 1,
+            'expected_trials': 20, 'observed_trials': 20, 'verified_successes': 10,
+            'budget_exhausted_trials': 2, 'accounting_bounded_reasons': []}
+
+    def test_expansion_consumer_requires_validated_documented_amendment(self):
+        hold = {'sidecar_sha256': 'c' * 64, 'model_protocol_sha256': self.settings.fingerprint()}
+        report = self.amended_report()
+        with patch('qualification_review.validate_historical_hold', return_value=hold):
+            self.assertTrue(expansion_allowed(self.root, report))
+            for key, value in [('status', 'passed'), ('historical_hold_sha256', 'b' * 64),
+                               ('verified_successes', 9), ('budget_exhausted_trials', 3),
+                               ('observed_trials', 19), ('original_billing_completeness_satisfied', True),
+                               ('actual_charge_and_token_totals_complete', True),
+                               ('accounting_bounded_reasons', ['billing_unverified'])]:
+                with self.subTest(key=key):
+                    self.assertFalse(expansion_allowed(self.root, dict(report, **{key: value})))
+        with patch('qualification_review.validate_historical_hold', return_value=None):
+            self.assertFalse(expansion_allowed(self.root, report))
+        with patch('qualification_review.validate_historical_hold', side_effect=ValueError('New pending dispatch')):
+            with self.assertRaisesRegex(ValueError, 'pending'):
+                expansion_allowed(self.root, report)
