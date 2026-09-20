@@ -127,3 +127,13 @@ candidate. Full local suites then passed 461 Stage 2 + 30 custom + 2 graph +
 12 legacy = 505 tests. The new reporter is not a paid-runtime source change;
 the previously verified 491-test native runner and live admission remain
 unchanged. No additional native test load was introduced during timed scoring.
+
+The next reporting-only extension adds all three recorded phase durations:
+setup, agent and verifier. It exports observed subtotals and measurement
+coverage separately from complete-condition totals. Missing/null measurements
+remain unknown, malformed/nonfinite/negative values are rejected, and a known
+duration on the historical held trial does not imply known billing. All 18
+targeted reporter tests passed locally after this extension; the 47 frozen
+runtime hashes were rechecked against `admission_netcupv6p.json` and matched.
+Native reporter tests and the actual export wait for the matrix lock to be
+free so that reporting work does not contend with timed benchmark execution.

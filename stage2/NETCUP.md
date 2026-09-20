@@ -46,6 +46,13 @@ reporter has 14 regression tests and an independent read-only review. After
 adding it, all 505 local tests passed; the timed native benchmark was not
 interrupted to rerun unrelated tests.
 
+The subsequent host-only timing extension exports recorded setup, agent and
+verifier durations, their measured subtotals and coverage counts. Full-20
+runtime totals remain unknown until all measurements exist; absent durations
+are never treated as zero. All 18 targeted exporter tests pass locally. The
+47 frozen scoring-source hashes still match the live admission; no timed
+benchmark code or per-trial limit was changed for this reporting improvement.
+
 ## Earlier stopped checkpoint, 20 September 2026 (Sydney)
 
 **Paid benchmark execution is stopped, not complete. No harness victory is established.**
