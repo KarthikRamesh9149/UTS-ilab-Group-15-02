@@ -17,8 +17,31 @@ class CustomHarborTests(unittest.IsolatedAsyncioTestCase):
         with patch('custom_harbor_agent.gateway_model', return_value=model):
             agent = CustomHarborAgent(directory, condition='C0', api_base='http://127.0.0.1:123/v1',
                 trial_token='synthetic-not-logged', max_output_tokens=64, max_model_calls=4,
-                trial_timeout_seconds=10)
+                trial_timeout_seconds=10, completion_wait_seconds=721.5)
         return agent
+
+    def test_completion_wait_is_forwarded_without_changing_official_timeout(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with patch('custom_harbor_agent.gateway_model') as model:
+                agent = CustomHarborAgent(directory, condition='C0', api_base='http://127.0.0.1:123/v1',
+                    trial_token='synthetic', max_output_tokens=64, max_model_calls=4,
+                    trial_timeout_seconds=10, completion_wait_seconds=721.5,
+                    temperature=1., reasoning_effort='high')
+            model.assert_called_once_with('http://127.0.0.1:123/v1', 'synthetic', max_output_tokens=64,
+                temperature=1., reasoning_effort='high', completion_wait_seconds=721.5)
+            self.assertEqual(agent.timeout, 10)
+            self.assertEqual(agent.max_model_calls, 4)
+
+    def test_completion_wait_is_required_and_validated_before_model_construction(self):
+        with tempfile.TemporaryDirectory() as directory, patch('custom_harbor_agent.gateway_model') as model:
+            args = dict(condition='C0', api_base='http://127.0.0.1:123/v1', trial_token='synthetic',
+                max_output_tokens=64, max_model_calls=4, trial_timeout_seconds=10)
+            with self.assertRaises(TypeError):
+                CustomHarborAgent(directory, **args)
+            for value in [True, False, None, '721.5', float('nan'), float('inf'), -1, 0]:
+                with self.subTest(value=value), self.assertRaises(ValueError):
+                    CustomHarborAgent(directory, **args, completion_wait_seconds=value)
+            model.assert_not_called()
 
     async def test_lifecycle_writes_trajectory_not_secret_or_score(self):
         with tempfile.TemporaryDirectory() as directory:

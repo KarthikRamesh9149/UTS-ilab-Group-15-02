@@ -31,7 +31,7 @@ class Client:
     def balance(self):
         return '25'
 
-    def complete(self, request):
+    def complete(self, request, *, on_response_headers=None):
         self.calls += 1
         if self.fail:
             raise RuntimeError('secret-canary')
@@ -44,8 +44,8 @@ class Client:
 
 
 class HoldClient(Client):
-    def complete(self, request):
-        response = super().complete(request)
+    def complete(self, request, *, on_response_headers=None):
+        response = super().complete(request, on_response_headers=on_response_headers)
         response['provider'] = 'DeepInfra'
         response['usage'].update(is_byok=False, prompt_tokens=7, completion_tokens=3)
         return response
@@ -106,6 +106,7 @@ class ScoredGatewayTests(unittest.TestCase):
             with self.assertRaises(GatewayError):
                 session.complete(self.token, self.payload)
             self.assertEqual(len(session.ledger.pending()), 1)
+            self.assertIsNone(session.ledger.pending()[0][3])
         with self.assertRaises(BudgetExceeded):
             self.session('trial-2')
         self.assertEqual(self.client.calls, 1)
@@ -119,6 +120,7 @@ class ScoredGatewayTests(unittest.TestCase):
             self.assertEqual(json.loads(path.read_text()), diagnostic)
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
             self.assertEqual(len(session.ledger.pending()), 1)
+            self.assertEqual(session.ledger.pending()[0][3], 'gen-failed')
             self.assertFalse((session.evidence / '000001.response.json').exists())
             complete.assert_called_once()
         with self.assertRaises(BudgetExceeded): self.session('next-trial')
@@ -129,6 +131,104 @@ class ScoredGatewayTests(unittest.TestCase):
             with self.assertRaises(BudgetExceeded):
                 session.complete(self.token, self.payload)
         self.assertEqual(self.client.calls, 0)
+
+    def test_headers_are_durable_and_linked_before_interrupted_body(self):
+        for number, error in enumerate((TransportError('body timeout'), KeyboardInterrupt())):
+            with self.subTest(error=type(error).__name__), self.session('header-' + str(number)) as session:
+                diagnostic = error_diagnostic(status=200, headers={
+                    'X-Generation-Id': 'gen-before-body', 'X-Request-Id': 'req-before-body'})
+                def complete(request, *, on_response_headers):
+                    self.client.calls += 1
+                    on_response_headers(dict(diagnostic, raw='secret-canary'))
+                    record = json.loads((session.evidence / '000001.response-headers.json').read_text())
+                    reservation = json.loads((session.evidence / '000001.reservation.json').read_text())
+                    self.assertEqual(record['reservation_id'], session.ledger.pending()[0][0])
+                    self.assertEqual(record['reservation_id'], reservation['reservation_id'])
+                    self.assertEqual(record['diagnostic'], diagnostic)
+                    self.assertNotIn('secret-canary', json.dumps(record))
+                    self.assertEqual(session.ledger.pending()[0][3], 'gen-before-body')
+                    self.assertEqual(session.ledger.db.execute('SELECT charged,state FROM requests').fetchone(),
+                                     (None, 'pending'))
+                    raise error
+                with patch.object(self.client, 'complete', side_effect=complete) as dispatch:
+                    with self.assertRaises(KeyboardInterrupt if isinstance(error, KeyboardInterrupt) else GatewayError):
+                        session.complete(self.token, self.payload)
+                    dispatch.assert_called_once()
+                self.assertFalse((session.evidence / '000001.response.json').exists())
+                reserved = session.ledger.pending()[0][2]
+                self.assertGreater(reserved, 0)
+                self.assertEqual(session.ledger.exposure(), reserved)
+                self.assertEqual((session.evidence / '000001.response-headers.json').stat().st_mode & 0o777, 0o600)
+                if isinstance(error, KeyboardInterrupt):
+                    self.assertTrue((session.evidence / '000001.interruption.json').exists())
+                    self.assertEqual(json.loads((session.evidence / '000001.timing.json').read_text())['status'], 'interrupted')
+                with self.assertRaises(BudgetExceeded): session.complete(self.token, self.payload)
+            with self.assertRaises(BudgetExceeded): self.session('blocked-' + str(number))
+            # Each subcase uses a fresh temporary ledger, never clears a hold.
+            if number == 0:
+                self.temp.cleanup()
+                self.temp = tempfile.TemporaryDirectory()
+                self.root = Path(self.temp.name)
+
+    def test_missing_headers_leave_generation_unknown_on_interruption(self):
+        def complete(request, *, on_response_headers):
+            on_response_headers(error_diagnostic(status=200))
+            raise KeyboardInterrupt
+        with self.session() as session, patch.object(self.client, 'complete', side_effect=complete) as dispatch:
+            with self.assertRaises(KeyboardInterrupt): session.complete(self.token, self.payload)
+            self.assertIsNone(session.ledger.pending()[0][3])
+            self.assertEqual(session.ledger.db.execute('SELECT charged,state FROM requests').fetchone(), (None, 'pending'))
+            self.assertIsNone(json.loads((session.evidence / '000001.response-headers.json').read_text())['diagnostic']['generation_id'])
+            dispatch.assert_called_once()
+
+    def test_real_transport_callback_records_id_before_body_interrupt(self):
+        from io import BytesIO
+        from openrouter_transport import OpenRouter
+        class Response(BytesIO):
+            status = 200
+            headers = {'X-Generation-Id': 'gen-real-transport-fixture'}
+            def read(inner, size):
+                record = json.loads((session.evidence / '000001.response-headers.json').read_text())
+                self.assertEqual(record['reservation_id'], session.ledger.pending()[0][0])
+                self.assertEqual(session.ledger.pending()[0][3], 'gen-real-transport-fixture')
+                raise KeyboardInterrupt
+        response = Response()
+        with patch('openrouter_transport.build_opener') as build_opener:
+            build_opener.return_value.open.return_value = response
+            original = self.client
+            self.client = OpenRouter('synthetic-not-secret', generation_enabled=True, completion_wait_seconds=360)
+            for name in ('metadata', 'balance', 'key_status'):
+                setattr(self.client, name, getattr(original, name))
+            with self.session() as session:
+                with self.assertRaises(KeyboardInterrupt): session.complete(self.token, self.payload)
+                self.assertEqual(session.ledger.db.execute('SELECT charged,state FROM requests').fetchone(), (None, 'pending'))
+                self.assertFalse((session.evidence / '000001.response.json').exists())
+            build_opener.return_value.open.assert_called_once()
+            self.assertEqual(build_opener.return_value.open.call_args.kwargs['timeout'], 360)
+        self.assertTrue(response.closed)
+
+    def test_header_body_identity_conflict_preserves_first_id_and_reservation(self):
+        def complete(request, *, on_response_headers):
+            on_response_headers(error_diagnostic(status=200, headers={'X-Generation-Id': 'gen-header'}))
+            return {'id': 'gen-other-body', 'model': MODEL, 'usage': {'cost': '.001'}}
+        with self.session() as session, patch.object(self.client, 'complete', side_effect=complete) as dispatch:
+            with self.assertRaisesRegex(GatewayError, 'generation identity'):
+                session.complete(self.token, self.payload)
+            self.assertEqual(session.ledger.pending()[0][3], 'gen-header')
+            self.assertEqual(session.ledger.db.execute('SELECT charged,state FROM requests').fetchone(), (None, 'pending'))
+            self.assertEqual(session.ledger.exposure(), session.ledger.pending()[0][2])
+            self.assertTrue((session.evidence / '000001.response.json').exists())
+            dispatch.assert_called_once()
+
+    def test_matching_header_and_body_settle_only_after_full_response(self):
+        def complete(request, *, on_response_headers):
+            on_response_headers(error_diagnostic(status=200, headers={'X-Generation-Id': 'gen-matching'}))
+            self.assertEqual(session.ledger.db.execute('SELECT charged,state FROM requests').fetchone(), (None, 'pending'))
+            return {'id': 'gen-matching', 'model': MODEL, 'usage': {'cost': '.001'}}
+        with self.session() as session, patch.object(self.client, 'complete', side_effect=complete):
+            session.complete(self.token, self.payload)
+            self.assertEqual(session.ledger.db.execute('SELECT charged,state FROM requests').fetchone(), (dollars('.001'), 'settled'))
+            self.assertEqual(session.ledger.db.execute('SELECT COUNT(*) FROM generations').fetchone()[0], 1)
 
 
     def test_underestimate_halts_future_trials(self):
@@ -163,14 +263,24 @@ class ScoredGatewayTests(unittest.TestCase):
         token.chmod(0o600)
         sock = self.root / 'socket' / 'model.sock'
         with patch('openrouter_transport.load_key', return_value='synthetic-key'), \
-             patch('openrouter_transport.OpenRouter', return_value=self.client), \
+             patch('openrouter_transport.OpenRouter', return_value=self.client) as transport, \
              patch('gateway_http.UnixHTTPServer.serve_forever', side_effect=KeyboardInterrupt):
             with self.assertRaises(KeyboardInterrupt):
-                serve(self.root, 'service-trial', 'development', token, self.root / 'credential', sock)
+                serve(self.root, 'service-trial', 'development', token, self.root / 'credential', sock,
+                      completion_wait_seconds=360)
+            transport.assert_called_once_with('synthetic-key', generation_enabled=True, completion_wait_seconds=360)
         self.assertFalse(sock.exists())
         with self.session('following-trial'):
             pass
         self.assertEqual(self.client.calls, 0)
+
+    def test_service_requires_valid_explicit_completion_wait_before_file_access(self):
+        for value in (True, False, 0, -1, float('nan'), float('inf'), '360', None):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                serve(self.root, 'unused', 'development', 'missing', 'missing', 'missing',
+                      completion_wait_seconds=value)
+        with self.assertRaises(TypeError):
+            serve(self.root, 'unused', 'development', 'missing', 'missing', 'missing')
 
 
 class HistoricalHoldGatewayTests(unittest.TestCase):

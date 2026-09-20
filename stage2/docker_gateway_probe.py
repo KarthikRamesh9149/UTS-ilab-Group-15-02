@@ -13,10 +13,12 @@ import subprocess
 import threading
 import time
 import uuid
+from completion_wait import completion_wait_for
 
 IMAGE = 'sha256:b6007a73910218ab068c7a9a7fb91e68f97017ab486af0ecd00403561a64e573'
 SOCKET = '/socket/private/model.sock'
 TOKEN = 'synthetic-fixture-token-not-a-real-credential'
+CLIENT_TIMEOUT_SECONDS = 120  # Existing outer fixture command deadline.
 
 
 def gateway_fixture():
@@ -41,11 +43,12 @@ def gateway_fixture():
 def client_fixture():
     from container_model_relay import make_relay
     from gateway_policy import MODEL
-    relay = make_relay(SOCKET)
+    completion_wait_seconds = completion_wait_for(CLIENT_TIMEOUT_SECONDS)
+    relay = make_relay(SOCKET, completion_wait_seconds=completion_wait_seconds)
     thread = threading.Thread(target=relay.serve_forever, daemon=True)
     thread.start()
     def call(token, path='/v1/chat/completions'):
-        conn = http.client.HTTPConnection(*relay.server_address, timeout=10)
+        conn = http.client.HTTPConnection(*relay.server_address, timeout=completion_wait_seconds)
         try:
             conn.request('POST', path, json.dumps({'model': MODEL,
                 'messages': [{'role': 'user', 'content': 'Synthetic fixture'}], 'max_tokens': 32}),
@@ -86,7 +89,8 @@ def run_probe(output):
     containers = []
     created_volume = False
     def docker(*args):
-        return subprocess.check_output(['docker', *args], text=True, stderr=subprocess.PIPE, timeout=120).strip()
+        return subprocess.check_output(['docker', *args], text=True, stderr=subprocess.PIPE,
+                                       timeout=CLIENT_TIMEOUT_SECONDS).strip()
     evidence = {'kind': 'real_docker_gateway_relay_with_scripted_upstream_not_scored',
                 'time_utc': datetime.now(timezone.utc).isoformat(), 'image_id': IMAGE,
                 'live_api_calls': 0, 'checks': {}}

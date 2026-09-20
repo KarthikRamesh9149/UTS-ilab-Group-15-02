@@ -19,10 +19,29 @@ class CustomModelTests(unittest.TestCase):
         for url in ['https://openrouter.ai/api/v1', 'http://localhost:123/v1',
                     'http://127.0.0.1:123/v1?x=y', 'http://user@127.0.0.1:123/v1']:
             with self.assertRaises(ValueError):
-                gateway_model(url, 'fixture', max_output_tokens=64)
+                gateway_model(url, 'fixture', max_output_tokens=64, completion_wait_seconds=721.5)
         for value in [None, True, 0, 384001]:
             with self.assertRaises(ValueError):
-                gateway_model('http://127.0.0.1:123/v1', 'fixture', max_output_tokens=value)
+                gateway_model('http://127.0.0.1:123/v1', 'fixture', max_output_tokens=value,
+                              completion_wait_seconds=721.5)
+
+    def test_completion_wait_is_required_positive_finite_and_explicit(self):
+        with self.assertRaises(TypeError):
+            gateway_model('http://127.0.0.1:123/v1', 'fixture', max_output_tokens=64)
+        for value in [True, False, None, '721.5', float('nan'), float('inf'), -1, 0]:
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                gateway_model('http://127.0.0.1:123/v1', 'fixture', max_output_tokens=64,
+                              completion_wait_seconds=value)
+
+    def test_real_client_uses_supplied_completion_wait_without_retries(self):
+        model = gateway_model('http://127.0.0.1:123/v1', 'fixture', max_output_tokens=64,
+                              completion_wait_seconds=721.5)
+        self.assertEqual(model.request_timeout, 721.5)
+        self.assertEqual(model.root_client.timeout, 721.5)
+        self.assertEqual(model.root_async_client.timeout, 721.5)
+        self.assertEqual(model.max_retries, 0)
+        self.assertEqual(model.root_client.max_retries, 0)
+        self.assertEqual(model.root_async_client.max_retries, 0)
 
     def test_native_client_sends_one_admitted_request(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -50,7 +69,8 @@ class CustomModelTests(unittest.TestCase):
             thread.start()
             try:
                 model = gateway_model('http://127.0.0.1:' + str(server.server_address[1]) + '/v1',
-                                      'synthetic', max_output_tokens=64, temperature=1., reasoning_effort='high')
+                                      'synthetic', max_output_tokens=64, temperature=1., reasoning_effort='high',
+                                      completion_wait_seconds=721.5)
                 result = model.invoke('Synthetic fixture only')
                 self.assertEqual(result.content, 'UTS_CUSTOM_CLIENT_OK')
                 self.assertEqual(len(calls), 1)
@@ -61,6 +81,7 @@ class CustomModelTests(unittest.TestCase):
                 self.assertEqual(calls[0]['provider']['only'], ['deepinfra/fp8'])
                 self.assertFalse(calls[0]['provider']['allow_fallbacks'])
                 self.assertEqual(model.max_retries, 0)
+                self.assertEqual(model.request_timeout, 721.5)
             finally:
                 server.shutdown()
                 server.server_close()

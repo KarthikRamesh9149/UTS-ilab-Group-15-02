@@ -9,9 +9,23 @@ import secrets
 import subprocess
 import tempfile
 import uuid
+from completion_wait import completion_wait_for, validate_completion_wait
 
 
-def gateway_fixture(native_openhands=False, native_custom=False):
+def synthetic_gateway_command(completion_wait_seconds, *, native_openhands=False, native_custom=False):
+    if native_openhands and native_custom:
+        raise ValueError('Select only one native fixture harness')
+    command = ['--gateway', '--completion-wait-seconds',
+               str(validate_completion_wait(completion_wait_seconds))]
+    if native_openhands:
+        command.append('--native-openhands')
+    if native_custom:
+        command.append('--native-custom')
+    return command
+
+
+def gateway_fixture(native_openhands=False, native_custom=False, *, completion_wait_seconds):
+    completion_wait_seconds = validate_completion_wait(completion_wait_seconds)
     if native_openhands and native_custom:
         raise ValueError('Select only one native fixture harness')
     from gateway_policy import MODEL, ENDPOINT
@@ -51,7 +65,7 @@ def gateway_fixture(native_openhands=False, native_custom=False):
             return {'limit_remaining': '25'}
         def balance(self):
             return '25'
-        def complete(self, request):
+        def complete(self, request, *, on_response_headers=None):
             self.calls += 1
             message = {'role': 'assistant', 'content': 'UTS_RUNTIME_OK'}
             finish = 'stop'
@@ -86,7 +100,8 @@ def gateway_fixture(native_openhands=False, native_custom=False):
          patch.object(ModelSettings, 'enforce', diagnosed_enforce):
         try:
             serve('/study', 'synthetic-runtime', 'development', '/run/trial-token',
-                  '/run/openrouter.env', '/socket/private/model.sock')
+                  '/run/openrouter.env', '/socket/private/model.sock',
+                  completion_wait_seconds=completion_wait_seconds)
         except KeyboardInterrupt:
             pass
 
@@ -117,14 +132,16 @@ async def probe(label):
         return subprocess.check_output(['docker', *args], text=True, stderr=subprocess.PIPE, timeout=60).strip()
     images = {name: docker('image', 'inspect', tag, '--format', '{{.Id}}') for name, tag in {
         'gateway': 'uts-stage2-gateway:1', 'guard': 'uts-stage2-egress-fixture:1'}.items()}
+    synthetic_timeout_seconds = 70  # Existing fixture execution deadline.
+    completion_wait_seconds = completion_wait_for(synthetic_timeout_seconds)
     compose = compose_runtime(gateway_image=images['gateway'], guard_image=images['guard'],
         state_dir=state, tokenizer_dir=root / '.cache/stage2-tokenizer',
         credential_file=credential, token_file=token_file, trial_id='synthetic-runtime',
         # Colima virtiofs presents these private Mac binds as root-owned.
         # Keep 0700 permissions; do not chown the user's host files.
-        stage='development', uid=0, gid=0)
+        stage='development', uid=0, gid=0, completion_wait_seconds=completion_wait_seconds)
     compose['services']['model-gateway']['entrypoint'] = ['python', '/study/stage2/production_runtime_probe.py']
-    compose['services']['model-gateway']['command'] = ['--gateway']
+    compose['services']['model-gateway']['command'] = synthetic_gateway_command(completion_wait_seconds)
     compose['services']['main']['user'] = '65534:65534'
     override = trial / 'compose.json'
     override.write_text(json.dumps(compose))
@@ -155,16 +172,16 @@ async def probe(label):
         checks['no_host_port_or_privilege'] = not host['PortBindings'] and not host['Privileged'] and not host['CapAdd']
         payload = json.dumps({'model': MODEL, 'messages': [{'role': 'user', 'content': 'Synthetic runtime check'}],
                               'max_tokens': 64, 'temperature': 1., 'reasoning': {'effort': 'high'}})
-        code = "import json,urllib.request; r=urllib.request.Request('http://127.0.0.1:8765/v1/chat/completions',data=" + repr(payload.encode()) + ",headers={'Authorization':" + repr('Bearer ' + token) + ",'Content-Type':'application/json'}); print(json.load(urllib.request.urlopen(r,timeout=60))['choices'][0]['message']['content'])"
+        code = "import json,urllib.request; r=urllib.request.Request('http://127.0.0.1:8765/v1/chat/completions',data=" + repr(payload.encode()) + ",headers={'Authorization':" + repr('Bearer ' + token) + ",'Content-Type':'application/json'}); print(json.load(urllib.request.urlopen(r,timeout=" + repr(completion_wait_seconds) + "))['choices'][0]['message']['content'])"
         import shlex
-        response = await env.exec('python -c ' + shlex.quote(code), timeout_sec=70)
+        response = await env.exec('python -c ' + shlex.quote(code), timeout_sec=synthetic_timeout_seconds)
         checks['nonroot_model_roundtrip'] = response.return_code == 0 and response.stdout.strip() == 'UTS_RUNTIME_OK'
         public = await env.exec("python -c \"import urllib.request; assert urllib.request.urlopen('https://openrouter.ai/api/v1/models',timeout=20).status==200\"", timeout_sec=30)
         checks['public_metadata_https'] = public.return_code == 0
         proof = await env.exec("python -c \"from pathlib import Path; assert not Path('/socket').exists(); assert not Path('/var/run/docker.sock').exists(); assert not Path('/run/openrouter.env').exists(); Path('/tmp/uts-persistence').write_text('OK')\"", timeout_sec=10)
         checks['private_paths_absent_and_task_writable'] = proof.return_code == 0
         await env.stop_service('model-gateway')
-        blocked = await env.exec('python -c ' + shlex.quote(code), timeout_sec=70)
+        blocked = await env.exec('python -c ' + shlex.quote(code), timeout_sec=synthetic_timeout_seconds)
         checks['model_access_revoked_before_verifier'] = blocked.return_code != 0 and '502' in ((blocked.stderr or '') + (blocked.stdout or ''))
         persistence = await env.exec('cat /tmp/uts-persistence', timeout_sec=10)
         checks['task_state_survives_revocation'] = persistence.stdout.strip() == 'OK'
@@ -200,8 +217,10 @@ if __name__ == '__main__':
     parser.add_argument('--native-openhands', action='store_true')
     parser.add_argument('--native-custom', action='store_true')
     parser.add_argument('--label', default='v1')
+    parser.add_argument('--completion-wait-seconds', type=float)
     args = parser.parse_args()
     if args.gateway:
-        gateway_fixture(args.native_openhands, args.native_custom)
+        gateway_fixture(args.native_openhands, args.native_custom,
+                        completion_wait_seconds=args.completion_wait_seconds)
     else:
         asyncio.run(probe(args.label))

@@ -14,8 +14,8 @@ from test_historical_hold import HoldFixture
 
 class Fixture(Client):
     def balance(self): return self.allowance
-    def complete(self, request):
-        result = super().complete(request)
+    def complete(self, request, *, on_response_headers=None):
+        result = super().complete(request, on_response_headers=on_response_headers)
         result.update(provider='DeepInfra', choices=[{'message': {'content': 'UTS_OK'}}])
         result['usage'].update(is_byok=False, prompt_tokens=14, completion_tokens=4)
         return result
@@ -78,10 +78,20 @@ class EndpointRecheckTests(unittest.TestCase):
         with self.assertRaises(ValueError): guarded.complete({})
         self.assertEqual(self.client.calls, 1)
 
+    def test_guard_forwards_header_observer_once_without_retry_on_failure(self):
+        from unittest.mock import patch
+        callback = lambda value: None
+        guarded = SingleDispatchClient(self.client)
+        with patch.object(self.client, 'complete', side_effect=TimeoutError) as dispatch:
+            with self.assertRaises(TimeoutError): guarded.complete({}, on_response_headers=callback)
+            dispatch.assert_called_once_with({}, on_response_headers=callback)
+            with self.assertRaises(ValueError): guarded.complete({}, on_response_headers=callback)
+            self.assertEqual(dispatch.call_count, 1)
+
     def test_empty_choices_still_reconciles_billing(self):
         complete = self.client.complete
-        def empty_response(request):
-            result = complete(request)
+        def empty_response(request, *, on_response_headers=None):
+            result = complete(request, on_response_headers=on_response_headers)
             result['choices'] = []
             return result
         self.client.complete = empty_response

@@ -9,6 +9,7 @@ import re
 import stat
 
 from guarded_runtime import with_task_guard
+from completion_wait import validate_completion_wait
 
 SOCKET = '/socket/private/model.sock'
 
@@ -22,7 +23,9 @@ def bind(source, target, readonly=True):
 
 
 def compose_runtime(*, gateway_image, guard_image, state_dir, tokenizer_dir,
-                    credential_file, token_file, trial_id, stage, uid, gid):
+                    credential_file, token_file, trial_id, stage, uid, gid,
+                    completion_wait_seconds):
+    completion_wait_seconds = validate_completion_wait(completion_wait_seconds)
     for image in (gateway_image, guard_image):
         if not re.fullmatch(r'sha256:[a-f0-9]{64}', image):
             raise ValueError('Immutable image ID required')
@@ -45,6 +48,7 @@ def compose_runtime(*, gateway_image, guard_image, state_dir, tokenizer_dir,
               'tmpfs': ['/tmp:rw,nosuid,nodev,size=16m'], 'restart': 'no'}
     gateway = dict(common, cpus=1, mem_limit='512m', networks=['uts-gateway-egress'],
         command=['--root', '/study', '--trial', trial_id, '--stage', stage,
+                 '--completion-wait-seconds', str(completion_wait_seconds),
                  '--token-file', '/run/trial-token', '--credential-file', '/run/openrouter.env', '--socket', SOCKET],
         volumes=[{'type': 'volume', 'source': 'model-socket', 'target': '/socket'},
                  bind(state_dir, '/study/.runtime/stage2', False),
@@ -54,7 +58,8 @@ def compose_runtime(*, gateway_image, guard_image, state_dir, tokenizer_dir,
         healthcheck={'test': ['CMD', 'test', '-S', SOCKET], 'interval': '1s', 'timeout': '2s', 'retries': 120})
     relay = dict(common, cpus=0.25, mem_limit='128m', network_mode='service:task-network-guard',
         entrypoint=['python', '/study/stage2/container_model_relay.py'],
-        command=['--socket', SOCKET, '--port', '8765'],
+        command=['--socket', SOCKET, '--port', '8765',
+                 '--completion-wait-seconds', str(completion_wait_seconds)],
         volumes=[{'type': 'volume', 'source': 'model-socket', 'target': '/socket', 'read_only': True}],
         depends_on={'model-gateway': {'condition': 'service_healthy'},
                     'task-network-guard': {'condition': 'service_healthy'}},

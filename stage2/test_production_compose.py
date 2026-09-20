@@ -13,7 +13,7 @@ class ProductionComposeTests(unittest.TestCase):
         private.chmod(0o600)
         self.options = dict(gateway_image='sha256:' + 'a'*64, guard_image='sha256:' + 'b'*64,
             state_dir=path, tokenizer_dir=path, credential_file=private, token_file=private,
-            trial_id='test-trial', stage='development', uid=501, gid=20)
+            trial_id='test-trial', stage='development', uid=501, gid=20, completion_wait_seconds=960)
 
     def tearDown(self):
         self.temp.cleanup()
@@ -43,9 +43,19 @@ class ProductionComposeTests(unittest.TestCase):
             self.assertFalse(service.get('privileged'))
             self.assertFalse(service.get('ports'))
 
+    def test_trusted_wait_reaches_gateway_and_relay_commands(self):
+        services = compose_runtime(**self.options)['services']
+        for name in ('model-gateway', 'model-relay'):
+            command = services[name]['command']
+            self.assertEqual(command.count('--completion-wait-seconds'), 1)
+            self.assertEqual(command[command.index('--completion-wait-seconds') + 1], '960.0')
+
     def test_input_validation(self):
         for key, value in [('uid', True), ('gid', -1), ('trial_id', '../bad'),
-                           ('gateway_image', 'image:latest'), ('stage', 'unlimited')]:
+                           ('gateway_image', 'image:latest'), ('stage', 'unlimited'),
+                           ('completion_wait_seconds', True), ('completion_wait_seconds', float('nan')),
+                           ('completion_wait_seconds', float('inf')), ('completion_wait_seconds', 0),
+                           ('completion_wait_seconds', -1)]:
             with self.subTest(key=key), self.assertRaises(ValueError):
                 compose_runtime(**dict(self.options, **{key: value}))
 

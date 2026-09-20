@@ -5,11 +5,13 @@ import unittest
 import json
 import hashlib
 from decimal import Decimal
+from unittest.mock import patch
 
 from budget_ledger import Ledger, BudgetExceeded, dollars
 from gateway_policy import MODEL
 from model_protocol import ModelSettings
-from native_setup_gateway import NativeSetupSession, scored_pending_liability
+from native_setup_gateway import NativeSetupSession, scored_pending_liability, serve
+from openrouter_transport import error_diagnostic
 from native_setup_accounting import audit_setup
 from test_scored_gateway import Client
 from test_historical_hold import HoldFixture
@@ -67,6 +69,55 @@ class NativeSetupTests(unittest.TestCase):
             with self.assertRaises(Exception): session.complete('a' * 64, self.request())
         with self.assertRaises(BudgetExceeded): self.session('setup-native-fixture2')
         self.assertEqual(self.client.calls, 1)
+
+    def test_header_only_setup_interruption_retains_id_and_full_unknown_liability(self):
+        def complete(request, *, on_response_headers):
+            on_response_headers(error_diagnostic(status=200, headers={'X-Generation-Id': 'gen-setup-header'}))
+            raise KeyboardInterrupt
+        with self.session() as session, patch.object(self.client, 'complete', side_effect=complete) as dispatch:
+            with self.assertRaises(KeyboardInterrupt): session.complete('a' * 64, self.request())
+            pending = session.ledger.pending()
+            self.assertEqual(pending[0][3], 'gen-setup-header')
+            self.assertEqual(session.ledger.exposure(), pending[0][2])
+            self.assertEqual(session.ledger.db.execute('SELECT charged,state FROM requests').fetchone(), (None, 'pending'))
+            headers = json.loads((session.evidence / '000001.response-headers.json').read_text())
+            self.assertEqual(headers['reservation_id'], pending[0][0])
+            self.assertFalse((session.evidence / '000001.response.json').exists())
+            self.assertTrue((session.evidence / '000001.interruption.json').exists())
+            dispatch.assert_called_once()
+        with self.assertRaises(BudgetExceeded): self.session('setup-native-blocked')
+        from reconcile_pending import reconcile
+        with patch.object(self.client, 'generation') as receipt:
+            with self.assertRaisesRegex(ValueError, 'durable matching response'):
+                reconcile(self.root, kind='setup', trial_id='setup-native-fixture1', client=self.client)
+            receipt.assert_not_called()
+
+    def test_service_passes_explicit_wait_and_interrupts_without_dispatch(self):
+        from dataclasses import asdict
+        token = self.root / 'token'
+        token.write_text('a' * 64)
+        token.chmod(0o600)
+        settings = self.root / 'settings.json'
+        settings.write_text(json.dumps(asdict(self.settings)))
+        settings.chmod(0o600)
+        sock = self.root / 'socket' / 'model.sock'
+        with patch('openrouter_transport.load_key', return_value='synthetic-key'), \
+             patch('openrouter_transport.OpenRouter', return_value=self.client) as transport, \
+             patch('gateway_http.UnixHTTPServer.serve_forever', side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                serve(self.root, 'setup-native-service', token, self.root / 'credential', sock,
+                      settings, completion_wait_seconds=360)
+            transport.assert_called_once_with('synthetic-key', generation_enabled=True, completion_wait_seconds=360)
+        self.assertFalse(sock.exists())
+        self.assertEqual(self.client.calls, 0)
+
+    def test_service_requires_valid_explicit_completion_wait_before_file_access(self):
+        for value in (True, False, 0, -1, float('nan'), float('inf'), '360', None):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                serve(self.root, 'unused', 'missing', 'missing', 'missing', 'missing',
+                      completion_wait_seconds=value)
+        with self.assertRaises(TypeError):
+            serve(self.root, 'unused', 'missing', 'missing', 'missing', 'missing')
 
     def test_finished_session_cannot_replay(self):
         with self.session(): pass
@@ -136,8 +187,8 @@ class NativeSetupTests(unittest.TestCase):
 
     def make_auditable_call(self):
         original = self.client.complete
-        def complete(request):
-            response = original(request)
+        def complete(request, *, on_response_headers=None):
+            response = original(request, on_response_headers=on_response_headers)
             response['usage'].update(prompt_tokens=10, completion_tokens=4)
             return response
         self.client.complete = complete

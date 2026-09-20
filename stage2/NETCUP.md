@@ -1,5 +1,34 @@
 # Netcup + OpenRouter continuation
 
+## Latest stopped checkpoint, 20 September 2026, 01:38 UTC
+
+**Paid execution is stopped after six first-20 Terminus outcomes, not complete.**
+Four outcomes have verified billing and one of those is an official pass; the
+other two outcomes have unresolved billing. Fourteen cells remain unstarted.
+Three verified trials were budget-stopped, exceeding the unchanged expansion
+gate's maximum of two. Neither a full baseline score nor a harness win exists.
+
+The sixth trial revealed an actual connection-code defect: the native outer
+retry was still enabled and the same request was dispatched twice after a long
+completion. The new unknown request stopped the continuation as designed. See
+the [incident and retained evidence](netcup/timeout_incident_20260920.md).
+Offline retry/timeout corrections change runtime hashes; the old admission is
+not valid for the candidate. No automatic replay, additional unknown-hold
+exception, paid requalification or expansion is permitted by these corrections.
+
+The stopped accounting checkpoint contains 81 requests, USD 0.02061936 in
+known charges and two unknown charges with
+USD 0.212992 reserved separately. Account credit at the stopped checkpoint was
+USD 12.015073652. The private evidence archive is verified and backed up outside
+the rented host. Earlier checkpoints below describe historical states only.
+
+Latest user direction: no further spending PDFs or spending-report exports
+until explicitly requested again. Preserve existing local files; continue
+technical implementation and the live progress panel. Routine runtime budget
+accounting and safeguards remain required. Full baseline scope is **all 89
+tasks for Terminus-2 and all 89 for OpenHands**; the initial 20-task block is not
+a substitute for either full run.
+
 ## Prospective continuation amendment, 20 September 2026
 
 The [accounting amendment](ACCOUNTING_AMENDMENT_20260920.md) permits a

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 import hashlib
 import hmac
+import sqlite3
 import threading
 import uuid
 
@@ -46,9 +47,11 @@ def reconcile_receipt(response, receipt):
 
 
 class Gateway:
-    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream, generation_reader=None, *, trial_estimate=None, request_policy=None, receipt_timing='inline'):
+    def __init__(self, ledger, trial, balance_reader, maximum_charge, upstream, generation_reader=None, *, trial_estimate=None, request_policy=None, receipt_timing='inline', on_reserved=None):
         if receipt_timing not in {'inline', 'post_trial'}:
             raise ValueError('Explicit registered receipt policy required')
+        if on_reserved is not None and not callable(on_reserved):
+            raise ValueError('Reservation observer must be callable')
         self.ledger = ledger
         self.trial = trial
         self.balance_reader = balance_reader
@@ -58,6 +61,7 @@ class Gateway:
         self.trial_estimate = trial_estimate
         self.request_policy = request_policy
         self.receipt_timing = receipt_timing
+        self.on_reserved = on_reserved
         self.lock = threading.Lock()
         self.revoked = False
 
@@ -87,6 +91,8 @@ class Gateway:
             self.ledger.reserve(identifier, self.trial.identifier, maximum, balance, self.trial.stage,
                                 trial_estimate=estimate)
             try:
+                if self.on_reserved is not None:
+                    self.on_reserved(identifier)
                 response = self.upstream(request)
             except Exception:
                 # Never release funds or replay on network errors. Exception
@@ -94,7 +100,10 @@ class Gateway:
                 raise GatewayError('Upstream outcome unknown; reservation retained') from None
             if not isinstance(response, dict) or response.get('model') != MODEL:
                 raise GatewayError('Unverified response identity; reservation retained')
-            self.ledger.attach_generation(identifier, response.get('id'))
+            try:
+                self.ledger.attach_generation(identifier, response.get('id'))
+            except (ValueError, sqlite3.IntegrityError):
+                raise GatewayError('Conflicting or invalid generation identity; reservation retained') from None
             usage = response.get('usage')
             if not isinstance(usage, dict) or usage.get('cost') is None or not response.get('id'):
                 raise GatewayError('Missing billing evidence; reservation retained')
