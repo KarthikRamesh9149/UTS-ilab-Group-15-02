@@ -130,21 +130,21 @@ development-only. No baseline score or custom win is claimed at launch. The
 same model, provider, limits and paid runtime remain unchanged. The local
 read-only dashboard now tracks the new service; its 12 offline tests pass.
 
-## Completion-metadata checkpoint, 09:03 UTC
+## Completion-metadata checkpoint, 09:52 UTC
 
-The same service and PID remain active. **23 of 178 final trials** have binary
-verifier results: 12 Terminus-2 and 11 OpenHands. All 23 have confirmed
-revocation and resource cleanup. Thirteen have verified billing; ten retain
+The same service and PID remain active. **32 of 178 final trials** have binary
+verifier results: 16 Terminus-2 and 16 OpenHands. All 32 have confirmed
+revocation and resource cleanup. Twenty-one have verified billing; eleven retain
 unresolved billing and are not represented as financially verified. Individual
 non-development outcomes were not inspected or used for custom development.
 
-The 24th canonical cell, `final-openhands-11-code-from-image`, started at
-09:02:40 UTC and was active at inspection. Its official agent and verifier limits
-are each 1200 seconds, with a 600-second environment-build limit. No model request
-had yet been recorded for this newly started cell. Both longer circuit-fibsqrt
-trials now have retained completed results. The registration hash is unchanged,
+The 33rd canonical cell, `final-openhands-16-crack-7z-hash`, started at
+09:52:19 UTC and was active at inspection. Its official agent limit is 1800
+seconds, verifier limit is 900 seconds and environment-build limit is 600 seconds.
+No model request had yet been recorded for this newly started cell.
+The registration hash is unchanged,
 all 50 admitted scoring sources validate, and no unexpected final keys exist.
-The host has approximately 452 GiB free disk and 14.0 GiB available RAM;
+The host has approximately 451 GiB free disk and 14.0 GiB available RAM;
 reported current memory-pressure averages are zero.
 All three execution locks are held by the active run. No runner was restarted, no extra
 matrix was launched, and no paid runtime or prior result was changed.
