@@ -2,16 +2,16 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T16:11:20Z",
-    "status": "Full baselines running: 95 trial results collected",
-    "detail": "At this checkpoint, 48 Terminus-2 and 47 OpenHands final trials had official binary verifier results and confirmed cleanup. Sixty-six have verified billing; twenty-nine retain unresolved billing under the approved continuation rule. The 96th canonical cell, OpenHands merge-diff-arc-agi-task, had started but had not yet saved its final result. Receipt artifacts were updated at 16:10:24 UTC; no trial containers remained and the model gateway lock was free, while the runner retained the matrix and scored-trial locks. This task's unchanged official agent and verifier limits are each 900 seconds. The same persistent service targets all 178 baseline cells before custom development, and all 50 admitted scoring-source hashes and the original registration bindings still validate. The initial20 run remains separate. Live metadata below supplies current attempted and billing-verified counts, not a completed full-study score.",
+    "updated_at_utc": "2026-09-20T16:43:44Z",
+    "status": "Full baselines running: 101 trial results collected",
+    "detail": "At this checkpoint, 51 Terminus-2 and 50 OpenHands final trials had official binary verifier results and confirmed cleanup. Seventy have verified billing; thirty-one retain unresolved billing under the approved continuation rule. The 102nd canonical cell, OpenHands mteb-leaderboard, had started but had not yet saved its final result. Receipt artifacts were updated at 16:43:37 UTC; no trial containers remained and the model gateway lock was free, while the runner retained the matrix and scored-trial locks. This task's unchanged official agent and verifier limits are each 3600 seconds. The same persistent service targets all 178 baseline cells before custom development, and all 50 admitted scoring-source hashes and the original registration bindings still validate. The initial20 run remains separate. Live metadata below supplies current attempted and billing-verified counts, not a completed full-study score.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
     {"name": "Initial baseline qualification", "state": "20/20 finished; technical review complete", "detail": "Seven official passes and 13 failures retained. Twelve billing-verified trials and eight unresolved-billing trials are distinct. The original performance gate failed; the user-approved continuation amendment permits full collection."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
-    {"name": "Fresh full evaluation", "state": "Full baselines running", "detail": "95 of 178 trial results existed at the 16:11 UTC checkpoint: 48 Terminus-2 and 47 OpenHands. The 96th task had started and its final result was pending. The 178 baseline results will join 89 later frozen-custom trials; initial development results are not substituted into final scores."},
+    {"name": "Fresh full evaluation", "state": "Full baselines running", "detail": "101 of 178 trial results existed at the 16:43 UTC checkpoint: 51 Terminus-2 and 50 OpenHands. The 102nd task had started and its final result was pending. The 178 baseline results will join 89 later frozen-custom trials; initial development results are not substituted into final scores."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
   ],
   "financial_snapshot": {
