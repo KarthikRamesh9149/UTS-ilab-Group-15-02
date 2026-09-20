@@ -435,3 +435,9 @@ See [completion and failure evidence](netcup/completion_continuation_20260920.md
 for identifiers, test/deployment evidence and recovery boundary. The live panel
 now tracks the v7 service and distinguishes stopped qualification from the
 still-unstarted fresh 89-task runs. Spending-PDF work remains paused.
+
+Subsequent [offline finalisation corrections](netcup/offline_finalisation_20260920.md)
+bind finalist selection to registered development evidence and implement a
+local-only code-free final ZIP. Both hosts passed 653 offline tests. These
+changes are committed and tested in an isolated native copy, not deployed;
+they neither resolve the setup charge nor resume the stopped service.

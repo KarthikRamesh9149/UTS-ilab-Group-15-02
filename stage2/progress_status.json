@@ -2,9 +2,9 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T02:53:27Z",
+    "updated_at_utc": "2026-09-20T03:16:02Z",
     "status": "Stopped: setup request rate limited; billing unresolved",
-    "detail": "633 offline tests passed on both hosts and the fresh synthetic runtime check passed. The subsequent Terminus setup request received HTTP429; its generation lookup returned404. The new US$0.106496 reservation remains unresolved, separately from the two approved scored holds. No new benchmark task ran, no retry is active, and full89 scoring has not started.",
+    "detail": "Offline finalist-selection provenance and code-free final handoff improvements are committed; 653 tests passed on the Mac and isolated Linux copy. These finalisation changes are not yet deployed and do not resolve the v7 setup HTTP429/unknown bill. Its new US$0.106496 reservation remains separate from the two approved scored holds. No new benchmark task ran, no retry is active, and full89 scoring has not started.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
