@@ -1,0 +1,29 @@
+{
+  "kind": "endpoint_connectivity_diagnostic_not_harness_qualification_or_score",
+  "time_utc": "2026-09-20T00:14:35.409153+00:00",
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "endpoint": "deepinfra/fp8",
+  "trial_id": "setup-native-endpoint-recheck-20260920a",
+  "model_protocol_sha256": "b9f42d3bcc9a4f416bcaaf8ee0f175d96a2bbd493943c64199d46e671719e27f",
+  "prior_scored_reservation_retained_usd": "0.106496",
+  "old_failed_request_replayed": false,
+  "benchmark_resumption_authorized": false,
+  "generation_id": "gen-1789863276-fGTzcAnt0807SwUyEQCt",
+  "expected_reply_received": true,
+  "billing": {
+    "billing_verified": true,
+    "requests": 1,
+    "model_protocol_sha256": "b9f42d3bcc9a4f416bcaaf8ee0f175d96a2bbd493943c64199d46e671719e27f",
+    "charged_usd": "0.00000918",
+    "aggregate_setup_charged_usd": "0.0073707",
+    "prompt_tokens": 93,
+    "completion_tokens": 20
+  },
+  "status": "reply_and_billing_verified",
+  "upstream_generation_calls": 1,
+  "original_scored_ledger_and_results_unchanged": true,
+  "original_scored_ledger_and_results_sha256": {
+    "scored_budget.sqlite": "4504d4289a06643ee93d1690502d7d8b978ff9e20c0cb75fa56440d95fb34359",
+    "scored-trials/dev-terminus-2-00-video-processing/result.json": "f534d15c22f53a7de2df316372271f18a259a6387a13e0f7892eb2e3003ef541"
+  }
+}

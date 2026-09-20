@@ -2,9 +2,26 @@
 
 ## Current checkpoint, 20 September 2026 (Sydney)
 
-**Paid execution is stopped, not complete. No harness victory is established.**
+**Paid benchmark execution is stopped, not complete. No harness victory is established.**
 The earlier running/queued checkpoints below are historical.
 
+- On explicit request to try again, one separate endpoint diagnostic succeeded
+  at 20 September 00:14 UTC using the same model, provider and frozen model
+  settings. It returned `UTS_OK`; the response and independent receipt matched
+  $0.00000918 for 93 input and 20 output tokens. Original aggregate setup spend
+  is now $0.0073707. See [the diagnostic evidence](netcup/endpoint_recheck_20260920a.json).
+  This verifies current key/endpoint operation, not the cause of the earlier
+  error, native harness qualification or completed benchmark billing recovery.
+  The original scored ledger and failed-result hashes are unchanged, and the
+  $0.106496 unknown reservation remains held. No failed scored call was replayed.
+  The diagnostic has six regression tests; all 395 Stage 2 discovery tests
+  passed on both Mac and native server after this addition. Its one-dispatch
+  and budget handling received a separate read-only review.
+  A fresh read-only account check reported $12.028542692 remaining. The updated
+  private runtime was archived outside the rental under
+  `.runtime/netcup/endpoint-recheck-20260920-eahIfK/stage2-runtime.tar.gz`, with
+  SHA-256 `2eaeaa01452bb8b10a0d786b5d6a4d38eeca935d916b5692303694619dba50e5`.
+  The archive gzip integrity check passed; it is excluded from Git.
 - All 20 fixed development environments qualified: 19 original reference
   passes and the disclosed reference-only POV-Ray download repair. These are
   not model scores. All three `netcupv5` live model/tool fixtures passed with
