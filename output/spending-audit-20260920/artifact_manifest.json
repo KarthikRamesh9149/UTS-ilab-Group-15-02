@@ -1,0 +1,12 @@
+{
+  "pdf": "OpenRouter_Spending_Audit_2026-09-20.pdf",
+  "pages": 9,
+  "requests": 46,
+  "known_total_charged_usd": "0.00774516",
+  "receipt_matched_requests": 45,
+  "artifacts": {
+    "OpenRouter_Spending_Audit_2026-09-20.pdf": "ca889808c9e0583d05f78659c0eb2bfbca0f4cb086f6632a5cbb855667b65405",
+    "recorded_generation_requests.csv": "e181fc08501fb9b70e0f2a5e77374272d3f648fdf01d1986cb090959c74051c5",
+    "spending_audit_sanitised.json": "fe9049f41a12ba8b03c4cb82c1616e7bf349f443160cb98ab75ece7cbb76e068"
+  }
+}
