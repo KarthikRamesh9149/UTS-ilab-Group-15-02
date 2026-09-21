@@ -117,7 +117,8 @@ class Ledger:
             raise ValueError('Positive reservation and identifiers required')
         # Caller supplies a fresh account balance; leave $2 untouched and also
         # reserve all unresolved charges that may not yet appear in that balance.
-        available = dollars(available_account_credit) - dollars('2')
+        from study_budget import ACCOUNT_RESERVE
+        available = dollars(available_account_credit) - dollars(ACCOUNT_RESERVE)
         with self.transaction():
             if self.db.execute('SELECT COUNT(*) FROM incidents').fetchone()[0]:
                 raise BudgetExceeded('Ledger halted by billing incident')

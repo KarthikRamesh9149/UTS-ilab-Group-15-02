@@ -1,0 +1,2 @@
+FROM uts-stage2-repeat-parent:20260921
+COPY study_budget.py budget_ledger.py scored_gateway.py deferred_billing.py rerun_budget.py test_rerun_budget.py /study/stage2/

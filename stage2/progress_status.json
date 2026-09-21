@@ -2,9 +2,9 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-21T04:13:00Z",
-    "status": "Full baselines complete; OpenHands development running",
-    "detail": "All 178 final baseline trials are complete: 89 Terminus-2 and 89 OpenHands, with official binary verifier results and cleanup confirmed. The baseline service exited successfully. The separate planned OpenHands development block is active; 6 of its 20 results were logged at this checkpoint. Custom C0/C1/C2 blocks and frozen-custom final scoring have not started. Original outcomes and registration remain unchanged. Billing coverage at baseline completion was 124 verified and 54 unresolved. Final-stage conservative exposure was US$6.0315679 of US$6.141 at the post-baseline accounting check; this includes holds, not just charges, and requires reassessment before custom final scoring.",
+    "updated_at_utc": "2026-09-21T07:42:00Z",
+    "status": "New higher-budget baseline repeat running; original scores preserved",
+    "detail": "The user authorised a separate 178-cell repeat: all89 tasks for each baseline, no small per-task monetary cap, US$1 account reserve. uts-stage2-baseline-repeat-20260921.service is active in /opt/uts-capstone-baseline-repeat-20260921. First Terminus-2 task started; two real API requests settled; zero completed repeat tasks at this checkpoint. The legacy live tracks below refer to the ORIGINAL experiment, not this repeat. Original178 baseline results remain unchanged. OpenHands dev20 is complete. Original C0 stopped after one verified task and one setup failure; custom work is not running while the repeat takes priority. Launch account balance US$11.540139332; old unresolved liability US$7.774208 is retained, leaving US$2.765931332 for new calls above the US$1 reserve. Completion within that allowance is not guaranteed. See stage2/netcup/baseline_repeat_20260921.md.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [

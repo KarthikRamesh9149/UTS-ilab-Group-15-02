@@ -20,7 +20,8 @@ DIRECTORY = 'deferred-billing'
 
 
 def canonical_policy_document():
-    return {'schema_version': 1, 'amendment_id': 'bounded-terminal-billing-continuation-20260920',
+    from study_budget import REPEAT_PROFILE, SCORED_CEILING, TRIAL_CAP, STAGE_CAPS, ACCOUNT_RESERVE
+    value = {'schema_version': 1, 'amendment_id': 'bounded-terminal-billing-continuation-20260920',
             'classification': 'explicit_user_approved_standing_prospective_amendment',
             'model_protocol_sha256': 'b9f42d3bcc9a4f416bcaaf8ee0f175d96a2bbd493943c64199d46e671719e27f',
             'allow_terminal_unknown_dispatch': True, 'allow_terminal_unavailable_receipt': True,
@@ -29,6 +30,14 @@ def canonical_policy_document():
             'setup_cap_nanodollars': 1_000_000_000, 'scored_cap_nanodollars': 8_901_000_000,
             'scored_trial_cap_nanodollars': 23_000_000, 'reserve_nanodollars': 2_000_000_000,
             'stage_caps_nanodollars': {'development': 2_760_000_000, 'final': 6_141_000_000}}
+    if REPEAT_PROFILE is not None:
+        from budget_ledger import dollars
+        value.update(amendment_id='baseline-repeat-budget-20260921',
+                     scored_cap_nanodollars=dollars(SCORED_CEILING),
+                     scored_trial_cap_nanodollars=dollars(TRIAL_CAP),
+                     reserve_nanodollars=dollars(ACCOUNT_RESERVE),
+                     stage_caps_nanodollars={k: dollars(v) for k, v in STAGE_CAPS.items()})
+    return value
 
 
 def _json(raw, *, billing=False):
@@ -113,6 +122,11 @@ def _database(runtime, db, kind):
         raise ValueError('Deferred ledger integrity failure')
     expected_policy = (1_000_000_000, 1_000_000_000) if kind == 'setup' else (8_901_000_000, 23_000_000)
     expected_stages = {'setup': 1_000_000_000} if kind == 'setup' else {'development': 2_760_000_000, 'final': 6_141_000_000}
+    from study_budget import REPEAT_PROFILE, SCORED_CEILING, TRIAL_CAP, STAGE_CAPS
+    if kind == 'scored' and REPEAT_PROFILE is not None:
+        from budget_ledger import dollars
+        expected_policy = (dollars(SCORED_CEILING), dollars(TRIAL_CAP))
+        expected_stages = {k: dollars(v) for k, v in STAGE_CAPS.items()}
     if (db.execute('SELECT ceiling,trial_cap FROM policy WHERE id=1').fetchone() != expected_policy
             or dict(db.execute('SELECT name,cap FROM stages')) != expected_stages
             or db.execute('SELECT enabled FROM estimation_policy WHERE id=1').fetchone() != (int(kind == 'scored'),)):
