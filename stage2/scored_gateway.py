@@ -20,7 +20,7 @@ from gateway_core import Gateway, GatewayError, Trial, token_digest
 from receipt_polling import read_receipt
 from setup_probe import full_context_bound, validate_metadata
 from trial_estimator import trial_charge_estimator
-from study_budget import SCORED_CEILING, TRIAL_CAP, STAGE_CAPS
+from study_budget import SCORED_CEILING, TRIAL_CAP, STAGE_CAPS, HISTORICAL_LIABILITY
 from openrouter_transport import TransportError, sanitize_diagnostic
 from completion_wait import validate_completion_wait
 
@@ -141,7 +141,7 @@ class ScoredSession:
 
     def scored_available_balance(self):
         liability = require_clear_setup_ledger(self.runtime)
-        available = self.available_balance() - liability
+        available = self.available_balance() - liability - Decimal(HISTORICAL_LIABILITY)
         if available < 0:
             raise BudgetExceeded('Setup liabilities exceed available credit')
         return available
