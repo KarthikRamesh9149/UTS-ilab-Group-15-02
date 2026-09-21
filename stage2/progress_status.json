@@ -2,16 +2,16 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-20T21:06:20Z",
-    "status": "Baseline runner RESUMED: 119 of 178 results saved",
-    "detail": "The existing service resumed at 21:05:09 UTC with PID 3532160. At 21:06 UTC it was active and revalidating the 119 saved results before the 59 genuinely unstarted cells; revalidation is not a rerun or additional completion. Sixty Terminus-2 and 59 OpenHands trials have official binary verifier outcomes and complete cleanup; 76 are originally billing-verified and 43 retain unresolved billing. The accounting-only correction passed 776 tests on each host, an exact-receipt conservation rehearsal, a network-disabled gateway check and a full synthetic Harbor lifecycle without paid model calls. Thirteen matching receipts are now activated, reducing final-stage conservative exposure to US$4.78396452 under the unchanged US$6.141 cap at deployment. Unknown reservations remain held. All 9,236 protected original files, the original admission and the 178-cell registration are unchanged. An additive source-qualified transition binds the actual 54-source runtime and replacement gateway. The original evidence archive is hash-verified off-server. Custom evaluation and the complete comparison remain unfinished.",
+    "updated_at_utc": "2026-09-21T04:13:00Z",
+    "status": "Full baselines complete; OpenHands development running",
+    "detail": "All 178 final baseline trials are complete: 89 Terminus-2 and 89 OpenHands, with official binary verifier results and cleanup confirmed. The baseline service exited successfully. The separate planned OpenHands development block is active; 6 of its 20 results were logged at this checkpoint. Custom C0/C1/C2 blocks and frozen-custom final scoring have not started. Original outcomes and registration remain unchanged. Billing coverage at baseline completion was 124 verified and 54 unresolved. Final-stage conservative exposure was US$6.0315679 of US$6.141 at the post-baseline accounting check; this includes holds, not just charges, and requires reassessment before custom final scoring.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
     {"name": "Setup", "state": "Historically qualified", "detail": "Development environments and real-model integration fixtures qualified at earlier checkpoints. Fixtures are not benchmark scores."},
     {"name": "Initial baseline qualification", "state": "20/20 finished; technical review complete", "detail": "Seven official passes and 13 failures retained. Twelve billing-verified trials and eight unresolved-billing trials are distinct. The original performance gate failed; the user-approved continuation amendment permits full collection."},
     {"name": "Custom development", "state": "Code exists; not validated", "detail": "Custom-agent implementation exists. Scored custom development and finalist validation are unfinished."},
-    {"name": "Fresh full evaluation", "state": "Resumed; 119/178 baseline results saved", "detail": "The service is revalidating the 60 Terminus-2 and 59 OpenHands saved outcomes before the remaining 59 unstarted cells. No completed trial is replayed. Qualified exact-receipt recovery restored headroom without raising any cap. Later frozen-custom final trials have not started."},
+    {"name":"Fresh full evaluation","state":"178/178 baselines complete; custom pending","detail":"Both baseline harnesses completed all 89 tasks. These original results will be retained in the final comparison; no baseline final replay. Frozen-custom 89-task scoring remains unfinished."},
     {"name": "Research outcome", "state": "Success unproved", "detail": "No completed harness comparison or demonstrated custom-agent win has been established."}
   ],
   "financial_snapshot": {

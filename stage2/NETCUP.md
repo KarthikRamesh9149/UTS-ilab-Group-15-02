@@ -1,5 +1,23 @@
 # Netcup + OpenRouter continuation
 
+## Current checkpoint: full baselines complete, development running
+
+At 03:40 UTC on 21 September all 178 final baseline results were saved:
+89 Terminus-2 and 89 OpenHands. Every result had a binary official verifier
+outcome and confirmed cleanup. The service exited successfully; no baseline
+replay is needed. Billing coverage was 124 verified and 54 unresolved.
+
+The planned separate OpenHands dev20 block is now running under
+`uts-stage2-development-openhands-netcupv8.service` (PID 293602).
+At 04:13 UTC its log recorded six completed tasks. C0/C1/C2 have not started.
+The post-baseline accounting check found development exposure US$0.91324768
+of US$2.760 and final exposure US$6.0315679 of US$6.141. These include retained
+holds, not just charges. Custom final scoring needs a fresh budget check and
+any exact recoverable receipts; no cap increase is authorised.
+
+The checkpoints below are historical. Do not restart the completed baselines
+or overlap the active development matrix. Custom evaluation remains unfinished.
+
 ## Current checkpoint: qualified accounting correction and resumed runner
 
 At **21:05:09 UTC on 20 September**, the existing
