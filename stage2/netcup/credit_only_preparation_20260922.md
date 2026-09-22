@@ -1,5 +1,37 @@
 # Next baseline run: implementation checkpoint
 
+## Completion checkpoint: 22 September 2026, 19:15 UTC
+
+The separate provider-credit-only matrix completed all **178/178** attempts.
+The final result was written at 18:54:33 UTC. Both baseline services are inactive,
+all 178 results have binary verifier rewards and complete cleanup, and no
+benchmark containers remain. The native qualification still matches the
+frozen source and evidence bindings.
+
+Terminus-2 passed 3/89; OpenHands passed 1/89. The completion audit found 171
+HTTP 429 rate-limit responses across 403 model requests. These cut short further
+model calls under the frozen no-retry policy. They are not credit-exhaustion
+signals. Five additional OpenHands attempts recorded NetworkConnectionError
+without a saved model request. This run is complete as an operational
+measurement, not a clean estimate of model/harness capability.
+
+The known response-reported cost subtotal is US$0.07185378 for this run only;
+171 requests lack cost values, so its complete billed cost remains unknown.
+No results were replayed or overwritten. The original 178 results, partial 151
+repeat results and new 178 results remain separate.
+
+The private off-server evidence archive SHA-256 is
+`b099cb7f5c44bf03c11b252d8908fe319dccfd61bbb9483d40f3e961937317e2`.
+The separate predecessor-results archive SHA-256 is
+`b97ea8da485aca3f19a54de3aeae26ed866f821834946dc1fe2346fe32a55e58`.
+Both copies were verified after download. Private backups are under the ignored
+local `.runtime/netcup/credit-only-final-20260922` directory, not GitHub.
+
+See [the concise results summary](../results/baseline-credit-only-20260922/README.md)
+and its 178-row CSV. No PDF was generated. Custom development and final custom
+scoring remain unfinished, so do not cancel the rented server or claim project
+success from this baseline completion.
+
 ## Launch checkpoint: 22 September 2026, 11:55 UTC
 
 The provider-credit-only run **started at 11:54:32 UTC** as the independent
