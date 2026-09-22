@@ -63,14 +63,34 @@ Private requests, responses and credentials stay out of GitHub.
 
 ## Evidence status
 
-Implementation and qualification are in progress. The native 840-test suite
-passed with one optional spending-PDF dependency skip; gateway-image tests and
-the actual Terminus fixture passed. OpenHands startup qualification and the
-real-provider check must pass before the matrix starts. Do not read this
-checkpoint as 178 completed benchmark tasks.
+The corrected matrix started on 22 September 2026 at 21:58:52 UTC (23 September
+in Sydney). All 178 unique cells were registered before its first task. The
+server service is `uts-stage2-corrected-20260923.service` and continues without
+the Mac staying awake. See [launch evidence](../results/baseline-corrected-20260923/launch.json).
+
+The native 840-test suite passed with one optional spending-PDF dependency
+skip (839 executed successfully). All 62 gateway-image tests passed. Both
+actual native harnesses passed their file-writing, injected-429 recovery,
+verifier and cleanup fixtures. OpenHands successfully started on the previously
+affected environment; the historical intermittent startup cause was not
+reproduced or established, so no speculative dependency patch was applied.
+
+The live-provider connection check succeeded on one request, reporting
+US$0.00001212 in response usage, 25 prompt tokens and 59 completion tokens.
+That figure is not an independently reconciled receipt or the run's total.
+The first actual task received four usable responses before a later request
+remained in progress. Launch is verified; benchmark completion and passing
+scores are not yet established.
+
+The read-only live page at `http://127.0.0.1:8769/` now uses
+`corrected_progress.py`. Its 18 dashboard/regression tests passed. It keeps
+completed attempts, passes, failures, missing scores and stale snapshots
+separate. It reads result metadata over SSH, never model APIs or credentials.
 
 The API/interface-design skill informed the explicit retry/lifecycle contract,
 sanitised errors and additive gateway; completed experiment code was preserved.
+The build-dashboard skill informed the compact progress layout, adapted to the
+requested live feed rather than a point-in-time snapshot.
 
 References: [OpenRouter errors](https://openrouter.ai/docs/api_reference/errors-and-debugging)
 and [HTTP Retry-After](https://www.rfc-editor.org/rfc/rfc9110.html#name-retry-after).
