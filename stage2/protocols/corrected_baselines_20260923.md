@@ -1,0 +1,76 @@
+# Corrected baseline experiment
+
+Authorised on 23 September 2026 (Sydney). This is a fresh experiment, not a
+repair of saved scores. The previous provider-credit-only run already finished
+178 attempts and remains immutable. The corrected run has its own source,
+qualification, registration, service and result directories.
+
+## Scope and fair limits
+
+- All 89 frozen Terminal-Bench 2.1 tasks, once for Terminus-2 and once for
+  OpenHands: 178 intended attempts, sequentially, retaining failures.
+- Same DeepSeek V4 Flash 0731, fixed DeepInfra FP8 endpoint. No fallback model.
+- No project, stage or task dollar allowance; no reserve; no provider price
+  filter; missing receipts and uncertain charges do not gate new requests.
+- Both baselines use the provider-advertised maximum output allowance of
+  384,000 tokens, temperature 1, top-p 1 and high reasoning. The earlier run
+  used 8,192 output tokens, so its scores are a separate experiment.
+- Official task wall time, verifier, CPU and memory remain unchanged. Both
+  harnesses have an effectively unreachable 1,000,000-turn guard; this replaces
+  OpenHands' default 100 iterations and matches Terminus' native default.
+  This is not literally infinite execution. Model context, HTTP framing and
+  host security safeguards remain in force.
+- Real provider credit exhaustion ends dispatch. There is no automatic top-up,
+  account-limit increase or purchase. No result or harness win is guaranteed.
+
+## What changes
+
+The previous run recorded 171 HTTP 429 responses and stopped model interaction
+in each affected task. The new shared gateway honours Retry-After and retries
+undelivered transient failures within the same task's official deadline. It
+does not restart the task or replay a delivered completion or tool action.
+Authentication, genuine credit exhaustion and wrong model/provider identity
+are not retried.
+
+Every physical request has a distinct immutable record. Logical completions
+link those records. Unknown costs remain unknown. A shared cooldown survives
+gateway restarts and task boundaries; a task cannot evade a provider wait by
+ending. The runner waits for an inherited cooldown before starting the next
+task's clock.
+
+Native baseline prompts, tools, context handling and decision loops are
+inherited. The custom harness is not involved in this baseline run. Any later
+custom comparison must use this same declared evaluation protocol.
+
+## Launch requirements
+
+1. Full native unit suite and gateway-image tests pass on the rented x86-64
+   server. Source and parent-image hashes are bound to the evidence.
+2. Actual Terminus-2 and OpenHands complete a simple file-writing fixture
+   through the new gateway, recovering from a deliberately injected 429.
+   No real API key or paid model is used for these tests. The fixture uses the
+   same 1 CPU / 2 GiB image configuration as a previously failed startup.
+3. One separately logged real-provider connection check succeeds with the
+   corrected settings. It is not one of the 89 benchmark tasks.
+4. Register 178 unique cells before starting the matrix. All prior deployment
+   locks are held to prevent concurrent old/new matrices. Never automatically
+   replay an interrupted or completed cell.
+
+Implementation: `qualify_corrected.py`, `check_corrected_provider.py`,
+`run_corrected.py`. Native root: `/opt/uts-capstone-corrected-20260923`.
+Registration: `.runtime/stage2/corrected-matrix.json`.
+Private requests, responses and credentials stay out of GitHub.
+
+## Evidence status
+
+Implementation and qualification are in progress. The native 840-test suite
+passed with one optional spending-PDF dependency skip; gateway-image tests and
+the actual Terminus fixture passed. OpenHands startup qualification and the
+real-provider check must pass before the matrix starts. Do not read this
+checkpoint as 178 completed benchmark tasks.
+
+The API/interface-design skill informed the explicit retry/lifecycle contract,
+sanitised errors and additive gateway; completed experiment code was preserved.
+
+References: [OpenRouter errors](https://openrouter.ai/docs/api_reference/errors-and-debugging)
+and [HTTP Retry-After](https://www.rfc-editor.org/rfc/rfc9110.html#name-retry-after).

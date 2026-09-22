@@ -1,4 +1,4 @@
-"""Offline retry-policy candidate; deliberately not wired into any gateway.
+"""Pure retry policy shared by the separately registered recovery gateway.
 
 No I/O, credentials, billing, sleeping or model calls. The caller must retain
 physical-request evidence and enforce one shared provider/model cooldown. A
@@ -137,8 +137,8 @@ def plan_retry(*, http_status: int | None, retry_after_values: object,
                observed_at_utc: datetime, now_monotonic: float,
                deadline_monotonic: float, consecutive_rejections: int,
                trial_active: bool, response_delivered: bool,
-               jitter_sample: float) -> RetryDecision:
-    """Plan a 429 retry without extending the official task deadline.
+               jitter_sample: float, allow_transport_recovery: bool = False) -> RetryDecision:
+    """Plan recovery without extending the official task deadline.
 
     Pass the raw HTTP status, NOT error.code from a body or a guessed status.
     Fallback backoff is 5, 10, 20, 40, 60 seconds, with equal jitter (half to
@@ -147,6 +147,8 @@ def plan_retry(*, http_status: int | None, retry_after_values: object,
     financial limit. A shared coordinator must preserve the not-before time
     even when this trial cannot retry. Monotonic timestamps are not portable
     across hosts/reboots and cannot alone be used as persistent cooldown state.
+    The default supports only 429. Explicit transport recovery also permits
+    transient failures classified by the gateway, never usable completions.
     """
     _check_utc(observed_at_utc)
     now = _finite_clock(now_monotonic)
@@ -157,7 +159,15 @@ def plan_retry(*, http_status: int | None, retry_after_values: object,
         raise ValueError('Lifecycle flags must be booleans')
     if type(jitter_sample) not in (int, float) or not 0 <= jitter_sample <= 1:
         raise ValueError('Jitter must be a finite sample between zero and one')
-    if type(http_status) is not int or http_status != 429:
+    if type(allow_transport_recovery) is not bool:
+        raise ValueError('Transport recovery must be explicitly configured')
+    eligible = type(http_status) is int and http_status == 429
+    if allow_transport_recovery:
+        # The shared gateway must first establish that a transport failure (not
+        # a usable completion) occurred. Never retry auth/credit/bad-request codes.
+        eligible = eligible or http_status is None or (
+            type(http_status) is int and http_status in (200, 408, 500, 502, 503, 504))
+    if not eligible:
         return RetryDecision(RetryReason.NOT_HTTP_429, HeaderState.NOT_EXAMINED)
 
     parsed = parse_retry_after(retry_after_values, observed_at_utc=observed_at_utc)

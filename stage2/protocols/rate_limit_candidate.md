@@ -1,8 +1,9 @@
 # Shared HTTP 429 handling: offline candidate
 
-Status: implemented and unit-tested offline on 22 September 2026. Not deployed,
-not connected to the provider, and not a new scored experiment. The completed
-baselines and their gateway remain unchanged.
+Historical checkpoint: implemented and unit-tested offline on 22 September 2026.
+The separately authorised [corrected experiment](corrected_baselines_20260923.md)
+now integrates this pure policy into a new gateway. No completed baseline
+runtime or result is changed. The original default policy remains 429-only.
 
 ## Contract
 
@@ -15,9 +16,12 @@ Results are immutable dataclasses with typed reasons; malformed trusted clocks,
 lifecycle flags, rejection counts or jitter samples raise a sanitised
 `ValueError`. Provider header errors return typed states, not raw error text.
 
-- Only an actual HTTP 429 rejection is eligible. A body error inside HTTP 200,
-  an ambiguous disconnect, 401, 402, 403 or another status is not retried by
-  this candidate. A response already delivered to the agent is never replayed.
+- By default, only an actual HTTP 429 rejection is eligible. Explicit
+  `allow_transport_recovery=True` also supports undelivered transient transport
+  failures classified by the new gateway: 408, 500, 502, 503, 504, a transient
+  error envelope inside HTTP 200, or an ambiguous connection loss. Those losses
+  may have a charge; each physical call is retained. Never retry 401, 402, 403,
+  a wrong model/provider identity, or a response already delivered to the agent.
 - Parse both integer delay-seconds and HTTP-date forms of `Retry-After`.
   Header text is untrusted and never copied into exported metadata. Conflicting
   duplicate values stop the decision rather than risk retrying too early.
@@ -63,13 +67,14 @@ absence of file/network/sleep side effects. Existing gateway tests use injected
 clients and local loopback fixtures. No paid requests or benchmark tasks were
 dispatched. Passing these checks does **not** qualify a live retrying gateway.
 
-## Still required before live use
+## Historical next step, now implemented in the separate candidate
 
-Wire the parser at the HTTP boundary, persist and enforce the shared cooldown,
-make waits interruptible, and test the full gateway with a fake provider.
-Verify immutable per-request accounting and unchanged model/provider/payload.
-Then separately register and qualify any authorised new execution protocol.
-Do not silently change or replay the completed 178-cell experiment.
+`retry_transport.py`, `retry_runtime.py` and `retry_gateway.py` implement the
+HTTP observation, persistent cooldown, deadline and accounting contract.
+`qualify_corrected.py` requires native offline tests and both real harnesses
+with a scripted provider before the separately recorded live connection check
+and new 178-cell registration. Check qualification and run artifacts for actual
+execution status; this document is not evidence that paid tasks have finished.
 
 References: [OpenRouter error handling](https://openrouter.ai/docs/api_reference/errors-and-debugging)
 and [RFC 9110, Retry-After](https://www.rfc-editor.org/rfc/rfc9110.html#name-retry-after).
