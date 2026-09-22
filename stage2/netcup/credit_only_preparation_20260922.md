@@ -1,5 +1,37 @@
 # Next baseline run: implementation checkpoint
 
+## Launch checkpoint: 22 September 2026, 11:55 UTC
+
+The provider-credit-only run **started at 11:54:32 UTC** as the independent
+Netcup service `uts-stage2-credit-only-20260922.service`. At 11:55 UTC it was
+active, with the first Terminus-2 task underway, no completed trials yet,
+two saved model requests and two saved provider outcomes. No provider-stop
+record existed at that check. This is a launch checkpoint, not a final score.
+
+The capped predecessor stopped on its old budget rule at **151/178**:
+76 Terminus-2 and 75 OpenHands attempts. All 151 had completed cleanup,
+there were no partial attempts or active predecessor task containers, and
+27 cells were unstarted. Its final completion timestamp was 11:44:19 UTC.
+The new registration explicitly records this predecessor as `terminal_partial`;
+it does not describe it as a completed 178-task experiment or pool its results.
+
+The final synthetic Harbor/container test passed before launch, with zero
+paid API calls. Its source/image/protocol-bound qualification was validated
+again after launch. The new immutable registration contains exactly 178
+fresh cells, no project monetary caps, no reserve, and no cost/receipt-based
+dispatch gate. Official task time/resource limits and the frozen model remain.
+
+The service and credentials are on Netcup; a disconnected or sleeping Mac
+does not stop the running benchmark. Local Codex monitoring and dashboard
+refreshes can pause while the Mac sleeps. An exact finish time is not yet
+established: the capped predecessor's latest 20 completion intervals averaged
+3.56 minutes, but removing monetary stops may lengthen task execution.
+
+The earlier preparation checkpoint below is retained as history. Its
+"not started" statements no longer describe the current service.
+
+## Earlier preparation checkpoint
+
 Checked 22 September 2026, 11:10 UTC. **Not started.**
 
 The current capped repeat was active at 139/178, with task140 in progress.
