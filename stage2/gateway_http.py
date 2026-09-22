@@ -59,11 +59,15 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, OSError):
             self.reply(400, {'error': {'message':'Invalid request body'}})
             return
+        self.dispatch(credentials[0][7:], payload)
+
+    def dispatch(self, token, payload):
+        """Override error semantics without changing HTTP framing or routing."""
         try:
             if self.server.gateway is None:
                 # Construct ledger in the serving thread (SQLite affinity).
                 self.server.gateway = self.server.factory()
-            response = self.server.gateway.complete(credentials[0][7:], payload)
+            response = self.server.gateway.complete(token, payload)
             self.reply(200, response)
         except BudgetExceeded:
             self.reply(402, {'error': {'message':'Budget admission blocked'}})
@@ -75,8 +79,8 @@ class Handler(BaseHTTPRequestHandler):
             self.reply(502, {'error': {'message':'Gateway outcome unavailable; do not retry automatically'}})
 
 
-def make_server(factory, port=0):
-    server = HTTPServer(('127.0.0.1', port), Handler)
+def make_server(factory, port=0, *, handler=Handler):
+    server = HTTPServer(('127.0.0.1', port), handler)
     server.factory = factory
     server.gateway = None
     return server
@@ -91,14 +95,14 @@ class UnixHTTPServer(HTTPServer):
         self.server_port = 0
 
 
-def make_unix_server(factory, path):
+def make_unix_server(factory, path, *, handler=Handler):
     path = Path(path)
     info = path.parent.lstat()
     if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077:
         raise ValueError('Socket parent must be an owned private directory')
     if path.exists() or path.is_symlink():
         raise ValueError('Refusing to replace an existing socket path')
-    server = UnixHTTPServer(str(path), Handler)
+    server = UnixHTTPServer(str(path), handler)
     os.chmod(path, 0o600)
     server.factory = factory
     server.gateway = None

@@ -1,0 +1,4 @@
+ARG PARENT
+FROM ${PARENT}
+COPY gateway_http.py credit_only_policy.py credit_only_gateway.py credit_only_accounting.py credit_only_runtime_probe.py test_credit_only_gateway.py /study/stage2/
+ENTRYPOINT ["python", "/study/stage2/credit_only_gateway.py"]

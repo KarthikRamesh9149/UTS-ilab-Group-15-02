@@ -65,7 +65,7 @@ def audit_task(inspected, config, paths):
 
 async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                     gateway_image, guard_image, setup_timeout_seconds, model_settings,
-                    billing_runtime=None, billing_kind='scored'):
+                    billing_runtime=None, billing_kind='scored', accounting_mode='reserved'):
     """Run one qualified native agent; factory gets only task timeout, not tests.
 
     Factory arguments: paths, host_api_base, container_api_base, trial_token,
@@ -88,6 +88,14 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         raise ValueError('Positive setup limit required')
     root = Path(root).resolve()
     runtime = private_directory(root / '.runtime/stage2')
+    if accounting_mode not in {'reserved', 'provider-credit-only'}:
+        raise ValueError('Unknown accounting mode')
+    passive = accounting_mode == 'provider-credit-only'
+    if passive:
+        from credit_only_policy import require_policy
+        require_policy(runtime)
+        if stage != 'final' or billing_runtime is not None or billing_kind != 'scored':
+            raise ValueError('Separate final provider-credit-only experiment required')
     fd = os.open(runtime / 'scored.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, 'r+') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -125,6 +133,9 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                   'started_utc': datetime.now(timezone.utc).isoformat(), 'host': health,
                   'model_protocol_sha256': protocol_hash,
                   'status': 'starting', 'project': project}
+        if passive:
+            result['accounting_mode'] = accounting_mode
+            result['gateway_image_id'] = gateway_image
         if accounting_transition is not None:
             result['accounting_runtime_transition_sha256'] = accounting_transition
             result['gateway_image_id'] = gateway_image
@@ -158,7 +169,11 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 agent_timeout_seconds=task.config.agent.timeout_sec,
                 completion_wait_seconds=completion_wait_seconds)
             if result['harness'] in {'terminus-2', 'openhands', 'C0', 'C1', 'C2'}:
-                trace = PaidTrialTrace(trial / 'traces', trial_id=trial_id, task_id=task_id,
+                trace_type = PaidTrialTrace
+                if passive:
+                    from credit_only_accounting import PassiveTrialTrace
+                    trace_type = PassiveTrialTrace
+                trace = trace_type(trial / 'traces', trial_id=trial_id, task_id=task_id,
                     harness=result['harness'], protocol_sha256=protocol_hash)
             async def revoke():
                 # Stop upstream access first, even if a host request is hung.
@@ -199,11 +214,15 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 if not result[resource + '_removed']:
                     result['status'] = 'cleanup_failed'
             try:
-                await asyncio.to_thread(collect_receipts, billing_runtime or runtime, trial_id, kind=billing_kind)
-                result['billing'] = audit_trial(runtime, trial_id, stage)
+                if passive:
+                    from credit_only_accounting import summarise
+                    result['billing'] = summarise(runtime, trial_id)
+                else:
+                    await asyncio.to_thread(collect_receipts, billing_runtime or runtime, trial_id, kind=billing_kind)
+                    result['billing'] = audit_trial(runtime, trial_id, stage)
             except Exception as exc:
                 result['billing'] = {'billing_verified': False, 'error_type': type(exc).__name__}
-                if result['status'] == 'verified':
+                if result['status'] == 'verified' and not passive:
                     result['status'] = 'billing_unresolved'
             if trace is not None:
                 try:
@@ -216,7 +235,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             # Preserve the original result first. A host-only registration may
             # then carry its bounded billing uncertainty into the NEXT trial;
             # it cannot retry this attempt or turn uncertainty into a receipt.
-            if result['status'] == 'billing_unresolved':
+            if result['status'] == 'billing_unresolved' and not passive:
                 from deferred_billing import validate_policy, register_terminal_deferral
                 account_runtime = Path(billing_runtime or runtime)
                 if validate_policy(account_runtime) is not None:
