@@ -13,7 +13,7 @@ Unlike the current repeat, this experiment must have **no project-imposed
 monetary limit and no credit reserve**. Old cost reservations, estimated
 request costs and missing billing receipts must not prevent requests. Record
 all attempts and known charges, and mark missing costs unknown. These records
-are for accounting, not permission to continue. An usable, correctly routed
+are for accounting, not permission to continue. A usable, correctly routed
 model response must not be rejected merely because its billing metadata is
 missing. Authentication, model/provider integrity, isolation, official time
 limits and resource limits remain enforced.
@@ -38,3 +38,9 @@ The machine-readable authorisation is
 `next_baseline_credit_only_20260922.json`. It is a queued instruction, not
 evidence that the new runtime is implemented or qualified. The existing
 heartbeat owns the conditional handoff; no second concurrent runner is allowed.
+
+Implementation checkpoint: the separate gateway and runner now exist and passed
+native offline tests. They are **not yet runtime-qualified or started**.
+See `credit_only_preparation_20260922.md` for the 22 September checkpoint and
+the remaining handoff steps. The JSON above remains the original authorisation
+record, not a live status file.

@@ -2,9 +2,9 @@
   "schema_version": 1,
   "custom_conditions": {"development_harness": null, "frozen_final_harness": null},
   "engineering": {
-    "updated_at_utc": "2026-09-21T07:42:00Z",
-    "status": "New higher-budget baseline repeat running; original scores preserved",
-    "detail": "The user authorised a separate 178-cell repeat: all89 tasks for each baseline, no small per-task monetary cap, US$1 account reserve. uts-stage2-baseline-repeat-20260921.service is active in /opt/uts-capstone-baseline-repeat-20260921. First Terminus-2 task started; two real API requests settled; zero completed repeat tasks at this checkpoint. The legacy live tracks below refer to the ORIGINAL experiment, not this repeat. Original178 baseline results remain unchanged. OpenHands dev20 is complete. Original C0 stopped after one verified task and one setup failure; custom work is not running while the repeat takes priority. Launch account balance US$11.540139332; old unresolved liability US$7.774208 is retained, leaving US$2.765931332 for new calls above the US$1 reserve. Completion within that allowance is not guaranteed. See stage2/netcup/baseline_repeat_20260921.md.",
+    "updated_at_utc": "2026-09-22T11:10:15Z",
+    "status": "Current capped repeat 139/178; separate uncapped run prepared, not launched",
+    "detail": "The current repeat is active on Netcup: 139/178 completed, all with binary verifier outcomes and cleanup; task140 is active. It still retains its aggregate allowance, billing gates and US$1 reserve. Its sources remain unchanged. The user-authorised NEXT experiment has a new passive-accounting gateway and runner in /opt/uts-capstone-credit-only-20260922. Native offline verification: 789 passed, one optional PDF test skipped; all17 gateway-image tests passed; zero live API calls. Final synthetic container qualification waits for the current run to release the host locks. The next experiment has no project monetary caps, reserve, provider max_price filter or missing-receipt admission gate. It has NOT started. Original178 scores and current-repeat scores remain separate. The legacy live tracks below still refer to the ORIGINAL experiment, not either newer run. Custom development and a demonstrated custom win remain unfinished. See stage2/netcup/credit_only_preparation_20260922.md.",
     "source": "Curated engineering checkpoint; separate from live trial metadata"
   },
   "pipeline": [
