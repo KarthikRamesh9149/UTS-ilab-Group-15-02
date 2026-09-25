@@ -72,3 +72,16 @@ and [registered cohort](../results/timeout-diagnostic-20260925/cohort.csv).
 The server service is `uts-stage2-timeout-diagnostic-20260925.service`.
 It runs independently of the Mac. The existing capstone follow-up now monitors
 this diagnostic; it must not restart completed baseline experiments.
+
+## Completed diagnostic
+
+All 30 attempts finished on 25 September 2026 at 17:41 UTC: 10 passed and 20
+failed. No repeat recorded an HTTP 429. Eight passes had every model response
+accepted; two more passed despite a final request interrupted at the deadline.
+The original 89-task scores are unchanged. See the [separate final comparison
+and per-attempt evidence](../results/timeout-diagnostic-20260925/README.md).
+
+The metadata-only collector `stage2/export_timeout_diagnostic.py` is a later
+reporting tool, not a modification of the frozen execution source. It verifies
+coverage, limits, cleanup, original result hashes and the private off-server
+backup without running a task or calling the model.
