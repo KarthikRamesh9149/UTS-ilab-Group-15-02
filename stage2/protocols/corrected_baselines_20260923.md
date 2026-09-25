@@ -65,8 +65,8 @@ Private requests, responses and credentials stay out of GitHub.
 
 The corrected matrix started on 22 September 2026 at 21:58:52 UTC (23 September
 in Sydney). All 178 unique cells were registered before its first task. The
-server service is `uts-stage2-corrected-20260923.service` and continues without
-the Mac staying awake. See [launch evidence](../results/baseline-corrected-20260923/launch.json).
+server service was `uts-stage2-corrected-20260923.service` and did not require
+the Mac to stay awake. See the historical [launch evidence](../results/baseline-corrected-20260923/launch.json).
 
 The native 840-test suite passed with one optional spending-PDF dependency
 skip (839 executed successfully). All 62 gateway-image tests passed. Both
@@ -79,8 +79,22 @@ The live-provider connection check succeeded on one request, reporting
 US$0.00001212 in response usage, 25 prompt tokens and 59 completion tokens.
 That figure is not an independently reconciled receipt or the run's total.
 The first actual task received four usable responses before a later request
-remained in progress. Launch is verified; benchmark completion and passing
-scores are not yet established.
+remained in progress. Those were launch observations, not completed scores.
+
+### Completion audit: 25 September 2026
+
+All 178 registered attempts completed: Terminus-2 passed 52/89 and OpenHands
+44/89. The last trial ended at 01:08:35 UTC, and the service exited normally.
+All cells have binary verifier results, revoked model access and confirmed
+cleanup. Frozen execution sources, task bytes and predecessor results match
+their recorded bindings. The export is separate from all earlier experiments.
+See the [results and limitations](../results/baseline-corrected-20260923/README.md).
+
+Timeout analysis confirmed the original task limits were used, but 30 of the
+49 failed timeout attempts also encountered API rate limits. These observations
+do not establish pure model limitations or predict scores with a faster API.
+Private evidence was backed up off-server and checksums verified; archives and
+raw transcripts remain outside GitHub. Full custom evaluation is unfinished.
 
 The read-only live page at `http://127.0.0.1:8769/` now uses
 `corrected_progress.py`. Its 18 dashboard/regression tests passed. It keeps
