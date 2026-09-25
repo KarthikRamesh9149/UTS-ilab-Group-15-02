@@ -54,3 +54,21 @@ Runner: `stage2/run_timeout_diagnostic.py qualify|run|report`.
 The original corrected baseline remains untouched.
 
 Reference: [OpenRouter rate-limit handling](https://openrouter.ai/docs/api_reference/limits).
+
+## Verified launch
+
+The first diagnostic attempt started on 25 September 2026 at 04:45:28 UTC.
+The server service was active when checked at 04:46:09 UTC. Exactly 30 cells
+were registered before dispatch; no diagnostic result was complete at that
+checkpoint. This is a launch observation, not a final outcome.
+
+The final candidate passed 68 targeted tests on the server and both native
+harness fixtures, including injected rate-limit recovery, task checks and
+cleanup. Those fixtures made zero paid calls. The full local suite ran 874
+tests: 873 passed and one was skipped. All 178 original result hashes were
+checked unchanged. See the [launch evidence](../results/timeout-diagnostic-20260925/launch.json)
+and [registered cohort](../results/timeout-diagnostic-20260925/cohort.csv).
+
+The server service is `uts-stage2-timeout-diagnostic-20260925.service`.
+It runs independently of the Mac. The existing capstone follow-up now monitors
+this diagnostic; it must not restart completed baseline experiments.
