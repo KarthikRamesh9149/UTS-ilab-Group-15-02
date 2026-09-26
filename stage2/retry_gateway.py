@@ -31,6 +31,10 @@ class RetryHandler(CreditOnlyHandler):
 
 
 class RetrySession(PassiveSession):
+    def require_recovery_policy(self):
+        from retry_policy import require_policy
+        require_policy(self.runtime)
+
     def __init__(self, *args, clock=None, **kwargs):
         self.clock = clock or Clock()
         self.cancelled = threading.Event()
@@ -38,8 +42,8 @@ class RetrySession(PassiveSession):
         self.logical_sequence = 0
         super().__init__(*args, **kwargs)
         try:
-            from retry_policy import require_policy, SETTINGS
-            require_policy(self.runtime)
+            from retry_policy import SETTINGS
+            self.require_recovery_policy()
             if self.settings != SETTINGS: raise ValueError('Corrected model protocol required')
             self.cooldown = Cooldown(self.runtime, self.clock)
         except BaseException:
@@ -122,7 +126,7 @@ class RetrySession(PassiveSession):
 
 
 def serve(root, trial_id, stage, token_file, credential_file, socket_path, *, completion_wait_seconds,
-          client_factory=ObservedOpenRouter):
+          client_factory=ObservedOpenRouter, session_factory=RetrySession):
     runtime = Path(root) / '.runtime/stage2'
     settings = read_protocol(runtime)
     # load_key validates credentials; the inherited compose validates the private
@@ -136,7 +140,7 @@ def serve(root, trial_id, stage, token_file, credential_file, socket_path, *, co
     clock = Clock()
     client = client_factory(load_key(credential_file), clock=clock, generation_enabled=True,
         completion_wait_seconds=completion_wait_seconds)
-    session = RetrySession(root, trial_id, stage, token, client, settings=settings, clock=clock)
+    session = session_factory(root, trial_id, stage, token, client, settings=settings, clock=clock)
     socket_path = Path(socket_path)
     private_directory(socket_path.parent)
     def interrupted(signum, frame):

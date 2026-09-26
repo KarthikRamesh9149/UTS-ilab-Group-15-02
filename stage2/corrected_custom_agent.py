@@ -125,4 +125,7 @@ def agent_factory(root, condition, *, parent=None):
 
     create.harness = variant.name
     create.model_protocol_sha256 = SETTINGS.fingerprint()
-    return deadline_factory(create, Path(root), SETTINGS)
+    wrapped = deadline_factory(create, Path(root), SETTINGS)
+    wrapped.custom_parent = variant.parent
+    wrapped.custom_version = 'stage2-candidate-0.2.0'
+    return wrapped

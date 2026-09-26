@@ -13,8 +13,12 @@ uses the same model settings and task deadline as the baselines, without the
 old 100-call guard. It has local synthetic tests, not native Docker admission
 or paid custom results yet. The fixed dev20 comparison is Terminus-2 14/20
 and OpenHands 10/20. `corrected_custom_scope.py` verifies that matched export.
-The protocol note lists the remaining development-runtime, qualification,
-registration and final-freeze work. No new API spending occurred at this checkpoint.
+The separate development runner now records the user's 26 September authority:
+no project/task financial cap, reserve or artificial call-count ceiling. It
+retains actual provider limits and official task limits, with no automatic
+top-up. Source-bound native qualification and exact block registration are
+required before any paid custom attempt. See the protocol note for the setup
+checks and remaining final-freeze work. No new API spending is claimed here.
 
 Everything below is historical; earlier caps, running states and admissions
 must not be mistaken for current execution authority or current results.

@@ -104,9 +104,16 @@ def response_identity(response, header_id, seen):
 
 
 class PassiveSession:
+    def require_session_policy(self):
+        # The historical entry point remains final-only. A separately
+        # registered custom gateway overrides this, not the baseline policy.
+        if self.stage != 'final':
+            raise ValueError('Explicit final stage required')
+        require_policy(self.runtime)
+
     def __init__(self, root, trial_id, stage, token, client, *, settings):
-        if not isinstance(settings, ModelSettings) or stage != 'final':
-            raise ValueError('Frozen model settings and explicit final stage required')
+        if not isinstance(settings, ModelSettings):
+            raise ValueError('Frozen model settings required')
         if (not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]{0,119}', trial_id)
                 or not isinstance(token, str) or len(token) < 32):
             raise ValueError('Valid trial identifier and strong trial credential required')
@@ -117,11 +124,12 @@ class PassiveSession:
         self.client = client
         self.settings = settings
         self.trial_id = trial_id
+        self.stage = stage
         self.sequence = 0
         self.seen = set()
         self.token_hash = hashlib.sha256(token.encode()).digest()
         self.runtime = private_directory(Path(root).resolve() / '.runtime/stage2')
-        require_policy(self.runtime)
+        self.require_session_policy()
         try:
             descriptor = os.open(self.runtime / 'gateway.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
             self.lock = os.fdopen(descriptor, 'r+')
@@ -141,7 +149,7 @@ class PassiveSession:
                 raise CreditOnlyError('trial_unauthorised')
             if self.stopped:
                 raise CreditOnlyError('attempt_stopped')
-            require_policy(self.runtime)
+            self.require_session_policy()
             request = prepare_credit_request(payload, self.settings)
             self.sequence += 1
             prefix = f'{self.sequence:06d}'
