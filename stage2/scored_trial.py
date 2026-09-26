@@ -92,10 +92,16 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
     if accounting_mode not in {'reserved', 'provider-credit-only'}:
         raise ValueError('Unknown accounting mode')
     passive = accounting_mode == 'provider-credit-only'
+    custom_admission = None
     if custom_study is not None:
-        from corrected_custom_policy import EXPERIMENT
-        if custom_study != EXPERIMENT or not passive or billing_runtime is not None or billing_kind != 'scored':
+        from corrected_custom_policy import EXPERIMENT as CORRECTED_CUSTOM
+        from portable_custom_policy import EXPERIMENT as PORTABLE_CUSTOM
+        if custom_study not in {CORRECTED_CUSTOM, PORTABLE_CUSTOM} or not passive or billing_runtime is not None or billing_kind != 'scored':
             raise ValueError('Explicit separately qualified custom study required')
+        if custom_study == PORTABLE_CUSTOM:
+            from portable_custom_study import admit_trial as custom_admission
+        else:
+            from corrected_custom_study import admit_trial as custom_admission
     elif passive:
         from credit_only_policy import require_policy
         require_policy(runtime)
@@ -106,8 +112,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         custom_binding = None
         if custom_study is not None:
-            from corrected_custom_study import admit_trial
-            custom_binding = admit_trial(root, trial_id=trial_id, task_id=task_id, stage=stage,
+            custom_binding = custom_admission(root, trial_id=trial_id, task_id=task_id, stage=stage,
                 factory=agent_factory, settings=model_settings, gateway_image=gateway_image, guard_image=guard_image)
         health = check_host()
         protocol_hash = freeze_protocol(runtime, model_settings)

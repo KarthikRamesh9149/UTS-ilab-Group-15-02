@@ -1,15 +1,22 @@
-"""Offline 0.3 candidate; not admitted by the frozen 0.2 study registry."""
+"""Portable 0.3 candidate; admitted only by its separate qualified registry."""
 from pathlib import Path
 import traceback
 
 from corrected_custom_agent import CorrectedCustomHarborAgent
 from custom_portable_backend import ContainerCaptureError, PortableHarborSandbox
 from custom_python_runtime import PythonBundle, prepare_python
+from custom_control import Condition
+from portable_custom_policy import CANDIDATE_VERSION, PYTHON_SHA256, SETTINGS
+from retry_runtime import deadline_factory
+
+
+def runtime_bundle(root):
+    return PythonBundle(Path(root) / '.runtime/stage2/python-runtime.tar.gz', PYTHON_SHA256)
 
 
 class PortableCustomHarborAgent(CorrectedCustomHarborAgent):
     def version(self):
-        return 'stage2-candidate-0.3.0'
+        return CANDIDATE_VERSION
 
     def __init__(self, logs_dir, *, python_bundle, **kwargs):
         if not isinstance(python_bundle, PythonBundle):
@@ -49,3 +56,23 @@ class PortableCustomHarborAgent(CorrectedCustomHarborAgent):
             result.update(component='container_capture', reason=exc.reason,
                 return_code=exc.return_code)
         return result
+
+
+def agent_factory(root, condition, *, parent=None):
+    variant = Condition(condition, parent)
+    bundle = runtime_bundle(root)
+
+    def create(*, paths, host_api_base, container_api_base, trial_token,
+               agent_timeout_seconds, completion_wait_seconds):
+        return PortableCustomHarborAgent(paths.agent_dir, python_bundle=bundle,
+            condition=variant.name, parent=variant.parent, api_base=host_api_base,
+            trial_token=trial_token, trial_timeout_seconds=agent_timeout_seconds,
+            completion_wait_seconds=completion_wait_seconds)
+
+    create.harness = variant.name
+    create.model_protocol_sha256 = SETTINGS.fingerprint()
+    wrapped = deadline_factory(create, Path(root), SETTINGS)
+    wrapped.custom_parent = variant.parent
+    wrapped.custom_version = CANDIDATE_VERSION
+    wrapped.python_runtime_sha256 = bundle.sha256
+    return wrapped
