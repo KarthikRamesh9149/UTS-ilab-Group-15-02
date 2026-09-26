@@ -1,8 +1,9 @@
 # Custom 0.3: qualified development run
 
-The revised harness passed native setup qualification and C0 is registered for
-the same fixed 20 tasks. Paid execution status is recorded separately in
-`launch.json` when started. This setup result is not a benchmark score.
+The revised harness passed native setup qualification. C0 started on
+26 September at 12:19 UTC on the same fixed 20 tasks. At the
+[launch check](launch.json), the first task was running with nine accepted
+provider responses and no completed result yet. This is not a benchmark score.
 
 | Check | Result |
 |---|---|

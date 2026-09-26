@@ -1,0 +1,43 @@
+{
+  "kind": "verified_custom_03_c0_launch_snapshot",
+  "status": "running",
+  "requested_utc": "2026-09-26T12:19:33.728479+00:00",
+  "service": "uts-stage2-custom-portable-c0-20260926.service",
+  "source_commit": "004943bd55fd935c17bec7d6dc7a019aeaa3864a",
+  "sources_sha256": "e4aaa66f5501eb39fb66543a408e54ae9374699ca7ad1bd9a919dbb4bdb21920",
+  "qualification_sha256": "5ea3d25792bffb9ea9b6921d0aef864c09e9ff0d02323a990459f7c1ac504942",
+  "registration_sha256": "afd416f5508fc3f7426d1bdbef00b092c56b3b94b4f46a1f01d133bb2648837f",
+  "condition": "C0",
+  "intended": 20,
+  "model_protocol_sha256": "75718eac81a70390e879743b3c760e942281ac205f577960beec845d50057238",
+  "no_completed_or_partial_before_launch": true,
+  "no_spending_cap": true,
+  "no_reserve": true,
+  "no_artificial_model_call_ceiling": true,
+  "automatic_top_up": false,
+  "observed_utc": "2026-09-26T12:20:50.181691+00:00",
+  "service_state": {
+    "MainPID": "213975",
+    "ExecMainStatus": "0",
+    "ActiveState": "active",
+    "SubState": "running"
+  },
+  "rows": [
+    {
+      "trial_id": "customdev2-c0-01-video-processing",
+      "task_id": "video-processing",
+      "status": "starting",
+      "started_utc": "2026-09-26T12:19:40.760771+00:00",
+      "completed": false,
+      "requests_started": 10,
+      "accepted_responses": 9,
+      "reward": null,
+      "agent_error_type": null
+    }
+  ],
+  "started": 1,
+  "completed": 0,
+  "actual_cwd": "/opt/uts-capstone-custom-portable-20260926",
+  "terminal_benchmark_score_available": false,
+  "old_partial_run_retained_separately": true
+}
