@@ -19,13 +19,15 @@ class ModelLimitReached(RuntimeError):
 
 
 class TrialModelLimit(AgentMiddleware):
-    """Per-runner count survives graph reinvocation for explicit repairs."""
+    """Count across graph reinvocations; None explicitly means no call cap."""
     def __init__(self, limit):
+        if limit is not None and (type(limit) is not int or limit <= 0):
+            raise ValueError('Positive model call limit or explicit None required')
         self.limit = limit
         self.attempts = 0
 
     def before_model(self, state, runtime):
-        if self.attempts >= self.limit:
+        if self.limit is not None and self.attempts >= self.limit:
             raise ModelLimitReached('Per-trial model-call limit reached')
         self.attempts += 1
 
@@ -37,8 +39,14 @@ class CustomRunner:
     def __init__(self, model, backend, condition: Condition, *, max_model_calls, defer_job_cleanup=False):
         if getattr(model, 'model_name', None) != MODEL:
             raise ValueError('Explicit pinned model required')
-        if type(max_model_calls) is not int or max_model_calls <= 0:
-            raise ValueError('Explicit model call limit required')
+        if max_model_calls is not None and (type(max_model_calls) is not int or max_model_calls <= 0):
+            raise ValueError('Positive model call limit or explicit None required')
+        # Preserve the historical capped runner exactly. The separately
+        # versioned corrected adapter explicitly selects None and still has
+        # the official wall-clock deadline. LangGraph requires a positive
+        # integer; sys.maxsize is an unreachable recursion safety bound, not
+        # a task allowance or another hidden 100-call limit.
+        self.graph_recursion_limit = sys.maxsize if max_model_calls is None else 10000
         self.control = CompletionControl(condition)
         if type(defer_job_cleanup) is not bool:
             raise ValueError('Explicit cleanup lifecycle required')
@@ -97,7 +105,7 @@ class CustomRunner:
                     # provider error does not erase earlier tool observations.
                     # This streams graph states, not provider token responses.
                     async for snapshot in self.graph.astream(self.state,
-                            config={'recursion_limit': 10000}, stream_mode='values'):
+                            config={'recursion_limit': self.graph_recursion_limit}, stream_mode='values'):
                         self.state = snapshot
                     if self.control.terminal:
                         break

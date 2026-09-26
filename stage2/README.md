@@ -1,6 +1,25 @@
 # Stage 2 execution status
 
-## Current track, 20 September 2026
+## Current checkpoint, 26 September 2026
+
+The corrected full baselines and separate timeout diagnostic are complete.
+See [baseline results](results/baseline-corrected-20260923/README.md) and
+[diagnostic results](results/timeout-diagnostic-20260925/README.md).
+Do not restart those experiments or apply current source edits to their
+immutable server deployments.
+
+Custom development is next. The [corrected-protocol candidate](protocols/custom_corrected_candidate_20260926.md)
+uses the same model settings and task deadline as the baselines, without the
+old 100-call guard. It has local synthetic tests, not native Docker admission
+or paid custom results yet. The fixed dev20 comparison is Terminus-2 14/20
+and OpenHands 10/20. `corrected_custom_scope.py` verifies that matched export.
+The protocol note lists the remaining development-runtime, qualification,
+registration and final-freeze work. No new API spending occurred at this checkpoint.
+
+Everything below is historical; earlier caps, running states and admissions
+must not be mistaken for current execution authority or current results.
+
+## Historical track, 20 September 2026
 
 The active authorised track is now [Netcup native Linux + OpenRouter](NETCUP.md),
 on branch `codex/netcup-openrouter-study`. This restores the one-model paid
