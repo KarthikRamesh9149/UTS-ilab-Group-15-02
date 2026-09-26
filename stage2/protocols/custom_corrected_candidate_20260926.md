@@ -1,5 +1,11 @@
 # Custom harness: corrected-protocol candidate
 
+**Current status:** The 0.2 C0 block stopped with four retained attempts after
+live compatibility failures. Do not resume or patch that deployment. The
+[separate 0.3 repairs](../results/custom-compatibility-20260926/README.md) are
+offline candidates and need new native qualification/registration. The
+description below preserves the original 0.2 protocol and setup history.
+
 26 September 2026. **Setup candidate, not a paid launch or a final freeze.**
 The completed 178 baseline results and 30 timeout-diagnostic results stay
 unchanged. Their server deployments must not receive these source edits.

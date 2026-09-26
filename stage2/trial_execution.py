@@ -15,13 +15,16 @@ from harbor.verifier.verifier import Verifier
 
 async def execute_phases(*, agent, environment, task, paths, revoke_model,
                          setup_timeout_seconds, verifier_factory=Verifier, cleanup_timeout_seconds=60,
-                         phase_observer=None, prepare_environment=None):
+                         phase_observer=None, prepare_environment=None, retained_result=None):
     limits = [setup_timeout_seconds, task.config.agent.timeout_sec, task.config.verifier.timeout_sec, cleanup_timeout_seconds]
     for value in limits:
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
             raise ValueError('Explicit positive phase timeouts required')
-    result = {'status': 'started', 'agent_error_type': None, 'verifier_error_type': None,
-              'model_revoked': False, 'verifier_result': None, 'cleanup_errors': [], 'phase_seconds': {}}
+    if retained_result is not None and (type(retained_result) is not dict or retained_result):
+        raise ValueError('Phase evidence sink must be an empty dict')
+    result = retained_result if retained_result is not None else {}
+    result.update(status='started', agent_error_type=None, verifier_error_type=None,
+        model_revoked=False, verifier_result=None, cleanup_errors=[], phase_seconds={})
     if phase_observer is not None and not callable(phase_observer):
         raise ValueError('Phase observer must be callable')
     trial_started_ns, trial_started = time.time_ns(), time.monotonic()

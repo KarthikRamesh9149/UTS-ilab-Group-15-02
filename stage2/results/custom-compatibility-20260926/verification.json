@@ -1,0 +1,43 @@
+{
+  "candidate_version": "stage2-candidate-0.3.0",
+  "paid_launch_ready": false,
+  "local": {
+    "tests_run": 983,
+    "passed": 982,
+    "skipped": 1,
+    "failures": 0,
+    "legacy_custom_tests_passed": 34
+  },
+  "native_targeted": {
+    "tests_run": 50,
+    "passed": 50,
+    "failures": 0,
+    "skipped": 0,
+    "live_api_calls": 0
+  },
+  "native_image_compatibility": {
+    "images_checked": 20,
+    "passed": 20,
+    "missing_python_before_bootstrap": 5,
+    "live_api_calls": 0,
+    "large_file_lines": 16000,
+    "network": "none",
+    "image_execution_components_unchanged_after_check": true,
+    "subsequent_persistent_stop_change_retested_natively": true,
+    "all_probe_containers_removed": true
+  },
+  "scope_limit": "Docker capability checks and synthetic graph/client tests; complete revised Harbor/gateway/verifier qualification and successor registration remain.",
+  "model_protocol_sha256": "75718eac81a70390e879743b3c760e942281ac205f577960beec845d50057238",
+  "financial_caps": null,
+  "reserve_usd": null,
+  "artificial_model_call_ceiling": null,
+  "private_partial_backup": {
+    "sha256": "bb24428bd8767dd1e9e5ca2eb1fcc4b8b5a2a44ca1d933d2c95aca059feb3b12",
+    "files": 403,
+    "verified_results": 4,
+    "compressed_bytes": 1201507,
+    "private_archive_not_published": true
+  },
+  "original_178_result_hashes_unchanged": true,
+  "original_custom_execution_source_unchanged": true
+}

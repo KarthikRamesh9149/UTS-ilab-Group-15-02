@@ -45,10 +45,19 @@ class CorrectedCustomHarborAgent(BaseAgent):
             max_output_tokens=SETTINGS.max_output_tokens,
             temperature=SETTINGS.temperature, top_p=1.,
             reasoning_effort=SETTINGS.reasoning_effort,
-            completion_wait_seconds=completion_wait_seconds)
+            completion_wait_seconds=completion_wait_seconds, **self.client_options())
         self.timeout = trial_timeout_seconds
         self.used = False
         self.runner = None
+
+    def client_options(self):
+        return {}
+
+    def backend(self, environment):
+        return HarborSandbox(environment, identifier=self.session_id or 'single-custom-trial')
+
+    def failure_metadata(self, exc):
+        return None
 
     def execution_metadata(self):
         return dict(version=self.version(), condition=self.condition.name,
@@ -69,11 +78,12 @@ class CorrectedCustomHarborAgent(BaseAgent):
         self.used = True
         self.logs_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
         durable_json(self.logs_dir / 'custom-started.json', self.execution_metadata())
-        backend = HarborSandbox(environment, identifier=self.session_id or 'single-custom-trial')
+        backend = self.backend(environment)
         self.runner = CustomRunner(self.model, backend, self.condition,
             max_model_calls=None, defer_job_cleanup=True)
         outcome = None
         error_type = None
+        failure = None
         try:
             # Avoid accidental export through unrelated LangSmith credentials.
             # The scored orchestrator's metadata-only tracing is separate.
@@ -81,12 +91,15 @@ class CorrectedCustomHarborAgent(BaseAgent):
                 outcome = await self.runner.run(instruction, timeout_seconds=self.timeout)
         except BaseException as exc:
             error_type = type(exc).__name__
+            failure = self.failure_metadata(exc)
             raise
         finally:
             state = self.runner.state or {}
             metadata = dict(self.execution_metadata(), outcome=outcome,
                 error_type=error_type, model_attempts=self.runner.model_limit.attempts,
                 graph_recursion_safety_bound=self.runner.graph_recursion_limit)
+            if failure is not None:
+                metadata['failure_metadata'] = failure
             # Raw observations are private; only the separate metrics exporter
             # may produce curated public artifacts. Never serialize clients.
             durable_json(self.logs_dir / 'custom-trajectory.json', dict(metadata,

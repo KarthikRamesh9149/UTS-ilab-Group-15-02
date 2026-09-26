@@ -195,10 +195,16 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 if gateway['State']['Running']:
                     raise RuntimeError('Gateway is still running')
                 await asyncio.to_thread(bridge.__exit__, None, None, None)
-            result.update(await execute_phases(agent=agent, environment=environment,
-                task=task, paths=paths, revoke_model=revoke,
-                setup_timeout_seconds=setup_timeout_seconds, phase_observer=trace,
-                prepare_environment=refresh_package_metadata))
+            phase_evidence = {}
+            try:
+                result.update(await execute_phases(agent=agent, environment=environment,
+                    task=task, paths=paths, revoke_model=revoke,
+                    setup_timeout_seconds=setup_timeout_seconds, phase_observer=trace,
+                    prepare_environment=refresh_package_metadata, retained_result=phase_evidence))
+            finally:
+                # execute_phases still revokes/cleans on cancellation; keep
+                # those observations even when it cannot return normally.
+                result.update(phase_evidence)
         except BaseException as exc:
             result.update(status='interrupted' if isinstance(exc, asyncio.CancelledError) else 'infrastructure_failed',
                           error_type=type(exc).__name__)

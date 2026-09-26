@@ -8,20 +8,22 @@ See [baseline results](results/baseline-corrected-20260923/README.md) and
 Do not restart those experiments or apply current source edits to their
 immutable server deployments.
 
-Custom development has [started its first fixed-20 block](results/custom-development-20260926/README.md).
-The [corrected-protocol candidate](protocols/custom_corrected_candidate_20260926.md)
-uses the same model settings and task deadline as the baselines, without the
-old 100-call guard. Its [native setup checks](results/custom-setup-20260926/README.md)
-passed with a synthetic provider before launch. At the 05:46 UTC snapshot,
-the first task was active with real model requests and no completed score yet.
+Custom development is [stopped for compatibility repairs](results/custom-development-20260926/README.md).
+The first C0 deployment retains four started attempts: two verifier zeros,
+one setup failure and one operator interruption. It has no completed /20 score.
+The separately versioned [0.3 candidate](results/custom-compatibility-20260926/README.md)
+adds text-only file transport, a private Python fallback, safer process capture,
+cooperative boundary stopping and cancellation evidence. Its offline checks do
+not constitute a paid launch or a benchmark quality result.
 The fixed dev20 comparison is Terminus-2 14/20
 and OpenHands 10/20. `corrected_custom_scope.py` verifies that matched export.
 The separate development runner now records the user's 26 September authority:
 no project/task financial cap, reserve or artificial call-count ceiling. It
 retains actual provider limits and official task limits, with no automatic
-top-up. Source-bound native qualification passed: 120 server tests and four
-real-Docker rehearsals, with zero paid model calls during setup. The first C0
-block is registered; later blocks need their own registration. See the protocol note for the
+top-up. The original 0.2 setup qualification passed 120 server tests and four
+real-Docker rehearsals, but the paid run exposed gaps in that fixture coverage.
+It cannot qualify changed 0.3 source. A successor needs fresh native qualification
+and a new registration retaining the partial experiment. See the protocol note for the
 remaining development and final-freeze work. Approved new work is pushed to
 `main`; historical experiment commits remain unchanged.
 

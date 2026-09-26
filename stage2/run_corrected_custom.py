@@ -15,6 +15,7 @@ from retry_experiment import ANCESTORS, DEPLOYMENT as BASELINE
 from retry_runtime import Clock, Cooldown, private_read
 from run_credit_only import hold, pending_stops
 from scored_trial import run_trial, docker
+from custom_dispatch_stop import BoundaryStop
 
 DIAGNOSTIC = Path('/opt/uts-capstone-timeout-diagnostic-20260925')
 
@@ -29,14 +30,21 @@ def lock_all(stack, root):
                 hold(stack, base / '.runtime/stage2', name)
 
 
-async def dispatch(root, block):
+async def dispatch(root, block, *, stop=None):
     runtime = Path(root) / '.runtime/stage2'
+    stop = stop if stop is not None else BoundaryStop(runtime)
+    if stop.requested():
+        print(json.dumps(dict(status='operator_stopped_before_dispatch')), flush=True)
+        return
     completed, partial = audited(root)
     if partial:
         raise ValueError('Started custom attempt is retained and cannot be replayed')
     if pending_stops(runtime, completed):
         raise ValueError('Actual provider credit/auth/identity stop needs inspection')
     for cell in block['cells']:
+        if stop.requested():
+            print(json.dumps(dict(status='operator_stopped_at_boundary')), flush=True)
+            return
         name = cell['trial_id']
         if name in completed:
             continue
@@ -46,6 +54,9 @@ async def dispatch(root, block):
         cooldown = Cooldown(runtime, Clock())
         if cooldown.until > cooldown.clock.monotonic():
             await asyncio.to_thread(cooldown.wait, cooldown.until + 1, threading.Event())
+        if stop.requested():
+            print(json.dumps(dict(status='operator_stopped_before_attempt')), flush=True)
+            return
         print(json.dumps(dict(status='starting', condition=block['condition'],
             completed=sum(c['trial_id'] in completed for c in block['cells']), intended=20,
             trial_id=name)), flush=True)
@@ -80,7 +91,8 @@ async def run(root, condition):
         if docker('ps', '-q', '--filter', 'name=uts-scored-'):
             raise ValueError('Another owned task is active')
         block = register(root, condition)
-        await dispatch(root, block)
+        with BoundaryStop(Path(root) / '.runtime/stage2') as stop:
+            await dispatch(root, block, stop=stop)
 
 
 if __name__ == '__main__':
