@@ -1,0 +1,164 @@
+{
+  "experiment": "custom-corrected-development-20260926",
+  "phase": "development",
+  "condition": "C0",
+  "state": "running_at_observation",
+  "launched_utc": "2026-09-26T05:45:37.309252+00:00",
+  "observed_utc": "2026-09-26T05:46:37.153148+00:00",
+  "service": "uts-stage2-custom-c0-20260926.service",
+  "source_commit_original": "da9b4a8a58f89465f6eb8850081252e08be0e0cf",
+  "source_commit_equivalent_on_main": "efdfa5b3a523cecdcc3d9522b59ce37f6efb318f",
+  "setup_evidence_commit": "562a23fe0639ffdc79c636e3e7453affa586c813",
+  "qualification_sha256": "716c2bf7f5dcf402774605b679ad5f87a027244c4e37c45d7b9201c923b5f7e1",
+  "registration_sha256": "aecc27578c4209aa7697954ba5376644696cc520721a5c43136900b353f79bfd",
+  "intended": 20,
+  "completed_at_observation": 0,
+  "active_at_observation": [
+    {
+      "trial_id": "customdev1-c0-01-video-processing",
+      "task_id": "video-processing",
+      "started_utc": "2026-09-26T05:45:42.519072+00:00"
+    }
+  ],
+  "registration": {
+    "experiment": "custom-corrected-development-20260926",
+    "stage": "development",
+    "condition": "C0",
+    "parent": null,
+    "policy_sha256": "9c4c1274a6966f4ccf79e12e646f3fccc544ccd43534a5963823a9f5ab89081d",
+    "sources_sha256": "bb3a70ade414f4342acc7b1503dbb5d50e082b5a83a7abd18c7b5ecb922a3ac1",
+    "qualification_sha256": "716c2bf7f5dcf402774605b679ad5f87a027244c4e37c45d7b9201c923b5f7e1",
+    "model_protocol_sha256": "75718eac81a70390e879743b3c760e942281ac205f577960beec845d50057238",
+    "input_manifest_sha256": "a33de38d1794617b2acc7c50b1f997da49c34b7df5032b481f023184e4aacbc7",
+    "development_ids": [
+      "video-processing",
+      "build-pov-ray",
+      "mailman",
+      "constraints-scheduling",
+      "overfull-hbox",
+      "reshard-c4-data",
+      "install-windows-3.11",
+      "openssl-selfsigned-cert",
+      "regex-chess",
+      "polyglot-rust-c",
+      "adaptive-rejection-sampler",
+      "qemu-alpine-ssh",
+      "modernize-scientific-stack",
+      "distribution-search",
+      "merge-diff-arc-agi-task",
+      "sqlite-db-truncate",
+      "prove-plus-comm",
+      "db-wal-recovery",
+      "qemu-startup",
+      "nginx-request-logging"
+    ],
+    "primary_comparator": "terminus-2",
+    "secondary_comparator": "openhands",
+    "cells": [
+      {
+        "trial_id": "customdev1-c0-01-video-processing",
+        "task_id": "video-processing",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-02-build-pov-ray",
+        "task_id": "build-pov-ray",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-03-mailman",
+        "task_id": "mailman",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-04-constraints-scheduling",
+        "task_id": "constraints-scheduling",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-05-overfull-hbox",
+        "task_id": "overfull-hbox",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-06-reshard-c4-data",
+        "task_id": "reshard-c4-data",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-07-install-windows-3.11",
+        "task_id": "install-windows-3.11",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-08-openssl-selfsigned-cert",
+        "task_id": "openssl-selfsigned-cert",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-09-regex-chess",
+        "task_id": "regex-chess",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-10-polyglot-rust-c",
+        "task_id": "polyglot-rust-c",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-11-adaptive-rejection-sampler",
+        "task_id": "adaptive-rejection-sampler",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-12-qemu-alpine-ssh",
+        "task_id": "qemu-alpine-ssh",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-13-modernize-scientific-stack",
+        "task_id": "modernize-scientific-stack",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-14-distribution-search",
+        "task_id": "distribution-search",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-15-merge-diff-arc-agi-task",
+        "task_id": "merge-diff-arc-agi-task",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-16-sqlite-db-truncate",
+        "task_id": "sqlite-db-truncate",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-17-prove-plus-comm",
+        "task_id": "prove-plus-comm",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-18-db-wal-recovery",
+        "task_id": "db-wal-recovery",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-19-qemu-startup",
+        "task_id": "qemu-startup",
+        "harness": "C0"
+      },
+      {
+        "trial_id": "customdev1-c0-20-nginx-request-logging",
+        "task_id": "nginx-request-logging",
+        "harness": "C0"
+      }
+    ],
+    "parent_selection": null
+  },
+  "real_api_dispatch_observed": true,
+  "automatic_trial_restart": false,
+  "note": "Live snapshot, not a completed result or accuracy claim. Original source IDs remain available in the recovery branch; history attribution changed no execution bytes."
+}
