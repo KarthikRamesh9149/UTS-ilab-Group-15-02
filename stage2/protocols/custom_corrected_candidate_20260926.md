@@ -61,6 +61,11 @@ The scope inspector is read-only and always reports `paid_launch_ready=false`.
 
 ## Verification and remaining implementation
 
+The initial local-only checkpoint below is historical. The subsequent runtime
+at `da9b4a8` passed 120 native tests and all four real-Docker synthetic
+rehearsals with zero paid calls. See the [setup evidence](../results/custom-setup-20260926/README.md).
+No paid custom score or finalist freeze exists yet.
+
 The local tests exercise the real Deep Agents graph and OpenAI-compatible
 client against synthetic task/provider responses. They include 104 model
 calls, an official-deadline timeout, cancellation, no task replay, every custom
