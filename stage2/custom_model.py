@@ -6,7 +6,7 @@ from gateway_policy import MODEL
 
 
 def gateway_model(base_url, trial_token, *, max_output_tokens, completion_wait_seconds,
-                  temperature=None, reasoning_effort=None):
+                  temperature=None, reasoning_effort=None, top_p=None):
     completion_wait_seconds = validate_completion_wait(completion_wait_seconds)
     parsed = urlsplit(base_url)
     if (parsed.scheme != 'http' or parsed.hostname != '127.0.0.1'
@@ -26,6 +26,10 @@ def gateway_model(base_url, trial_token, *, max_output_tokens, completion_wait_s
         if reasoning_effort not in {'low', 'medium', 'high'}:
             raise ValueError('Invalid reasoning effort')
         options['extra_body'] = {'reasoning': {'effort': reasoning_effort}}
+    if top_p is not None:
+        if type(top_p) not in (int, float) or not 0 < top_p <= 1:
+            raise ValueError('Invalid top_p')
+        options['top_p'] = top_p
     return ChatOpenAI(model=MODEL, base_url=base_url, api_key=trial_token,
                       max_tokens=max_output_tokens, max_retries=0,
                       timeout=completion_wait_seconds, streaming=False, use_responses_api=False, **options)
