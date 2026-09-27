@@ -59,6 +59,10 @@ class CorrectedCustomHarborAgent(BaseAgent):
     def failure_metadata(self, exc):
         return None
 
+    def make_runner(self, backend):
+        return CustomRunner(self.model, backend, self.condition,
+            max_model_calls=None, defer_job_cleanup=True)
+
     def execution_metadata(self):
         return dict(version=self.version(), condition=self.condition.name,
             parent=self.condition.parent, model_protocol_sha256=SETTINGS.fingerprint(),
@@ -79,8 +83,7 @@ class CorrectedCustomHarborAgent(BaseAgent):
         self.logs_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
         durable_json(self.logs_dir / 'custom-started.json', self.execution_metadata())
         backend = self.backend(environment)
-        self.runner = CustomRunner(self.model, backend, self.condition,
-            max_model_calls=None, defer_job_cleanup=True)
+        self.runner = self.make_runner(backend)
         outcome = None
         error_type = None
         failure = None
@@ -106,7 +109,7 @@ class CorrectedCustomHarborAgent(BaseAgent):
                 messages=messages_to_dict(state.get('messages', [])),
                 control_events=self.runner.control.events))
             context.metadata = dict(context.metadata or {},
-                custom_condition=self.condition.name, custom_parent=self.condition.parent,
+                custom_condition=metadata['condition'], custom_parent=metadata['parent'],
                 custom_version=self.version(), custom_outcome=outcome,
                 custom_error_type=error_type, model_attempts=self.runner.model_limit.attempts,
                 model_protocol_sha256=SETTINGS.fingerprint(), max_model_calls=None,

@@ -2,6 +2,14 @@
 
 ## Current checkpoint, 27 September 2026
 
+The user has requested a C3 before final scoring. The
+[C3 design and limits audit](protocols/custom_c3_design_20260927.md) adds an
+offline deadline-context prototype with a distinct 0.4 identity. It has not
+been deployed, qualified natively, registered or run on paid tasks. It also
+documents the inherited command and completion limits; no claim of a wholly
+unrestricted harness is made. C2 continues unchanged. Do not use the existing
+three-block freeze to bypass the new C3 decision and required admission work.
+
 The corrected baselines are complete: Terminus-2 52/89 and OpenHands 44/89.
 The separate [custom 0.3 C0 block](results/custom-portable-20260926/c0/README.md)
 completed all 20 development tasks with 15 passes. Its matched baseline scores

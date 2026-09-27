@@ -36,11 +36,15 @@ class TrialModelLimit(AgentMiddleware):
 
 
 class CustomRunner:
-    def __init__(self, model, backend, condition: Condition, *, max_model_calls, defer_job_cleanup=False):
+    def __init__(self, model, backend, condition: Condition, *, max_model_calls,
+                 defer_job_cleanup=False, model_middleware=()):
         if getattr(model, 'model_name', None) != MODEL:
             raise ValueError('Explicit pinned model required')
         if max_model_calls is not None and (type(max_model_calls) is not int or max_model_calls <= 0):
             raise ValueError('Positive model call limit or explicit None required')
+        if not isinstance(model_middleware, tuple) or any(
+                not isinstance(item, AgentMiddleware) for item in model_middleware):
+            raise ValueError('Explicit tuple of model middleware required')
         # Preserve the historical capped runner exactly. The separately
         # versioned corrected adapter explicitly selects None and still has
         # the official wall-clock deadline. LangGraph requires a positive
@@ -87,7 +91,7 @@ class CustomRunner:
         self.model_limit = TrialModelLimit(max_model_calls)
         self.graph = create_deep_agent(model=model, backend=backend, system_prompt=condition.prompt,
             tools=[complete_task, abandon_task, start_command, poll_command, interrupt_command],
-            middleware=[self.model_limit],
+            middleware=[self.model_limit, *model_middleware],
             subagents=[], memory=None, skills=None, store=None, checkpointer=None)
 
     async def run(self, instruction, *, timeout_seconds):
