@@ -3,8 +3,11 @@
 C0 is complete: **15/20 passed**, with five failures and no missing verifier
 results. On these same tasks, Terminus-2 passed 14/20 and OpenHands passed
 10/20. This is an encouraging development result, not a confirmed improvement
-on the full 89-task benchmark. C1 is registered to test planning instructions
-only, without changing the model, task set or official limits.
+on the full 89-task benchmark. C1 started on 27 September at 00:56 UTC to test
+planning instructions only, without changing the model, task set or official
+limits. The [C1 launch check](launch-c1.json) found one task in progress, six
+accepted model responses and no completed C1 result yet. This is a launch
+snapshot, not a live counter or a C1 score.
 
 See the [C0 comparison](c0/README.md), [per-task CSV](c0/trials.csv) and
 [audited summary](c0/summary.json). The initial [launch snapshot](launch.json)
