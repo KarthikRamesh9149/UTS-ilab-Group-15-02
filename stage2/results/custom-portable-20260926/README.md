@@ -1,17 +1,26 @@
 # Custom 0.3 development
 
-C0 is complete: **15/20 passed**, with five failures and no missing verifier
-results. On these same tasks, Terminus-2 passed 14/20 and OpenHands passed
-10/20. This is an encouraging development result, not a confirmed improvement
-on the full 89-task benchmark. C1 started on 27 September at 00:56 UTC to test
-planning instructions only, without changing the model, task set or official
-limits. The [C1 launch check](launch-c1.json) found one task in progress, six
-accepted model responses and no completed C1 result yet. This is a launch
-snapshot, not a live counter or a C1 score.
+C0 and C1 are complete and audited. C2 started on 27 September at 08:35 UTC.
+It adds completion checks to C0, the parent selected from the complete C0/C1
+results under the registered rule. No development attempt is replaced.
 
-See the [C0 comparison](c0/README.md), [per-task CSV](c0/trials.csv) and
-[audited summary](c0/summary.json). The initial [launch snapshot](launch.json)
-is retained unchanged.
+| Variant | Change | Result on the fixed 20 tasks |
+|---|---|---|
+| C0 | Control | 15 passed, 5 failed |
+| C1 | Planning instructions added to C0 | 14 passed, 6 failed |
+| C2 | Completion checks added to the selected C0 parent | Running |
+
+The matched baseline scores remain Terminus-2 14/20 and OpenHands 10/20.
+The observed C1 score is one pass lower than C0; one stochastic block does not
+establish that planning caused the difference. C0's incomplete cost total is
+not used for a cost tie-break. No full-benchmark improvement is established.
+
+See the [C0 comparison](c0/README.md), [C1 comparison](c1/README.md),
+[C1 per-task CSV](c1/trials.csv) and [C1 audited summary](c1/summary.json).
+The [C2 launch snapshot](launch-c2.json) is a dated observation, not a live
+counter. Earlier [C0](launch.json) and [C1](launch-c1.json) launch records are
+retained unchanged. Both completed blocks have verified private off-server
+backups; all 178 baseline and four stopped 0.2 result hashes remain unchanged.
 
 | Check | Result |
 |---|---|
@@ -50,5 +59,5 @@ tasks. The full baseline scores stay 52/89 and 44/89. No full-benchmark win,
 finalist freeze or whole-project completion is claimed.
 
 See the [protocol](../../protocols/custom_portable_development_20260926.md),
-[qualification metadata](qualification.json), [C0 registration](registration-c0.json)
-and [C1 registration](registration-c1.json).
+[qualification metadata](qualification.json), [C0 registration](registration-c0.json),
+[C1 registration](registration-c1.json) and [C2 registration](registration-c2.json).

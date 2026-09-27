@@ -7,10 +7,13 @@ The separate [custom 0.3 C0 block](results/custom-portable-20260926/c0/README.md
 completed all 20 development tasks with 15 passes. Its matched baseline scores
 are 14/20 and 10/20. This is a development result, not a confirmed full-run win.
 
-At 03:03 UTC on 27 September, the C1 planning comparison was active with eight
-completed attempts (five passes, three failures) and its ninth attempt running.
-This is a timestamped snapshot, not a live counter. C2 and the custom final 89
-had not started. The native source, registration and active run remain unchanged.
+The [C1 planning comparison](results/custom-portable-20260926/c1/README.md)
+completed at 04:51 UTC on 27 September: 14 passes, six failures and no missing
+verifier results. Its audit and private off-server backup are complete.
+C2 started at 08:35 UTC, adding completion checks to the registered C0 parent
+on the same 20 tasks. See its [launch snapshot](results/custom-portable-20260926/launch-c2.json).
+The source and qualification are unchanged. These are timestamped records,
+not live counters. The custom final 89 has not started.
 
 The [final-run preparation note](protocols/custom_final_preparation_20260927.md)
 records the 30 September afternoon Sydney target and the checks it cannot
@@ -23,7 +26,7 @@ native final-run qualification remain required.
 The offline candidate-freeze and schedule modules now bind all 60 development
 results and generate separate confirmation (60), diagnostic (20) and final
 custom (89) cells. They reject altered evidence and do not authorise paid
-execution. No real candidate has been frozen yet; C1/C2 must finish first.
+execution. No real candidate has been frozen yet; C2 must finish first.
 
 ## Previous checkpoint, 26 September 2026
 
