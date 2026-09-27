@@ -4,12 +4,16 @@
 
 The user has requested a C3 before final scoring. The
 [C3 design and limits audit](protocols/custom_c3_design_20260927.md) records an
-offline 0.4.1 prototype. At the user's request, it removes the 60-second
+separately qualified 0.4.1 candidate. At the user's request, it removes the 60-second
 command default, background handle quotas and completion-repair count stop.
 Commands use the remaining official task time unless the agent chooses a
 shorter timeout. The time reminders remain advisory. This combined revision
-is not a reminder-only ablation or a claim of unlimited resources. It has not
-been deployed, qualified natively, registered or run on paid tasks.
+is not a reminder-only ablation or a claim of unlimited resources.
+The [C3 fixed20 run](results/custom-deadline-20260927/README.md) started at
+13:47 UTC on 27 September, after 205 native tests and all three real
+Harbor/gateway/Docker/verifier synthetic rehearsals passed without paid calls.
+At 13:50 UTC its first task was active with 12 accepted provider responses.
+This is a timestamped launch snapshot, not a completed C3 score.
 C2 is complete and audited. C3 uses its own policy, qualification and
 registration path; it cannot enter the older registry as C0. Whole-variant
 selection now includes C3, but its freeze/schedule documents are metadata,
@@ -43,7 +47,8 @@ custom (89) cells. They reject altered evidence and do not authorise paid
 execution. The new four-variant modules extend those schedules to include C3,
 bind all 80 development outcomes after completion, and label a C3-parent
 comparison as a combined revision rather than a single-lever ablation.
-No real finalist has been frozen; C3 development and final admission remain.
+No real finalist has been frozen; C3 development is running and final admission
+remains unfinished. The native job continues independently of the Mac.
 
 ## Previous checkpoint, 26 September 2026
 

@@ -1,7 +1,7 @@
 # C3: deadline-aware development candidate
 
-Status: local implementation and admission tests complete; native qualification
-and paid registration pending.
+Status: native qualification and registration complete. The C3 fixed20 run
+started at 13:47 UTC on 27 September. Its score is not yet established.
 
 On 27 September the user requested a C3 before the final 89 and supplied
 walkinglabs/learn-harness-engineering as an optional reference. This extends
@@ -29,9 +29,9 @@ not a time-reminder-only ablation. Any score difference cannot be attributed
 to the reminder alone. Earlier C0/C1/C2 outcomes and execution sources remain
 unchanged.
 
-The unchanged parent will be selected from all complete, audited C0/C1/C2
-blocks using the existing ranking. No parent is selected from C2's partial
-score. C3 retains that parent's planning and completion-check requirements,
+The unchanged parent was selected from all complete, audited C0/C1/C2
+blocks using the existing ranking: C0 at 15/20. No parent was selected from
+C2's partial score. C3 retains that parent's planning and completion-check requirements,
 but explicitly revises its command timeouts, job quotas and completion-repair
 policy. Its identity is C3, version 0.4.1, with the complete parent lineage
 recorded. Calling a valid completion or abandoning remains an agent choice;
@@ -104,7 +104,7 @@ The user asked specifically whether restrictions could hamper progress. The
 answer is not an unconditional "none". The live C2 policy has no project/task
 spending cap, reserve, model-call cap or physical-request-count cap. It retains
 the official overall task deadlines and resources. The C3 prototype also uses
-the uncapped model-call mode; no paid C3 policy has been registered yet.
+the uncapped model-call mode. The exact C3 policy was registered before launch.
 
 The contract distinguishes the frozen C2 from the new offline C3:
 
@@ -155,7 +155,8 @@ No new financial or API-call ceiling, automatic top-up, purchase, or account
 limit increase is authorised by this design. Unknown costs remain unknown.
 The 30 September target may need revision for C3's extra engineering and 20
 development attempts; quality checks and fair task limits do not get shortened
-to preserve that date. No additional paid calls were launched for this work.
+to preserve that date. The initial offline work made no paid calls; the later
+qualified launch is recorded below.
 
 ## References reviewed
 
@@ -265,4 +266,25 @@ as a passed benchmark attempt.
 
 After the fixture correction, all 34 affected local checks passed. Full local
 discovery ran 1,210 tests: 1,209 passed and one pre-existing skip. The second
-native rehearsal is still required on those exact source bytes.
+native rehearsal then passed on those exact source bytes.
+
+## Qualified native launch
+
+Source `19051bd` passed 205 native tests and all three actual synthetic
+Harbor/custom graph/gateway/Docker/verifier cases: normal tool execution,
+setup cancellation and cooperative boundary stopping. Every case confirmed
+model revocation and owned-resource cleanup. Qualification used a fake model
+isolated from the network and made zero paid calls. The earlier failed fixture
+remains retained separately; it is not counted as a benchmark attempt.
+
+The private qualification, parent evidence, credit policy and exact C3
+registration were copied off-server and hash-verified before launch. All 160
+source files are bound to the qualification and registration. The first paid
+attempt started at 13:47 UTC on 27 September. At 13:50 UTC the service was
+active, one task had started, none had completed and 12 provider responses
+had been accepted. All frozen source hashes were unchanged.
+
+See [qualification and launch evidence](../results/custom-deadline-20260927/README.md).
+There is no completed C3 accuracy score or full-89 result at this checkpoint.
+After all 20 cells finish, audit and back up every outcome before comparing
+the four whole variants. A higher version number does not select the finalist.

@@ -1,0 +1,158 @@
+{
+  "kind": "registered_c3_fixed20_one_attempt_each",
+  "registration_sha256": "6d8babd88538fec8d1d481dad88353f6fd69a41d293c6d811bdf5fc831997e20",
+  "registration_file_sha256": "c5635ed0125d012d2c60c463f5d12d3c3641ca8012af7217c1335b6733098676",
+  "experiment": "custom-deadline-development-20260927",
+  "stage": "development",
+  "condition": "C3",
+  "parent": "C0",
+  "base_parent": null,
+  "candidate_version": "stage2-candidate-0.4.1",
+  "python_runtime_sha256": "7226bdfba69e2fda71033da1d47661b3fc5844e06c1361976d920cde7b64164e",
+  "policy_sha256": "f036d8262ea11758f80efb1237af7deb351af1a4988dd52f15d61226afeb7a78",
+  "sources_sha256": "bd1eeae389d6d0d9a196d517bcca34fd5b9127d6ed0a7abc5fde5e04e6508204",
+  "qualification_sha256": "f69ee5a3a504737a5a7a53c2cd72713f4cbdbb4e3ee8348667ae40acde75496f",
+  "model_protocol_sha256": "75718eac81a70390e879743b3c760e942281ac205f577960beec845d50057238",
+  "input_manifest_sha256": "a33de38d1794617b2acc7c50b1f997da49c34b7df5032b481f023184e4aacbc7",
+  "development_ids": [
+    "video-processing",
+    "build-pov-ray",
+    "mailman",
+    "constraints-scheduling",
+    "overfull-hbox",
+    "reshard-c4-data",
+    "install-windows-3.11",
+    "openssl-selfsigned-cert",
+    "regex-chess",
+    "polyglot-rust-c",
+    "adaptive-rejection-sampler",
+    "qemu-alpine-ssh",
+    "modernize-scientific-stack",
+    "distribution-search",
+    "merge-diff-arc-agi-task",
+    "sqlite-db-truncate",
+    "prove-plus-comm",
+    "db-wal-recovery",
+    "qemu-startup",
+    "nginx-request-logging"
+  ],
+  "primary_comparator": "terminus-2",
+  "secondary_comparator": "openhands",
+  "parent_evidence_sha256": "e6e3bc7c10ceade68c3a72b186767b26ffb77a4311f591e68b45b47c2a9e8c3f",
+  "execution_contract": {
+    "version": "official-deadline-execution-v1",
+    "overall_deadline": "official-authoritative-unchanged",
+    "default_command_timeout": "remaining-official-task-time",
+    "agent_chosen_shorter_timeout": true,
+    "completion_repair_count_cap": null,
+    "background_active_count_cap": null,
+    "background_lifetime_count_cap": null,
+    "model_call_cap": null,
+    "no_replay": true,
+    "output_and_context_windows": "finite-unchanged",
+    "provider_auth_credit_identity": "enforced",
+    "container_isolation": "unchanged"
+  },
+  "cells": [
+    {
+      "trial_id": "customdev3-c3-01-video-processing",
+      "task_id": "video-processing",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-02-build-pov-ray",
+      "task_id": "build-pov-ray",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-03-mailman",
+      "task_id": "mailman",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-04-constraints-scheduling",
+      "task_id": "constraints-scheduling",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-05-overfull-hbox",
+      "task_id": "overfull-hbox",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-06-reshard-c4-data",
+      "task_id": "reshard-c4-data",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-07-install-windows-3.11",
+      "task_id": "install-windows-3.11",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-08-openssl-selfsigned-cert",
+      "task_id": "openssl-selfsigned-cert",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-09-regex-chess",
+      "task_id": "regex-chess",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-10-polyglot-rust-c",
+      "task_id": "polyglot-rust-c",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-11-adaptive-rejection-sampler",
+      "task_id": "adaptive-rejection-sampler",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-12-qemu-alpine-ssh",
+      "task_id": "qemu-alpine-ssh",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-13-modernize-scientific-stack",
+      "task_id": "modernize-scientific-stack",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-14-distribution-search",
+      "task_id": "distribution-search",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-15-merge-diff-arc-agi-task",
+      "task_id": "merge-diff-arc-agi-task",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-16-sqlite-db-truncate",
+      "task_id": "sqlite-db-truncate",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-17-prove-plus-comm",
+      "task_id": "prove-plus-comm",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-18-db-wal-recovery",
+      "task_id": "db-wal-recovery",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-19-qemu-startup",
+      "task_id": "qemu-startup",
+      "harness": "C3"
+    },
+    {
+      "trial_id": "customdev3-c3-20-nginx-request-logging",
+      "task_id": "nginx-request-logging",
+      "harness": "C3"
+    }
+  ]
+}
