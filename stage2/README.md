@@ -27,6 +27,15 @@ unfinished; the existing native deployments are unchanged. A separate capture
 transport fix has a harmless local reproduction and tests; native validation
 of that fix is also still required.
 
+C0-NC now has a separate offline policy, gateway, host-identity reader, study
+registration and locked dispatcher. The new scored-runner hook requires the
+authenticated dispatch scope and exact qualified image; its own fixed20 IDs
+cannot reuse C0/C3 results. The source bindings explicitly record admission and
+trace-label changes without modifying the measured agent implementations.
+The native qualifier, isolated rehearsal, pinned gateway build and exporter
+are still unfinished, so there has been no C0-NC native deployment or paid
+validation. Self-consistent registration metadata does not establish readiness.
+
 The direct-final gateway contract is now implemented and tested locally. It
 accepts only the exact 89 fresh final IDs, the authenticated-freeze schema and
 a separate native-final qualification record. It retains the existing shared

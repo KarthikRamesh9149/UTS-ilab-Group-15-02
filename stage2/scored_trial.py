@@ -97,9 +97,12 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         from corrected_custom_policy import EXPERIMENT as CORRECTED_CUSTOM
         from portable_custom_policy import EXPERIMENT as PORTABLE_CUSTOM
         from deadline_custom_policy import EXPERIMENT as DEADLINE_CUSTOM
-        if custom_study not in {CORRECTED_CUSTOM, PORTABLE_CUSTOM, DEADLINE_CUSTOM} or not passive or billing_runtime is not None or billing_kind != 'scored':
+        from no_cutoff_custom_policy import EXPERIMENT as NO_CUTOFF_CUSTOM
+        if custom_study not in {CORRECTED_CUSTOM, PORTABLE_CUSTOM, DEADLINE_CUSTOM, NO_CUTOFF_CUSTOM} or not passive or billing_runtime is not None or billing_kind != 'scored':
             raise ValueError('Explicit separately qualified custom study required')
-        if custom_study == DEADLINE_CUSTOM:
+        if custom_study == NO_CUTOFF_CUSTOM:
+            from no_cutoff_custom_study import admit_trial as custom_admission
+        elif custom_study == DEADLINE_CUSTOM:
             from deadline_custom_study import admit_trial as custom_admission
         elif custom_study == PORTABLE_CUSTOM:
             from portable_custom_study import admit_trial as custom_admission
@@ -180,6 +183,9 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             main = await asyncio.to_thread(service, project, 'main')
             audit_task(main, task.config.environment, paths)
             result['task_image_id'] = main['Image']
+            if custom_study is not None and custom_study == NO_CUTOFF_CUSTOM:
+                from no_cutoff_custom_study import require_task_image
+                require_task_image(root, task_id, main['Image'])
             relay = await asyncio.to_thread(service, project, 'model-relay')
             if relay['Image'] != gateway_image:
                 raise RuntimeError('Unexpected relay image')
@@ -189,7 +195,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 container_api_base='http://127.0.0.1:8765/v1', trial_token=token,
                 agent_timeout_seconds=task.config.agent.timeout_sec,
                 completion_wait_seconds=completion_wait_seconds)
-            if result['harness'] in {'terminus-2', 'openhands', 'C0', 'C1', 'C2', 'C3'}:
+            if result['harness'] in {'terminus-2', 'openhands', 'C0', 'C1', 'C2', 'C3', 'C0-NC'}:
                 trace_type = PaidTrialTrace
                 if passive:
                     from credit_only_accounting import PassiveTrialTrace

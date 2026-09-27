@@ -73,20 +73,50 @@ encoded path, structured reads and sizeable commands as well as process
 matching. This is an additional explicit runtime correction, not a claim that
 only command cutoffs changed or that the revision inherits C0's score.
 
-## Admission still required
+## Admission implementation
 
-The adapter is offline only. The existing portable, C3 and direct-final
-registries do not admit its new identity. It must not masquerade as C0, C3 or a
-final-stage trial to bypass those registries.
+The revision is still offline. `no_cutoff_custom_policy.py` now binds the
+already selected original C0 and all 80 original results to one C0-NC block,
+using fresh `customdev4-c0-nc-` IDs on the exact original fixed20. Its policy
+does not admit C1-NC/C2-NC, a renamed C0/C3, or a final-stage trial. The original
+freeze's canonical hash is pinned; a newly invented ranking is not authority
+for another revision. The original four-variant and direct-final registries
+remain unchanged.
 
-The original parent and all 80 outcomes are now bound. Still implement a
-separate policy, registration and
-exporter with fresh fixed20 IDs, all ancestor locks, exact source/dependency/
-runtime bindings, preserved unknown costs and one attempt per registered cell.
-Qualify the final new source through the actual native Harbor/graph/gateway/
-container/verifier path with an isolated fake model before paid validation.
-The fixture must verify the absence of dynamic time advice rather than reuse
-C3's contrary fixture assertion. Reuse only still-bound unaffected evidence.
+The lightweight gateway uses the unchanged retry and passive-accounting
+implementation. It has no dependency on Harbor, the agent stack or host-side
+evidence authentication. Unknown cost is not a reservation or dispatch stop.
+Actual provider credit, authentication and response identity remain enforced.
+
+`no_cutoff_custom_runtime.py` reads source, dependencies, the Python archive,
+canonical dataset hashes and task configuration without launching anything.
+It binds the fixed20 image IDs and deadlines to the retained baseline evidence.
+The inherited deadline implementation and original selection helpers cannot
+drift. Two new orchestration changes are explicit: C0-NC admission/image checks
+in `scored_trial.py`, and the exact C0-NC trace label in `local_trace.py`.
+The three construction/orchestration changes already present between portable
+and deadline sources remain disclosed in both original source maps.
+
+The new study and dispatcher authenticate the original studies before taking
+their locks, then recheck the file bindings under all ancestor locks, including
+C3 r2. The scored entry requires the transient authenticated-dispatch scope,
+not just a saved JSON registration. It checks the running task image again
+before constructing the agent. All outcomes are retained, including zero and
+missing verifier results. An unfinished attempt is not dispatched again.
+An ordinary cooperative stop is persisted even when its signal arrives during
+the last cell. No running deployment has been changed.
+
+Native qualification is still required. The real qualifier, isolated provider
+fixture, pinned gateway image and curated/private exporter remain to be
+implemented. Their final sources and tests must be added to the qualification
+bindings before native rehearsal or registration. Passing these local admission
+tests, or supplying self-consistent JSON, is not evidence of native execution.
+No C0-NC deployment, actual qualification, registration or paid validation has
+occurred. Qualify the final new source through the actual native
+Harbor/graph/gateway/container/verifier path with an isolated fake model. The
+fixture must verify the absence of dynamic time advice, encoded capture,
+sizeable commands and process matching as well as the full lifecycle. Reuse
+only still-bound unaffected evidence.
 
 Retain every revised result; never transfer the original score, replace a
 failure, choose a per-task best attempt or repeatedly tune until a better score
@@ -108,3 +138,20 @@ All 88 affected checks passed. The final local discovery ran 1,344 tests:
 discovery ran 36 passing tests. These are local tests and synthetic fixtures,
 not native qualification, a paid launch or a revised benchmark score. No new
 server deployment or paid validation call was made for this revision.
+
+The admission and dispatch checkpoint adds local contract, mocked host identity
+and scored-lifecycle tests. The synthetic provider exercises 105 logical calls,
+105 transient retries, unknown costs, shared recovery and real stop categories.
+The host tests exercise a real held file lock, authentication-before-lock order,
+scoped admission, exact factory identity, no replay, final-cell stop persistence,
+trace recording and cleanup after an image mismatch. The initial run had three
+fixture setup errors (macOS temporary-path resolution and an unmocked Linux
+clock); the test fixtures were corrected before the passing runs. These are
+not failures or attempts on benchmark tasks.
+
+All 44 new admission/dispatch tests passed; the combined affected run passed
+154 tests. Final local discovery ran 1,388 tests, with 1,387 passing and the
+same one pre-existing skip. The separate legacy discovery passed 36 tests.
+A read-only local check accepted the real saved C0 selection and all 80 result
+bindings against 183 current source files. It did not authenticate the native
+host, run the original collector again or create any study artifacts.
