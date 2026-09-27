@@ -1,6 +1,26 @@
 # Stage 2 execution status
 
-## Current checkpoint, 26 September 2026
+## Current checkpoint, 27 September 2026
+
+The corrected baselines are complete: Terminus-2 52/89 and OpenHands 44/89.
+The separate [custom 0.3 C0 block](results/custom-portable-20260926/c0/README.md)
+completed all 20 development tasks with 15 passes. Its matched baseline scores
+are 14/20 and 10/20. This is a development result, not a confirmed full-run win.
+
+At 03:03 UTC on 27 September, the C1 planning comparison was active with eight
+completed attempts (five passes, three failures) and its ninth attempt running.
+This is a timestamped snapshot, not a live counter. C2 and the custom final 89
+had not started. The native source, registration and active run remain unchanged.
+
+The [final-run preparation note](protocols/custom_final_preparation_20260927.md)
+records the 30 September afternoon Sydney target and the checks it cannot
+override. `portable_final_selection.py` adds offline selection over complete
+C0/C1/C2 summaries without the old spending or call-count gates. It is not yet
+connected to a qualified final-run launcher and cannot authorise paid calls.
+Confirmation, the planned ablation/repeat, source freeze, final registration and
+native final-run qualification remain required.
+
+## Previous checkpoint, 26 September 2026
 
 The corrected full baselines and separate timeout diagnostic are complete.
 See [baseline results](results/baseline-corrected-20260923/README.md) and
