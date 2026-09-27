@@ -1,5 +1,12 @@
 # Custom final-run preparation
 
+The [28 September direct-final decision](custom_direct_final_20260928.md)
+supersedes this note's required 60-task confirmation and 20-task diagnostic.
+Those matrices are deferred, not completed. Whole-candidate selection, honest
+versioning, native qualification, registration and the final evidence audit
+remain required. Everything below records the earlier preparation plan and
+its implementation history.
+
 The user requested a three-day target on 27 September and explicitly said not
 to compromise quality. The working target is 30 September afternoon, Sydney
 time. It is not a guarantee or permission to skip required checks.

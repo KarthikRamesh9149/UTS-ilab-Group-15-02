@@ -1,5 +1,20 @@
 # Stage 2 execution status
 
+## Final-run direction, 28 September 2026
+
+The user requested the best whole candidate from C0/C1/C2/C3 to run all 89
+tasks after C3. The [direct-final decision](protocols/custom_direct_final_20260928.md)
+defers the earlier 60-task confirmation and 20-task diagnostic; it does not
+skip final runtime qualification or alter the active C3 study. C3 remains
+in progress and the final 89 has not started.
+
+The finalist must have no artificial spending, model-call, command-time,
+job-count or completion-repair cutoff. C0/C1/C2 still contain their original
+execution cutoffs: removing those from an older winner requires a labelled,
+qualified and development-validated revision, not silently changing the
+measured winner. Actual provider limits, finite tool windows and isolation
+still apply. A best-in-world or full-benchmark accuracy win is not established.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The
