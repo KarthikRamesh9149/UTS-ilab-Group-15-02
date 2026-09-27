@@ -1,9 +1,14 @@
-# Custom 0.3: qualified development run
+# Custom 0.3 development
 
-The revised harness passed native setup qualification. C0 started on
-26 September at 12:19 UTC on the same fixed 20 tasks. At the
-[launch check](launch.json), the first task was running with nine accepted
-provider responses and no completed result yet. This is not a benchmark score.
+C0 is complete: **15/20 passed**, with five failures and no missing verifier
+results. On these same tasks, Terminus-2 passed 14/20 and OpenHands passed
+10/20. This is an encouraging development result, not a confirmed improvement
+on the full 89-task benchmark. C1 is registered to test planning instructions
+only, without changing the model, task set or official limits.
+
+See the [C0 comparison](c0/README.md), [per-task CSV](c0/trials.csv) and
+[audited summary](c0/summary.json). The initial [launch snapshot](launch.json)
+is retained unchanged.
 
 | Check | Result |
 |---|---|
@@ -38,8 +43,9 @@ cap, reserve or artificial model-call ceiling. Actual provider credit,
 authentication and identity safeguards remain.
 
 Compare C0/C1/C2 with Terminus-2's 14/20 and OpenHands' 10/20 on these exact
-tasks. The full baseline scores stay 52/89 and 44/89. No custom accuracy win,
+tasks. The full baseline scores stay 52/89 and 44/89. No full-benchmark win,
 finalist freeze or whole-project completion is claimed.
 
 See the [protocol](../../protocols/custom_portable_development_20260926.md),
-[qualification metadata](qualification.json) and [C0 registration](registration-c0.json).
+[qualification metadata](qualification.json), [C0 registration](registration-c0.json)
+and [C1 registration](registration-c1.json).
