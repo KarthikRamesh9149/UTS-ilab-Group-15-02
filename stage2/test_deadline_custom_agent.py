@@ -12,6 +12,7 @@ from harbor.models.agent.context import AgentContext
 from custom_backend_tests import FakeEnvironment
 from custom_control import Condition
 from custom_deadline_guidance import MARKER
+from custom_deadline_execution import DeadlineCondition, DeadlineCompletionControl, DeadlineJobs
 from custom_python_runtime import PythonBundle
 from custom_runner_tests import SequenceModel, completion
 from custom_text_transport import TextGatewayChatOpenAI
@@ -146,8 +147,14 @@ class DeadlineAgentTests(unittest.IsolatedAsyncioTestCase):
             with patch('deadline_custom_agent.Clock', return_value=self.clock):
                 context = AgentContext()
                 await agent.run('Synthetic', environment, context)
-            self.assertEqual(agent.runner.control.condition, condition)
-            self.assertIn(condition.prompt, agent.model._calls[0][0].text)
+            self.assertEqual(agent.runner.control.condition, DeadlineCondition(name, parent))
+            self.assertIn(DeadlineCondition(name, parent).prompt, agent.model._calls[0][0].text)
+            self.assertIsInstance(agent.runner.control, DeadlineCompletionControl)
+            self.assertIsInstance(agent.runner.jobs, DeadlineJobs)
+            contract = context.metadata['custom_execution_contract']
+            for key in ('completion_repair_count_cap', 'background_active_count_cap',
+                        'background_lifetime_count_cap', 'model_call_cap'):
+                self.assertIsNone(contract[key])
             self.assertEqual(context.metadata['custom_parent'], name)
             self.assertEqual(context.metadata['custom_base_parent'], parent)
             self.assertIsNone(agent.runner.model_limit.limit)

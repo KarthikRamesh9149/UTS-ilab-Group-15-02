@@ -16,27 +16,40 @@ every timeout was preventable. C2 is still running. Its parent and source stay
 unchanged. No held-out answers or timeout-diagnostic task details informed this
 design.
 
-The present agent has a hard outer deadline but no explicit remaining-time
-message. C3's proposed single lever is a short, current time reminder before
-each model request. It uses the existing gateway lifecycle clock, not a new
-timer. It does not add model calls or change the model's reasoning settings.
+The initial 0.4.0 prototype added only a current time reminder before each
+model request. It uses the existing gateway lifecycle clock, not a new timer.
+It does not add model calls or change the model's reasoning settings.
+
+The user subsequently authorised removing the three audited artificial
+cutoffs: the 60-second command default, background handle quotas and the
+two-repair stop. The revised 0.4.1 prototype combines deadline-governed
+execution with that reminder. This is a broader execution-policy revision,
+not a time-reminder-only ablation. Any score difference cannot be attributed
+to the reminder alone. Earlier C0/C1/C2 outcomes and execution sources remain
+unchanged.
 
 The unchanged parent will be selected from all complete, audited C0/C1/C2
 blocks using the existing ranking. No parent is selected from C2's partial
-score. C3 retains that parent's prompt, tools and completion behaviour; its
-identity is C3, version 0.4, with the complete parent lineage recorded.
+score. C3 retains that parent's planning and completion-check requirements,
+but explicitly revises its command timeouts, job quotas and completion-repair
+policy. Its identity is C3, version 0.4.1, with the complete parent lineage
+recorded. Calling a valid completion or abandoning remains an agent choice;
+neither forces the attempt to consume its entire allowance.
 
 ## Why this change, rather than a larger rewrite
 
 | Candidate idea | Decision for this prototype |
 | --- | --- |
-| Remaining-time context | Implement as one testable change. The loop currently lacks it. |
+| Remaining-time context | Keep the initial advisory reminder, without an extra timer or model call. |
+| Artificial command, job and repair cutoffs | Remove in 0.4.1 as explicitly requested, using the same official deadline. |
 | Checking the actual outputs before completion | Already the C2 experiment. Preserve its outcome and selected-parent rule. |
 | Automatic compaction or loop intervention | Defer pending evidence of context exhaustion or unproductive repetition on development tasks. |
 | More agents, multiple models or extra attempts | Do not add. They complicate attribution; changing the model would violate this study. |
 | Structured tracing, clean termination and immutable evidence | Preserve existing mechanisms and qualify the new integration. They are not substitutes for accuracy. |
 
-Adding every technique at once would make a score change hard to explain.
+Unrelated features are not added to this revision. The three requested
+execution changes are documented together, not disguised as a single prompt
+change. Adding every technique at once would make a score change hard to explain.
 There is no evidence supporting a "best on earth" or guaranteed improvement
 claim. Published gains with other models and benchmarks do not predict ours.
 
@@ -59,10 +72,26 @@ retains the prepared portable environment, text-only transport, pinned Python,
 shared provider retry policy and exact baseline model configuration. The new
 factory identifies itself as C3 and is rejected by the old 0.3 registration.
 
-Two small extension points in the shared runner/adapter allow the new
-middleware and accurate C3 metadata. With their defaults, the existing C0/C1/C2
-behaviour is unchanged. These local changes must not be copied into the frozen
-native 0.3 deployment. Its existing qualification cannot qualify the new code.
+Opt-in extension points in the shared runner/adapter allow the new middleware,
+execution controls and accurate C3 metadata. With their defaults, the existing
+C0/C1/C2 behaviour is unchanged. These local changes must not be copied into
+the frozen native 0.3 deployment. Its existing qualification cannot qualify
+the new code.
+
+`custom_deadline_execution.py` reads the same authoritative deadline for both
+ordinary and background commands. Without an explicit timeout, a command may
+use all time still available. The agent may choose a shorter timeout, poll a
+background handle or interrupt an unwanted job. The library's separate
+one-hour execute ceiling is replaced by the official allowance; the backend
+clips each command to time actually remaining. Clock construction and graph
+construction do not restart the allowance.
+
+Background handles have no active or lifetime count quota. All processes
+still share the task's assigned CPU and memory. Incomplete completion reports
+may be repaired while official time remains, without a repair-count stop.
+The normal model/tool loop, observed-check requirements and no-replay rule
+remain. Cancellation propagates, container-only signalling is retained, and
+cleanup or transport failures are not labelled successful execution.
 
 Timing evidence contains request numbers, remaining seconds and phase labels,
 not task text or credentials. Detailed request and task observations remain
@@ -76,39 +105,40 @@ spending cap, reserve, model-call cap or physical-request-count cap. It retains
 the official overall task deadlines and resources. The C3 prototype also uses
 the uncapped model-call mode; no paid C3 policy has been registered yet.
 
-The inherited implementation still has these non-benchmark rules:
+The contract distinguishes the frozen C2 from the new offline C3:
 
-| Rule | Actual effect |
+| Rule in frozen C2 | C3 0.4.1 behaviour |
 | --- | --- |
-| Ordinary execute defaults to 60 seconds | A foreground command can be terminated before the overall task deadline. The separate start/poll tool accepts up to 3,600 seconds. |
-| Four active background handles, 64 total handles | Bounds the start/poll tool, not all commands or processes in the task container. |
-| Two repair opportunities after an incomplete completion attempt | A third incomplete completion ends the agent attempt even if time remains. This is not a general model-call limit. |
-| Bounded tool output and file-transfer helpers | Normal captured output is 64,000 bytes before decoding; a separate structured-read envelope allows 4 MiB. Upload/download helpers allow 1 MiB per file. These are not limits on files generated inside the container. |
-| Request and model-context bounds | The gateway request body is bounded and the exact baseline generation setting remains 384,000 maximum output tokens. Actual provider limits still apply. |
+| Execute and start default to 60 seconds, with explicit timeouts up to 3,600 seconds | Default is remaining official task time; an agent-chosen shorter timeout is optional. No independent one-hour ceiling. |
+| Four active background handles, 64 total handles | No handle-count quota; actual task CPU and memory still apply. |
+| Two completion-repair opportunities, then termination on the third incomplete report | No repair-count stop; corrections continue until valid completion, abandonment, an actual error or the official deadline. |
+| Bounded tool output and file-transfer helpers | Retained: captured output 64,000 bytes before decoding, structured-read envelope 4 MiB, upload/download helpers 1 MiB per file. These do not cap files generated inside the container. Large content can be processed in the container or retrieved in parts. |
+| Request and model-context bounds | Retained: bounded gateway body and the exact baseline setting of 384,000 maximum output tokens. Actual provider limits still apply. |
 
-These rules must not be hidden behind a claim that only benchmark constraints
-exist. They can affect behaviour; no claim is made that they caused a specific
-failure without evidence. Removing arbitrary early-stop or command-lifecycle
-limits is a different design change from merely showing the clock. Before C3
-paid registration, review this audit and settle an explicit, tested contract.
-If its tools or stop policy change, revise and version the experiment rather
-than describe several changes as a time-reminder-only ablation. Do not alter C2
-mid-run. Keep container isolation, provider authentication, retry correctness,
-cleanup and memory-safe output handling.
+Finite convenience-tool read/search windows and helper timeouts also remain;
+they are not overall trial limits. The execution tool can perform longer
+searches or process larger files inside the task. This is not a claim of
+literally unlimited resources or that retained bounds cannot affect behaviour.
+No specific prior failure is attributed to a removed rule without evidence.
+Container isolation, authentication, shared retry correctness, cleanup and
+memory-safe output handling remain necessary. No setup or billing gate may
+silently reintroduce the removed attempt limits during C3 admission.
 
 ## Requirements before any C3 paid attempt
 
 1. Complete and audit C2. Bind the parent selected from all three full blocks,
    their source/qualification hashes and all 60 retained result hashes.
-2. Resolve and test the limits contract above. Register the exact change and
-   its comparison before C3 outcomes are observed. Do not select easier tasks.
+2. Bind and test the amended 0.4.1 contract above. Register the exact combined
+   change and its comparison before C3 outcomes are observed. Do not select
+   easier tasks or claim a reminder-only causal comparison.
 3. Implement a separate C3 policy, admission/registration and exporter with
    fresh attempt IDs, all ancestor locks, no overlap, no replay, passive cost
    accounting and the original fixed 20-task order. Do not relabel C3 as C0 or
    development as final to enter an old gateway.
 4. Qualify the final source on native Harbor/Docker with a fake, isolated model:
    tool/media transport, Python-less setup, long reads, background processes,
-   clock reminders, shared 429 recovery, cancellation, cooperative stop,
+   commands exceeding 60 seconds, more than 64 handles, more than two
+   completion repairs, clock reminders, shared 429 recovery, cancellation, cooperative stop,
    tracing, revocation and cleanup. Reuse only unaffected, still-bound image
    evidence. Local graph tests do not constitute this qualification.
 5. Extend candidate selection, confirmation, ablation and freeze explicitly to
@@ -143,7 +173,7 @@ Review scope: selected relevant material, not every page of each repository or
 every possible harness technique. The benchmark's hidden verifier stays
 separate from the agent's own checks.
 
-## Offline verification, 27 September
+## Initial 0.4.0 verification, 27 September
 
 - 28 new tests cover the middleware and adapter, including every possible
   parent, changing clocks, preserved messages/settings, 104 model calls,
@@ -160,3 +190,22 @@ separate from the agent's own checks.
   Its private policy and retained result metadata confirmed no spending,
   reserve, logical-call or physical-call ceiling. This is a timestamped
   snapshot, not a live counter or a completed C2 score.
+
+## Amended 0.4.1 verification, 27 September
+
+- All 87 affected tests passed after fixing two test fixtures that reused the
+  same synthetic message identity. The complete local suite ran 1,158 tests:
+  1,157 passed and one pre-existing skip. The separate 34 legacy custom tests
+  passed. No paid API calls were made by these checks.
+- The 26 new tests include a real, predetermined local command lasting more
+  than 60 seconds, 80 simultaneous synthetic background handles and an 81st
+  retained handle, eight invalid completions followed by a valid ninth, and
+  150 control-level repair events without a count-based stop. The real graph
+  accepts an explicit command timeout over one hour using a synthetic clock.
+- An indefinitely incomplete synthetic model ends at the actual one-second
+  fixture deadline, not after two repairs. Tests also cover already-expired
+  clocks, cancellation, container-only interruption, error propagation,
+  optional shorter command timeouts, no replay and unchanged legacy controls.
+- These are local process and synthetic graph/adapter checks, not native C3
+  Harbor/gateway/verifier qualification. No C3 deployment, paid registration,
+  benchmark execution or accuracy gain is established by them.

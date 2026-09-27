@@ -51,11 +51,11 @@ class CustomRunner:
         # integer; sys.maxsize is an unreachable recursion safety bound, not
         # a task allowance or another hidden 100-call limit.
         self.graph_recursion_limit = sys.maxsize if max_model_calls is None else 10000
-        self.control = CompletionControl(condition)
+        self.control = self.make_control(condition)
         if type(defer_job_cleanup) is not bool:
             raise ValueError('Explicit cleanup lifecycle required')
         self.defer_job_cleanup = defer_job_cleanup
-        self.jobs = ContainerJobs(backend)
+        self.jobs = self.make_jobs(backend)
         self.used = False
         self.state = None
 
@@ -90,9 +90,19 @@ class CustomRunner:
             excluded_middleware=frozenset({'SummarizationMiddleware'})))
         self.model_limit = TrialModelLimit(max_model_calls)
         self.graph = create_deep_agent(model=model, backend=backend, system_prompt=condition.prompt,
-            tools=[complete_task, abandon_task, start_command, poll_command, interrupt_command],
+            tools=[complete_task, abandon_task,
+                   *self.command_tools([start_command, poll_command, interrupt_command])],
             middleware=[self.model_limit, *model_middleware],
             subagents=[], memory=None, skills=None, store=None, checkpointer=None)
+
+    def make_control(self, condition):
+        return CompletionControl(condition)
+
+    def make_jobs(self, backend):
+        return ContainerJobs(backend)
+
+    def command_tools(self, defaults):
+        return defaults
 
     async def run(self, instruction, *, timeout_seconds):
         if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or not math.isfinite(timeout_seconds) or timeout_seconds <= 0:
