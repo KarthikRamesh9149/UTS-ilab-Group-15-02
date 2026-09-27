@@ -17,7 +17,7 @@ from credit_only_experiment import coverage,cleanup_complete,digest
 from retry_runtime import private_read
 from scored_gateway import durable_json,private_directory
 
-DEPLOYMENT=Path('/opt/uts-capstone-custom-deadline-20260927')
+DEPLOYMENT=Path('/opt/uts-capstone-custom-deadline-20260927-r2')
 ADDED=('deadline_custom_contract.py','custom_deadline_guidance.py','custom_deadline_execution.py',
     'deadline_custom_agent.py','deadline_custom_policy.py','deadline_custom_gateway.py',
     'deadline_custom_parent.py','deadline_custom_study.py','run_deadline_custom.py',
@@ -28,7 +28,9 @@ ADDED=('deadline_custom_contract.py','custom_deadline_guidance.py','custom_deadl
     'test_custom_deadline_guidance.py','test_custom_deadline_execution.py','test_deadline_custom_agent.py',
     'test_deadline_custom_policy.py','test_deadline_custom_study.py','test_deadline_custom_probe.py',
     'test_deadline_final_selection.py','test_deadline_candidate_freeze.py','test_export_deadline_custom.py',
-    'fixtures/Dockerfile.custom-deadline')
+    'fixtures/Dockerfile.custom-deadline','fixtures/deadline-lifecycle/task.toml',
+    'fixtures/deadline-lifecycle/instruction.md','fixtures/deadline-lifecycle/environment/Dockerfile',
+    'fixtures/deadline-lifecycle/tests/test.sh')
 TEST_MODULES=('test_deadline_custom_policy','test_deadline_custom_study','test_deadline_custom_probe',
     'test_deadline_final_selection','test_deadline_candidate_freeze','test_export_deadline_custom',
     'test_custom_deadline_guidance','test_custom_deadline_execution','test_deadline_custom_agent',

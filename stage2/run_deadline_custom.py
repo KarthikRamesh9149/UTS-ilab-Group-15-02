@@ -20,12 +20,13 @@ from deadline_custom_parent import PREVIOUS
 
 DIAGNOSTIC = Path('/opt/uts-capstone-timeout-diagnostic-20260925')
 STOPPED_CUSTOM = Path('/opt/uts-capstone-custom-development-20260926')
+PRIOR_REHEARSAL = Path('/opt/uts-capstone-custom-deadline-20260927')
 
 
 def lock_all(stack, root):
     # The old deployments stay untouched except their existing lock files.
     # Every scored process must hold the shared ancestor lock too.
-    for base in (*ANCESTORS, BASELINE, DIAGNOSTIC, STOPPED_CUSTOM, PREVIOUS, Path(root)):
+    for base in (*ANCESTORS, BASELINE, DIAGNOSTIC, STOPPED_CUSTOM, PREVIOUS, PRIOR_REHEARSAL, Path(root)):
         hold(stack, base / '.runtime/stage2', 'matrix.lock')
         if base != Path(root):
             for name in ('scored.lock', 'gateway.lock'):

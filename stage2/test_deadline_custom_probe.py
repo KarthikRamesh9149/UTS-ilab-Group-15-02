@@ -1,5 +1,6 @@
 """Synthetic provider assertions, no native execution or actual API access."""
 import json
+import tomllib
 from pathlib import Path
 import unittest
 from deadline_custom_probe import SyntheticProvider,EXPECTED_LOGICAL
@@ -50,6 +51,16 @@ class ProbeTests(unittest.TestCase):
         self.assertIn('await execution',code)
         self.assertIn('expected_verifier_result',code)
         self.assertNotIn('sk-or-',code)
+
+    def test_fixture_service_lasts_until_verifier_and_cleanup(self):
+        p=SyntheticProvider('synthetic-not-a-real-key',clock=Clock());p.calls=1
+        response=p.complete(self.request(),on_response_headers=lambda _:None)
+        args=json.loads(response['choices'][0]['message']['tool_calls'][0]['function']['arguments'])
+        self.assertIn('while :; do sleep 3600; done',args['command'])
+        self.assertNotIn('sleep 110',args['command'])
+        stage=Path(__file__).parent
+        self.assertEqual(tomllib.loads((stage/'fixtures/deadline-lifecycle/task.toml').read_text())['agent']['timeout_sec'],180)
+        self.assertEqual(tomllib.loads((stage/'fixtures/portable-lifecycle/task.toml').read_text())['agent']['timeout_sec'],120)
 
 
 if __name__=='__main__':unittest.main()

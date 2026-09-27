@@ -23,7 +23,7 @@ from portable_custom_probe import SyntheticProvider as PreviousProvider
 PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jWZkAAAAASUVORK5CYII='
 PREPARE = ("printf '%s' " + PNG + " | base64 -d > /tmp/uts-fixture.png; "
     "python3 -c \"from pathlib import Path; Path('/tmp/uts-long.txt').write_text(''.join('row-%05d\\n'%i for i in range(16000)))\"; "
-    "sleep 110 & echo $! > /tmp/uts-background.pid; printf BACKGROUND_READY")
+    "(while :; do sleep 3600; done) & echo $! > /tmp/uts-background.pid; printf BACKGROUND_READY")
 EXPECTED_LOGICAL = 22
 
 
@@ -33,7 +33,12 @@ class SyntheticProvider(PreviousProvider):
         assert any('[Task time remaining]' in (m.get('content') or '')
             for m in request['messages'])
         if self.calls < 10:
-            return super().complete(request, on_response_headers=on_response_headers)
+            response=super().complete(request, on_response_headers=on_response_headers)
+            if self.calls==2:
+                # This C3 fixture deliberately takes over a minute. A service
+                # must live until verification, not expire on a fixture timer.
+                response['choices'][0]['message']['tool_calls'][0]['function']['arguments']=json.dumps({'command':PREPARE})
+            return response
         assert request['max_tokens'] == SETTINGS.max_output_tokens
         assert request['temperature'] == request['top_p'] == 1.
         assert request['reasoning'] == {'effort':'high'}
@@ -145,7 +150,7 @@ async def probe(root, gateway_image, guard_image, parent, base_parent, mode):
     private_directory(path.parent)
     durable_json(path, block)
     (fixture / '.env').write_text('OPENROUTER_API_KEY=synthetic-not-a-real-key\n')
-    task = Task(root / 'stage2/fixtures/portable-lifecycle')
+    task = Task(root / 'stage2/fixtures/deadline-lifecycle')
     assert 'build-pov-ray' in manifest['development_ids']
     metadata = tomllib.loads((frozen_dataset(root) / 'build-pov-ray/task.toml').read_text())['environment']
     task.config.environment.docker_image = docker('image', 'inspect', metadata['docker_image'], '--format', '{{.Id}}')

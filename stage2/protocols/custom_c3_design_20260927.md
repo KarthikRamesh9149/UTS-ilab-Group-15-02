@@ -244,3 +244,25 @@ Local admission/reporting/selection checks: 135 passed. Full local discovery:
 1,209 tests run, 1,208 passed and one pre-existing skip. These tests used no
 paid provider or scored benchmark execution. No C3 native qualification or
 benchmark score is established at this checkpoint.
+
+## First native rehearsal
+
+Source `1926e91` passed all 204 native unit tests. The actual tool sequence
+completed, including the long command, 73 jobs and seven completion repairs,
+but its verifier returned zero: the inherited synthetic service exited after
+110 seconds, while the sequence took 113.188 seconds. Model revocation,
+accounting, tracing and container/network/volume cleanup all passed. The
+failure is retained in [rehearsal-r1.json](../results/custom-deadline-20260927/rehearsal-r1.json).
+No real provider key was installed and no paid model call occurred.
+
+The correction changes only the test fixture and its deployment path. C3 now
+uses a separate synthetic fixture with a 180-second test allowance and a service
+that lives until container cleanup. The original 120-second fixture, C3 agent
+behaviour and benchmark task limits are unchanged. The second qualification
+uses a fresh `custom-deadline-20260927-r2` deployment and locks the retained
+first deployment as well. A failed rehearsal is not overwritten or reported
+as a passed benchmark attempt.
+
+After the fixture correction, all 34 affected local checks passed. Full local
+discovery ran 1,210 tests: 1,209 passed and one pre-existing skip. The second
+native rehearsal is still required on those exact source bytes.

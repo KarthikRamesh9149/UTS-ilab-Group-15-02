@@ -21,7 +21,7 @@ import tarfile
 from progress_dashboard import REPO, ssh_command
 from deadline_custom_policy import parent_selection, fingerprint, source_bindings
 
-REMOTE = '/opt/uts-capstone-custom-deadline-20260927'
+REMOTE = '/opt/uts-capstone-custom-deadline-20260927-r2'
 OUTPUT = REPO / 'stage2/results/custom-deadline-20260927'
 EXCLUDED = {'token', '.env', '.jwt_secret', 'id_ed25519', 'id_rsa', '__pycache__', '.DS_Store'}
 CHECKS = ('exact_registered_coverage', 'qualification_source_runtime_binding',
@@ -44,7 +44,7 @@ from contextlib import ExitStack
 from datetime import datetime,timezone
 import csv,json,os,subprocess,sys
 from pathlib import Path
-root=Path('/opt/uts-capstone-custom-deadline-20260927');rt=root/'.runtime/stage2'
+root=Path('/opt/uts-capstone-custom-deadline-20260927-r2');rt=root/'.runtime/stage2'
 os.chdir(root);sys.path.insert(0,str(root/'stage2'))
 from deadline_custom_study import qualified,audited,summary,sources
 from deadline_custom_policy import SETTINGS,POLICY,fingerprint,require_block
@@ -131,7 +131,7 @@ with ExitStack() as stack:
 BACKUP = r'''
 import hashlib,json,sys,tarfile
 from pathlib import Path
-root=Path('/opt/uts-capstone-custom-deadline-20260927');rt=root/'.runtime/stage2'
+root=Path('/opt/uts-capstone-custom-deadline-20260927-r2');rt=root/'.runtime/stage2'
 block=json.loads((rt/f'deadline-development-blocks/{condition}.json').read_text())
 proof=json.loads((rt/'deadline-qualification.json').read_text())
 names=['stage2/'+n for n in proof['sources']]
