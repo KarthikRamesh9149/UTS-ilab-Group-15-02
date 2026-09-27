@@ -152,3 +152,38 @@ are mocked in those tests; file checks also use real temporary files.
 No live native authentication, final freeze, qualification or paid launch was
 performed. Current final-runtime authentication, runner integration, native
 synthetic rehearsal and final export remain unfinished.
+
+## Final-host identity checkpoint
+
+`direct_final_runtime.py` checks the current deployment's source files,
+loaded helper locations, interpreter, installed dependency versions, pinned
+Python archive and native Linux host identity. It hashes the canonical dataset
+and parses only task configuration, not instructions or solutions. All 89
+official configurations and phase deadlines are retained, including allowances
+longer than an hour. Declared storage is recorded, not claimed to have a new
+storage-quota enforcement mechanism.
+
+The image check uses the already audited baseline CSV and verifies all 178
+original result hashes before reading their observed image IDs. Both baseline
+harnesses must agree on each task's image and official agent allowance. Local
+Docker image metadata must match those identities; this does not pull images,
+start containers or repeat benchmark tasks. Missing original image evidence is
+an error, not permission to substitute a current tag silently.
+
+The final proof and registration now bind the runtime-identity hash. A later
+locked runner must recheck it, authenticate the original selection separately
+and require the actual native synthetic qualifier. Passing these readers, or
+creating a self-consistent metadata record, is not paid-launch authorisation.
+The final gateway remains C3-only and refuses an older winner until its
+separate no-cutoff revision is validated. This checkpoint does not select C3.
+
+All 27 new local tests and 134 affected tests passed. The full local suite ran
+1,306 tests: 1,305 passed and one pre-existing test was skipped. The separate
+legacy discovery ran 36 passing tests. A read-only local check also hashed all
+1,037 canonical dataset files and parsed the 89 real task configurations.
+These checks made no paid calls. A separate server metadata read confirmed
+that all 178 original baseline result hashes still match and all 89 task image
+identities are recorded consistently by both harnesses. No current-final-host
+capture, actual finalist freeze, final deployment, native final rehearsal or
+new paid launch occurred. Runner integration and final export remain pending;
+the active C3 source is unchanged.

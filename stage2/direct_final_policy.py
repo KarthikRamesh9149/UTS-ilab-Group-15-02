@@ -21,6 +21,7 @@ CANDIDATE_FILE = 'direct-final-candidate.json'
 MANIFEST_FILE = 'direct-final-manifest.json'
 QUALIFICATION_FILE = 'direct-final-qualification.json'
 REGISTRATION_FILE = 'direct-final-matrix.json'
+RUNTIME_FILE = 'direct-final-runtime.json'
 POLICY = dict(DEVELOPMENT_POLICY, experiment=EXPERIMENT,
     predecessor=DEVELOPMENT_POLICY['experiment'], authorised_date='2026-09-28',
     authority='explicit-user-best-whole-candidate-direct-final89-no-artificial-cutoffs',
@@ -40,6 +41,7 @@ ORCHESTRATION_FILES = frozenset({'scored_trial.py'})
 REQUIRED_SOURCE_FILES = frozenset({
     'direct_final_candidate.py', 'direct_final_policy.py', 'direct_final_gateway.py',
     'test_direct_final_policy.py', 'direct_final_evidence.py', 'test_direct_final_evidence.py',
+    'direct_final_runtime.py', 'test_direct_final_runtime.py',
 })
 
 
@@ -122,9 +124,10 @@ def validate_qualification(proof, document, manifest):
     for field in ('gateway_image', 'guard_image'):
         if not isinstance(proof.get(field), str) or not re.fullmatch(r'sha256:[a-f0-9]{64}', proof[field]):
             raise ValueError('Pinned qualified image required')
-    authentication = proof.get('original_authentication_sha256')
-    if not isinstance(authentication, str) or not re.fullmatch('[a-f0-9]{64}', authentication):
-        raise ValueError('Native original-evidence authentication binding required')
+    for field in ('original_authentication_sha256', 'runtime_identity_sha256'):
+        binding = proof.get(field)
+        if not isinstance(binding, str) or not re.fullmatch('[a-f0-9]{64}', binding):
+            raise ValueError('Native evidence and current-runtime authentication bindings required')
     return proof
 
 
@@ -137,6 +140,7 @@ def registration(document, manifest, proof):
         candidate_sha256=fingerprint(document), policy_sha256=fingerprint(POLICY),
         qualification_sha256=fingerprint(proof), sources_sha256=proof['sources_sha256'],
         original_authentication_sha256=proof['original_authentication_sha256'],
+        runtime_identity_sha256=proof['runtime_identity_sha256'],
         model_protocol_sha256=SETTINGS.fingerprint(), input_manifest_sha256=INPUT_SHA256,
         manifest_canonical_sha256=MANIFEST_SHA256,
         python_runtime_sha256=PYTHON_SHA256, execution_contract=execution_contract(),

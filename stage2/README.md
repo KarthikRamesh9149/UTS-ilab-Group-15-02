@@ -28,9 +28,15 @@ native interpreter, compares the fresh audit with the operator freeze, and
 returns file bindings for rechecking under the final runner's ancestor locks.
 It neither writes a registration nor grants paid admission.
 
-These are synthetic tests, not final-run qualification. Current final-runtime
-authentication and integration, the final runner, native rehearsal, deployed
-image and actual registration are still unfinished. The current scored runner
+The final-host identity reader now checks current source and dependency
+versions, the Python archive, dataset file hashes, all 89 task configurations
+and local image identities against all 178 original baseline results. It
+reads metadata without starting containers or making model calls. Its recorded
+identity must match again before execution; it does not grant paid admission.
+
+These are local checks, not final-run qualification. Integration of the two
+host readers, the final runner, native rehearsal, deployed image and actual
+registration are still unfinished. The current scored runner
 does not admit this new experiment. No actual freeze or final attempt was
 created, and the active C3 deployment was not changed. See the implementation
 checkpoints in the [direct-final decision](protocols/custom_direct_final_20260928.md).
