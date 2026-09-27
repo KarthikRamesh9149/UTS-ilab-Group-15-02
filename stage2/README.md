@@ -50,6 +50,13 @@ comparison as a combined revision rather than a single-lever ablation.
 No real finalist has been frozen; C3 development is running and final admission
 remains unfinished. The native job continues independently of the Mac.
 
+`deadline_evidence_freeze.py` now connects the four-variant candidate document
+to a fresh, read-only audit of original result files and their source bindings.
+It preserves the selected version's actual runtime rather than automatically
+using C3's code. This operator-side addition has local synthetic tests only;
+no real freeze has been created while C3 is incomplete, and it cannot admit
+paid confirmation or final trials.
+
 ## Previous checkpoint, 26 September 2026
 
 The corrected full baselines and separate timeout diagnostic are complete.

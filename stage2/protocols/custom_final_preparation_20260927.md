@@ -127,3 +127,48 @@ been created while development remains incomplete.
   A read-only check verified that all 127 bound execution-source files were
   unchanged. No additional scored job or native qualifier was launched for
   this implementation.
+
+## Original-evidence binding after C3
+
+`deadline_evidence_freeze.py` adds operator-side capture, verification and an
+exclusive private save for the four-variant candidate. It does not modify a
+study deployment. The reader reuses C3's exact qualified metadata collector,
+which takes all ancestor locks and audits the original 20 C3 results, 60
+predecessor results, registrations, source hashes, official limits, traces,
+revocation and cleanup. Active or incomplete execution cannot supply a freeze.
+Persistent operator stops are checked before and after the audit.
+
+The reader checks the public qualification projection against the complete,
+hash-bound private qualification copy. This prevents an edited dependency or
+source field in a summary from being treated as original runtime evidence.
+It also binds the policy's original file bytes, all original result hashes and
+the operator's selection code and tests. It copies only allowlisted metadata;
+no task observations or model exchanges enter the candidate document.
+
+The selected execution record explicitly retains the winning generation:
+C0/C1/C2 use their original 0.3 source and dependencies; C3 uses its original
+0.4.1 source and dependencies. Selecting an older winner cannot silently swap
+in C3's execution policy. Unknown costs stay unknown, missing verifier rewards
+stay in the denominator, and a document cannot grant itself paid admission.
+
+`capture()` audits without saving. `save()` writes once to the operator's
+private `.runtime/finalisation/four-variant-candidate-freeze.json` and is
+idempotent only when the original evidence and selection code still agree.
+`verify()` performs a fresh original-file audit; structural JSON validation
+alone is not sufficient. The audit timestamp may advance without changing
+the frozen evidence. An existing freeze is never replaced after a change.
+
+This implementation was tested with synthetic completed evidence and mocked
+SSH responses. All 82 affected tests passed, including 22 new tests. The full
+local suite ran 1,232 tests: 1,231 passed and one pre-existing skip remained.
+A local check also matched the
+real saved qualification's source and dependency projection, without contacting
+the server or creating a freeze. The active C3 study and its 160 execution
+source files were not edited. Actual capture must wait for all 20 C3 outcomes.
+Paid confirmation, diagnostic and final-run admission and native rehearsal
+remain separate, unfinished work.
+
+The original collector requires recorded phase durations. A result missing a
+phase duration stops this freeze path; it is not assigned a fabricated zero or
+discarded. Such an outcome would need a separate reporting amendment, not a
+task replay or an edit to the frozen study.
