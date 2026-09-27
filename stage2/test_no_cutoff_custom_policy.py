@@ -33,6 +33,12 @@ def qualification_fixture(document):
     sources = dict(document['candidate']['c3_sources'], **document['selection_logic_sources'])
     sources.update(dict.fromkeys(policy.REQUIRED_SOURCE_FILES, '1' * 64))
     sources.update({'scored_trial.py': '2' * 64, 'local_trace.py': '3' * 64})
+    regression = '.runtime/stage2/native-no-cutoff-qualification-test'
+    evidence = {regression + '/regression.json': 'a' * 64, regression + '/regression.txt': 'b' * 64}
+    for mode in policy.PROBE_MODES:
+        path = '.runtime/stage2/native-no-cutoff-C0-NC-' + mode + '-test'
+        evidence[path + '/evidence.json'] = 'c' * 64
+        evidence[path + '/.runtime/stage2/scored-trials/synthetic-nc-' + mode + '/result.json'] = 'd' * 64
     return dict(kind='native_no_cutoff_development_qualification', experiment=policy.EXPERIMENT,
         status='passed', condition=policy.CONDITION, parent='C0', base_parent=None,
         candidate_version=policy.CANDIDATE_VERSION, original_candidate_sha256=policy.fingerprint(document),
@@ -45,8 +51,11 @@ def qualification_fixture(document):
         original_authentication_sha256=policy.fingerprint({'synthetic': True}), runtime_identity_sha256='5' * 64,
         offline=dict(modules=list(policy.TEST_MODULES), passed=True, tests=100, skipped=0, errors=0, failures=0),
         synthetic=[dict(condition=policy.CONDITION, parent='C0', base_parent=None, mode=mode,
+            kind='actual_harbor_no_cutoff_graph_synthetic_provider_not_benchmark_score',
+            runtime_path='.runtime/stage2/native-no-cutoff-C0-NC-' + mode + '-test',
             status='passed', live_api_calls=0, checks=dict.fromkeys(policy.probe_checks(mode), True))
             for mode in policy.PROBE_MODES],
+        regression_path=regression, evidence_files=evidence,
         gateway_image='sha256:' + '6' * 64, guard_image='sha256:' + '7' * 64,
         image_sources_match=True, host_environment={'execution_mode': 'native_linux_x86_64'})
 

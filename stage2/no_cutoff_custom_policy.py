@@ -40,10 +40,14 @@ REQUIRED_SOURCE_FILES = frozenset({
     'direct_final_candidate.py', 'direct_final_policy.py', 'direct_final_evidence.py',
     'direct_final_runtime.py', 'test_direct_final_policy.py', 'test_direct_final_evidence.py',
     'test_direct_final_runtime.py',
+    'qualify_no_cutoff_custom.py', 'no_cutoff_custom_probe.py', 'export_no_cutoff_custom.py',
+    'fixtures/Dockerfile.custom-no-cutoff', 'test_no_cutoff_custom_probe.py',
+    'test_qualify_no_cutoff_custom.py', 'test_export_no_cutoff_custom.py',
 })
 ORCHESTRATION_DELTAS = frozenset({'scored_trial.py', 'local_trace.py'})
 TEST_MODULES = ('test_no_cutoff_custom_agent', 'test_no_cutoff_capture_backend',
     'test_no_cutoff_custom_policy', 'test_no_cutoff_custom_runtime', 'test_no_cutoff_custom_study',
+    'test_no_cutoff_custom_probe', 'test_qualify_no_cutoff_custom', 'test_export_no_cutoff_custom',
     'test_custom_deadline_execution', 'test_custom_process_capture', 'test_custom_text_transport',
     'test_custom_python_runtime', 'test_custom_dispatch_stop', 'test_retry_gateway',
     'test_credit_only_gateway', 'test_scored_trial', 'test_trial_execution',
@@ -63,6 +67,15 @@ TOOL_CHECKS = frozenset({'actual_custom_tool_roundtrip', 'recovered_one_transien
 def _hash(value):
     if not isinstance(value, str) or not re.fullmatch('[a-f0-9]{64}', value):
         raise ValueError('Exact SHA256 binding required')
+
+
+def private_file_bindings(value):
+    if not isinstance(value, dict) or not value or any(
+            not isinstance(name, str) or not name.startswith('.runtime/stage2/') for name in value):
+        raise ValueError('Private runtime file bindings required')
+    # The source-map validator intentionally rejects hidden leading names.
+    # Strip only the exact allowed private prefix, not arbitrary dot paths.
+    source_bindings({name.removeprefix('.runtime/stage2/'): sha for name, sha in value.items()})
 
 
 def candidate_execution(document):
@@ -146,11 +159,28 @@ def validate_qualification(document, proof):
     if not isinstance(cases, list) or [v.get('mode') for v in cases] != list(PROBE_MODES):
         raise ValueError('All three actual no-cutoff native lifecycle cases required')
     for case in cases:
-        fixed = dict(condition=CONDITION, parent='C0', base_parent=None, status='passed', live_api_calls=0)
+        fixed = dict(condition=CONDITION, parent='C0', base_parent=None, status='passed', live_api_calls=0,
+            kind='actual_harbor_no_cutoff_graph_synthetic_provider_not_benchmark_score')
         if (any(fingerprint(case.get(k)) != fingerprint(v) for k, v in fixed.items())
                 or set(case.get('checks', {})) != probe_checks(case['mode'])
                 or any(v is not True for v in case['checks'].values())):
             raise ValueError('Native no-cutoff lifecycle evidence incomplete')
+    evidence = proof.get('evidence_files')
+    private_file_bindings(evidence)
+    regression = proof.get('regression_path')
+    if not isinstance(regression, str) or not re.fullmatch(
+            r'\.runtime/stage2/native-no-cutoff-qualification-[a-zA-Z0-9_]+', regression):
+        raise ValueError('Private native regression output required')
+    expected_files = {regression + '/regression.json', regression + '/regression.txt'}
+    for case in cases:
+        path = case.get('runtime_path')
+        if not isinstance(path, str) or not re.fullmatch(
+                r'\.runtime/stage2/native-no-cutoff-C0-NC-' + case['mode'] + r'-[a-zA-Z0-9_]+', path):
+            raise ValueError('Private actual native lifecycle output required')
+        expected_files.update({path + '/evidence.json', path +
+            '/.runtime/stage2/scored-trials/synthetic-nc-' + case['mode'] + '/result.json'})
+    if set(evidence) != expected_files:
+        raise ValueError('All regression and native lifecycle output files must be bound')
     for name in ('gateway_image', 'guard_image'):
         if not isinstance(proof.get(name), str) or not re.fullmatch(r'sha256:[a-f0-9]{64}', proof[name]):
             raise ValueError('Qualified gateway and guard image IDs required')

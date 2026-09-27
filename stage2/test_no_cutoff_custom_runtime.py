@@ -100,7 +100,9 @@ class RuntimeTests(unittest.TestCase):
         self.assertTrue(all(row['agent_timeout_seconds'] == 12000. for row in record['task_inventory'].values()))
         self.assertFalse(record['paid_launch_ready'])
         self.f.proof['runtime_identity_sha256'] = policy.fingerprint(record)
-        self.assertEqual(runtime.verify_current(self.root, self.f.document, self.f.proof, record), record)
+        with patch.object(runtime, 'verify_native_files') as evidence:
+            self.assertEqual(runtime.verify_current(self.root, self.f.document, self.f.proof, record), record)
+            evidence.assert_called_once_with(self.root, self.f.proof)
         self.assertEqual(sorted(p.relative_to(self.root) for p in self.root.rglob('*')), before)
 
     def test_wrong_host_dependency_and_source_drift_refused(self):

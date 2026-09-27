@@ -33,8 +33,13 @@ authenticated dispatch scope and exact qualified image; its own fixed20 IDs
 cannot reuse C0/C3 results. The source bindings explicitly record admission and
 trace-label changes without modifying the measured agent implementations.
 The native qualifier, isolated rehearsal, pinned gateway build and exporter
-are still unfinished, so there has been no C0-NC native deployment or paid
-validation. Self-consistent registration metadata does not establish readiness.
+are now implemented and locally tested. The rehearsal uses synthetic-only
+IDs, a fake-key-only session and a networkless gateway, without manufacturing
+a completed production qualification. Host admission re-reads the bound
+regression reports and actual lifecycle results. The current local suite ran
+1,419 tests: 1,418 passed and one pre-existing skip; 36 separate legacy tests
+passed. Actual native qualification and paid validation remain outstanding.
+Self-consistent registration metadata does not establish readiness.
 
 The direct-final gateway contract is now implemented and tested locally. It
 accepts only the exact 89 fresh final IDs, the authenticated-freeze schema and

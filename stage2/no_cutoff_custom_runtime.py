@@ -84,6 +84,7 @@ def verify_current(root, document, proof, recorded):
     policy.validate_qualification(document, proof)
     if policy.fingerprint(recorded) != proof['runtime_identity_sha256']:
         raise ValueError('Native qualification must bind the recorded host identity')
+    verify_native_files(root, proof)
     current = inspect(root, document)
     if (policy.fingerprint(current) != policy.fingerprint(recorded)
             or current['sources'] != proof['sources']
@@ -95,3 +96,28 @@ def verify_current(root, document, proof, recorded):
         if image['id'] != ref:
             raise ValueError('Qualified gateway or guard is unavailable')
     return current
+
+
+def verify_native_files(root, proof):
+    """Re-read producer evidence; passing JSON flags alone are insufficient."""
+    for name, sha in proof['evidence_files'].items():
+        if _digest(root, name) != sha:
+            raise ValueError('Recorded native qualification output changed')
+    regression = json.loads(_regular(root, proof['regression_path'] + '/regression.json').read_text())
+    if policy.fingerprint(regression) != policy.fingerprint(proof['offline']):
+        raise ValueError('Native regression report differs from qualification')
+    for case in proof['synthetic']:
+        saved = json.loads(_regular(root, case['runtime_path'] + '/evidence.json').read_text())
+        if policy.fingerprint(saved) != policy.fingerprint(case):
+            raise ValueError('Native lifecycle report differs from qualification')
+        result = json.loads(_regular(root, case['runtime_path'] +
+            '/.runtime/stage2/scored-trials/synthetic-nc-' + case['mode'] + '/result.json').read_text())
+        cancelled = case['mode'] == 'cancel_setup'
+        reward = ((result.get('verifier_result') or {}).get('rewards') or {}).get('reward')
+        if (result.get('status') != ('interrupted' if cancelled else 'verified')
+                or result.get('harness') != policy.CONDITION
+                or result.get('custom_study') != policy.EXPERIMENT
+                or result.get('model_revoked') is not True
+                or any(result.get(k) is not True for k in ('containers_removed', 'networks_removed', 'volumes_removed'))
+                or (reward is not None if cancelled else type(reward) not in (int, float) or reward != 1)):
+            raise ValueError('Actual native result lacks required verifier, revocation or cleanup')

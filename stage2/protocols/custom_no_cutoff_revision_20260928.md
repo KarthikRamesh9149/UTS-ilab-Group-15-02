@@ -106,10 +106,9 @@ missing verifier results. An unfinished attempt is not dispatched again.
 An ordinary cooperative stop is persisted even when its signal arrives during
 the last cell. No running deployment has been changed.
 
-Native qualification is still required. The real qualifier, isolated provider
-fixture, pinned gateway image and curated/private exporter remain to be
-implemented. Their final sources and tests must be added to the qualification
-bindings before native rehearsal or registration. Passing these local admission
+Native qualification is still required. The qualifier, isolated provider
+fixture, pinned gateway build and curated/private exporter are now implemented
+with their sources and tests included in the 190-file binding. Passing local
 tests, or supplying self-consistent JSON, is not evidence of native execution.
 No C0-NC deployment, actual qualification, registration or paid validation has
 occurred. Qualify the final new source through the actual native
@@ -155,3 +154,41 @@ same one pre-existing skip. The separate legacy discovery passed 36 tests.
 A read-only local check accepted the real saved C0 selection and all 80 result
 bindings against 183 current source files. It did not authenticate the native
 host, run the original collector again or create any study artifacts.
+
+## Native qualification producer
+
+`qualify_no_cutoff_custom.py` authenticates the completed original studies
+before acquiring ancestor locks, rechecks them under the locks, and captures
+the separate current host. It refuses an existing completed qualification,
+registration, started attempt or operator stop. The gateway build preserves
+the qualified baseline image layers and configuration except its explicit
+entry point, uses no network or image pull, and verifies the installed source.
+
+`no_cutoff_custom_probe.py` uses the actual Harbor, graph, gateway, Docker and
+verifier lifecycle with an isolated scripted model. Its three fixture IDs
+cannot enter the production registry. A separate fixture session accepts only
+the exact fake provider and a loopback-only network namespace; no completed
+native proof is fabricated to open the rehearsal. Production admission rejects
+the fixture record. The harmless fixture checks encoded capture against its
+own parent's process arguments and sends a 32 KiB literal command through the
+real tool path, alongside the existing long-command, jobs, repair, media,
+Python-less setup, long-read, retry, cancellation and cleanup checks.
+
+The producer retains regression output and actual native results, including
+failed fixtures. Completed qualification binds these files as well as source,
+runtime and original evidence. Host admission re-reads their hashes and
+verifier/revocation/cleanup evidence rather than accepting flags alone.
+`export_no_cutoff_custom.py` is read-only until its separately requested private
+backup/export operations; it authenticates original lineage before locks and
+publishes only allowlisted metadata. It never dispatches a trial.
+
+The new producer/probe/export tests passed with the existing admission tests:
+75 checks. The initial run exposed a path-validator mismatch: the source-map
+validator correctly forbids a leading dot, whereas private evidence is rooted
+under `.runtime/stage2`. An explicit exact-prefix private-file validator fixes
+that mismatch without accepting arbitrary hidden or escaping paths. The final
+full local suite ran 1,419 tests, with 1,418 passing and one pre-existing skip;
+the separate legacy discovery passed 36. No native execution is claimed by
+these tests. A metadata-only server check at 20:32:44 UTC on 27 September found
+no active study/qualification process or owned task container and no C0-NC
+deployment, registration or started key.
