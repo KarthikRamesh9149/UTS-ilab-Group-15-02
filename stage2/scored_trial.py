@@ -96,9 +96,12 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
     if custom_study is not None:
         from corrected_custom_policy import EXPERIMENT as CORRECTED_CUSTOM
         from portable_custom_policy import EXPERIMENT as PORTABLE_CUSTOM
-        if custom_study not in {CORRECTED_CUSTOM, PORTABLE_CUSTOM} or not passive or billing_runtime is not None or billing_kind != 'scored':
+        from deadline_custom_policy import EXPERIMENT as DEADLINE_CUSTOM
+        if custom_study not in {CORRECTED_CUSTOM, PORTABLE_CUSTOM, DEADLINE_CUSTOM} or not passive or billing_runtime is not None or billing_kind != 'scored':
             raise ValueError('Explicit separately qualified custom study required')
-        if custom_study == PORTABLE_CUSTOM:
+        if custom_study == DEADLINE_CUSTOM:
+            from deadline_custom_study import admit_trial as custom_admission
+        elif custom_study == PORTABLE_CUSTOM:
             from portable_custom_study import admit_trial as custom_admission
         else:
             from corrected_custom_study import admit_trial as custom_admission
@@ -186,7 +189,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 container_api_base='http://127.0.0.1:8765/v1', trial_token=token,
                 agent_timeout_seconds=task.config.agent.timeout_sec,
                 completion_wait_seconds=completion_wait_seconds)
-            if result['harness'] in {'terminus-2', 'openhands', 'C0', 'C1', 'C2'}:
+            if result['harness'] in {'terminus-2', 'openhands', 'C0', 'C1', 'C2', 'C3'}:
                 trace_type = PaidTrialTrace
                 if passive:
                     from credit_only_accounting import PassiveTrialTrace

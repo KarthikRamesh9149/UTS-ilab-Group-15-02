@@ -14,8 +14,7 @@ from custom_deadline_execution import (TaskDeadline, DeadlineHarborSandbox,
 from portable_custom_agent import PortableCustomHarborAgent, runtime_bundle
 from retry_policy import SETTINGS
 from retry_runtime import Clock, deadline_factory, deadline_for
-
-CANDIDATE_VERSION = 'stage2-candidate-0.4.1'
+from deadline_custom_contract import CANDIDATE_VERSION
 
 
 class DeadlineCustomHarborAgent(PortableCustomHarborAgent):

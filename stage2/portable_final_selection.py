@@ -23,7 +23,7 @@ def amount(value):
     return result
 
 
-def checked(summary, condition):
+def checked(summary, condition, *, expected_cells=None, complexity=None):
     """Reject incomplete/tampered aggregates; keep missing rewards distinct."""
     if not isinstance(summary, dict):
         raise ValueError('Recorded development summary required')
@@ -38,7 +38,9 @@ def checked(summary, condition):
     if any(not isinstance(row, dict) or not required.issubset(row) for row in rows):
         raise ValueError('Explicit per-attempt metadata required')
     tasks = [row.get('task_id') for row in rows]
-    expected = cells(tasks, condition, parent)
+    expected = cells(tasks, condition, parent) if expected_cells is None else expected_cells
+    if len(expected)!=20:
+        raise ValueError('Exactly 20 expected cells required')
     if any(any(row.get(k) != value for k, value in cell.items())
            for row, cell in zip(rows, expected)):
         raise ValueError('Original fixed task order and variant trial IDs required')
@@ -80,7 +82,8 @@ def checked(summary, condition):
         failures=sum(row['reward'] == 0 for row in rows),
         no_verifier_result=sum(row['reward'] is None for row in rows),
         unknown_cost_requests=unknown,
-        complexity=int(condition == 'C1' or parent == 'C1') + int(condition == 'C2'))
+        complexity=(int(condition == 'C1' or parent == 'C1') + int(condition == 'C2'))
+            if complexity is None else complexity)
     if any(type(summary.get(k)) is not int or summary[k] != v for k, v in integer_fields.items()):
         raise ValueError('Summary counts differ from retained rows')
     total = None if None in costs else sum(costs, Decimal(0))

@@ -1,6 +1,7 @@
 # C3: deadline-aware development candidate
 
-Status: offline prototype, not a qualified or registered paid run.
+Status: local implementation and admission tests complete; native qualification
+and paid registration pending.
 
 On 27 September the user requested a C3 before the final 89 and supplied
 walkinglabs/learn-harness-engineering as an optional reference. This extends
@@ -12,8 +13,8 @@ replace earlier outcomes, or establish that a new design is better.
 C0 passed 15/20 and C1 passed 14/20 on the same fixed development tasks.
 Four of C0's five failures reached the official deadline; the other recorded
 a capture failure. This suggests testing time awareness, not assuming that
-every timeout was preventable. C2 is still running. Its parent and source stay
-unchanged. No held-out answers or timeout-diagnostic task details informed this
+every timeout was preventable. C2 has now completed at 14/20. Its parent and
+source stayed unchanged. No held-out answers or timeout-diagnostic task details informed this
 design.
 
 The initial 0.4.0 prototype added only a current time reminder before each
@@ -209,3 +210,37 @@ separate from the agent's own checks.
 - These are local process and synthetic graph/adapter checks, not native C3
   Harbor/gateway/verifier qualification. No C3 deployment, paid registration,
   benchmark execution or accuracy gain is established by them.
+
+## Admission implementation, 27 September
+
+C2's complete block was audited and backed up off-server. The unchanged
+complete-block ranking selects C0 (15/20) over C1 and C2 (14/20 each) before
+any C3 results. The new `deadline_custom_parent.py` rechecks all 60 predecessor
+results, their qualification, source, registrations, revocation and cleanup
+using the predecessor's own frozen interpreter and code. It copies metadata,
+not task answers. Parent evidence is immutable once bound.
+
+The separate C3 runner uses fresh `customdev3-` identities, the exact fixed20,
+all ancestor no-overlap locks, passive accounting and the unchanged model
+protocol. It refuses started-attempt replay, changed sources or lineage,
+unqualified images and unresolved actual provider/cleanup failures. Ordinary
+unknown billing is retained without becoming a spending stop.
+
+The native qualifier is implemented for the actual selected-parent graph,
+gateway, Docker environment and verifier, using a fake key and network-isolated
+model service. It must pass tools, setup cancellation and cooperative-stop
+cases, including a command over 60 seconds, 73 new background jobs and seven
+completion repairs. Merely implementing these fixtures does not count as a
+native pass. The existing 20-image helper evidence is reused only for unchanged
+components and exact source/runtime hashes.
+
+Four-variant selection validates every row and chooses a whole candidate;
+it never combines each task's best attempt. Pure freeze/schedule documents
+bind all 80 outcomes and cannot grant paid admission. Authentic final-freeze
+capture and the source-bound confirmation/final runner still require separate
+implementation and qualification after development.
+
+Local admission/reporting/selection checks: 135 passed. Full local discovery:
+1,209 tests run, 1,208 passed and one pre-existing skip. These tests used no
+paid provider or scored benchmark execution. No C3 native qualification or
+benchmark score is established at this checkpoint.

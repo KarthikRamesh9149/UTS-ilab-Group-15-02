@@ -17,8 +17,8 @@ from custom_deadline_guidance import finite_seconds
 from custom_jobs import ContainerJobs
 from custom_portable_backend import PortableHarborSandbox
 from custom_runner import CustomRunner
+from deadline_custom_contract import EXECUTION_POLICY_VERSION, execution_contract
 
-EXECUTION_POLICY_VERSION = 'official-deadline-execution-v1'
 LEGACY_REPAIR_NOTICE = ('At most two explicit repair\n'
                         'cycles are available after an incomplete completion attempt.')
 DEADLINE_REPAIR_NOTICE = ('You may correct incomplete completion attempts while the official '
@@ -148,13 +148,3 @@ class DeadlineCustomRunner(CustomRunner):
         # Graph construction and other host work have already consumed some
         # of the allowance. Never restart a full-duration clock here.
         return await super().run(instruction, timeout_seconds=self.deadline.remaining())
-
-
-def execution_contract():
-    return dict(version=EXECUTION_POLICY_VERSION,
-        overall_deadline='official-authoritative-unchanged',
-        default_command_timeout='remaining-official-task-time',
-        agent_chosen_shorter_timeout=True, completion_repair_count_cap=None,
-        background_active_count_cap=None, background_lifetime_count_cap=None,
-        model_call_cap=None, no_replay=True, output_and_context_windows='finite-unchanged',
-        provider_auth_credit_identity='enforced', container_isolation='unchanged')
