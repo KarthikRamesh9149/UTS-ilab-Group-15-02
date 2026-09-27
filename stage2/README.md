@@ -76,6 +76,25 @@ and freshly verified, but no revised-finalist freeze or final attempt exists.
 The C3 deployment was not changed. See the implementation
 checkpoints in the [direct-final decision](protocols/custom_direct_final_20260928.md).
 
+The revised-finalist evidence reader is now implemented separately in
+`no_cutoff_final_candidate.py` and `no_cutoff_evidence_freeze.py`. It requires
+all 80 original and 20 revised outcomes, binds the actual measured C0-NC
+runtime, and cannot inherit the original 15/20 score or grant paid admission.
+The operator capture refuses an active validation before acquiring native locks
+and checks the original native source/input hashes before executing the unchanged
+qualified collector. It has not been used to freeze this unfinished validation.
+The final host authentication, gateway/runner admission, separate qualification
+and exact89 registration must still be completed for this lineage.
+All 31 new local tests and 172 affected checks passed. Full local discovery
+ran 1,450 tests: 1,449 passed and one pre-existing skip; 36 separate legacy
+tests passed. A read-only local anchor check matched the actual saved original
+selection, 190 revision sources, 20 registered cells and eight native producer
+file bindings. No completed-revision native audit or actual freeze was run.
+
+The user's baseline-repeat and parallelism questions were advisory: no new
+baseline matrix or parallel-launch change is authorised. Any repeat requires
+its own agreed protocol, preserving all original outcomes.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

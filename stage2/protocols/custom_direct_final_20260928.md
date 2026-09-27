@@ -241,3 +241,70 @@ cutoff, but retains the official allowance and disclosed provider/transport
 bounds. Freeze the actual measured revision after its audit. The final path
 must explicitly authenticate this lineage and qualify its own orchestration;
 the existing C3-only contract must not be bypassed. Final89 has not started.
+
+## Revised-finalist evidence preparation
+
+`no_cutoff_final_candidate.py` defines a separate lightweight finalist contract
+for the one registered C0-NC revision. It binds all 80 original outcomes and
+all 20 revised outcomes, preserving the original C0 ranking without inheriting
+its 15/20 score. The actual revision's 0.5.0 source, dependencies, execution
+contract and qualification are retained. Zeros, missing verifier outcomes and
+unknown costs cannot be replaced by better original attempts or invented
+values. The deferred confirmation and diagnostic remain explicitly unrun.
+
+`no_cutoff_evidence_freeze.py` adds operator-side capture, exclusive private
+save and fresh verification. It cross-checks the complete private qualification,
+registration, runtime, original authentication and eight native producer files
+against the curated projections. It refuses an active service or persistent
+stop before attempting the native collector. Pinned native source and input
+bytes are checked before importing project code, then checked again after the
+unchanged qualified collector runs under its original ancestor locks. Local
+anchors and capture code are also rechecked. No task, provider request, backup
+or qualification is launched by this reader.
+
+This is preparation, not a live revised-finalist freeze or final admission.
+The native reader is mocked in the new local tests; the temporary-file hash,
+permission and symlink checks are real. The current C0-NC validation continues
+on its unchanged native source. Wait for its completed audit and private backup
+before actual capture/save/verify. The original collector still requires
+recorded phase durations; genuinely missing phase evidence needs a separate
+truthful reporting amendment, not an invented zero or replay.
+
+The next final-run work must authenticate this new 100-outcome document and
+the completed revision on the final host, explicitly admit C0-NC in the final
+gateway/runner, retain all ancestor locks including its native root, and finish
+the separate synthetic qualifier, image, exact89 registration and exporter.
+The new document always has `paid_launch_ready: false`. A JSON document or a
+test fixture does not qualify those unfinished execution paths.
+
+All 31 new local tests and 172 affected tests passed, covering exact 100-outcome
+binding, missing/zero outcomes, unknown costs, altered source and qualification,
+private byte/permission/symlink checks, active-service and persistent-stop
+refusal, pre-import native source checks, mutation during an audit, sanitised
+process failures, fresh verification and exclusive non-replacing saves. The
+gateway-side contract's import test rejects heavy host and agent dependencies.
+Initial fixture runs exposed temporary-directory permissions and an unpatched
+synthetic original-hash constant; those fixture defects were corrected before
+the passing checks. No production policy was weakened.
+
+Full local discovery ran 1,450 tests, with 1,449 passing and one pre-existing
+skip; separate legacy discovery passed 36 tests. A read-only local check of
+the real saved anchors accepted the original 80-result C0 selection, all 190
+revision sources, its exact20 registration and eight native producer-file
+bindings. It did not invoke the native completed-block collector, save a real
+finalist freeze or make a paid request. At 23:15:44 UTC on 27 September the
+native validation remained active with five completed attempts (two passes,
+three failures, no missing verifier outcome) and task six underway. All 190
+frozen execution files were unchanged. That is a dated partial observation,
+not the revised /20 score.
+
+## Baseline repeat discussion, not launch authority
+
+The user asked about fresh baseline comparisons and parallel versus sequential
+execution. The recommendation was to preserve the current custom validation
+and final89 workflow, and agree a separately registered baseline-repeat protocol
+before seeing the final custom score. No explicit new repeat launch, parallel
+dispatcher change, extra server purchase or API-limit increase has been
+authorised by those questions. The original baselines and diagnostics remain
+immutable. Do not interpret this discussion as permission to start another
+178-attempt matrix or overlap the active validation.
