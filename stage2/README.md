@@ -20,6 +20,11 @@ connected to a qualified final-run launcher and cannot authorise paid calls.
 Confirmation, the planned ablation/repeat, source freeze, final registration and
 native final-run qualification remain required.
 
+The offline candidate-freeze and schedule modules now bind all 60 development
+results and generate separate confirmation (60), diagnostic (20) and final
+custom (89) cells. They reject altered evidence and do not authorise paid
+execution. No real candidate has been frozen yet; C1/C2 must finish first.
+
 ## Previous checkpoint, 26 September 2026
 
 The corrected full baselines and separate timeout diagnostic are complete.

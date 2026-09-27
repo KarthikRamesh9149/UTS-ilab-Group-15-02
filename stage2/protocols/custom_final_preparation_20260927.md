@@ -8,8 +8,9 @@ time. It is not a guarantee or permission to skip required checks.
 
 - 27 September: finish the registered development comparisons while preparing
   and testing the final-run code locally, without changing the active source.
-- 28 September: complete the planned confirmation and diagnostic, freeze the
-  selected harness, qualify the final deployment and register all 89 cells.
+- 28 September: freeze the selected candidate before confirmation, qualify the
+  new deployment, complete confirmation and the diagnostic without changing
+  that candidate, then register all 89 final cells.
 - 29–30 September: finish the custom 89, audit the results and preserve the
   evidence off-server. Reuse the completed corrected baseline scores.
 
@@ -42,12 +43,15 @@ paid calls. It explicitly reports `paid_launch_ready: false`.
 
 1. Complete and audit all registered development blocks. Retain every outcome,
    including the stopped 0.2 engineering run; do not replay started attempts.
-2. Implement and qualify the source-bound confirmation/diagnostic path for
-   passive accounting. Preserve the approved matched comparison and ablation
-   rules; the old capped runners cannot be reused unchanged.
-3. Bind the finalist, model/provider settings, runtime, dependencies, source and
-   development evidence into an immutable freeze. Do not select a finalist from
-   incomplete blocks or use held-out answers for tuning.
+2. Freeze the selected candidate and implement and qualify the source-bound
+   confirmation/diagnostic path for passive accounting. Preserve the approved
+   matched comparison and ablation rules; the old capped runners cannot be
+   reused unchanged.
+3. Bind the finalist, model/provider settings, runtime, dependencies, execution
+   source and development evidence into the new deployment's immutable
+   registration. Keep the selected candidate unchanged during confirmation,
+   the diagnostic and final scoring. Do not select from incomplete blocks or
+   use held-out answers for tuning.
 4. Pass affected local checks and actual native synthetic rehearsals for the
    final launcher, including admission, duplicate prevention, accounting,
    cancellation, model-access revocation and resource cleanup. Reuse unaffected
@@ -76,3 +80,50 @@ started. No full-benchmark improvement is established.
   unknown; no finalist was selected.
 - No additional paid calls, qualification jobs or benchmark runs were launched
   for this change. The existing C1 job continued independently.
+
+## Candidate freeze and schedule implementation
+
+`portable_candidate_freeze.py` now captures the complete C0/C1/C2 development
+evidence under the existing no-overlap locks. It rejects unfinished attempts,
+an operator stop, remaining task containers, missing revocation/cleanup, changed
+registrations, changed source files and disagreements between a summary and its
+original result. Selection is recomputed from all 60 retained attempts. Only
+allowlisted metadata is copied; no task observations or model exchanges enter
+the document. Saving is exclusive and idempotent, never an overwrite.
+
+The document binds the original qualification, dependencies, Python archive,
+model, fixed task split, matched baseline export, all 60 result hashes and the
+selection implementation and tests. It freezes the development candidate, not
+the admission code of a future deployment. That deployment must separately
+prove the candidate is unchanged and qualify its actual execution source.
+
+`portable_evaluation_schedule.py` generates three separate, deterministic
+schedules from that candidate document and the exact pinned input inventory:
+
+- Confirmation: 20 tasks each for Terminus-2, OpenHands and the chosen custom
+  variant, rotating harness order within each task. These are explicitly
+  labelled new development repetitions, not replacements for the completed
+  89-task baseline results.
+- Diagnostic: the planned 20-task ablation or unchanged repeat. It cannot
+  change the selected candidate or enter the final score.
+- Final: 89 fresh custom attempts, starting with the fixed development tasks
+  and then the 69-task complement in the original hash order. No baseline
+  full-matrix rerun is scheduled.
+
+The three schedules use distinct attempt IDs and keep sequential concurrency,
+one attempt per cell and the official task limits. They do not grant paid
+admission. The source-bound post-development runner and its native qualification
+still need implementation; no real candidate freeze or final registration has
+been created while development remains incomplete.
+
+### Verification of the freeze and schedules
+
+- All 58 targeted selection, freeze and schedule tests passed. The new tests
+  use synthetic temporary evidence and explicitly mock native qualification,
+  locking and Docker checks; they are not native execution evidence.
+- The final local Stage 2 suite ran 1,104 tests: 1,103 passed and one existing
+  test was skipped.
+- At 03:36:52 UTC on 27 September, the existing C1 service was still running.
+  A read-only check verified that all 127 bound execution-source files were
+  unchanged. No additional scored job or native qualifier was launched for
+  this implementation.
