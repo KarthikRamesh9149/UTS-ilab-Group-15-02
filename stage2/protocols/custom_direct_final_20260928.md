@@ -187,3 +187,39 @@ identities are recorded consistently by both harnesses. No current-final-host
 capture, actual finalist freeze, final deployment, native final rehearsal or
 new paid launch occurred. Runner integration and final export remain pending;
 the active C3 source is unchanged.
+
+## Older-winner revision preparation
+
+The separate [no-cutoff adapter](custom_no_cutoff_revision_20260928.md) implements
+only the permitted runtime revision, without selecting an unfinished study's
+winner. It retains the chosen whole parent's planning/completion-check choices
+and omits C3's dynamic time advice. It reuses the unchanged deadline-governed
+tools, jobs and completion controller under a distinct version and `-NC` label.
+The original C0/C1/C2/C3 sources, results and registry admissions are unchanged.
+Its native qualification, exact fixed20 study registration and measured
+validation still need implementation. An adapter alone is not a paid-ready
+experiment or a final selection.
+
+## Completed C3 and original selection
+
+C3 finished at 18:22:57 UTC on 27 September with 13 passes, seven failures and
+no missing verifier results. Its exact20 audit, curated export and verified
+private backup are complete. All original sources/results, official limits,
+model revocation and owned-resource cleanup passed the audit. No C3 attempt
+was replayed. The archive is private; its 20 results and 185 bound files were
+hash-verified, not a full runtime restore.
+
+The live original-evidence capture, exclusive private save and fresh verification
+selected C0 over all four complete blocks: 15/20, 14/20, 14/20 and 13/20. The
+freeze binds all 80 original results and preserves C0's actual 0.3 source and
+runtime. It does not authorise paid final execution. The selected older parent
+requires the labelled C0-NC revision described above; the C3-only direct-final
+gateway correctly refuses to relabel that winner.
+
+The C0-NC assembly also now includes a separately tested capture-transport
+correction after the C3 metadata audit identified an early helper SIGTERM and
+full-command process matching. The generic mechanism was reproduced without
+the original task command, using only a harmless owned parent PID. Exact
+original causation is not claimed. Native qualification of the changed
+transport, separate fixed20 admission/validation and final89 admission remain
+unfinished. The original failure remains part of C3's 13/20 score.

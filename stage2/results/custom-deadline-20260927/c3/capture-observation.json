@@ -1,0 +1,20 @@
+{
+  "kind": "fixed_development_runtime_metadata_and_separate_synthetic_reproduction",
+  "trial_id": "customdev3-c3-07-install-windows-3.11",
+  "retained_reward": 0,
+  "agent_seconds": 74.9840633419808,
+  "official_agent_timeout_seconds": 3600.0,
+  "error_type": "ContainerCaptureError",
+  "capture_reason": "helper_exit",
+  "capture_return_code": 143,
+  "last_execute_used_full_command_process_matching": true,
+  "raw_command_exposed": false,
+  "original_attempt_replayed": false,
+  "observation": "The helper terminated with SIGTERM well before the official deadline. Its argv contains literal command text; a full-command process-name match can also match that helper.",
+  "synthetic_reproduction": "A predetermined local child examined only its own capture parent's argv and signalled only that owned PID on a unique literal match. The original helper exited with SIGTERM; the separately encoded helper completed normally.",
+  "original_exact_causal_attribution_proved": false,
+  "revision_fix": "Encode the helper source in its process arguments without changing the decoded capture implementation. This is not encryption or immunity to deliberate broad process termination.",
+  "genuine_capture_errors_still_fail": true,
+  "automatic_command_replay": false,
+  "native_revision_qualification_complete": false
+}

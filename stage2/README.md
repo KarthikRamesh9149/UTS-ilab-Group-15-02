@@ -5,8 +5,9 @@
 The user requested the best whole candidate from C0/C1/C2/C3 to run all 89
 tasks after C3. The [direct-final decision](protocols/custom_direct_final_20260928.md)
 defers the earlier 60-task confirmation and 20-task diagnostic; it does not
-skip final runtime qualification or alter the active C3 study. C3 remains
-in progress and the final 89 has not started.
+skip final runtime qualification or alter the C3 study. C3 completed at
+18:22:57 UTC on 27 September with 13/20 passes. Its audit and private backup
+are complete. The final 89 has not started.
 
 The finalist must have no artificial spending, model-call, command-time,
 job-count or completion-repair cutoff. C0/C1/C2 still contain their original
@@ -14,6 +15,17 @@ execution cutoffs: removing those from an older winner requires a labelled,
 qualified and development-validated revision, not silently changing the
 measured winner. Actual provider limits, finite tool windows and isolation
 still apply. A best-in-world or full-benchmark accuracy win is not established.
+
+An offline [older-parent no-cutoff adapter](protocols/custom_no_cutoff_revision_20260928.md)
+now prepares that revision without adding C3's dynamic time advice. It retains
+the whole parent's planning/check choices and uses a distinct `-NC` identity.
+The complete four-block audit selected C0 (15/20, versus 14/20, 14/20 and 13/20).
+Its original evidence freeze preserves all 80 outcomes and the actual 0.3 runtime;
+it does not transfer that score to C0-NC or grant paid admission.
+Its separate native qualification, fixed20 registration and validation remain
+unfinished; the existing native deployments are unchanged. A separate capture
+transport fix has a harmless local reproduction and tests; native validation
+of that fix is also still required.
 
 The direct-final gateway contract is now implemented and tested locally. It
 accepts only the exact 89 fresh final IDs, the authenticated-freeze schema and
@@ -37,8 +49,9 @@ identity must match again before execution; it does not grant paid admission.
 These are local checks, not final-run qualification. Integration of the two
 host readers, the final runner, native rehearsal, deployed image and actual
 registration are still unfinished. The current scored runner
-does not admit this new experiment. No actual freeze or final attempt was
-created, and the active C3 deployment was not changed. See the implementation
+does not admit this new experiment. The original-selection freeze is now saved
+and freshly verified, but no revised-finalist freeze or final attempt exists.
+The C3 deployment was not changed. See the implementation
 checkpoints in the [direct-final decision](protocols/custom_direct_final_20260928.md).
 
 ## Current checkpoint, 27 September 2026
@@ -54,8 +67,8 @@ The [C3 fixed20 run](results/custom-deadline-20260927/README.md) started at
 13:47 UTC on 27 September, after 205 native tests and all three real
 Harbor/gateway/Docker/verifier synthetic rehearsals passed without paid calls.
 At 13:50 UTC its first task was active with 12 accepted provider responses.
-This is a timestamped launch snapshot, not a completed C3 score.
-C2 is complete and audited. C3 uses its own policy, qualification and
+This is a historical launch snapshot. C3 is now complete and audited at 13/20;
+C0/C1/C2 remain 15/20, 14/20 and 14/20. C3 uses its own policy, qualification and
 registration path; it cannot enter the older registry as C0. Whole-variant
 selection now includes C3, but its freeze/schedule documents are metadata,
 not permission to launch confirmation or the final benchmark.
@@ -89,15 +102,16 @@ custom (89) cells. They reject altered evidence and do not authorise paid
 execution. The new four-variant modules extend those schedules to include C3,
 bind all 80 development outcomes after completion, and label a C3-parent
 comparison as a combined revision rather than a single-lever ablation.
-No real finalist has been frozen; C3 development is running and final admission
-remains unfinished. The native job continues independently of the Mac.
+The original four-variant evidence has been frozen, but the revised no-cutoff
+finalist has not. Final admission remains unfinished. Native jobs run
+independently of the Mac.
 
 `deadline_evidence_freeze.py` now connects the four-variant candidate document
 to a fresh, read-only audit of original result files and their source bindings.
 It preserves the selected version's actual runtime rather than automatically
-using C3's code. This operator-side addition has local synthetic tests only;
-no real freeze has been created while C3 is incomplete, and it cannot admit
-paid confirmation or final trials.
+using C3's code. After C3 completed, a real capture/save/fresh-verification
+selected C0 and bound all 80 original outcomes. This does not admit paid
+confirmation or final trials or exempt the C0-NC revision from qualification.
 
 ## Previous checkpoint, 26 September 2026
 
