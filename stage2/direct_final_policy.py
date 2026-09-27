@@ -39,7 +39,7 @@ QUALIFICATION_CHECKS = frozenset({
 ORCHESTRATION_FILES = frozenset({'scored_trial.py'})
 REQUIRED_SOURCE_FILES = frozenset({
     'direct_final_candidate.py', 'direct_final_policy.py', 'direct_final_gateway.py',
-    'test_direct_final_policy.py',
+    'test_direct_final_policy.py', 'direct_final_evidence.py', 'test_direct_final_evidence.py',
 })
 
 
@@ -122,6 +122,9 @@ def validate_qualification(proof, document, manifest):
     for field in ('gateway_image', 'guard_image'):
         if not isinstance(proof.get(field), str) or not re.fullmatch(r'sha256:[a-f0-9]{64}', proof[field]):
             raise ValueError('Pinned qualified image required')
+    authentication = proof.get('original_authentication_sha256')
+    if not isinstance(authentication, str) or not re.fullmatch('[a-f0-9]{64}', authentication):
+        raise ValueError('Native original-evidence authentication binding required')
     return proof
 
 
@@ -133,6 +136,7 @@ def registration(document, manifest, proof):
         base_parent=execution['base_parent'], candidate_version=CANDIDATE_VERSION,
         candidate_sha256=fingerprint(document), policy_sha256=fingerprint(POLICY),
         qualification_sha256=fingerprint(proof), sources_sha256=proof['sources_sha256'],
+        original_authentication_sha256=proof['original_authentication_sha256'],
         model_protocol_sha256=SETTINGS.fingerprint(), input_manifest_sha256=INPUT_SHA256,
         manifest_canonical_sha256=MANIFEST_SHA256,
         python_runtime_sha256=PYTHON_SHA256, execution_contract=execution_contract(),

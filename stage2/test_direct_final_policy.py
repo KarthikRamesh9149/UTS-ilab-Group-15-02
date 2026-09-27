@@ -47,6 +47,7 @@ def qualification(document):
     return dict(kind='native_direct_final_qualification', experiment=policy.EXPERIMENT,
         status='passed', live_api_calls=0, candidate_version=policy.CANDIDATE_VERSION,
         candidate_sha256=policy.fingerprint(document), policy_sha256=policy.fingerprint(policy.POLICY),
+        original_authentication_sha256='9' * 64,
         model_protocol_sha256=policy.SETTINGS.fingerprint(), input_manifest_sha256=policy.INPUT_SHA256,
         manifest_canonical_sha256=policy.MANIFEST_SHA256,
         python_runtime_sha256=policy.PYTHON_SHA256, execution_contract=policy.execution_contract(),
@@ -265,7 +266,7 @@ assert block['condition'] == 'C3'
     def test_native_proof_cannot_be_old_development_or_partial_local_evidence(self):
         for change in ('kind', 'stage', 'checks', 'check_false', 'calls', 'bool_calls',
                        'offline_failed', 'offline_skip', 'zero_tests', 'bool_tests',
-                       'dependencies', 'image', 'source_hash', 'runtime', 'model', 'contract'):
+                       'dependencies', 'image', 'source_hash', 'runtime', 'model', 'contract', 'authentication'):
             proof = deepcopy(self.fixture.proof)
             if change == 'kind': proof['kind'] = 'synthetic-probe-only-not-paid-admission'
             elif change == 'stage': proof['experiment'] = 'custom-deadline-development-20260927'
@@ -282,6 +283,7 @@ assert block['condition'] == 'C3'
             elif change == 'source_hash': proof['sources_sha256'] = '6' * 64
             elif change == 'runtime': proof['python_runtime_sha256'] = '6' * 64
             elif change == 'model': proof['model_protocol_sha256'] = '6' * 64
+            elif change == 'authentication': proof.pop('original_authentication_sha256')
             else: proof['execution_contract']['model_call_cap'] = 100
             with self.subTest(change=change), self.assertRaises(ValueError):
                 policy.validate_qualification(proof, self.fixture.candidate, self.fixture.manifest)

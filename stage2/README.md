@@ -22,12 +22,18 @@ retry and unknown-cost accounting, without financial or request-count gates.
 Its lightweight freeze reader recomputes the original whole-candidate ranking
 without importing the host's agent or SSH stack into the gateway image.
 
-These are synthetic tests, not final-run qualification. The host-side source
-and evidence authentication, final runner, native rehearsal, deployed image
-and actual registration are still unfinished. The current scored runner does
-not admit this new experiment. No actual freeze or final attempt was created,
-and the active C3 deployment was not changed. See the implementation checkpoint
-in the [direct-final decision](protocols/custom_direct_final_20260928.md).
+The host-side original-evidence authenticator is also implemented with local
+synthetic tests. It runs the unchanged original collector in its original
+native interpreter, compares the fresh audit with the operator freeze, and
+returns file bindings for rechecking under the final runner's ancestor locks.
+It neither writes a registration nor grants paid admission.
+
+These are synthetic tests, not final-run qualification. Current final-runtime
+authentication and integration, the final runner, native rehearsal, deployed
+image and actual registration are still unfinished. The current scored runner
+does not admit this new experiment. No actual freeze or final attempt was
+created, and the active C3 deployment was not changed. See the implementation
+checkpoints in the [direct-final decision](protocols/custom_direct_final_20260928.md).
 
 ## Current checkpoint, 27 September 2026
 

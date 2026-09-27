@@ -124,3 +124,31 @@ separate native synthetic qualification, pinned gateway image, exact private
 registration and final exporter. The gateway contract does not bypass any of
 these steps. No final deployment, native final qualification, real finalist
 freeze or paid final launch was performed at this checkpoint.
+
+## Original-native authentication checkpoint
+
+`direct_final_evidence.py` now checks an operator freeze against a fresh audit
+of the original C0/C1/C2 and C3 deployments. It checks the expected source,
+qualification, registration, runtime archive and all 80 result hashes before
+executing the unchanged original collector in its original native interpreter.
+The collector retains its ancestor locks and validates the original task
+limits, traces, service state, baseline hashes and cleanup. The returned
+allowlisted metadata must reproduce the freeze, apart from its observation
+timestamp. Files and stop markers are checked again before returning.
+
+The authentication record is read-only and explicitly not paid admission.
+It is intended to be created before the final runner takes the ancestor
+locks; `recheck()` then verifies its file bindings under those locks without
+trying to acquire the collector's locks recursively. Rechecking a self-created
+record is not a replacement for performing the native audit. The eventual
+final qualification must bind the authentication record, source and tests.
+
+Twenty new local tests cover fresh-audit comparison, original source and
+result bindings, changed files before/during an audit, altered scores and
+metadata, older-winner identity, symlinks, persistent stops and sanitised
+subprocess failures. All 115 affected tests passed. The full local suite ran
+1,279 tests: 1,278 passed and one pre-existing test was skipped. Native reads
+are mocked in those tests; file checks also use real temporary files.
+No live native authentication, final freeze, qualification or paid launch was
+performed. Current final-runtime authentication, runner integration, native
+synthetic rehearsal and final export remain unfinished.
