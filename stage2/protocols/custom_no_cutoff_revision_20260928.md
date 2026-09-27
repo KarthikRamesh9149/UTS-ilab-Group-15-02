@@ -75,7 +75,7 @@ only command cutoffs changed or that the revision inherits C0's score.
 
 ## Admission implementation
 
-The revision is still offline. `no_cutoff_custom_policy.py` now binds the
+`no_cutoff_custom_policy.py` binds the
 already selected original C0 and all 80 original results to one C0-NC block,
 using fresh `customdev4-c0-nc-` IDs on the exact original fixed20. Its policy
 does not admit C1-NC/C2-NC, a renamed C0/C3, or a final-stage trial. The original
@@ -106,16 +106,15 @@ missing verifier results. An unfinished attempt is not dispatched again.
 An ordinary cooperative stop is persisted even when its signal arrives during
 the last cell. No running deployment has been changed.
 
-Native qualification is still required. The qualifier, isolated provider
+The qualifier, isolated provider
 fixture, pinned gateway build and curated/private exporter are now implemented
 with their sources and tests included in the 190-file binding. Passing local
 tests, or supplying self-consistent JSON, is not evidence of native execution.
-No C0-NC deployment, actual qualification, registration or paid validation has
-occurred. Qualify the final new source through the actual native
-Harbor/graph/gateway/container/verifier path with an isolated fake model. The
-fixture must verify the absence of dynamic time advice, encoded capture,
-sizeable commands and process matching as well as the full lifecycle. Reuse
-only still-bound unaffected evidence.
+The actual native qualification described below passed before the separate
+C0-NC registration and paid validation launch. Its isolated fixture verified
+the absence of dynamic time advice, encoded capture, sizeable commands and
+process matching as well as the full lifecycle. Reuse only still-bound
+unaffected evidence. Do not requalify or edit the active deployment.
 
 Retain every revised result; never transfer the original score, replace a
 failure, choose a per-task best attempt or repeatedly tune until a better score
@@ -192,3 +191,47 @@ the separate legacy discovery passed 36. No native execution is claimed by
 these tests. A metadata-only server check at 20:32:44 UTC on 27 September found
 no active study/qualification process or owned task container and no C0-NC
 deployment, registration or started key.
+
+## Qualified native deployment and validation launch
+
+The separate deployment `/opt/uts-capstone-custom-no-cutoff-20260928` uses
+execution source `06d94f75459f039d3b64c9139b28c732dd62231f`. The gateway import
+check's working directory was corrected before qualification; the earlier
+file was retained privately. No original deployment was patched.
+
+At 20:45:58 UTC on 27 September, qualification completed with 238 native tests
+passing, no skips/errors/failures, and all three actual native cases passing:
+tools, setup cancellation and cooperative boundary stop. All model responses
+were synthetic inside a network-isolated gateway; qualification made zero
+paid calls. The native cases cover a command over 60 seconds, 73 new job
+handles, seven completion repairs, no dynamic time advice, Python-less setup,
+actual media-tool text transport, long reads/editing, encoded process matching,
+a 32 KiB literal command, shared 429 recovery, unknown-cost accounting, traces,
+revocation and owned-resource cleanup. These are runtime checks, not benchmark
+accuracy results.
+
+Qualification canonical SHA256 is
+`945f3d5b19a54df7f435a29aab2b78470033751408735af0b69f21fbccd59fd7`.
+The source-set SHA256 is
+`5d0cd0de1b6172afdb93b20d73ec51ff3d505f968a41e206e4efda1edce5aecb`.
+Thirteen qualification/input/native-evidence files were copied off-server and
+hash-verified. Original evidence was freshly authenticated before registration;
+no competing service, owned task container or prior C0-NC attempt was present.
+
+The exact 20-cell registration has canonical SHA256
+`07b1b21ad676ef2422227257998b96ebf193f1260098018c4e7d58db94f542b4`.
+Its original bytes are also copied off-server and hash-verified. The service
+`uts-stage2-custom-no-cutoff-c0-nc-20260928.service` started at
+21:16:50 UTC. At 21:18:03 UTC it was active in the correct deployment, PID
+3840623, with one started task, zero completed results and three accepted
+responses from four requests. All 190 source files matched and neither an
+operator stop nor a provider-stop marker was present. These are dated launch
+observations, not continuing claims about current counts.
+
+While active, inspect metadata only. Do not replay a started cell, change the
+source, repeat qualification or overlap another matrix. After all 20 finish,
+audit/export them and create one verified private off-server backup using
+`export_no_cutoff_custom.py`. Retain every result. A revised-finalist freeze
+and separately qualified final89 admission remain required; final89 has not
+started. Curated launch evidence is in
+[the C0-NC results directory](../results/custom-no-cutoff-20260928/README.md).

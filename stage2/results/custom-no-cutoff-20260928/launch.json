@@ -1,0 +1,22 @@
+{
+  "intent": {
+    "kind": "single_c0_nc_validation_launch_intent",
+    "service": "uts-stage2-custom-no-cutoff-c0-nc-20260928.service",
+    "launched_utc": "2026-09-27T21:16:50.444107+00:00",
+    "source_commit": "06d94f75459f039d3b64c9139b28c732dd62231f",
+    "registration_sha256": "07b1b21ad676ef2422227257998b96ebf193f1260098018c4e7d58db94f542b4",
+    "qualification_sha256": "945f3d5b19a54df7f435a29aab2b78470033751408735af0b69f21fbccd59fd7",
+    "source_set_sha256": "5d0cd0de1b6172afdb93b20d73ec51ff3d505f968a41e206e4efda1edce5aecb",
+    "intended": 20,
+    "condition": "C0-NC",
+    "original_parent": "C0",
+    "original_score_inherited": false,
+    "final89_started": false
+  },
+  "service_state": {
+    "MainPID": "3840623",
+    "ExecMainStatus": "0",
+    "ActiveState": "active",
+    "SubState": "running"
+  }
+}

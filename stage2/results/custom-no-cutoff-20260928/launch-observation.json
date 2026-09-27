@@ -1,0 +1,40 @@
+{
+  "observed_utc": "2026-09-27T21:18:03.996334+00:00",
+  "service": "uts-stage2-custom-no-cutoff-c0-nc-20260928.service",
+  "service_state": {
+    "MainPID": "3840623",
+    "ExecMainStatus": "0",
+    "ActiveState": "active",
+    "SubState": "running"
+  },
+  "cwd": "/opt/uts-capstone-custom-no-cutoff-20260928",
+  "intended": 20,
+  "started": 1,
+  "completed": 0,
+  "passes": 0,
+  "failures": 0,
+  "missing_verifier_results": 0,
+  "started_without_result": [
+    "customdev4-c0-nc-01-video-processing"
+  ],
+  "rows": [
+    {
+      "trial_id": "customdev4-c0-nc-01-video-processing",
+      "has_result": false,
+      "reward": null,
+      "requests": 4,
+      "accepted_responses": 3,
+      "model_revoked": null,
+      "provider_stop": false
+    }
+  ],
+  "bound_source_files": 190,
+  "changed_source_files": [],
+  "qualification_sha256": "945f3d5b19a54df7f435a29aab2b78470033751408735af0b69f21fbccd59fd7",
+  "qualification_file_sha256": "8f7a028418ec25e0a37d0faa6ab4a8aed3f58a24db2bab46a97aceb19e21041f",
+  "registration_sha256": "07b1b21ad676ef2422227257998b96ebf193f1260098018c4e7d58db94f542b4",
+  "operator_stop": false,
+  "source_set_sha256": "5d0cd0de1b6172afdb93b20d73ec51ff3d505f968a41e206e4efda1edce5aecb",
+  "original_score_inherited": false,
+  "final89_started": false
+}

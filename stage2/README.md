@@ -16,18 +16,23 @@ qualified and development-validated revision, not silently changing the
 measured winner. Actual provider limits, finite tool windows and isolation
 still apply. A best-in-world or full-benchmark accuracy win is not established.
 
-An offline [older-parent no-cutoff adapter](protocols/custom_no_cutoff_revision_20260928.md)
-now prepares that revision without adding C3's dynamic time advice. It retains
-the whole parent's planning/check choices and uses a distinct `-NC` identity.
+The [older-parent no-cutoff revision](protocols/custom_no_cutoff_revision_20260928.md)
+is now running its separately registered fixed20 validation. It omits C3's
+dynamic time advice, retains the whole parent's planning/check choices and
+uses a distinct `-NC` identity.
 The complete four-block audit selected C0 (15/20, versus 14/20, 14/20 and 13/20).
 Its original evidence freeze preserves all 80 outcomes and the actual 0.3 runtime;
 it does not transfer that score to C0-NC or grant paid admission.
-Its separate native qualification, fixed20 registration and validation remain
-unfinished; the existing native deployments are unchanged. A separate capture
-transport fix has a harmless local reproduction and tests; native validation
-of that fix is also still required.
+Its separate native qualification and fixed20 registration are complete. The
+[C0-NC validation](results/custom-no-cutoff-20260928/README.md) started at
+21:16:50 UTC on 27 September (07:16 Sydney on 28 September). At 21:18:03 UTC,
+one task had started, none had completed, and three of four requests had an
+accepted response. No C0-NC score is established. All 190 frozen source files
+matched; older native deployments remain unchanged. The disclosed encoded
+capture correction passed its separate native fixture without replaying the
+original failed command.
 
-C0-NC now has a separate offline policy, gateway, host-identity reader, study
+C0-NC has a separate policy, gateway, host-identity reader, study
 registration and locked dispatcher. The new scored-runner hook requires the
 authenticated dispatch scope and exact qualified image; its own fixed20 IDs
 cannot reuse C0/C3 results. The source bindings explicitly record admission and
@@ -38,8 +43,11 @@ IDs, a fake-key-only session and a networkless gateway, without manufacturing
 a completed production qualification. Host admission re-reads the bound
 regression reports and actual lifecycle results. The current local suite ran
 1,419 tests: 1,418 passed and one pre-existing skip; 36 separate legacy tests
-passed. Actual native qualification and paid validation remain outstanding.
-Self-consistent registration metadata does not establish readiness.
+passed. The separately deployed source then passed 238 native tests and all
+three actual Harbor/graph/gateway/Docker/verifier rehearsals with an isolated
+fake model and zero paid calls. The qualification and exact registration have
+verified private off-server copies. Paid validation is now active on that
+frozen source; it is not the final89 run or an inherited 15/20 score.
 
 The direct-final gateway contract is now implemented and tested locally. It
 accepts only the exact 89 fresh final IDs, the authenticated-freeze schema and
@@ -63,7 +71,7 @@ identity must match again before execution; it does not grant paid admission.
 These are local checks, not final-run qualification. Integration of the two
 host readers, the final runner, native rehearsal, deployed image and actual
 registration are still unfinished. The current scored runner
-does not admit this new experiment. The original-selection freeze is now saved
+does not admit the direct-final experiment. The original-selection freeze is now saved
 and freshly verified, but no revised-finalist freeze or final attempt exists.
 The C3 deployment was not changed. See the implementation
 checkpoints in the [direct-final decision](protocols/custom_direct_final_20260928.md).

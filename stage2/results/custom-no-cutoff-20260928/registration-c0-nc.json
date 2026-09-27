@@ -1,0 +1,192 @@
+{
+  "experiment": "custom-no-cutoff-development-20260928",
+  "stage": "development",
+  "condition": "C0-NC",
+  "parent": "C0",
+  "base_parent": null,
+  "candidate_version": "stage2-candidate-0.5.0",
+  "python_runtime_sha256": "7226bdfba69e2fda71033da1d47661b3fc5844e06c1361976d920cde7b64164e",
+  "policy_sha256": "69b7cba89ca5be046959e66ce46b8470ef4eb3978e69261ca4690c5146aae2d6",
+  "model_protocol_sha256": "75718eac81a70390e879743b3c760e942281ac205f577960beec845d50057238",
+  "original_candidate_sha256": "378e7ddfea1b8ad7b63a2fec4f466b3a9dbdc43d229b0fb379e5265e04b57c66",
+  "original_results_sha256": "21e3841aa47c3229429248b28dae2d408fe6002143fdc2a836d7ec5b28b63926",
+  "sources_sha256": "5d0cd0de1b6172afdb93b20d73ec51ff3d505f968a41e206e4efda1edce5aecb",
+  "source_transition": {
+    "original_execution_sha256": "eefb3952181abad3600622c2bd00166b6f798de349bb7178c3c74c87d06d973d",
+    "reused_deadline_sources_sha256": "bd1eeae389d6d0d9a196d517bcca34fd5b9127d6ed0a7abc5fde5e04e6508204",
+    "inherited_portable_changes": {
+      "scored_trial.py": {
+        "portable_sha256": "6928afc69571fe6fadc2c389483f05e1ecee0120bda49a419f0b2bdfdb064464",
+        "deadline_sha256": "84644ce88c848e16e6a478e403a943835ab2de00b2fb6d1c5cf7eed1aa19aa15"
+      },
+      "custom_runner.py": {
+        "portable_sha256": "70297857f1733c1536e55736f0127364d4f846cd95d63143441400a8b06fe532",
+        "deadline_sha256": "fea336434f317ba43781565acb9bf8b9cc11d27f721f55f09238fc9d3c3fea87"
+      },
+      "corrected_custom_agent.py": {
+        "portable_sha256": "674374f137d7422b27adcccb704265d5cee2a9c8538b7037ce4828af3bd40d51",
+        "deadline_sha256": "d522cf19e75616e2ab765053dac28505eec6474aee77359889f7871b54612606"
+      }
+    },
+    "orchestration_changes": {
+      "local_trace.py": {
+        "original_sha256": "d4d41304697fc7dba06b92b7289d7b88c5f0a63a27ac6f2a3d8d23b087093100",
+        "revised_sha256": "c40f85dc6a7479531d1b818b89e72934dc571f28d2fa56746911d3e522d6d0e1"
+      },
+      "scored_trial.py": {
+        "original_sha256": "84644ce88c848e16e6a478e403a943835ab2de00b2fb6d1c5cf7eed1aa19aa15",
+        "revised_sha256": "18c965d6ac7650fa43ca9de337681bf1ce1537bd56afae8a7fa1e93357f0f93c"
+      }
+    }
+  },
+  "original_authentication_sha256": "ef2fd69491ffabb793c8b0ca78097e317ba3cff331bdaec72f9b5ac1d2c28f03",
+  "runtime_identity_sha256": "452f6a2f36692d79c25c951893085ad28e2d14a2c908b8ee9ad8e0fdceee421a",
+  "qualification_sha256": "945f3d5b19a54df7f435a29aab2b78470033751408735af0b69f21fbccd59fd7",
+  "input_manifest_sha256": "a33de38d1794617b2acc7c50b1f997da49c34b7df5032b481f023184e4aacbc7",
+  "development_ids": [
+    "video-processing",
+    "build-pov-ray",
+    "mailman",
+    "constraints-scheduling",
+    "overfull-hbox",
+    "reshard-c4-data",
+    "install-windows-3.11",
+    "openssl-selfsigned-cert",
+    "regex-chess",
+    "polyglot-rust-c",
+    "adaptive-rejection-sampler",
+    "qemu-alpine-ssh",
+    "modernize-scientific-stack",
+    "distribution-search",
+    "merge-diff-arc-agi-task",
+    "sqlite-db-truncate",
+    "prove-plus-comm",
+    "db-wal-recovery",
+    "qemu-startup",
+    "nginx-request-logging"
+  ],
+  "primary_comparator": "terminus-2",
+  "secondary_comparator": "openhands",
+  "execution_contract": {
+    "version": "parent-no-cutoff-without-time-advice-v1",
+    "overall_deadline": "official-authoritative-unchanged",
+    "default_command_timeout": "remaining-official-task-time",
+    "agent_chosen_shorter_timeout": true,
+    "completion_repair_count_cap": null,
+    "background_active_count_cap": null,
+    "background_lifetime_count_cap": null,
+    "model_call_cap": null,
+    "no_replay": true,
+    "output_and_context_windows": "finite-unchanged",
+    "provider_auth_credit_identity": "enforced",
+    "container_isolation": "unchanged",
+    "remaining_time_guidance": false,
+    "prompt_amendment": "command-and-completion-contract-only",
+    "capture_transport": "encoded-helper-source-v1"
+  },
+  "cells": [
+    {
+      "trial_id": "customdev4-c0-nc-01-video-processing",
+      "task_id": "video-processing",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-02-build-pov-ray",
+      "task_id": "build-pov-ray",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-03-mailman",
+      "task_id": "mailman",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-04-constraints-scheduling",
+      "task_id": "constraints-scheduling",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-05-overfull-hbox",
+      "task_id": "overfull-hbox",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-06-reshard-c4-data",
+      "task_id": "reshard-c4-data",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-07-install-windows-3.11",
+      "task_id": "install-windows-3.11",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-08-openssl-selfsigned-cert",
+      "task_id": "openssl-selfsigned-cert",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-09-regex-chess",
+      "task_id": "regex-chess",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-10-polyglot-rust-c",
+      "task_id": "polyglot-rust-c",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-11-adaptive-rejection-sampler",
+      "task_id": "adaptive-rejection-sampler",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-12-qemu-alpine-ssh",
+      "task_id": "qemu-alpine-ssh",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-13-modernize-scientific-stack",
+      "task_id": "modernize-scientific-stack",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-14-distribution-search",
+      "task_id": "distribution-search",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-15-merge-diff-arc-agi-task",
+      "task_id": "merge-diff-arc-agi-task",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-16-sqlite-db-truncate",
+      "task_id": "sqlite-db-truncate",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-17-prove-plus-comm",
+      "task_id": "prove-plus-comm",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-18-db-wal-recovery",
+      "task_id": "db-wal-recovery",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-19-qemu-startup",
+      "task_id": "qemu-startup",
+      "harness": "C0-NC"
+    },
+    {
+      "trial_id": "customdev4-c0-nc-20-nginx-request-logging",
+      "task_id": "nginx-request-logging",
+      "harness": "C0-NC"
+    }
+  ],
+  "kind": "public_no_cutoff_validation_registration",
+  "registration_sha256": "07b1b21ad676ef2422227257998b96ebf193f1260098018c4e7d58db94f542b4",
+  "registration_file_sha256": "e3c7949c275e088becd406b0049cf8118831e788c215609638a2f11a958450ff"
+}

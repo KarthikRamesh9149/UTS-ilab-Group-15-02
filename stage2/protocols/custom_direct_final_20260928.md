@@ -223,3 +223,21 @@ the original task command, using only a harmless owned parent PID. Exact
 original causation is not claimed. Native qualification of the changed
 transport, separate fixed20 admission/validation and final89 admission remain
 unfinished. The original failure remains part of C3's 13/20 score.
+
+## C0-NC validation launch
+
+The permitted C0-NC revision has now passed its separate native qualification:
+238 tests and all three actual Harbor/graph/gateway/Docker/verifier rehearsals,
+with zero paid qualification calls. Its one fixed20 validation started at
+21:16:50 UTC on 27 September, under execution source
+`06d94f75459f039d3b64c9139b28c732dd62231f` and a fresh `customdev4-c0-nc-`
+registration. At 21:18:03 UTC the first task was active, with no completed
+result. See the [launch evidence](../results/custom-no-cutoff-20260928/README.md).
+
+This is the labelled development validation required by step 4, not another
+original variant, an inherited C0 score, or the deferred confirmation/diagnostic
+matrices. It has no artificial financial/request/command/job/repair-count
+cutoff, but retains the official allowance and disclosed provider/transport
+bounds. Freeze the actual measured revision after its audit. The final path
+must explicitly authenticate this lineage and qualify its own orchestration;
+the existing C3-only contract must not be bypassed. Final89 has not started.

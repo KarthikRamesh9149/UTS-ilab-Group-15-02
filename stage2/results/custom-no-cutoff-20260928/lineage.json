@@ -1,0 +1,7 @@
+{
+  "original_candidate_sha256": "378e7ddfea1b8ad7b63a2fec4f466b3a9dbdc43d229b0fb379e5265e04b57c66",
+  "candidate_file_sha256": "f493c72f2e549a646491b7e4cc4891f97e9345195534b821b152027d81df7449",
+  "original_parent": "C0",
+  "condition": "C0-NC",
+  "original_score_inherited": false
+}
