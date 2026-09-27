@@ -91,3 +91,36 @@ shortening benchmark limits or claiming unfinished checks passed.
 No final selection, actual finalist freeze, final deployment or paid final
 launch occurred when this decision was recorded. C3 continues independently
 of the Mac. The final admission path still needs implementation.
+
+## Local implementation checkpoint
+
+`direct_final_candidate.py`, `direct_final_policy.py` and
+`direct_final_gateway.py` implement the final gateway side, not a runnable
+final study. They recompute whole-candidate selection, bind all 80 development
+results, enforce the original full manifest and register 89 distinct final
+identities. An older winner is rejected from the C3 execution path rather
+than silently receiving different code. The final proof must bind the original
+agent and selection sources plus the new admission sources. Only an explicit,
+recorded change to trusted `scored_trial.py` orchestration is anticipated;
+agent, prompt, tool, model and retry changes are not exempted.
+
+The private freeze schema has a lightweight gateway reader with parity tests
+against the original operator-side validator. This avoids requiring Harbor,
+Deep Agents or the operator's SSH/audit code inside the gateway. The full
+host-side evidence audit is still required; a self-consistent JSON record is
+not proof that it happened.
+
+The 27 new local tests include 105 accepted calls with unknown costs, 106
+physical requests during shared 429 recovery, cooldown across tasks, provider
+credit/authentication/identity stops, deadline/revocation, owner locks, no
+restart, registration drift, changed source/protocol rejection and import
+checks without the host-only dependency stack. All 95 affected tests passed.
+The final full local suite ran 1,259 tests: 1,258 passed and one pre-existing
+test was skipped. These tests use a fake provider and make no paid calls.
+
+Still required: current-file and runtime authentication on the final host,
+the explicit scored-runner integration, ancestor locks and dispatch, the
+separate native synthetic qualification, pinned gateway image, exact private
+registration and final exporter. The gateway contract does not bypass any of
+these steps. No final deployment, native final qualification, real finalist
+freeze or paid final launch was performed at this checkpoint.

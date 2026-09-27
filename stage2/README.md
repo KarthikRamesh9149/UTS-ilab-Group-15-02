@@ -15,6 +15,20 @@ qualified and development-validated revision, not silently changing the
 measured winner. Actual provider limits, finite tool windows and isolation
 still apply. A best-in-world or full-benchmark accuracy win is not established.
 
+The direct-final gateway contract is now implemented and tested locally. It
+accepts only the exact 89 fresh final IDs, the authenticated-freeze schema and
+a separate native-final qualification record. It retains the existing shared
+retry and unknown-cost accounting, without financial or request-count gates.
+Its lightweight freeze reader recomputes the original whole-candidate ranking
+without importing the host's agent or SSH stack into the gateway image.
+
+These are synthetic tests, not final-run qualification. The host-side source
+and evidence authentication, final runner, native rehearsal, deployed image
+and actual registration are still unfinished. The current scored runner does
+not admit this new experiment. No actual freeze or final attempt was created,
+and the active C3 deployment was not changed. See the implementation checkpoint
+in the [direct-final decision](protocols/custom_direct_final_20260928.md).
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The
@@ -53,8 +67,9 @@ records the 30 September afternoon Sydney target and the checks it cannot
 override. `portable_final_selection.py` adds offline selection over complete
 C0/C1/C2 summaries without the old spending or call-count gates. It is not yet
 connected to a qualified final-run launcher and cannot authorise paid calls.
-Confirmation, the planned ablation/repeat, source freeze, final registration and
-native final-run qualification remain required.
+The confirmation and ablation/repeat in that earlier note are now deferred by
+the 28 September decision above. Source freeze, final registration and native
+final-run qualification remain required.
 
 The offline candidate-freeze and schedule modules now bind all 60 development
 results and generate separate confirmation (60), diagnostic (20) and final
