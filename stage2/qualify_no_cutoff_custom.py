@@ -57,7 +57,7 @@ def build_gateway(root, sources):
     if installed != {name: sources[name] for name in IMAGE_FILES}:
         raise ValueError('Gateway image does not contain the qualified source')
     # Exercise both entry-point imports inside the real lean gateway image.
-    command('docker', 'run', '--rm', '--network=none', '--read-only', '--entrypoint', 'python',
+    command('docker', 'run', '--rm', '--network=none', '--read-only', '-w', '/study/stage2', '--entrypoint', 'python',
         image, '-c', 'import no_cutoff_custom_gateway, no_cutoff_custom_probe')
     return image, parent['guard_image']
 
