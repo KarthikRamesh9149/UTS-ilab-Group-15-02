@@ -367,6 +367,28 @@ tests: 2,059 passed and one pre-existing skip; all 12 repository tests passed.
 Native Docker, setup/run, verifier and prerequisite readers are mocked. These
 checks do not establish native qualification or additional benchmark results.
 
+The [one-shot native qualifier](protocols/baseline_matched_repeat_20260928.md#offline-one-shot-native-qualifier)
+is now implemented locally. It keeps the actual handoff session on its owning
+async task while building/reverifying images, running an isolated regression
+child and awaiting all three host rehearsals. Actual producer and supporting
+trace/accounting bytes, not return flags, are required. Durable intent,
+completion and failure records prevent automatic replay and prevent a proof
+left by a failed operation from admitting paid work. Session/scored admission
+rereads those additional bindings, alongside all ten core producer files.
+The prospective inventory is 261 files; the active final's frozen sources and
+all original evidence are untouched. Trusted service operations, actual native
+build/qualification, repeat export and the OpenHands successor reader remain
+unfinished. This checkpoint did not perform a native repeat operation or make
+a provider request.
+
+All 40 new tests and all 594 local repeat regression checks passed. The actual
+regression import closure now requires source bindings, adding five unchanged
+helpers for current verification only, not retrospective attestation. Final
+local discovery ran 2,100 tests: 2,099 passed and one pre-existing skip; all
+12 repository tests passed. Native readers, Docker and actual baseline
+setup/run remain mocked; these local checks are not native proof or benchmark
+results.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

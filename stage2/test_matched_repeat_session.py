@@ -123,10 +123,11 @@ class SessionTests(TreeTests):
 
     def proof_files(self, *, include_images=True):
         proof = self.f.proof
+        if include_images:
+            image_evidence(self.root, proof)
         contents = {proof['regression_path'] + '/regression.json': json.dumps(proof['offline']).encode(),
             proof['regression_path'] + '/regression.txt': b'Synthetic local regression output, not native proof\n'}
         for case in proof['synthetic']:
-            contents[case['runtime_path'] + '/evidence.json'] = json.dumps(case).encode()
             name = 'synthetic-matched-repeat-terminus-2-' + case['mode']
             cancelled = case['mode'] == 'cancel_setup'
             result = dict(trial_id=name, harness='terminus-2', stage='final',
@@ -135,16 +136,52 @@ class SessionTests(TreeTests):
                 status='interrupted' if cancelled else 'verified',
                 verifier_result=None if cancelled else {'rewards': {'reward': 1.0}},
                 model_revoked=True, containers_removed=True, networks_removed=True, volumes_removed=True)
-            contents[case['runtime_path'] + '/.runtime/stage2/scored-trials/' + name + '/result.json'] = json.dumps(result).encode()
+            trial = case['runtime_path'] + '/.runtime/stage2/scored-trials/' + name
+            supporting = {case['runtime_path'] + '/' + n: b'Local synthetic test fixture only'
+                for n in ('stage2/input_manifest.json', '.env', '.runtime/stage2/matched-repeat-isolated-fixture.json')}
+            supporting.update({trial + '/started.json': json.dumps(result).encode(),
+                trial + '/result.json': json.dumps(result).encode(), trial + '/traces/test.json': b'{}'})
+            case.update(paid_launch_ready=False, repeat_execution_qualified=False,
+                image_build_sha256=proof['image_build_sha256'], image_evidence_files=deepcopy(proof['image_evidence_files']),
+                producer_files={n:self.write(n, raw) for n, raw in supporting.items()})
+            for n in supporting: (self.root / n).chmod(0o600)
+            contents[case['runtime_path'] + '/evidence.json'] = json.dumps(case).encode()
+            contents[trial + '/result.json'] = supporting[trial + '/result.json']
+            self.private('matched-repeat-rehearsal-' + case['mode'] + '.json', dict(
+                kind='one_shot_synthetic_matched_repeat_rehearsal', harness='terminus-2', mode=case['mode'],
+                runtime_path=case['runtime_path'], sources_sha256=self.host['sources_sha256'],
+                image_build_sha256=proof['image_build_sha256'], automatic_resume=False, paid_launch_ready=False))
         for name, raw in contents.items():
             proof['evidence_files'][name] = self.write(name, raw); (self.root / name).chmod(0o600)
         proof['baseline_behaviour_authentication_sha256'] = policy.fingerprint(self.library)
         proof['runtime_identity_sha256'] = policy.fingerprint(self.host)
-        if include_images:
-            image_evidence(self.root, proof)
         for name, value in ((policy.PREDECESSOR_FILE, self.f.predecessor),
                 (policy.RUNTIME_FILE, self.host), (policy.QUALIFICATION_FILE, proof)):
             self.private(name, value)
+        self.completion_files()
+
+    def completion_files(self):
+        """Temporary fabricated metadata for mocked native readers, never real proof."""
+        proof = self.f.proof
+        intent = dict(kind='one_shot_actual_native_repeat_qualification', harness='terminus-2',
+            sources_sha256=self.host['sources_sha256'], runtime_identity_sha256=policy.fingerprint(self.host),
+            baseline_behaviour_authentication_sha256=policy.fingerprint(self.library),
+            predecessor_authentication_sha256=policy.fingerprint(self.pred['predecessors']),
+            regression_path=proof['regression_path'], pid=123, started_utc='synthetic-test-only',
+            automatic_resume=False, paid_launch_ready=False)
+        self.private(policy.QUALIFIER_INTENT_FILE, intent)
+        names = {'.runtime/stage2/' + n for n in (policy.POLICY_FILE, policy.MANIFEST_FILE,
+            policy.PREDECESSOR_FILE, policy.RUNTIME_FILE, policy.QUALIFICATION_FILE, policy.QUALIFIER_INTENT_FILE)}
+        names.update(proof['evidence_files']); names.update(proof['image_evidence_files'])
+        for case in proof['synthetic']:
+            names.update(case['producer_files'])
+            names.add('.runtime/stage2/matched-repeat-rehearsal-' + case['mode'] + '.json')
+        files = {n:hashlib.sha256((self.root / n).read_bytes()).hexdigest() for n in names}
+        self.private(policy.QUALIFIER_RESULT_FILE, dict(
+            kind='actual_native_repeat_qualification_complete_not_dispatch', status='qualified',
+            qualification_sha256=policy.fingerprint(proof), offline_tests=proof['offline']['tests'], native_cases=3,
+            live_api_calls=0, producer_files=files, completed_utc='synthetic-test-only',
+            automatic_resume=False, paid_launch_ready=False))
 
     def test_actual_authentication_precedes_outer_locks_and_inspection_stays_under_them(self):
         with self.open() as active:

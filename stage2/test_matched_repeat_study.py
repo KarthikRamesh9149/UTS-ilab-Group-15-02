@@ -309,19 +309,25 @@ class AdmissionTests(StudyFixture):
                     study.require_task_image(self.root, self.cells[0]['task_id'], 'sha256:' + 'a' * 64)
                 with self.assertRaises(ValueError): study.agent_factory(permit)
 
-    def test_source_change_during_retained_result_check_is_refused_before_admission(self):
-        with self.q.open() as active:
-            study.register(active)
-            with study.dispatch_permit(active) as permit:
-                factory = study.agent_factory(permit)
-                original = study._attempts
-                def changed(root, block):
-                    value = original(root, block)
-                    (root / 'stage2/matched_repeat_study.py').write_bytes(b'Changed after result read')
-                    return value
-                with patch.object(study, '_attempts', changed), self.assertRaises(ValueError):
-                    study.admit_trial(**self.args(factory))
-                with self.assertRaises(ValueError): study.agent_factory(permit)
+    def test_source_and_qualification_support_changes_during_result_check_refuse_admission(self):
+        trace = next(n for n in self.q.f.proof['synthetic'][0]['producer_files'] if '/traces/' in n)
+        for name in ('stage2/matched_repeat_study.py', '.runtime/stage2/' + policy.QUALIFIER_RESULT_FILE, trace):
+            path = self.root / name; raw = path.read_bytes()
+            try:
+                with self.subTest(name=name), self.q.open() as active:
+                    study.register(active)
+                    with study.dispatch_permit(active) as permit:
+                        factory = study.agent_factory(permit)
+                        original = study._attempts
+                        def changed(root, block):
+                            value = original(root, block)
+                            path.write_bytes(raw + b' ')
+                            return value
+                        with patch.object(study, '_attempts', changed), self.assertRaises(ValueError):
+                            study.admit_trial(**self.args(factory))
+                        with self.assertRaises(ValueError): study.agent_factory(permit)
+            finally:
+                path.write_bytes(raw)  # Restore only this temporary negative fixture.
 
     def test_nested_saved_constructed_cross_process_and_thread_permits_refused(self):
         with self.q.open() as active:

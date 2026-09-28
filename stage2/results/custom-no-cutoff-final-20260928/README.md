@@ -80,3 +80,19 @@ a verified private off-server copy. No completed-final archive exists yet.
 the exact native qualification/registration bytes, all source bindings and
 non-overlap with development IDs; 63 targeted policy/study/export tests passed.
 Those local mocked lifecycle tests are not additional benchmark attempts.
+
+## Dated setup-failure observation
+
+At 19:20:46 UTC on 28 September, read-only metadata showed the service still
+active with 65/89 results: 39 passes, 23 zero-score failures and three missing
+verifier outcomes. Task 66 was underway. All 211 sources matched. This is a
+partial, dated observation, not a completed final score.
+
+The missing outcomes belong to tasks 63, 64 and 65. At 19:21:56 UTC their
+retained results recorded `setup_failed` / `RuntimeError`, zero model requests,
+setup timing, model revocation and complete owned-resource cleanup. Agent and
+verifier phases did not run. No task was replayed or service restarted. These
+metadata do not establish the cause or a connection to the earlier SSH timeout.
+The existing completed-final collector expects those phase timings; a separate
+truthful reporting amendment is required before final audit/export. Preserve
+the actual missing phases and outcomes, never invented zeros or replayed tasks.

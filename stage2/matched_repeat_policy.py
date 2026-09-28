@@ -21,6 +21,9 @@ FINAL_FILE = 'matched-repeat-custom-final-qualification.json'
 PREDECESSOR_FILE = 'matched-repeat-predecessor-authentication.json'
 RUNTIME_FILE = 'matched-repeat-runtime.json'
 QUALIFICATION_FILE = 'matched-repeat-qualification.json'
+QUALIFIER_INTENT_FILE = 'matched-repeat-qualification-intent.json'
+QUALIFIER_RESULT_FILE = 'matched-repeat-qualification-result.json'
+QUALIFIER_FAILURE_FILE = 'matched-repeat-qualification-failure.json'
 REGISTRATION_FILE = 'matched-repeat-matrix.json'
 IMAGE_INTENT_FILE = 'matched-repeat-image-build.json'
 IMAGE_RESULT_FILE = 'matched-repeat-images.json'
@@ -62,6 +65,11 @@ REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_r
     'test_matched_repeat_image_admission.py',
     'matched_repeat_fixture.py', 'test_matched_repeat_fixture.py',
     'matched_repeat_probe.py', 'test_matched_repeat_probe.py',
+    'qualify_matched_repeat.py', 'test_qualify_matched_repeat.py',
+    # Unchanged helpers reached by the current regression import closure.
+    # Newly bound here, never retroactive additions to historical proof.
+    'cetus_local_probe.py', 'direct_final_gateway.py', 'final_schedule.py',
+    'freeze_inputs.py', 'local_langfuse.py',
     # Inherited gateway import helpers newly inventoried for current image
     # parity, not retrospective additions to either historical qualification.
     'calibrate_tokenizer.py', 'extended_token_calibration.py', 'setup_probe.py',
@@ -81,6 +89,7 @@ TEST_MODULES = ('test_matched_repeat_schedule', 'test_matched_repeat_policy',
     'test_matched_repeat_image_admission',
     'test_matched_repeat_fixture',
     'test_matched_repeat_probe',
+    'test_qualify_matched_repeat',
     'test_native_agents', 'test_retry_gateway', 'test_credit_only_gateway',
     'test_trial_execution', 'test_scored_trial')
 ORCHESTRATION_FILES = frozenset({'scored_trial.py', 'local_trace.py'})

@@ -194,7 +194,7 @@ class ImageAdmissionTests(unittest.TestCase):
 
     def test_existing_failure_marker_forbids_qualification_without_rebuild(self):
         asyncio.run(self.prepare()); self.q.private(images.FAILURE, {'exception_type': 'RuntimeError'})
-        self.refuse('build failure'); self.assertEqual(self.f.commands, [])
+        self.refuse('Retained native qualification failure'); self.assertEqual(self.f.commands, [])
 
     def test_private_modes_and_symlinked_build_evidence_are_refused(self):
         asyncio.run(self.prepare())

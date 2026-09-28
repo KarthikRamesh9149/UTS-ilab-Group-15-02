@@ -51,6 +51,7 @@ class ProbeTests(unittest.TestCase):
             (self.rt / name).unlink()
         for case in q.f.proof['synthetic']:
             shutil.rmtree(self.root / case['runtime_path'])
+            (self.rt / ('matched-repeat-rehearsal-' + case['mode'] + '.json')).unlink()
         for name in probe.SOURCE_FILES:
             q.actual[name] = q.write('stage2/' + name, (STAGE / name).read_bytes())
             q.f.final['sources'][name] = q.actual[name]

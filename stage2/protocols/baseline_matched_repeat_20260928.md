@@ -1221,3 +1221,109 @@ preflight bindings. No completed-native collector, archive transfer/recreation,
 native image build, deployment, session, rehearsal, qualification, registration
 or new provider request occurred. Mocked suite completion messages are not
 benchmark results.
+
+## Offline one-shot native qualifier
+
+`qualify_matched_repeat.py` now implements `await qualify(active)`, to be
+consumed by the future trusted native service inside its original, freshly
+authenticated handoff session. This is local implementation, not actual native
+qualification. The connection remains inspection-only and has not been invoked
+on the VPS. No repeat image build, rehearsal, deployment or paid launch occurred.
+
+The qualifier keeps the session on its owning process, main thread and async
+task, with all ancestor locks held. It does not reopen a session, transfer a
+handle, run a completed collector or reacquire those locks. There is no CLI,
+caller-selected root, factory, callback, saved receipt or production-admission
+exception. OpenHands remains refused until its completed-Terminus reader exists.
+
+An exclusive private qualification intent precedes the operation. Existing
+intent/result/failure, image-build evidence, rehearsal evidence, partial runtime
+directories, paid attempts or qualification prevent automatic repetition. The
+actual policy, unchanged raw manifest, live predecessor and host observations
+are retained as private inputs; an existing mismatch is never overwritten.
+The real image builder runs inside this scope. Its result is reread and the
+actual installed image is reverified; a builder return value is not evidence.
+
+Regression runs in the deployment's exact isolated interpreter, in a separate
+owned child that receives only fixed file bindings and test-module names, never
+the live session. Before project imports, a standard-library bootstrap checks
+actual source/private bytes, regular paths, ownership and permissions, and uses
+disabled bytecode writes with an absent cache prefix. The environment has no
+provider credential or redirected Docker configuration. A network audit guard
+permits local synthetic peers and rejects external peers before imports and
+tests. This is defence in depth for trusted, source-bound tests, not an OS
+sandbox; subprocesses do not inherit a Python audit hook. Actual tests and logs
+are retained, with any skip, error, failure or empty suite refusing qualification.
+Cancellation waits for child creation and cleans up only that owned regression
+process group. Its ten-second termination escalation window is cleanup policy,
+not a task deadline or a benchmark/model-request limit.
+
+All three actual host rehearsals must then run in sequence in the same session.
+Their return values are ignored. The qualifier reads each retained intent,
+report, start/result, fixture inputs, traces and accounting files, checking the
+exact supporting inventory and raw hashes before advancing. Source, live
+prerequisites, images and prior producer bytes are reread around the operation;
+owned resources must be absent. `qualification_binding(active)` is called again
+after the rehearsals. The proof retains all eight regression/lifecycle producers
+and both actual image-build producers, without changing original baseline tools,
+guards, model, official deadlines or unknown-cost handling.
+
+The private proof and completion record are written only after those checks.
+A final live qualification verification rereads the completed operation, all
+supporting producer files and actual installed images. Any subsequent failure,
+including cancellation, retains only its exception type, invalidates the scope
+and persists `automatic_resume:false`. A proof left behind by a failed operation
+cannot admit a later repeat. Session verification now requires the actual
+qualifier intent/completion and checks all supporting bytes, not only the ten
+core producers. Registration and every scored admission retain these additional
+bindings through their final rereads; quick gates also refuse failure markers.
+Completion records remain `paid_launch_ready:false`, not registration or dispatch.
+
+The prospective inventory is 261 files, including the qualifier and its tests.
+Only the previously permitted local `scored_trial.py` hooks differ from the 211
+final-anchor files; the other 210, old collectors and `local_trace.py` are
+unchanged. Gateway overlays remain eight sources, with 32 import files bound.
+Trusted service operations, real native image/legacy-builder verification and
+qualification, the repeat exporter and completed-Terminus successor reader are
+still required. No native operation is allowed while custom final89 is active
+or its state is unknown.
+
+All 40 new tests passed. The earlier 264 focused checks and a 31-test admission run
+also passed after expanding the last-read mutation check to include qualifier
+completion and supporting trace files. The tests use actual temporary private
+files, held sessions/locks, shared lifecycle/retry/accounting/traces, the original
+Terminus constructor and local cooperative signals. Native readers, Docker,
+native setup/run, verifier and regression execution are mocked for orchestration;
+separate tests exercise the regression worker with tiny actual unittest suites
+and the standard-library bootstrap in harmless local subprocesses. None is
+native qualification, a real provider measurement or a benchmark result.
+
+Coverage includes exact ten-producer binding plus all supporting files, actual
+completion rereads, source/input/image/report changes, duplicate fields, private
+permissions, symlinks, lifetime/process/thread/task boundaries, one-shot refusal,
+cancellation during child creation, owned-child cleanup and failure after proof
+creation. Local fixes corrected two test-only macOS path aliases and an assertion
+for the earlier failure-marker check; no production check was weakened.
+A local saved-anchor check matched 178 original rows, 84 original sources,
+211 final-anchor files with only the prior local scored delta, 261 prospective
+sources, 281 operator bindings and 227 final-native-preflight bindings. All 32
+gateway import files remain bound, with eight overlaid. No completed-native
+collector, archive transfer/recreation, actual image build, deployment, native
+rehearsal, qualification, registration or new provider request occurred.
+
+A separate import-closure audit found five unchanged helpers reached by these
+regression tests but absent from the earlier prospective inventory:
+`cetus_local_probe.py`, `direct_final_gateway.py`, `final_schedule.py`,
+`freeze_inputs.py` and `local_langfuse.py`. They are now bound for current repeat
+verification only, not added retrospectively to historical qualifications or
+archives. The regression worker checks every loaded project module before
+test discovery, after discovery and after execution; unbound imports, changed
+bytes and helpers from another deployment fail closed. No helper was edited.
+The complete 594-test repeat regression set then passed locally, without skips,
+under the loopback-only network audit guard. Before/after source checks passed;
+all 160 project modules loaded by the end were bound, with no unbound import.
+This was a local regression run, not the native qualifier or a paid operation.
+
+Final full local discovery ran 2,100 tests: 2,099 passed and one pre-existing
+skip; all 12 repository tests passed. Mocked lifecycle completion output is
+not benchmark evidence.

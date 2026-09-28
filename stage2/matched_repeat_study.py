@@ -55,6 +55,7 @@ def _qualified(active):
         raise ValueError('Registration must bind this live qualified baseline session')
     files.update(live['files']); files.update(proof['evidence_files'])
     files.update(proof['image_evidence_files'])
+    files.update(verified['qualification_operation_files'])
     check_files(root, files)
     return root, proof, expected, files
 
@@ -131,6 +132,8 @@ def _images(root, proof, complete):
 
 def _clear(root):
     session.handoff._no_stop(root)
+    from qualify_matched_repeat import no_failure
+    no_failure(root)
     path = root / '.runtime/stage2/accounting-runtime-transition-v1.json'
     if path.exists() or path.is_symlink():
         raise ValueError('Historical receipt runtime transitions cannot alter a qualified repeat')

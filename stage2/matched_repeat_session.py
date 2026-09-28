@@ -221,6 +221,8 @@ def verify_qualification(session):
     try:
         recheck(session)
         root = state['root']
+        from qualify_matched_repeat import verify_completion, no_failure
+        no_failure(root)
         records, files = _qualification_inputs(root)
         proof = records[policy.QUALIFICATION_FILE]
         predecessors = state['predecessor']['predecessors']
@@ -240,9 +242,11 @@ def verify_qualification(session):
             'gateway_image', 'guard_image')}
         if policy.fingerprint(images) != policy.fingerprint(expected_images):
             raise ValueError('Qualification must bind freshly verified actual image-build evidence')
+        operation_files = verify_completion(session, proof)
         recheck(session)
         check_files(root, files); check_files(root, proof['evidence_files'])
         check_files(root, proof['image_evidence_files'])
+        check_files(root, operation_files); no_failure(root)
         return dict(kind='live_bound_repeat_qualification_not_dispatch', harness=state['harness'],
             qualification_sha256=policy.fingerprint(proof), private_files=files,
             predecessor_authentication_sha256=policy.fingerprint(predecessors),
@@ -250,6 +254,7 @@ def verify_qualification(session):
             baseline_behaviour_authentication_sha256=policy.fingerprint(state['library']),
             runtime_identity_sha256=policy.fingerprint(state['host']),
             image_build_sha256=images['image_build_sha256'],
+            qualification_operation_files=operation_files,
             image_evidence_files=images['image_evidence_files'], paid_launch_ready=False)
     except BaseException:
         _SESSIONS.pop(session, None)
