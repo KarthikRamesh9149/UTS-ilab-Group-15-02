@@ -250,6 +250,23 @@ OpenHands successor reader remain unfinished. No repeat has launched.
 Full local discovery ran 1,818 tests, with 1,817 passes and one pre-existing
 skip; all 12 repository tests passed. The final 32-test session recheck passed.
 
+The [pinned inspection connection](protocols/baseline_matched_repeat_20260928.md#offline-pinned-inspection-connection)
+is now implemented locally. It preserves the existing SSH pinning and sends a
+freshly audited archive stream to a detached service that opens its own locked
+session in the same process/task. Exact sources and inactive ancestors are
+checked before imports; local peer PID, MainPID and directory checks bind the
+relay to that service. Private intents and receipts survive disconnects and
+uncertain failures. Its only operation is prerequisite inspection: no paid
+run, registration or qualifier command exists, and no receipt grants admission.
+All 36 new tests and 281 focused checks passed using actual local archives,
+pipes and sockets with mocked native services/audits. No target-host connection
+was executed. The prospective union is 239 sources, with all 211 final sources
+unchanged. Native service verification, scoped scored admission/dispatcher,
+real isolated qualification, pinned build, repeat export and the OpenHands
+successor reader remain unfinished. No repeat deployment or attempt exists.
+Full local discovery ran 1,854 tests: 1,853 passed and one pre-existing skip.
+All 12 repository tests and the final 36-test connection recheck passed.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

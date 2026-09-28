@@ -602,3 +602,88 @@ Full local discovery ran 1,818 tests: 1,817 passed and one pre-existing skip.
 All 12 repository tests passed separately. Removing an unused test import was
 followed by another successful 32-test session run. No real qualification,
 registration, archive transfer, deployment or model request occurred.
+
+## Offline pinned inspection connection
+
+`matched_repeat_connection.py` and `matched_repeat_service.py` implement a
+single operation: `inspect-prerequisites`. They do not expose a paid-run,
+qualification, registration, generic command or saved-session operation.
+The operator must already have the completed custom-final audit, verified
+off-server archive and export. No connection was run against the VPS during
+this checkpoint, and neither repeat deployment exists yet.
+
+The operator command preserves the existing pinned, key-authenticated SSH
+destination and options, replacing only its original interpreter tail. A
+stdlib bootstrap checks inactive successful ancestors, stop markers, exact
+copied qualification bytes and the complete current source inventory before
+project imports, then checks them again. It uses the repeat deployment's own
+isolated interpreter, disabled bytecode writes and an absent cache prefix.
+No provider environment is forwarded. The inherited source inventory is read
+from the exact pinned final proof, so supplying only the new modules is refused.
+
+The SSH relay creates an exclusive private Unix listener, then starts a fixed
+transient systemd service with `Type=exec`, `Restart=no`, private logging and
+null standard input. It does not use `--scope`, `--pipe` or `--wait`, and adds
+no service runtime ceiling. This design follows systemd's documented detached
+service behaviour; successful `exec` is not successful authentication or
+qualification. The actual target-host service launch still needs verification.
+See the [official systemd-run source documentation](https://raw.githubusercontent.com/systemd/systemd/main/man/systemd-run.xml).
+
+Both local socket endpoints verify peer PID and root ownership. The relay also
+matches its peer against the exact service MainPID and process directory.
+These local checks do not establish network identity or off-server location
+by themselves: the real Mac sender and pinned SSH path are required. A short
+private `/run` socket path avoids the Unix address-length limit. The 900-second
+connection/transfer/acknowledgement window and 16 KiB reply window are transport
+bounds, not benchmark deadlines or model-call limits.
+
+After receiver readiness, the operator calls the actual `handoff.send`, with
+a new completed-native audit and read of the existing archive. The detached
+service calls `session.open_session` itself; authentication, ancestor locks and
+the consumer remain in one process and async task. No prepared witness crosses
+a process or task boundary. Its independent connection lock does not pre-lock
+the ancestor matrices that the real authenticators need. Current file/library/
+host rechecks still run under the session's ancestor locks.
+
+The committed archive stream must finish before authentication can succeed.
+An interrupted or uncommitted transfer cannot produce a success record. After
+the complete transfer, loss of the client acknowledgement does not stop the
+native inspection. Exclusive private operator and native intents, logs,
+metadata and result/failure records retain the operation identity for follow-up.
+An uncertain client failure never triggers automatic retry or a native stop;
+inspect the recorded exact unit before another operation. Only the operation's
+ephemeral socket is removed. Raw archive contents are not written or extracted
+on the receiver, and no completed backup is recreated.
+
+Every result remains `paid_launch_ready:false`. The inspection releases its
+session when finished. A future qualifier/dispatcher must open a fresh handoff
+and consume its session inside that same service/task scope; this receipt
+cannot admit a later process. Scored admission, the locked paid dispatcher,
+actual isolated qualifier, pinned image build and repeat exporter are still
+unfinished. OpenHands remains refused until its completed-Terminus reader
+exists. Original guards, retry behaviour and all 211 frozen final sources are
+unchanged. The prospective repeat source union is now 239 files.
+
+All 36 new tests and 281 focused checks passed. Tests use real temporary
+archives, private files, local pipes and Unix sockets. They run the actual
+sender and handoff consumer through the relay/service code, while systemd,
+native context, native audit subprocesses and the outer session are mocked.
+The existing session tests separately cover real competing locks and handle
+lifetime. This is not native qualification, a real SSH transfer or paid evidence.
+Coverage includes complete/incomplete/uncommitted transfers, disconnects,
+wrong peer/process identities, changed sources, private permissions, symlinks,
+pre/post-import guards, exclusive evidence and failure retention. Initial test
+fixtures needed a shorter macOS socket path and separately mocked root identity;
+production checks were not relaxed.
+
+A read-only actual-anchor check matched 178 original rows, 84 original sources,
+211 unchanged final sources, 239 prospective sources, 259 operator bindings,
+227 final native-preflight bindings and 241 connection source/input bindings.
+The generated SSH argument was 39,712 bytes. It was inspected, not executed.
+No completed-native collector, archive transfer/recreation, repeat deployment,
+rehearsal, registration or model request occurred.
+
+Full local discovery ran 1,854 tests: 1,853 passed and one pre-existing skip.
+All 12 repository tests passed separately. A final unused test-import removal
+was followed by another successful 36-test connection run. The full suite's
+mocked lifecycle messages are not additional benchmark attempts or results.
