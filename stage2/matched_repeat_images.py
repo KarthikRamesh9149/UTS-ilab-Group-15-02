@@ -32,18 +32,18 @@ ENTRYPOINT = ['python', '/study/stage2/matched_repeat_gateway.py']
 IMAGE_FILES = ('budget_ledger.py', 'calibrate_tokenizer.py', 'collect_deferred_receipts.py',
     'completion_wait.py', 'credit_only_gateway.py', 'credit_only_policy.py', 'custom_control.py',
     'deferred_billing.py', 'extended_token_calibration.py', 'gateway_core.py', 'gateway_http.py',
-    'gateway_policy.py', 'historical_hold.py', 'matched_repeat_gateway.py', 'matched_repeat_policy.py',
+    'gateway_policy.py', 'historical_hold.py', 'matched_repeat_gateway.py', 'matched_repeat_fixture.py', 'matched_repeat_policy.py',
     'matched_repeat_schedule.py', 'model_protocol.py', 'openrouter_transport.py',
     'portable_custom_policy.py', 'rate_limit_candidate.py', 'receipt_accounting.py',
     'receipt_polling.py', 'rerun_budget.py', 'retry_gateway.py', 'retry_policy.py',
     'retry_runtime.py', 'retry_transport.py', 'scored_gateway.py', 'setup_probe.py',
     'study_budget.py', 'trial_estimator.py')
-# Overlay only the new lightweight contracts and the two already-disclosed
-# shared gateway deltas. All other import helpers remain in the original base
-# and must match the newly inventoried/current bytes during actual inspection.
+# Overlay only the new lightweight contracts, the separate fake-only fixture
+# gateway and the two already-disclosed shared gateway deltas. All other import
+# helpers remain in the original base and must match current bound bytes.
 COPY_FILES = ('credit_only_gateway.py', 'retry_gateway.py', 'custom_control.py',
     'portable_custom_policy.py', 'matched_repeat_schedule.py', 'matched_repeat_policy.py',
-    'matched_repeat_gateway.py')
+    'matched_repeat_gateway.py', 'matched_repeat_fixture.py')
 
 
 def _utc():
@@ -180,6 +180,7 @@ read_files()
 sys.addaudithook(guard)
 sys.path.insert(0, str(base))
 import matched_repeat_gateway
+import matched_repeat_fixture
 loaded = {}
 for name, module in list(sys.modules.items()):
     path = getattr(module, '__file__', None)
@@ -192,7 +193,7 @@ for name, module in list(sys.modules.items()):
         if path is None or pathlib.Path(path) != base / (name + '.py'):
             raise ValueError('Gateway module loaded from another source tree')
         loaded[name] = expected[name + '.py']
-if 'matched_repeat_gateway' not in loaded or 'retry_gateway' not in loaded:
+if not {'matched_repeat_gateway', 'matched_repeat_fixture', 'retry_gateway'}.issubset(loaded):
     raise ValueError('Actual lightweight gateway import required')
 print(json.dumps(dict(installed=read_files(), loaded=loaded, import_only=True, live_api_calls=0)))
 '''.replace('BASE', repr(base), 1).replace('EXPECTED', repr(expected), 1)
@@ -217,7 +218,7 @@ def _observations(root, sources, parent, guard, image):
             or report['installed'] != expected or report['import_only'] is not True
             or type(report['live_api_calls']) is not int or report['live_api_calls'] != 0
             or not isinstance(report['loaded'], dict)
-            or not {'matched_repeat_gateway', 'retry_gateway'}.issubset(report['loaded'])
+            or not {'matched_repeat_gateway', 'matched_repeat_fixture', 'retry_gateway'}.issubset(report['loaded'])
             or any(name + '.py' not in expected or sha != expected[name + '.py']
                 for name, sha in report['loaded'].items())):
         raise ValueError('Actual installed source and lean import observation required')

@@ -90,7 +90,7 @@ class ImageTests(unittest.TestCase):
         if args[0] == 'run':
             expected = {name:self.q.actual[name] for name in images.IMAGE_FILES}
             return json.dumps(self.report if self.report is not None else dict(installed=expected,
-                loaded={n:expected[n + '.py'] for n in ('matched_repeat_gateway', 'retry_gateway')},
+                loaded={n:expected[n + '.py'] for n in ('matched_repeat_gateway', 'matched_repeat_fixture', 'retry_gateway')},
                 import_only=True, live_api_calls=0))
         self.fail('Unexpected Docker operation: ' + repr(args))
 
@@ -353,7 +353,7 @@ class ImageTests(unittest.TestCase):
 
 class ContextAndProbeTests(unittest.TestCase):
     def test_exact_static_import_closure_and_inventory(self):
-        seen = set(); todo = ['matched_repeat_gateway']
+        seen = set(); todo = ['matched_repeat_gateway', 'matched_repeat_fixture']
         while todo:
             name = todo.pop()
             if name in seen: continue

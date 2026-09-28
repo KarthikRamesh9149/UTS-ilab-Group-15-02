@@ -1032,3 +1032,86 @@ operator bindings and 227 final native-preflight bindings. All 31 gateway import
 files remain bound and only seven are in the overlay. No completed-native
 collector, archive transfer/recreation, native build, deployment, rehearsal,
 real registration or new provider request occurred.
+
+## Offline isolated rehearsal gateway
+
+`matched_repeat_fixture.py` adds the fake-only gateway component for the future
+native qualifier. It does not run a host lifecycle, construct a baseline, open
+a prerequisite session, create qualification or grant paid admission. The
+connection remains inspection-only and has not been used on the VPS. No native
+repeat build or rehearsal has occurred while custom final89 runs.
+
+The separate fixture record has six fixed synthetic IDs: the tools, setup
+cancellation and boundary-stop cases for each original baseline. These IDs
+cannot enter the production registry. The record explicitly remains
+`paid_launch_ready:false` and `repeat_execution_qualified:false`; it is not a
+manufactured predecessor witness or qualification. Existing production repeat
+input/build/qualification/registration/dispatch records are refused in the
+fixture runtime. Private ownership, permissions, regular paths, single file
+links, duplicate JSON fields, numeric types and exact bytes are checked. A
+fixture's original bytes remain bound throughout its gateway attempt.
+
+The gateway entry accepts only its fixed container paths, the dedicated
+synthetic credential and the exact scripted provider class. It offers no host
+launcher, root override, arbitrary factory, external transport or paid-mode
+option. Native Linux with only the loopback interface is checked before
+startup, provider construction and every request. The future host fixture must
+still configure and audit the actual Docker `network=none` namespace; interface
+inspection alone is not an OS sandbox or network-peer authentication. The
+scripted provider has no network, balance, credit, receipt or pricing client.
+Production gateway defaults and admission remain unchanged.
+
+The fake dialogue uses the original Terminus JSON/terminal format and OpenHands
+`execute_bash`/`finish` tools, not custom tools. It scripts one transient 429,
+requires the identical rejected request on shared recovery, and then writes a
+benign fixture marker. Only subsequent tool feedback containing the observation
+permits completion; merely echoing the command does not. Terminus retains its
+native extra completion-confirmation turn. This is three accepted Terminus
+responses or two OpenHands responses, not a model/request ceiling in either
+baseline. The setup-cancellation case rejects any model request. The gateway
+does not send host stop signals or claim that cancellation/stop was exercised.
+Those remain actual host-producer responsibilities.
+
+The session reuses unchanged deadline-bound retry and passive accounting.
+Unknown costs remain unknown, each physical request is retained, and revocation,
+deadline expiry and cancellation prevent further requests. A failed or finished
+script cannot be revived or replayed. Scripted token counts and omitted costs
+are fixture values, not provider measurements or benchmark evidence. Original
+baseline agents, million-turn guards, model settings and paid dispatch are not
+changed by this component.
+
+The fixture and its tests expand the prospective source union from 250 to 252
+files. The future image context now overlays eight sources, including this
+fixture, and verifies all 32 installed import-source files. The production
+entrypoint is unchanged. Actual read-only image verification imports both
+gateway modules and requires both in its observed source map. All old parent
+layers and the unchanged guard remain required; no real image has been built.
+Only the earlier local `scored_trial.py` hook differs from the 211-file final
+anchor, with no additional inherited source or `local_trace.py` change.
+
+All 40 new tests and 262 focused checks passed. A test-only installed-observation
+fixture was then updated to include the new import, keeping its source-drift
+test focused on that fault; the affected 67 tests passed again. Tests use real
+temporary private files, locks, the actual retry/accounting code, the installed
+Terminus parser and confirmation formatter, with network-interface observations
+and Docker/native readers mocked. A real isolated local import checks the lean
+module closure without a provider call. These are not native qualification.
+
+The actual isolated host/scored fixture route, native qualifier, trusted service
+operations, pinned native build, repeat exporter and completed-Terminus successor
+reader remain unfinished. The future qualifier must consume a fresh real
+operator handoff in its own live session, keep that handle on the main thread
+and same async task, build and reverify the actual image, run the real native
+fixtures, and bind all ten actual producers through `qualification_binding`.
+It must not fabricate production proof or patch production admission to run a
+rehearsal. OpenHands paid prerequisites remain deliberately refused.
+
+Full local discovery ran 2,018 tests: 2,017 passed and one pre-existing skip.
+All 12 repository tests passed separately. Mocked lifecycle-completion output
+is not benchmark evidence. A read-only saved-anchor check matched 178 original
+rows, 84 original sources, the 211-file final anchor with only the previous
+local scored hook changed, 252 prospective sources, 272 operator bindings and
+227 final native-preflight bindings. All 32 gateway import files are bound;
+only eight are overlaid. No completed-native collector, archive transfer or
+recreation, real build, native session, deployment, rehearsal, qualification,
+registration or new provider request occurred.

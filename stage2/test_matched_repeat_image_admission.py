@@ -165,7 +165,7 @@ class ImageAdmissionTests(unittest.TestCase):
         expected = {n:self.q.actual[n] for n in images.IMAGE_FILES}
         expected['retry_gateway.py'] = 'f' * 64
         self.f.report = dict(installed=expected,
-            loaded={n:expected[n + '.py'] for n in ('matched_repeat_gateway', 'retry_gateway')},
+            loaded={n:expected[n + '.py'] for n in ('matched_repeat_gateway', 'matched_repeat_fixture', 'retry_gateway')},
             import_only=True, live_api_calls=0)
         self.refuse('installed source')
 

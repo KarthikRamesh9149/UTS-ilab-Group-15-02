@@ -333,6 +333,23 @@ repeat operation or model call occurred, and the active final is unchanged.
 Full local discovery ran 1,978 tests: 1,977 passed and one pre-existing skip.
 All 12 repository tests and the final 27-test image-admission recheck passed.
 
+The [isolated rehearsal gateway](protocols/baseline_matched_repeat_20260928.md#offline-isolated-rehearsal-gateway)
+is now implemented locally. It accepts only fixed synthetic identities and
+credentials, checks network isolation, and scripts the original Terminus and
+OpenHands wire/tool formats through unchanged retry and passive accounting.
+Terminus keeps its native completion-confirmation turn. No production proof,
+registration, host lifecycle or paid admission is created. The prospective
+inventory is 252 files; the future image overlays eight sources and verifies
+32 installed import files, with its production entrypoint unchanged.
+All 40 new tests and 262 focused checks passed, plus a final 67-test affected
+recheck. Native host/scored fixture integration, the actual qualifier, trusted
+service wiring, pinned native build, repeat export and the OpenHands successor
+reader remain unfinished. No repeat operation or paid request was run; the
+active custom final deployment and all old evidence remain unchanged.
+Full local discovery ran 2,018 tests: 2,017 passed and one pre-existing skip;
+all 12 repository tests passed separately. These are local checks, not native
+qualification or additional benchmark results.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

@@ -60,6 +60,7 @@ REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_r
     'run_matched_repeat.py', 'test_run_matched_repeat.py',
     'matched_repeat_images.py', 'test_matched_repeat_images.py', 'fixtures/Dockerfile.matched-repeat',
     'test_matched_repeat_image_admission.py',
+    'matched_repeat_fixture.py', 'test_matched_repeat_fixture.py',
     # Inherited gateway import helpers newly inventoried for current image
     # parity, not retrospective additions to either historical qualification.
     'calibrate_tokenizer.py', 'extended_token_calibration.py', 'setup_probe.py',
@@ -77,6 +78,7 @@ TEST_MODULES = ('test_matched_repeat_schedule', 'test_matched_repeat_policy',
     'test_run_matched_repeat',
     'test_matched_repeat_images',
     'test_matched_repeat_image_admission',
+    'test_matched_repeat_fixture',
     'test_native_agents', 'test_retry_gateway', 'test_credit_only_gateway',
     'test_trial_execution', 'test_scored_trial')
 ORCHESTRATION_FILES = frozenset({'scored_trial.py', 'local_trace.py'})
