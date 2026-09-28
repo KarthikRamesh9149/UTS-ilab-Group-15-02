@@ -1,7 +1,8 @@
 """Matched-repeat registration checks with unchanged passive shared retry.
 
 This is a gateway contract, not host admission, predecessor authentication or
-native qualification. The scored runner does not yet admit this experiment.
+native qualification. A separate live session and scoped scored admission are
+required; these lightweight gateway checks cannot provide either.
 """
 from matched_repeat_policy import require_trial, fingerprint
 from retry_gateway import RetrySession, serve

@@ -66,7 +66,7 @@ def audit_task(inspected, config, paths):
 async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                     gateway_image, guard_image, setup_timeout_seconds, model_settings,
                     billing_runtime=None, billing_kind='scored', accounting_mode='reserved',
-                    custom_study=None):
+                    custom_study=None, matched_repeat=None):
     """Run one qualified native agent; factory gets only task timeout, not tests.
 
     Factory arguments: paths, host_api_base, container_api_base, trial_token,
@@ -93,7 +93,14 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         raise ValueError('Unknown accounting mode')
     passive = accounting_mode == 'provider-credit-only'
     custom_admission = None
-    if custom_study is not None:
+    repeat_admission = None
+    if matched_repeat is not None:
+        from matched_repeat_policy import EXPERIMENT as MATCHED_REPEAT
+        if (matched_repeat != MATCHED_REPEAT or custom_study is not None or not passive
+                or billing_runtime is not None or billing_kind != 'scored' or stage != 'final'):
+            raise ValueError('Explicit separately qualified baseline repeat required')
+        from matched_repeat_study import admit_trial as repeat_admission
+    elif custom_study is not None:
         from corrected_custom_policy import EXPERIMENT as CORRECTED_CUSTOM
         from portable_custom_policy import EXPERIMENT as PORTABLE_CUSTOM
         from deadline_custom_policy import EXPERIMENT as DEADLINE_CUSTOM
@@ -120,6 +127,11 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
     with os.fdopen(fd, 'r+') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         custom_binding = None
+        repeat_binding = None
+        if repeat_admission is not None:
+            repeat_binding = repeat_admission(root, trial_id=trial_id, task_id=task_id, stage=stage,
+                factory=agent_factory, settings=model_settings, gateway_image=gateway_image,
+                guard_image=guard_image, setup_timeout_seconds=setup_timeout_seconds)
         if custom_study is not None:
             admission_options = ({'setup_timeout_seconds': setup_timeout_seconds}
                                  if custom_study == NO_CUTOFF_FINAL else {})
@@ -131,9 +143,11 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         factory_protocol = getattr(agent_factory, 'model_protocol_sha256', protocol_hash)
         if factory_protocol != protocol_hash:
             raise ValueError('Agent factory and gateway model settings differ')
-        from receipt_runtime_transition import gateway_for_trial
-        gateway_image, accounting_transition = gateway_for_trial(
-            root, gateway_image, guard_image, model_settings)
+        accounting_transition = None
+        if matched_repeat is None:
+            from receipt_runtime_transition import gateway_for_trial
+            gateway_image, accounting_transition = gateway_for_trial(
+                root, gateway_image, guard_image, model_settings)
         manifest = json.loads((root / 'stage2/input_manifest.json').read_text())
         allowed = manifest['development_ids' if stage == 'development' else 'all_task_ids']
         if task_id not in allowed:
@@ -166,6 +180,10 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         if custom_binding is not None:
             result['custom_study'] = custom_study
             result['custom_registration_sha256'] = custom_binding
+        if repeat_binding is not None:
+            result['matched_repeat_experiment'] = matched_repeat
+            result['matched_repeat_registration_sha256'] = repeat_binding
+            result['guard_image_id'] = guard_image
         if accounting_transition is not None:
             result['accounting_runtime_transition_sha256'] = accounting_transition
             result['gateway_image_id'] = gateway_image
@@ -189,7 +207,10 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             main = await asyncio.to_thread(service, project, 'main')
             audit_task(main, task.config.environment, paths)
             result['task_image_id'] = main['Image']
-            if custom_study is not None and custom_study == NO_CUTOFF_CUSTOM:
+            if matched_repeat is not None:
+                from matched_repeat_study import require_task_image
+                require_task_image(root, task_id, main['Image'])
+            elif custom_study is not None and custom_study == NO_CUTOFF_CUSTOM:
                 from no_cutoff_custom_study import require_task_image
                 require_task_image(root, task_id, main['Image'])
             elif custom_study is not None and custom_study == NO_CUTOFF_FINAL:

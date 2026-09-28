@@ -267,6 +267,23 @@ successor reader remain unfinished. No repeat deployment or attempt exists.
 Full local discovery ran 1,854 tests: 1,853 passed and one pre-existing skip.
 All 12 repository tests and the final 36-test connection recheck passed.
 
+The [scoped repeat admission](protocols/baseline_matched_repeat_20260928.md#offline-scoped-scored-admission)
+now connects a live same-task session to immutable registration and the explicit
+local scored-runner hook. It issues the original baseline factory, admits only
+the next fresh registered key, rechecks qualification/source/producer bytes,
+preserves zero/missing/unknown outcomes and verifies the started task image.
+The 31 new local tests use synthetic qualification and mocked native execution;
+the combined study/scored recheck passed 39 tests. This is not a native
+qualification, real registration or paid launch. The inspection connection
+still cannot dispatch. Native qualification, pinned images, the paid service/
+dispatcher, exporter and OpenHands successor reader remain unfinished.
+The prospective union has 241 files. Only the permitted local `scored_trial.py`
+orchestration hook differs from the 211-file final anchor; the running native
+final source, baseline factories, tools, model, retries and old collectors
+were not changed.
+All 371 final focused checks passed. Full local discovery ran 1,885 tests:
+1,884 passed and one pre-existing skip; all 12 repository tests passed.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

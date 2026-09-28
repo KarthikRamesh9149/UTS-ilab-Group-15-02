@@ -687,3 +687,78 @@ Full local discovery ran 1,854 tests: 1,853 passed and one pre-existing skip.
 All 12 repository tests passed separately. A final unused test-import removal
 was followed by another successful 36-test connection run. The full suite's
 mocked lifecycle messages are not additional benchmark attempts or results.
+
+## Offline scoped scored admission
+
+`matched_repeat_study.py` now implements session-bound immutable registration
+and single-trial admission. This is local preparation, not an actual native
+registration, qualification, service operation or paid launch. The connection
+still supports only `inspect-prerequisites`; its completed inspection receipt
+cannot open this scope. A future paid service must open a fresh real handoff
+and keep the session and dispatch scope in the same process, thread and async
+task while holding every ancestor lock. OpenHands remains refused until its
+additional completed-Terminus reader exists.
+
+Registration rereads the actual private qualification, producer files, current
+sources and live prerequisite observations before exclusively creating the
+exact 89-cell block. An existing registration is immutable. Reusing a started
+key, a partial attempt, unknown identities, sequence gaps, unsafe files and
+persistent stops refuse further admission. Completed zero and missing verifier
+outcomes
+remain outcomes; unknown costs and more than 100 requests do not block the
+next fresh key. This retained-coverage check is not the completed trace/export
+audit, which remains separately required.
+
+The scope issues the unchanged `recovery_agents.agent_factory` itself rather
+than accepting a caller-supplied factory with matching labels. Its wrapper
+checks lifetime, function/closure identity, admitted paths and the official
+deadline before the one native construction. The original tools, one-million-
+turn guards, model settings and deadline/retry wrapper are unchanged. These
+in-process checks detect substitution in trusted orchestration; they are not
+a sandbox against arbitrary code in that process. Saved or constructed handles,
+nested scopes, another process/thread/async task and failed-scope reuse are
+refused. Qualification and actual source/input/producer bytes are reread for
+each next-cell admission, including again after the retained-result check.
+
+The explicit local `scored_trial.py` hook requires this scope, the next exact
+registered identity, passive accounting, both qualified images and the exact
+900-second setup allowance. It records the repeat experiment, registration
+and guard identity separately from custom studies, checks the started task
+image, then uses the original baseline and existing trace/revocation/cleanup
+path. It cannot mix custom, reserved or setup-billing routes. Historical
+receipt-runtime transitions cannot substitute a different repeat gateway.
+Existing non-repeat routes retain their defaults and admission checks.
+
+Only `scored_trial.py` differs from the 211-file final source anchor in the
+local prospective union, through this permitted orchestration hook. All other
+210 inherited files, including original agent/tool/retry/model and completed
+collectors, are unchanged. The running native final deployment is not edited.
+The two new study/test files expand the prospective repeat union to 241 files;
+the new test module is included in future native regression qualification.
+There is no `local_trace.py` delta.
+
+The 31 new local tests use real private files, competing locks, actual session
+and study scopes, and original baseline construction, with synthetic temporary
+qualification and mocked native readers, Docker and phase execution. These
+are test-only fixtures, not production qualification or native evidence. The
+scored integration preserves a
+zero result and cleanup after a post-start image refusal. Coverage includes
+immutable registration, replay/order/stop refusal, missing/unknown retention,
+source/producer/result/closure mutation and handle lifetime boundaries. A final
+review added the post-result source reread and its regression test. The combined
+study/scored-runner recheck passed all 39 tests.
+
+The final focused run passed all 371 checks. An earlier command included a
+nonexistent test-module name; it was corrected without a production change.
+No native fixture or paid trial was run by these checks. Final local discovery
+ran 1,885 tests: 1,884 passed and one pre-existing skip. All 12 repository tests
+passed separately. The suite's mocked lifecycle messages are not paid results.
+
+Actual local saved anchors matched 178 original rows, 84 original sources,
+the 211-file final anchor with only the explicit local scored hook changed,
+241 prospective sources, 261 operator bindings and 227 final native-preflight
+bindings. This check read files only. No completed-native collector, archive
+transfer/recreation, repeat deployment, registration, rehearsal or model
+request occurred. The real isolated qualifier, pinned build, locked paid
+dispatcher/service integration, repeat exporter and OpenHands successor reader
+remain unfinished. A scoped hook alone is not a launch milestone.
