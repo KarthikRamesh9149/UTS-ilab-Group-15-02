@@ -25,8 +25,9 @@ The separate completed-audit reader is now implemented locally with 42 new
 passing tests. It requires actual inactive-service, lineage, ancestor-lock,
 runtime, source, official-limit, accounting and cleanup checks, retaining
 measured/not-run timing denominators for full89/development20/remaining69.
-Its trusted invocation, one absence-aware backup, amended snapshot/archive
-validation, public export and actual repeat-handoff integration remain pending.
+Its trusted invocation, one absence-aware backup, public export and actual
+repeat-handoff integration remain pending. Separate amended snapshot/archive
+validation is now implemented locally, as described below.
 No completed audit or repeat operation has run. At 21:37:10 UTC, the read-only
 inspector still showed task 71 active and 70/89 complete: 41 passes, 26 zero-score
 failures and three missing verifier outcomes. All 211 frozen sources matched.
@@ -37,6 +38,34 @@ The final local checks ran 2,182 tests: 2,181 passed and one pre-existing skip.
 All 676 guarded repeat-regression checks and 12 repository tests passed.
 These are local tests with mocked native observations, not a completed audit
 or additional benchmark attempts.
+
+The separate `no_cutoff_final_archive.py` verifier now has 47 passing local
+tests. It validates exact original byte anchors and amended metadata, then
+reads actual archive files or stream frames to check all supporting hashes,
+directory inventories and genuine absences. Missing phases remain null and
+their measured/not-run denominators are checked. No archive is created or
+extracted, and no native audit, off-server location or paid authority is
+inferred from JSON or a receipt. The separate reporting bundle is seven files;
+the prospective repeat inventory is 268 files. Old collectors and native
+execution remain unchanged. The reporting launcher, one-time archive writer,
+public export and actual predecessor-handoff integration are still pending.
+
+Final local discovery ran 2,229 tests: 2,228 passed and one pre-existing skip.
+All 723 guarded repeat-regression checks passed with zero skips and all 166
+loaded project modules bound. The 12 repository tests also passed. These
+synthetic/local checks are not native audit, backup or paid-run evidence.
+
+At 22:21:45 UTC the read-only inspector found 73/89 complete: 42 passes,
+28 zero-score failures and the same three setup-only missing verifier outcomes.
+Task 74 was running with 33 physical requests and 18 accepted responses. All
+211 frozen sources matched, all 73 completed results recorded revocation and
+no operator/provider stop was present. These are partial, dated metadata.
+
+At 22:59:18 UTC the service was active on task 76, with 75/89 complete:
+43 passes, 29 zero-score failures and three setup-only missing verifier
+outcomes. Task 75 passed. Task 76 had 21 physical requests and 20 accepted
+responses. All 211 frozen sources matched, all 75 completed results recorded
+revocation and no operator/provider stop was present. No repeat was launched.
 
 The finalist must have no artificial spending, model-call, command-time,
 job-count or completion-repair cutoff. C0/C1/C2 still contain their original

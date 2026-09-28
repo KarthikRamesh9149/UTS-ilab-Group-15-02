@@ -139,3 +139,30 @@ No cause or final score is inferred from these partial metadata.
 Final local discovery ran 2,182 tests: 2,181 passed and one pre-existing skip.
 All 676 guarded repeat-regression checks and 12 repository tests passed. These
 local/mock results do not establish native reporting or repeat qualification.
+
+At 22:21:45 UTC the service was active on task 74, with 73/89 complete:
+42 passes, 28 zero-score failures and the same three missing verifier outcomes.
+Task 72 passed; task 73 received an actual zero. All 211 frozen sources matched,
+all 73 retained results recorded revocation and no stop was present. Task 74
+had 33 physical requests and 18 accepted responses. This is not a final score.
+
+The amended snapshot/archive verifier is now locally implemented with 47
+passing tests against actual synthetic tar/gzip bytes. It preserves missing
+phases and binds every supporting file, exact inventory and actual absence,
+with a separate seven-file reporting bundle. The verifier creates no archive,
+does not perform a native audit and cannot grant repeat admission. Trusted
+reporting invocation, one absence-aware archive writer/transfer, allowlisted
+export and actual operator/native handoff remain pending. Nothing was deployed,
+replayed or invoked against the active native evidence by this work.
+
+Final local discovery ran 2,229 tests: 2,228 passed and one pre-existing skip.
+All 723 guarded repeat-regression checks passed with zero skips and all 166
+loaded project modules bound; the 12 repository tests passed. These are local
+synthetic checks, not a completed native audit or additional benchmark results.
+
+At 22:59:18 UTC the service was active on task 76, with 75/89 complete:
+43 passes, 29 zero-score failures and the same three setup-only missing
+verifier outcomes. Task 75 passed. Task 76 had 21 physical requests and 20
+accepted responses. All 211 frozen sources matched, all 75 retained results
+recorded revocation and no operator/provider stop was present. These partial
+metadata are not a completed final score. No repeat was launched.

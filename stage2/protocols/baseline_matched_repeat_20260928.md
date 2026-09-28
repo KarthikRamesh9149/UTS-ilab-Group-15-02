@@ -1425,3 +1425,53 @@ eight exact final input hashes and all 32 installed gateway import bindings
 matched. No completed-native collector, archive transfer/recreation, reporting
 deployment, build, rehearsal, qualification, registration or model request was
 performed by this offline work.
+
+## Offline amended archive verification
+
+`no_cutoff_final_archive.py` and 47 new local tests add strict amended snapshot
+validation and actual existing archive file/stream verification. Exact raw
+qualification/registration/runtime and historical metadata anchor all 89 rows,
+original178/stopped-four hashes, sources, eight qualification producers,
+official limits, accounting and measured/not-run phase aggregates. The new
+reader checks every supporting hash, exact directory inventory and genuine
+absence, preserving nulls rather than fabricating deadlines or zeros.
+
+The reporting bundle is now seven files, stored separately from the final
+execution tree and in its own archive namespace. The prospective repeat union
+is 268 files. Only the prior permitted local scored hooks differ from the 211
+final-anchor files; old collectors, `local_trace.py`, gateway overlays (eight)
+and installed import bindings (32) are unchanged. The actual local anchor check
+matched 84 original sources, all 211 final bindings with that one local delta,
+268 current sources, 288 operator bindings and 227 native-preflight bindings.
+The five exact original metadata byte anchors and all 182 historical result
+hash bindings matched their existing copies; no historical archive was read
+again or recreated during this work.
+
+Tests use real temporary private files and tar/gzip bytes, synthetic89 outcomes
+and mocked native service/Docker/lineage/qualification observations. They cover
+strict Python numeric/null semantics, unknown costs, exact inventory/absence
+checks, private file identity/replacement, parser windows, PAX long paths,
+hidden trailing data, corruption, unsafe members and chunked stream parity.
+The first run exposed a synthetic fixture timestamp mismatch; only that fixture
+was corrected. These are not native audit, transfer, qualification or paid
+benchmark evidence. All 47 new tests and an earlier 246 focused checks passed.
+Review added a nonblocking open and actual FIFO regression so a non-regular
+replacement is refused without waiting for a writer.
+
+Final full local discovery ran 2,229 tests: 2,228 passed and one pre-existing
+skip. All 723 guarded repeat-regression checks passed with zero skips; before
+and after checks bound all 166 loaded project modules. The 12 repository tests
+also passed. These local checks do not supply actual native audit, transfer or
+qualification evidence.
+
+This reader has no archive writer, CLI, extraction, network, native collector,
+deployment or dispatch entry. Its metadata explicitly claims neither a native
+audit nor an off-server location or full runtime restore. A stream frame does
+not authenticate its sender or replace the final operator commitment. The
+actual operator capture and native handoff must still use the source-bound
+fresh amended audit, existing archive read and under-lock native rechecks;
+those integrations remain unchanged and fail closed. A receipt flag cannot
+admit a repeat. Trusted reporting invocation, the one-time archive writer,
+allowlisted export, trusted repeat service operations, native compatibility,
+repeat exporter and completed-Terminus successor remain unfinished. No native
+reporting root, completed-final archive or repeat attempt was created.

@@ -132,7 +132,7 @@ inventory and regression set, not retroactively added to the final qualification
 completed89 audit. It has no CLI, caller-selected root, callback, saved-proof,
 backup or paid-dispatch entry. It is local preparation and has not been invoked
 on the native host. The future trusted launcher must independently bind its
-five-file reporting bundle before imports, outside the frozen execution tree,
+reporting bundle before imports, outside the frozen execution tree,
 at `/opt/uts-capstone-custom-no-cutoff-final-reporting-20260928`. That directory
 has not been created. Trusted deployment/invocation is not yet implemented.
 
@@ -177,9 +177,82 @@ privacy, duplicate fields, strict native invocation context, audit-before-lock
 ordering and final-observation mutation checks. These are not native audit,
 qualification or paid benchmark evidence.
 
-The separately bound launcher, one absence-aware streamed backup, strict amended
-snapshot/archive validation, allowlisted export and real operator/native
-handoff integration remain unfinished. Existing completed collectors, backups,
+The separately bound launcher, one absence-aware streamed backup, allowlisted
+export and real operator/native handoff integration remain unfinished. The
+strict metadata/archive verifier below is separate from those operations.
+Existing completed collectors, backups,
 repeat predecessor readers and admission are unchanged and still fail closed
 for this amended route. No native completed collector may run while final89 is
 active or its state is unknown.
+
+## Offline amended snapshot and archive verification
+
+`no_cutoff_final_archive.py` adds strict validation of the explicit amended
+schema and read-only verification of existing archive bytes. It has no writer,
+CLI, network operation, collector, extraction, deployment or admission entry.
+Its two new source/test files expand the prospective repeat union to 268 and
+the separate reporting bundle to seven files. None is added retrospectively
+to the final run's 211-file qualification. No reporting root has been deployed.
+
+The schema validator requires the exact original qualification, registration,
+runtime, baseline CSV and stopped metadata bytes, checked against their pinned
+hashes, not a caller-supplied success flag. It checks the original source/input/
+eight-producer maps, all 178 original and four stopped result hashes, fixed89
+order, official resource/deadline numeric types, status/reward compatibility,
+accounting and generation counts, null phases and measured/not-run aggregates.
+Only the exact supporting-file inventory, corroborated deadline/accounting
+absences and current separate reporting-source map are permitted. The five
+metadata inputs have a 64 MiB parser window, not a benchmark execution limit.
+
+The archive contract retains frozen-root paths and adds the seven reporting
+files under `reporting/stage2/`, outside the execution-source namespace.
+Every supporting file is hash-verified, including starts, results, traces,
+accounting and actual deadline files. Each recorded evidence directory must
+be present, including empty directories; its exact children must match. A
+proven absent path must have neither an archive entry nor any descendant.
+Additional private logs are allowed only below registered trial directories,
+outside those exact inventories. They are streamed and hashed, never returned,
+parsed as model exchanges, extracted or published. No exclusion may remove a
+required binding. This is not proof of a full runtime restore.
+
+The distinct receipt binds the amended snapshot, reporting map and absence set
+alongside the compressed checksum and source counts. Path verification requires
+an owned, private, regular single-link file, checks its identity before/after
+reading and rejects replacement. A substituted FIFO is opened nonblocking and
+rejected without waiting for a writer. The same verifier can consume exactly one
+declared stream frame; it leaves transport framing and the final authenticated
+operator commitment to the future caller. A pipe, saved receipt or regular
+stream is not proof of network identity or an off-server location.
+
+Verification rejects unsafe or duplicate paths, credentials, links, special
+files, global/sparse extensions, changed or missing bindings, hidden data after
+the tar end marker, incomplete end blocks and damaged gzip trailers. Standard
+PAX path/timestamp and GNU long-name metadata are supported; extension headers
+are bounded before their bodies are read. Ordinary file payloads have no new
+size ceiling and use bounded-buffer reads. Exact source counts are checked.
+
+Both validation results explicitly retain `completed_final_audit:false` and
+`paid_launch_ready:false`; archive verification additionally records
+`off_server_location_verified:false` and `full_runtime_restore_exercised:false`.
+Archive bytes corroborate the report's bindings, not a fresh native service,
+phase, lineage, image or cleanup observation. The actual operator/native
+handoff still must perform the separately bound fresh audit and compare it to
+the saved snapshot, read the existing off-server archive, verify its final
+commitment and recheck native evidence under every ancestor lock. The unchanged
+predecessor readers do not yet consume this schema and must not be bypassed.
+
+All 47 new local tests passed with actual temporary tar/gzip bytes and synthetic
+89-attempt files produced through the real phase/accounting readers. Native
+observations are mocked. Coverage includes byte/absence/inventory drift,
+private file replacement, malformed archives, chunked stream parity, standard
+PAX metadata, parser windows and 105 synthetic physical requests with 104
+unknown costs and missing timing retained. No provider was called. An initial
+test fixture used a collection timestamp before its synthetic future trace
+epoch; the fixture was corrected without relaxing production time checks.
+Review added the nonblocking regular-file check and an actual FIFO regression.
+
+Trusted invocation, the exclusive one-time native archive writer/transfer,
+allowlisted public export and actual predecessor-handoff integration are still
+required. They must be completed and source-bound before the reporting bundle
+is frozen or any completed-final route is invoked. No actual native completed
+audit, archive, export or repeat authority is claimed by this checkpoint.
