@@ -25,10 +25,11 @@ Its original evidence freeze preserves all 80 outcomes and the actual 0.3 runtim
 it does not transfer that score to C0-NC or grant paid admission.
 Its separate native qualification and fixed20 registration are complete. The
 [C0-NC validation](results/custom-no-cutoff-20260928/README.md) started at
-21:16:50 UTC on 27 September (07:16 Sydney on 28 September). At 21:18:03 UTC,
-one task had started, none had completed, and three of four requests had an
-accepted response. No C0-NC score is established. All 190 frozen source files
-matched; older native deployments remain unchanged. The disclosed encoded
+21:16:50 UTC on 27 September (07:16 Sydney on 28 September). At 01:47:40 UTC on
+28 September, 11/20 were complete (five passes, six failures, no missing
+verifier outcome) and task 12 was underway. This is a dated partial observation,
+not a completed C0-NC score. All 190 frozen source files matched and no stop
+marker was present; older native deployments remain unchanged. The disclosed encoded
 capture correction passed its separate native fixture without replaying the
 original failed command.
 
@@ -49,7 +50,7 @@ fake model and zero paid calls. The qualification and exact registration have
 verified private off-server copies. Paid validation is now active on that
 frozen source; it is not the final89 run or an inherited 15/20 score.
 
-The direct-final gateway contract is now implemented and tested locally. It
+The earlier C3-only direct-final gateway contract is implemented and tested locally. It
 accepts only the exact 89 fresh final IDs, the authenticated-freeze schema and
 a separate native-final qualification record. It retains the existing shared
 retry and unknown-cost accounting, without financial or request-count gates.
@@ -68,12 +69,11 @@ and local image identities against all 178 original baseline results. It
 reads metadata without starting containers or making model calls. Its recorded
 identity must match again before execution; it does not grant paid admission.
 
-These are local checks, not final-run qualification. Integration of the two
-host readers, the final runner, native rehearsal, deployed image and actual
-registration are still unfinished. The current scored runner
-does not admit the direct-final experiment. The original-selection freeze is now saved
-and freshly verified, but no revised-finalist freeze or final attempt exists.
-The C3 deployment was not changed. See the implementation
+These earlier C3-only components do not admit the selected original C0 and
+have not been bypassed or relabelled. The explicit measured C0-NC final route
+is described below. The original-selection freeze is saved and freshly
+verified, but no revised-finalist freeze, native-final proof, actual final
+registration or final attempt exists. The C3 deployment was not changed. See the implementation
 checkpoints in the [direct-final decision](protocols/custom_direct_final_20260928.md).
 
 The revised-finalist evidence reader is now implemented separately in
@@ -100,16 +100,23 @@ new final contract uses fresh `customfinal2-c0-nc-` IDs, keeps the measured
 The identity reader checks all 89 official configurations and their baseline
 image/deadline bindings, without starting containers or making provider calls.
 
-These are still local preparation, not an actual revised-finalist freeze,
-final registration or native-final qualification. Final scored-runner admission,
-the locked dispatcher, isolated native qualifier, pinned final gateway image
-and exporter remain unfinished. No final89 launch has occurred. The active
-C0-NC source and the earlier C3-only final path were not changed. See the
-[new implementation checkpoint](protocols/custom_direct_final_20260928.md#revised-final-host-contract-checkpoint-28-september-2026).
+Final scored-runner admission, the locked dispatcher, isolated native qualifier,
+pinned gateway build and metadata/private-backup exporter are now implemented
+locally. They are not an actual revised-finalist freeze, native-final
+qualification, final registration or paid launch. The active C0-NC deployment
+and the earlier C3-only final path were not changed. Actual final native work
+must wait for the complete revision audit, verified backup and finalist freeze.
+See the [implementation checkpoint](protocols/custom_direct_final_20260928.md#final-runner-and-native-producer-checkpoint-28-september-2026).
+All 61 new tests and 392 affected checks passed. Full local discovery ran
+1,573 tests, with 1,572 passes and one pre-existing skip; 36 legacy tests passed.
+These are local checks, not the remaining native-final rehearsal.
 
-The user's baseline-repeat and parallelism questions were advisory: no new
-baseline matrix or parallel-launch change is authorised. Any repeat requires
-its own agreed protocol, preserving all original outcomes.
+The user subsequently approved one separately registered 89-task repeat for
+each baseline after custom final89. The [matched-repeat protocol](protocols/baseline_matched_repeat_20260928.md)
+records this decision before the custom final score: custom89, then Terminus-2
+repeat89, then OpenHands repeat89, with no overlapping matrices and all original
+results preserved. These 178 new attempts are authorised but not yet qualified,
+registered or launched. No parallel-dispatch or extra-server authority was given.
 
 ## Current checkpoint, 27 September 2026
 

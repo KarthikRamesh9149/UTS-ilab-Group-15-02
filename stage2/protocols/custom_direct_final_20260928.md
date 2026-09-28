@@ -300,6 +300,10 @@ not the revised /20 score.
 
 ## Baseline repeat discussion, not launch authority
 
+Historical discussion, superseded by the later explicit approval recorded in
+[Matched baseline repeats](baseline_matched_repeat_20260928.md). The prohibition
+on overlapping matrices and unapproved infrastructure changes still applies.
+
 The user asked about fresh baseline comparisons and parallel versus sequential
 execution. The recommendation was to preserve the current custom validation
 and final89 workflow, and agree a separately registered baseline-repeat protocol
@@ -393,3 +397,101 @@ Next: after the current validation audit and private backup, freeze its real
 measured evidence. Complete the explicit final scored-runner/dispatcher with
 all ancestor locks, including the C0-NC root, and the isolated native qualifier,
 pinned image and exporter. No paid final89 launch is admitted yet.
+
+## Final runner and native producer checkpoint, 28 September 2026
+
+The separately versioned final runner is now implemented locally in
+`no_cutoff_final_study.py` and `run_no_cutoff_final.py`, with an explicit
+`scored_trial.py` admission hook. It freshly authenticates all 100 original
+and revised results before acquiring ancestor locks, then rechecks their
+bytes under those locks. The locks include both C3 r2 and the measured C0-NC
+root. Only the separate final deployment may run this dispatcher. A transient
+dispatch scope, current-host identity and the real final qualification are
+required together; saved JSON alone is not execution permission.
+
+Registration binds exactly 89 fresh `customfinal2-c0-nc-` cells. Dispatch is
+sequential, retains every durable result and skips completed cells without
+replay. A started cell without a durable result blocks further automatic
+dispatch. Actual provider stops, missing cleanup or missing revocation require
+inspection; unknown cost and zero/missing verifier results are not score gates.
+The official agent allowance is passed unchanged, including allowances longer
+than an hour; the separately qualified setup allowance is checked too. Task
+image identity is checked after container start. The final-cell cooperative
+stop is persisted. Agent, prompt, tool, retry and model behaviour remain the
+measured C0-NC 0.5.0 revision, with no new cutoffs.
+
+`qualify_no_cutoff_final.py`, `no_cutoff_final_probe.py` and the final gateway
+Dockerfile now implement the separate native qualification producer. The
+gateway build starts from the pinned corrected parent image, without a pull
+or build network; installed source hashes, configuration and lean-image
+imports are checked. The fixture uses the unchanged C0-NC scripted fake model,
+synthetic-only final IDs, a fake credential and network isolation. It cannot
+substitute a production proof or register a benchmark cell. Its tools, setup
+cancellation and cooperative-stop cases exercise the actual final-stage
+Harbor/graph/gateway/verifier path when run natively. Those native cases have
+not yet been run for this final deployment.
+
+The final qualifier authenticates the completed lineage before locking,
+refuses existing registration/started attempts and completed qualification,
+retains failed regression/fixture output, and rechecks source/runtime after
+the rehearsal. A passed proof must bind eight actual producer files; current
+host admission re-reads the regression, lifecycle reports and actual final
+fixture results, including final identity, verifier, revocation and cleanup.
+Self-consistent flags cannot replace those bytes or the fresh native audit.
+
+`export_no_cutoff_final.py` implements the complete final89 metadata audit,
+one private streamed backup and curated export. The audit requires an inactive
+service before completed-lineage authentication, takes all ancestor locks,
+checks exact89 coverage, official limits, images, traces, revocation, cleanup,
+source/runtime bindings and original result hashes. The public export is
+allowlisted; the private archive is re-read and hash-verified before export,
+not recreated or published. It reports full89 and development20/remaining69
+separately, preserves original baseline scores and unknown costs, and does
+not claim a causal gain or select best attempts. Genuine missing phase timing
+still needs a separate truthful reporting amendment, never invented zeros
+or a task replay.
+
+All 61 new local tests and 392 affected checks passed. These include real
+temporary files, locks and archive hashes, but native lifecycle/host responses
+are mocked: they are not final native qualification. The actual scored hook
+is exercised against a mocked lifecycle, including a 7200-second official
+allowance, image-mismatch cleanup, revocation before verification and no
+replay. Fixture isolation, exact registration, all89 sequential dispatch,
+unknown accounting, failure retention and private-export boundaries are tested.
+An initial qualifier test incorrectly re-serialised the hash-bound manifest;
+the fixture was corrected to copy its exact original bytes, without weakening
+the production check.
+
+Full local discovery ran 1,573 tests: 1,572 passed and one pre-existing skip.
+Separate legacy discovery passed all 36 tests. These checks made no paid
+provider calls and did not execute a native-final rehearsal.
+
+A read-only local anchor check accepted the original 80-result selection,
+190 measured revision sources, exact20 registration and eight native producer
+bindings. The final source inventory contains 211 files. Only `scored_trial.py`
+differs from the measured 190, as an explicit final-orchestration delta;
+`local_trace.py` needed no further change. No original qualified collector,
+selection helper, measured agent/tool implementation or native deployment was
+changed. At 01:47:40 UTC, validation remained active with 11 completed results,
+five passes, six failures, no missing verifier outcome and task 12 underway.
+All 190 native sources were unchanged, with no operator/provider stop marker.
+
+Next: finish the current validation, audit/export and privately back it up
+once, then capture and verify its actual measured finalist freeze. Deploy the
+final source separately, run its real native synthetic qualification, bind
+the pinned images and exactly89 registration, and inspect live processes and
+started keys before the authorised final launch. No real revised freeze,
+final deployment, native-final rehearsal, final registration or paid-final
+attempt has occurred in this checkpoint.
+
+## Baseline repeat approval, 28 September 2026
+
+Before the custom final score, the user explicitly accepted the sequence of
+completed C0-NC validation and final qualification, frozen custom89, then
+separately registered Terminus-2 and OpenHands repeats with originals intact.
+The [matched-repeat protocol](baseline_matched_repeat_20260928.md) records
+one new89 per baseline after custom89, sequentially and without overlapping
+matrices. These 178 attempts are now authorised, not yet qualified, registered
+or launched. The earlier advice-only paragraph is historical. No parallel
+dispatcher, extra server, account-limit increase or payment was approved.
+The custom confirmation60 and diagnostic20 remain deferred.

@@ -34,10 +34,15 @@ REQUIRED_SOURCE_FILES = frozenset({
     'no_cutoff_final_evidence.py', 'test_no_cutoff_final_evidence.py',
     'no_cutoff_final_policy.py', 'no_cutoff_final_gateway.py', 'test_no_cutoff_final_policy.py',
     'no_cutoff_final_runtime.py', 'test_no_cutoff_final_runtime.py',
+    'no_cutoff_final_study.py', 'run_no_cutoff_final.py', 'test_no_cutoff_final_study.py',
+    'qualify_no_cutoff_final.py', 'no_cutoff_final_probe.py', 'fixtures/Dockerfile.no-cutoff-final',
+    'test_qualify_no_cutoff_final.py', 'test_no_cutoff_final_probe.py',
+    'export_no_cutoff_final.py', 'test_export_no_cutoff_final.py',
 })
 TEST_MODULES = development.TEST_MODULES + ('test_no_cutoff_final_candidate',
     'test_no_cutoff_evidence_freeze', 'test_no_cutoff_final_evidence', 'test_no_cutoff_final_policy',
-    'test_no_cutoff_final_runtime')
+    'test_no_cutoff_final_runtime', 'test_no_cutoff_final_study',
+    'test_qualify_no_cutoff_final', 'test_no_cutoff_final_probe', 'test_export_no_cutoff_final')
 PROBE_MODES = development.PROBE_MODES
 
 

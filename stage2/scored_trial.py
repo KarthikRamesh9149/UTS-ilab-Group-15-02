@@ -98,9 +98,12 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         from portable_custom_policy import EXPERIMENT as PORTABLE_CUSTOM
         from deadline_custom_policy import EXPERIMENT as DEADLINE_CUSTOM
         from no_cutoff_custom_policy import EXPERIMENT as NO_CUTOFF_CUSTOM
-        if custom_study not in {CORRECTED_CUSTOM, PORTABLE_CUSTOM, DEADLINE_CUSTOM, NO_CUTOFF_CUSTOM} or not passive or billing_runtime is not None or billing_kind != 'scored':
+        from no_cutoff_final_policy import EXPERIMENT as NO_CUTOFF_FINAL
+        if custom_study not in {CORRECTED_CUSTOM, PORTABLE_CUSTOM, DEADLINE_CUSTOM, NO_CUTOFF_CUSTOM, NO_CUTOFF_FINAL} or not passive or billing_runtime is not None or billing_kind != 'scored':
             raise ValueError('Explicit separately qualified custom study required')
-        if custom_study == NO_CUTOFF_CUSTOM:
+        if custom_study == NO_CUTOFF_FINAL:
+            from no_cutoff_final_study import admit_trial as custom_admission
+        elif custom_study == NO_CUTOFF_CUSTOM:
             from no_cutoff_custom_study import admit_trial as custom_admission
         elif custom_study == DEADLINE_CUSTOM:
             from deadline_custom_study import admit_trial as custom_admission
@@ -118,8 +121,11 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         custom_binding = None
         if custom_study is not None:
+            admission_options = ({'setup_timeout_seconds': setup_timeout_seconds}
+                                 if custom_study == NO_CUTOFF_FINAL else {})
             custom_binding = custom_admission(root, trial_id=trial_id, task_id=task_id, stage=stage,
-                factory=agent_factory, settings=model_settings, gateway_image=gateway_image, guard_image=guard_image)
+                factory=agent_factory, settings=model_settings, gateway_image=gateway_image, guard_image=guard_image,
+                **admission_options)
         health = check_host()
         protocol_hash = freeze_protocol(runtime, model_settings)
         factory_protocol = getattr(agent_factory, 'model_protocol_sha256', protocol_hash)
@@ -185,6 +191,9 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             result['task_image_id'] = main['Image']
             if custom_study is not None and custom_study == NO_CUTOFF_CUSTOM:
                 from no_cutoff_custom_study import require_task_image
+                require_task_image(root, task_id, main['Image'])
+            elif custom_study is not None and custom_study == NO_CUTOFF_FINAL:
+                from no_cutoff_final_study import require_task_image
                 require_task_image(root, task_id, main['Image'])
             relay = await asyncio.to_thread(service, project, 'model-relay')
             if relay['Image'] != gateway_image:
