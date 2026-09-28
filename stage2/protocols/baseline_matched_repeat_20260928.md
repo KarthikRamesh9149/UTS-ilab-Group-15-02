@@ -1475,3 +1475,53 @@ admit a repeat. Trusted reporting invocation, the one-time archive writer,
 allowlisted export, trusted repeat service operations, native compatibility,
 repeat exporter and completed-Terminus successor remain unfinished. No native
 reporting root, completed-final archive or repeat attempt was created.
+
+## Offline separate reporting launcher
+
+`no_cutoff_final_reporting.py` and 37 new local tests add the fixed Mac-side
+reporting deployment, inspection and actual-audit invocation path. These
+operations have not been called on the VPS. The prospective repeat inventory
+is 270 files and the separate reporting bundle is nine files, not additions
+to the original final qualification. The old collectors, predecessor readers,
+execution sources, eight gateway overlays and 32 installed import bindings
+are unchanged.
+
+The operator derives native bindings from actual pinned originals and requires
+the complete reporting revision on current main and fetched origin/main. The
+original SSH helper is byte-pinned; only its interpreter tail is replaced.
+Before any project import or deployment write, the stdlib bootstrap requires
+the successful inactive final service, no stop, original source/input/producer
+bytes and the original isolated interpreter with its credential-free environment.
+Reporting files are exclusively copied to the separate private directory.
+Complete or partial existing roots are never replaced or automatically retried.
+Inspection is read-only; source/commit metadata is not paid admission.
+
+Collection calls the actual amended audit, preserving its lineage-before-lock
+ordering and all runtime, image, task, accounting, trace and cleanup checks.
+The launcher validates the amended schema and rereads supporting bytes,
+inventories, absences and all 182 historical hashes after its final native
+service observation. Only allowlisted metadata is returned; raw diagnostics
+are suppressed. The Mac checks that return and its own source/input bytes
+again. Neither a saved report nor this launcher substitutes for the actual
+archive sender, live handoff witness or successor session.
+
+All 37 new tests and an earlier 271 affected checks passed. Final full local
+discovery ran 2,266 tests: 2,265 passed and one pre-existing skip. All 760
+guarded repeat regressions passed with no skips; before/after source checks
+covered all 168 loaded project modules, with no unbound import. All 12
+repository tests passed. They use actual
+temporary file/hash/directory/FIFO guards and synthetic payloads, with mocked
+native context, SSH, service and collector responses. Two test-edit placement
+errors were corrected without weakening production checks. Review added the
+last-observation evidence reread and a mutation regression. These are local
+checks, not native reporting, Linux/SSH compatibility or benchmark results.
+Actual local anchors matched 270 prospective sources, 290 operator bindings,
+227 existing native-preflight bindings, 229 new launcher native bindings,
+28 launcher-local bindings, nine reporting sources and five pinned metadata
+anchors. Only the prior permitted local scored hooks differ from the final211.
+
+The one-time absence-aware archive writer/transfer, public exporter and actual
+amended operator/native predecessor integration remain unfinished, as do trusted
+repeat service operations, native compatibility, repeat exporter and the
+completed-Terminus successor reader. No native reporting deployment, collector,
+archive, handoff, repeat qualification or paid launch occurred.

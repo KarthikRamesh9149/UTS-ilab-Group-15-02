@@ -166,3 +166,20 @@ verifier outcomes. Task 75 passed. Task 76 had 21 physical requests and 20
 accepted responses. All 211 frozen sources matched, all 75 retained results
 recorded revocation and no operator/provider stop was present. These partial
 metadata are not a completed final score. No repeat was launched.
+
+At 23:44:57 UTC the service was still active on task 76: 75/89 complete,
+43 passes, 29 zero-score failures and the same three setup-only missing
+verifier outcomes. Task 76 had 265 physical requests and 174 accepted responses.
+All 211 frozen sources matched, all 75 retained results recorded revocation
+and no stop was present. These are dated partial metadata.
+
+The separate reporting launcher now has 37 passing local tests for exclusive
+deployment and actual-audit invocation with fixed paths, pinned SSH, committed
+sources, inactive-service refusal and final evidence rereads. Native context,
+SSH and collector observations are mocked. Its nine-file reporting bundle has
+not been deployed or invoked. The one-time absence-aware archive writer,
+allowlisted export and actual amended predecessor handoff remain unfinished.
+No native audit, completed-final archive, export or repeat was created.
+The final local suite ran 2,266 tests: 2,265 passed and one pre-existing skip.
+All 760 guarded repeat regressions and all 12 repository tests passed. These
+local/mocked checks are not native audit or paid benchmark evidence.

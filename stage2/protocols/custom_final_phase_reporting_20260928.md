@@ -134,7 +134,8 @@ backup or paid-dispatch entry. It is local preparation and has not been invoked
 on the native host. The future trusted launcher must independently bind its
 reporting bundle before imports, outside the frozen execution tree,
 at `/opt/uts-capstone-custom-no-cutoff-final-reporting-20260928`. That directory
-has not been created. Trusted deployment/invocation is not yet implemented.
+has not been created. Trusted deployment/invocation is implemented locally in
+the separate launcher described below, but has not been exercised natively.
 
 The reader requires the original final interpreter with `-I -B`, a fixed
 credential-free environment, an absent bytecode-cache prefix and the original
@@ -177,8 +178,9 @@ privacy, duplicate fields, strict native invocation context, audit-before-lock
 ordering and final-observation mutation checks. These are not native audit,
 qualification or paid benchmark evidence.
 
-The separately bound launcher, one absence-aware streamed backup, allowlisted
-export and real operator/native handoff integration remain unfinished. The
+The separately bound launcher is now locally implemented. One absence-aware
+streamed backup, allowlisted export and real operator/native handoff integration
+remain unfinished. The
 strict metadata/archive verifier below is separate from those operations.
 Existing completed collectors, backups,
 repeat predecessor readers and admission are unchanged and still fail closed
@@ -256,3 +258,75 @@ allowlisted public export and actual predecessor-handoff integration are still
 required. They must be completed and source-bound before the reporting bundle
 is frozen or any completed-final route is invoked. No actual native completed
 audit, archive, export or repeat authority is claimed by this checkpoint.
+
+## Offline separate reporting launcher
+
+`no_cutoff_final_reporting.py` supplies the fixed Mac-side `deploy(commit)`,
+`inspect_deployment(commit)` and `collect(commit)` operations. There is no CLI,
+caller root, callback, saved-proof path, archive writer, exporter, qualification
+or paid dispatch. These entries have not been invoked on the VPS. The full
+amended backup/export/handoff route must still be completed before native use;
+an active or unknown final remains a hard refusal.
+
+The launcher and its tests expand the reporting bundle to nine files and the
+prospective repeat union to 270. These are current reporting/repeat bindings,
+not retroactive additions to the final's 211-source qualification. The original
+collectors, execution sources and predecessor readers remain unchanged.
+
+The operator rereads the five pinned metadata anchors, exact copied inputs
+and all eight native qualification producers. It derives 229 native file
+bindings from those real originals, including the frozen execution sources,
+Python archive and historical metadata. All nine current reporting files,
+unchanged trace helper and unchanged pinned SSH source must match the full
+requested commit, current HEAD and fetched origin/main. Files and HEAD are
+reread across the operation; a saved source map is not a shortcut. The existing
+SSH destination, identity, host-key checks and options are preserved. Only the
+interpreter tail is replaced with the original final `.venv` Python, `-I -B`
+and the exact credential-free reporting environment. No key or private input
+is included in the reporting deployment payload.
+
+The native bootstrap is standard-library-only until it has checked successful
+inactive/dead service state, no persistent stop, every original bound byte and
+the separate reporting inventory. An absent reporting bytecode prefix prevents
+stale local bytecode use. Protected regular single-link owned files are opened
+without following links and nonblocking; file identity and bytes are checked
+before/after reads. The fixed separate reporting directory is created
+exclusively with private directories/files. Only the nine source/document/test
+files are copied, with durable writes. An existing complete or partial root is
+never overwritten, deleted, resumed or automatically retried. Inspection only
+checks existing bytes; it cannot create a missing deployment. Returned
+`operator_commit` identifies the bound operator source revision, not an
+installed Git checkout or a new benchmark execution commit.
+
+Collection imports only the separately bound report/archive and original
+execution helpers, then calls the actual `collect()` entry. That collector
+still performs real lineage authentication before its ancestor locks and all
+original coverage/runtime/image/official-limit/trace/accounting/resource checks.
+The launcher does not reacquire those locks or accept a saved collector flag.
+It validates the explicit amended schema against actual pinned native metadata
+and rereads supporting bytes, exact inventories, genuine absences, all 182
+historical result hashes and all reporting sources after the last native
+service observation. Loaded project-module locations are checked. Incidental
+diagnostics are suppressed; only validated metadata is returned, with no raw
+exception text. The Mac validates again and rereads its original bindings.
+Connection uncertainty is an inspection requirement, not permission to retry
+deployment or stop/replay a native study. The 300-second SSH operation timeout
+and metadata parser windows are reporting transport bounds, not task limits.
+
+All 37 new local tests passed. Tests use real temporary files, directory and
+hash guards, synthetic source payloads, local FIFOs and mocked native context,
+SSH, service and collector observations. They do not execute a native audit or
+establish Linux/SSH compatibility. Coverage includes exclusive/partial writes,
+pre-import active/stop refusal, exact source/commit/environment bindings,
+links/privacy/FIFOs, incomplete or malformed replies, no automatic retry and
+post-observation evidence mutation. Two test-edit placement mistakes were
+corrected without weakening production checks. Review moved final evidence
+rereads after the last service observation and added its regression test.
+
+No reporting directory, completed-final audit, archive, export, handoff or
+repeat attempt has been produced. The one-time absence-aware archive writer,
+public exporter and actual operator/native amended predecessor integration
+remain required. The old readers still fail closed; this launcher or a receipt
+flag cannot grant successor admission. Trusted repeat service operations,
+native compatibility, repeat exporter and completed-Terminus successor reader
+also remain unfinished.

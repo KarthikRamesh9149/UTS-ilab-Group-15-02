@@ -67,6 +67,23 @@ outcomes. Task 75 passed. Task 76 had 21 physical requests and 20 accepted
 responses. All 211 frozen sources matched, all 75 completed results recorded
 revocation and no operator/provider stop was present. No repeat was launched.
 
+The separate reporting launcher is now locally implemented with 37 passing
+tests. It requires committed source bytes, the original pinned SSH route,
+successful inactive final service and pre-import source/private-file checks.
+Deployment is exclusive into a separate nine-file reporting bundle; existing
+or partial directories are never overwritten or automatically retried.
+Collection calls the actual amended audit and rereads retained evidence after
+its last native service observation. No native operation has been attempted.
+The prospective repeat inventory is 270 files. The one-time archive writer,
+allowlisted export and actual predecessor-handoff integration remain pending.
+The final local suite ran 2,266 tests: 2,265 passed and one pre-existing skip.
+All 760 guarded repeat regressions and all 12 repository tests passed.
+
+At 23:44:57 UTC, task 76 was still active: 75/89 complete, 43 passes,
+29 zero-score failures and the same three setup-only missing verifier outcomes.
+It had 265 physical requests and 174 accepted responses. All 211 frozen sources
+matched, all 75 completed results recorded revocation and no stop was present.
+
 The finalist must have no artificial spending, model-call, command-time,
 job-count or completion-repair cutoff. C0/C1/C2 still contain their original
 execution cutoffs: removing those from an older winner requires a labelled,
