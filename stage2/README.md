@@ -167,6 +167,24 @@ All 36 new tests and 89 focused checks passed; the final local suite ran
 legacy suite passed. Real local anchor bytes were checked without invoking a
 completed native collector or creating any repeat execution evidence.
 
+The [matched-repeat host identity reader](protocols/baseline_matched_repeat_20260928.md#offline-current-host-identity-reader)
+is now implemented locally. It checks the separate deployment's source,
+interpreter, dependency versions, Python archive and full native host identity,
+all 89 official configurations and task images against the 178 original
+baseline result bindings. Its under-lock recheck reads the eight real producer
+files and actual synthetic result metadata, without invoking a collector or
+granting dispatch. The future scored integration must produce the explicit
+repeat result identity; it is not implemented by this reader.
+Installed-library/original-control authentication, native predecessor admission,
+the locked dispatcher, actual isolated qualifier, pinned build and exporter
+remain unfinished. Neither planned repeat root has been deployed.
+All 31 new tests and 154 focused checks passed; full local discovery ran 1,682
+tests, with 1,681 passes and one pre-existing skip, plus 36 passing legacy tests.
+These new host tests use mocked native responses and real temporary file checks,
+not native qualification. A local anchor check matched all 211 unchanged final
+sources and the 224-file prospective repeat union. No completed collector,
+repeat registration or model request occurred.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

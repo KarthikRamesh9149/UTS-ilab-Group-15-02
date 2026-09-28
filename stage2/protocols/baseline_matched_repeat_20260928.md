@@ -251,3 +251,59 @@ preflight bindings, all 211 final source files and the 222 prospective repeat
 source paths. It invoked no completed native collector, read no unfinished
 final results, created no archive or predecessor document, and made no model
 request. No repeat deployment, qualification, registration or launch occurred.
+
+## Offline current-host identity reader
+
+`matched_repeat_runtime.py` now implements the read-only repeat host identity
+and qualification-file recheck. This is local preparation, not execution proof
+or paid admission. The intended separate roots are
+`/opt/uts-capstone-matched-repeat-terminus-2-20260928` and
+`/opt/uts-capstone-matched-repeat-openhands-20260928`; neither has been created.
+The current scored runner still has no repeat admission route.
+
+The reader checks the exact original and final qualification anchors, all
+current source hashes, its own interpreter and loaded project-module locations,
+the raw manifest, dependency versions and the preserved Python archive. The
+whole stable native host identity must match the qualified custom-final host,
+not just a `native_linux_x86_64` flag. It hashes the canonical dataset, reads
+all 89 official task configurations, and checks current local task images and
+deadlines against all 178 original baseline result bindings. Both repeat
+identities use the fixed task order but retain their distinct fresh attempt
+IDs. The Python archive is preserved as a runtime binding; this reader does
+not install custom tools into either baseline.
+
+`verify_current` is intended for use under all ancestor locks, after separate
+fresh predecessor and native baseline authentication. It does not recursively
+run a collector, read an off-server archive, acquire locks or dispatch a task.
+It re-reads eight producer files, compares their actual regression/lifecycle
+reports, and checks the synthetic results' exact baseline, experiment, stage,
+model, gateway image, verifier outcome, revocation and owned-resource cleanup.
+The expected result field is `matched_repeat_experiment`; future explicit
+scored integration and the real isolated qualifier must produce it. That
+integration is not implemented by this reader. Both pinned gateway and guard
+images must remain available, and the current identity must equal the bound
+qualified identity. Saved flags or a self-consistent stale snapshot cannot
+replace those reads.
+
+Matching dependency version strings is not authentication of installed
+third-party library bytes or proof of original baseline controls. That native
+baseline audit, actual operator-to-host predecessor integration and under-lock
+rechecks, scoped scored admission, the locked dispatcher, isolated qualifier,
+pinned build, exporter and the OpenHands completed-Terminus reader remain
+unfinished. No current-host record alone authorises a repeat, including an
+OpenHands identity observed before its predecessor is complete.
+
+The prospective repeat union now contains 224 files. All 31 new tests and
+154 focused checks passed. Full local discovery ran 1,682 tests: 1,681 passed
+and one pre-existing skip. The separate 36-test legacy suite passed. The new
+tests use real temporary files, hashes and symlinks with mocked host, task and
+Docker responses; they are not native Harbor/verifier qualification. An initial
+test caught a symlinked `stage2` directory accepted by the new source reader;
+the reader now explicitly rejects it and the final checks passed.
+
+A read-only local anchor check matched the original 84 source bindings, all
+211 unchanged final sources, 224 prospective repeat sources, 244 operator
+bindings and 227 future native-preflight bindings. No completed collector,
+native identity inspection, archive recreation, deployment, qualification,
+registration or paid request occurred. All old native roots and the active
+custom-final source remain unchanged.

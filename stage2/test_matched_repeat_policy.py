@@ -60,15 +60,17 @@ def qualification(original, final, predecessor, manifest, harness):
         experiment=policy.EXPERIMENT, status='passed', harness=harness, live_api_calls=0,
         setup_timeout_seconds=900, policy_sha256=policy.fingerprint(policy.POLICY),
         schedule_sha256=policy.fingerprint(schedule(manifest)), manifest_canonical_sha256=policy.MANIFEST_SHA256,
+        input_manifest_sha256=policy.INPUT_SHA256, python_runtime_sha256=policy.PYTHON_SHA256,
         model_protocol_sha256=policy.MODEL_SHA256, original_baseline_csv_sha256=policy.BASELINE_CSV_SHA256,
         original_qualification_sha256=policy.ORIGINAL_QUALIFICATION_SHA256,
         custom_final_qualification_sha256=policy.CUSTOM_FINAL_QUALIFICATION_SHA256,
         predecessor_authentication_sha256=policy.fingerprint(predecessor),
         inherited_baseline_turn_guards=deepcopy(policy.POLICY['inherited_baseline_turn_guards']),
-        dependencies=deepcopy(final['dependencies']), sources=sources, sources_sha256=policy.fingerprint(sources),
+        dependencies=deepcopy(final['dependencies']), python_runtime=deepcopy(final['python_runtime']),
+        sources=sources, sources_sha256=policy.fingerprint(sources),
         source_transition=policy.source_transition(original, final, sources),
         baseline_behaviour_authentication_sha256='5' * 64, runtime_identity_sha256='6' * 64,
-        host_environment={'execution_mode': 'native_linux_x86_64'},
+        host_environment=deepcopy(final['host_environment']),
         offline=dict(modules=list(policy.TEST_MODULES), passed=True, tests=100, skipped=0, errors=0, failures=0),
         regression_path=regression, synthetic=cases, evidence_files=files,
         gateway_image='sha256:' + '7' * 64, guard_image='sha256:' + '8' * 64, image_sources_match=True)
@@ -84,6 +86,8 @@ class Fixture:
         self.final = dict(sources=dict(self.original['sources'], **{
             name: '2' * 64 for name in policy.INHERITED_BASELINE_DELTAS}),
             model_protocol_sha256=policy.MODEL_SHA256,
+            python_runtime=dict(sha256=policy.PYTHON_SHA256),
+            host_environment={'execution_mode': 'native_linux_x86_64'},
             dependencies=dict(python='3.12.13', packages={'harbor': '0.1.45'}))
         self.final['sources']['no_cutoff_final_policy.py'] = '2' * 64
         self.final['sources'].update({name + '.py': '2' * 64 for name in policy.TEST_MODULES
@@ -240,7 +244,7 @@ class PolicyTests(unittest.TestCase):
     def test_native_qualification_has_no_local_or_checks_only_shortcut(self):
         for change in ('kind', 'schema', 'harness', 'paid', 'calls', 'bool-calls', 'setup', 'policy', 'plan', 'protocol',
                 'baseline', 'final', 'prior', 'controls', 'dependencies', 'sources', 'transition', 'auth', 'runtime',
-                'host', 'offline', 'skip', 'modules', 'cases', 'mode', 'case-harness', 'check', 'path',
+                'host', 'python-runtime', 'manifest-bytes', 'offline', 'skip', 'modules', 'cases', 'mode', 'case-harness', 'check', 'path',
                 'producer', 'extra-producer', 'regression', 'image', 'image-source'):
             proof = deepcopy(self.f.proof)
             if change == 'kind': proof['kind'] = 'local-qualification'
@@ -263,6 +267,8 @@ class PolicyTests(unittest.TestCase):
             elif change == 'auth': proof.pop('baseline_behaviour_authentication_sha256')
             elif change == 'runtime': proof.pop('runtime_identity_sha256')
             elif change == 'host': proof['host_environment']['execution_mode'] = 'local-mocked'
+            elif change == 'python-runtime': proof['python_runtime']['sha256'] = '0' * 64
+            elif change == 'manifest-bytes': proof['input_manifest_sha256'] = '0' * 64
             elif change == 'offline': proof['offline']['tests'] = True
             elif change == 'skip': proof['offline']['skipped'] = 1
             elif change == 'modules': proof['offline']['modules'].pop()

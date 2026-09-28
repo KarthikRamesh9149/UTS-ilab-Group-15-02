@@ -12,12 +12,14 @@ import re
 from matched_repeat_schedule import (EXPERIMENT, HARNESSES, SETTINGS, MODEL_SHA256,
     MANIFEST_SHA256, BASELINE_CSV_SHA256, fingerprint, schedule)
 from retry_runtime import private_read
+from portable_custom_policy import INPUT_SHA256, PYTHON_SHA256
 
 POLICY_FILE = 'matched-repeat-credit-policy.json'
 MANIFEST_FILE = 'matched-repeat-manifest.json'
 BASELINE_FILE = 'matched-repeat-original-qualification.json'
 FINAL_FILE = 'matched-repeat-custom-final-qualification.json'
 PREDECESSOR_FILE = 'matched-repeat-predecessor-authentication.json'
+RUNTIME_FILE = 'matched-repeat-runtime.json'
 QUALIFICATION_FILE = 'matched-repeat-qualification.json'
 REGISTRATION_FILE = 'matched-repeat-matrix.json'
 ORIGINAL_QUALIFICATION_SHA256 = 'fc55f955f3e883b919704fc606e51bb530724559aa89a14a9a7b844ccc9bf686'
@@ -43,10 +45,12 @@ POLICY = dict(schema_version=1, experiment=EXPERIMENT,
 REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_repeat_schedule.py',
     'matched_repeat_policy.py', 'matched_repeat_gateway.py', 'test_matched_repeat_policy.py',
     'matched_repeat_predecessor.py', 'test_matched_repeat_predecessor.py',
+    'matched_repeat_runtime.py', 'test_matched_repeat_runtime.py',
     'test_native_agents.py', 'test_trial_execution.py', 'test_scored_trial.py',
     'openhands_fixture_audit.json'})
 TEST_MODULES = ('test_matched_repeat_schedule', 'test_matched_repeat_policy',
     'test_matched_repeat_predecessor',
+    'test_matched_repeat_runtime',
     'test_native_agents', 'test_retry_gateway', 'test_credit_only_gateway',
     'test_trial_execution', 'test_scored_trial')
 ORCHESTRATION_FILES = frozenset({'scored_trial.py', 'local_trace.py'})
@@ -195,18 +199,21 @@ def validate_qualification(original, final, predecessors, manifest, proof):
         experiment=EXPERIMENT, status='passed', harness=harness, live_api_calls=0,
         setup_timeout_seconds=900, policy_sha256=fingerprint(POLICY),
         schedule_sha256=fingerprint(schedule(manifest)), manifest_canonical_sha256=MANIFEST_SHA256,
+        input_manifest_sha256=INPUT_SHA256, python_runtime_sha256=PYTHON_SHA256,
         model_protocol_sha256=MODEL_SHA256, original_baseline_csv_sha256=BASELINE_CSV_SHA256,
         original_qualification_sha256=ORIGINAL_QUALIFICATION_SHA256,
         custom_final_qualification_sha256=CUSTOM_FINAL_QUALIFICATION_SHA256,
         predecessor_authentication_sha256=fingerprint(predecessors),
         inherited_baseline_turn_guards=POLICY['inherited_baseline_turn_guards'],
-        dependencies=final['dependencies'], sources_sha256=fingerprint(proof['sources']),
+        dependencies=final['dependencies'], python_runtime=final['python_runtime'],
+        host_environment=final['host_environment'], sources_sha256=fingerprint(proof['sources']),
         source_transition=transition)
     if any(fingerprint(proof.get(k)) != fingerprint(v) for k, v in expected.items()):
         raise ValueError('Exact separate native repeat source/runtime/lineage proof required')
     for key in ('baseline_behaviour_authentication_sha256', 'runtime_identity_sha256'):
         _hash(proof.get(key))
-    if proof.get('host_environment', {}).get('execution_mode') != 'native_linux_x86_64':
+    if (proof.get('host_environment', {}).get('execution_mode') != 'native_linux_x86_64'
+            or proof.get('python_runtime', {}).get('sha256') != PYTHON_SHA256):
         raise ValueError('Actual native Linux repeat execution required')
     offline = proof.get('offline', {})
     if (offline.get('modules') != list(TEST_MODULES) or offline.get('passed') is not True
