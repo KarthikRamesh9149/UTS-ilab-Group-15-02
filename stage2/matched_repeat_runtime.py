@@ -12,6 +12,8 @@ import sys
 
 import host_environment
 import matched_repeat_policy as policy
+from matched_repeat_baseline_probe import check_files, regular
+from matched_repeat_stream import loads
 from direct_final_runtime import _read_bound, _dataset, _task_limits, _baseline_images, _images
 from portable_candidate_freeze import _check_root, _digest, _regular
 from portable_custom_agent import runtime_bundle
@@ -102,12 +104,29 @@ def inspect(root, original, final, harness):
 
 
 def verify_native_files(root, original, final, predecessors, manifest, proof):
-    """Read all eight actual native producer files; do not trust report flags.
+    """Read eight lifecycle/regression producers plus the two image producers.
 
     This is an integrity recheck after a real qualifier, not a substitute for
     running the isolated native baseline lifecycle or authenticating its host.
     """
     policy.validate_qualification(original, final, predecessors, manifest, proof)
+    # These saved bytes bind the actual build that the qualifier used. They do
+    # not replace live installed-image reverification in the locked session.
+    try:
+        check_files(root, proof['image_evidence_files'])
+        intent = loads(regular(root, '.runtime/stage2/' + policy.IMAGE_INTENT_FILE).read_bytes())
+        built = loads(regular(root, '.runtime/stage2/' + policy.IMAGE_RESULT_FILE).read_bytes())
+    except OSError:
+        raise ValueError('Actual private image-build producer files are required') from None
+    if (not isinstance(built.get('inputs'), dict)
+            or policy.fingerprint(built) != proof['image_build_sha256']
+            or built.get('gateway_image') != proof['gateway_image']
+            or built.get('inputs', {}).get('guard_image') != proof['guard_image']
+            or built.get('inputs') != intent.get('inputs')
+            or built.get('intent_file_sha256') != proof['image_evidence_files'][
+                '.runtime/stage2/' + policy.IMAGE_INTENT_FILE]):
+        raise ValueError('Qualified images must match the original bound build producers')
+    check_files(root, proof['image_evidence_files'])
     for name, sha in proof['evidence_files'].items():
         if _digest(root, name) != sha:
             raise ValueError('Recorded repeat native producer bytes changed')
@@ -130,6 +149,7 @@ def verify_native_files(root, original, final, predecessors, manifest, proof):
                 or result.get('matched_repeat_experiment') != policy.EXPERIMENT
                 or result.get('model_protocol_sha256') != policy.MODEL_SHA256
                 or result.get('gateway_image_id') != proof['gateway_image']
+                or result.get('guard_image_id') != proof['guard_image']
                 or result.get('model_revoked') is not True
                 or any(result.get(k) is not True for k in ('containers_removed', 'networks_removed', 'volumes_removed'))
                 or (reward is not None if cancelled else type(reward) not in (int, float) or reward != 1)):

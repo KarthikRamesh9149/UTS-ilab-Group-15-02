@@ -318,6 +318,21 @@ All 35 new tests and 223 focused checks passed. Final local discovery ran 1,951
 tests: 1,950 passed and one pre-existing skip; all 12 repository tests passed.
 These checks did not invoke a native repeat operation or paid provider.
 
+The [image-evidence admission integration](protocols/baseline_matched_repeat_20260928.md#offline-image-evidence-admission)
+now requires the actual retained image-build intent/result in addition to the
+eight native regression/lifecycle producers. Qualification rechecks and each
+next-cell admission reverify installed gateway bytes and pinned images inside
+the same live locked session; saved image reports alone cannot grant admission.
+Both raw build-file hashes remain bound through the final admission reread.
+All 27 new tests and 250 focused checks passed with mocked native readers and
+Docker, real local files/locks and test-only synthetic qualification. The
+prospective union is 250 files, with no additional final-anchor source delta.
+Actual isolated qualification, trusted service wiring, native image build,
+repeat export and the OpenHands successor reader are still required. No native
+repeat operation or model call occurred, and the active final is unchanged.
+Full local discovery ran 1,978 tests: 1,977 passed and one pre-existing skip.
+All 12 repository tests and the final 27-test image-admission recheck passed.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

@@ -5,7 +5,9 @@ archive pipe to this same process. Both collectors run BEFORE the outer locks;
 only real file/library/runtime rechecks run UNDER them. No saved document or
 caller-supplied authentication callback can open a session. Every operation
 needs a new live handoff. OpenHands remains closed until its second predecessor
-reader exists. This module starts no study, fixture, container or model call.
+reader exists. Opening/rechecking prerequisites starts no study or rehearsal.
+Qualification verification also runs the source-bound, network-less image
+inspection container; it starts no benchmark task or model call.
 """
 import asyncio
 from contextlib import contextmanager, ExitStack
@@ -229,14 +231,26 @@ def verify_qualification(session):
                 or proof.get('runtime_identity_sha256') != policy.fingerprint(state['host'])):
             raise ValueError('Qualification must bind actual live predecessor, library and host observations')
         runtime.verify_current(root, state['original'], state['final'], predecessors, proof, state['host'])
+        # A saved image report is not installed-byte evidence. Reuse the real
+        # source-bound builder's verifier inside this same live locked task,
+        # without rebuilding, recursive audits, transfers or lock acquisition.
+        from matched_repeat_images import qualification_binding
+        images = qualification_binding(session)
+        expected_images = {k: proof.get(k) for k in ('image_build_sha256', 'image_evidence_files',
+            'gateway_image', 'guard_image')}
+        if policy.fingerprint(images) != policy.fingerprint(expected_images):
+            raise ValueError('Qualification must bind freshly verified actual image-build evidence')
         recheck(session)
         check_files(root, files); check_files(root, proof['evidence_files'])
+        check_files(root, proof['image_evidence_files'])
         return dict(kind='live_bound_repeat_qualification_not_dispatch', harness=state['harness'],
             qualification_sha256=policy.fingerprint(proof), private_files=files,
             predecessor_authentication_sha256=policy.fingerprint(predecessors),
             original_audit_sha256=policy.fingerprint(state['original_record']),
             baseline_behaviour_authentication_sha256=policy.fingerprint(state['library']),
-            runtime_identity_sha256=policy.fingerprint(state['host']), paid_launch_ready=False)
+            runtime_identity_sha256=policy.fingerprint(state['host']),
+            image_build_sha256=images['image_build_sha256'],
+            image_evidence_files=images['image_evidence_files'], paid_launch_ready=False)
     except BaseException:
         _SESSIONS.pop(session, None)
         raise

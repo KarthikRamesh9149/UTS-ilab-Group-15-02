@@ -1,5 +1,6 @@
 """Synthetic contracts and fake transport only; never real native evidence."""
 from copy import deepcopy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -70,10 +71,35 @@ def qualification(original, final, predecessor, manifest, harness):
         sources=sources, sources_sha256=policy.fingerprint(sources),
         source_transition=policy.source_transition(original, final, sources),
         baseline_behaviour_authentication_sha256='5' * 64, runtime_identity_sha256='6' * 64,
+        image_build_sha256='9' * 64, image_evidence_files=dict.fromkeys(policy.IMAGE_EVIDENCE_FILES, 'a' * 64),
         host_environment=deepcopy(final['host_environment']),
         offline=dict(modules=list(policy.TEST_MODULES), passed=True, tests=100, skipped=0, errors=0, failures=0),
         regression_path=regression, synthetic=cases, evidence_files=files,
         gateway_image='sha256:' + '7' * 64, guard_image='sha256:' + '8' * 64, image_sources_match=True)
+
+
+def image_evidence(root, proof):
+    """Test-only temporary metadata; native image verification must be mocked.
+
+    The image/admission integration tests instead use the actual builder and
+    verifier with a fake Docker daemon. Neither route is native qualification.
+    """
+    rt = Path(root) / '.runtime/stage2'
+    inputs = dict(guard_image=proof['guard_image'], synthetic_test_only=True)
+    intent = dict(kind='single_matched_repeat_image_build_intent', inputs=inputs,
+        automatic_rebuild=False, paid_launch_ready=False)
+    raw = json.dumps(intent).encode(); path = rt / policy.IMAGE_INTENT_FILE
+    path.write_bytes(raw); path.chmod(0o600)
+    files = {'.runtime/stage2/' + policy.IMAGE_INTENT_FILE: hashlib.sha256(raw).hexdigest()}
+    built = dict(kind='pinned_matched_repeat_gateway_image_not_qualification', inputs=inputs,
+        intent_file_sha256=next(iter(files.values())), gateway_image=proof['gateway_image'],
+        live_api_calls=0, paid_launch_ready=False, repeat_execution_qualified=False,
+        historical_installed_bytes_attested=False, automatic_rebuild=False)
+    raw = json.dumps(built).encode(); path = rt / policy.IMAGE_RESULT_FILE
+    path.write_bytes(raw); path.chmod(0o600)
+    files['.runtime/stage2/' + policy.IMAGE_RESULT_FILE] = hashlib.sha256(raw).hexdigest()
+    proof.update(image_evidence_files=files, image_build_sha256=policy.fingerprint(built))
+    return built
 
 
 class Fixture:

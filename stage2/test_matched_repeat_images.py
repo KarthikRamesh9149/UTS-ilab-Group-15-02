@@ -57,7 +57,7 @@ class ImageTests(unittest.TestCase):
             record['sources_sha256' if record is q.host else 'current_sources_sha256'] = policy.fingerprint(q.actual)
         q.host['sources'] = deepcopy(q.actual)
         q.host['source_transition'] = policy.source_transition(q.f.original, q.f.final, q.actual)
-        for name in (policy.QUALIFICATION_FILE, policy.REGISTRATION_FILE):
+        for name in (policy.QUALIFICATION_FILE, policy.REGISTRATION_FILE, images.INTENT, images.RESULT):
             (self.rt / name).unlink()  # Temporary synthetic fixture only.
         self.native = dict(Id=PARENT, Os='linux', Architecture='amd64',
             RootFS=dict(Type='layers', Layers=['sha256:' + 'a' * 64]),

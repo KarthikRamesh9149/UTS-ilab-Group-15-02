@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import matched_repeat_policy as policy
 import matched_repeat_runtime as runtime
-from test_matched_repeat_policy import Fixture, predecessors, qualification
+from test_matched_repeat_policy import Fixture, predecessors, qualification, image_evidence
 
 
 class TreeTests(unittest.TestCase):
@@ -265,6 +265,7 @@ class ProducerTests(TreeTests):
     def setUp(self):
         super().setUp()
         self.proof = self.f.proof
+        image_evidence(self.root, self.proof)
         self.producer(self.proof['regression_path'] + '/regression.json', self.proof['offline'])
         self.producer(self.proof['regression_path'] + '/regression.txt', {'output': 'Synthetic local fixture only'})
         for case in self.proof['synthetic']:
@@ -272,7 +273,7 @@ class ProducerTests(TreeTests):
             cancelled = case['mode'] == 'cancel_setup'
             trial_id = 'synthetic-matched-repeat-terminus-2-' + case['mode']
             result = dict(stage='final', harness='terminus-2', matched_repeat_experiment=policy.EXPERIMENT,
-                trial_id=trial_id, gateway_image_id=self.proof['gateway_image'],
+                trial_id=trial_id, gateway_image_id=self.proof['gateway_image'], guard_image_id=self.proof['guard_image'],
                 model_protocol_sha256=policy.MODEL_SHA256,
                 status='interrupted' if cancelled else 'verified', model_revoked=True,
                 containers_removed=True, networks_removed=True, volumes_removed=True,

@@ -21,8 +21,8 @@ import matched_repeat_session as session
 from matched_repeat_baseline_probe import check_files, regular
 from scored_gateway import durable_json, private_directory
 
-INTENT = 'matched-repeat-image-build.json'
-RESULT = 'matched-repeat-images.json'
+INTENT = policy.IMAGE_INTENT_FILE
+RESULT = policy.IMAGE_RESULT_FILE
 FAILURE = 'matched-repeat-image-build-failure.json'
 CONFIG = 'matched-repeat-image-docker-config'
 DOCKERFILE = 'fixtures/Dockerfile.matched-repeat'
@@ -310,7 +310,7 @@ def verify(active):
     """Reread existing build evidence and inspect actual images, never rebuild.
 
     This requires a new real live session for a later operation. It is intended
-    for future qualifier integration and is not itself registration/admission.
+    for qualification/admission rechecks and is not itself registration/admission.
     """
     try:
         state, _, inputs = _inputs(active)
@@ -337,5 +337,38 @@ def verify(active):
         check_files(root, dict(intent_files, **result_files))
         return result
     except BaseException:
-        session._SESSIONS.pop(active, None)
+        if isinstance(active, session._Session):
+            session._SESSIONS.pop(active, None)
+        raise
+
+
+def qualification_binding(active):
+    """Reverify real installed images and bind the retained build producer bytes.
+
+    A future qualifier must call this after the actual build and rehearsals;
+    admission calls it again in its own fresh same-task locked session. No
+    caller-selected image, proof, saved record or build shortcut is accepted.
+    This produces only a non-admitting binding, never a qualification.
+    """
+    try:
+        root = session._live(active)['root']
+        _, before_intent = session._private(root, INTENT)
+        _, before_result = session._private(root, RESULT)
+        before = dict(before_intent, **before_result)
+        check_files(root, before)
+        observed = verify(active)
+        intent, intent_files = session._private(root, INTENT)
+        result, result_files = session._private(root, RESULT)
+        files = dict(intent_files, **result_files)
+        if (files != before or policy.fingerprint(result) != policy.fingerprint(observed)
+                or result['intent_file_sha256'] != next(iter(intent_files.values()))
+                or intent['inputs'] != result['inputs']):
+            raise ValueError('Image producer bytes changed after actual image verification')
+        session.recheck(active)
+        check_files(root, files)
+        return dict(image_build_sha256=policy.fingerprint(result), image_evidence_files=files,
+            gateway_image=result['gateway_image'], guard_image=result['inputs']['guard_image'])
+    except BaseException:
+        if isinstance(active, session._Session):
+            session._SESSIONS.pop(active, None)
         raise

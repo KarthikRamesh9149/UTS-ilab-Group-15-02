@@ -916,9 +916,11 @@ never prune an image or retry a command. Uncertain operations require inspection
 The separate `verify(active)` rereads existing private evidence, actual images,
 installed sources and current prerequisites without rebuilding. These records
 remain `paid_launch_ready:false` and `repeat_execution_qualified:false`.
-The future qualifier must consume this actual evidence; neither the current
-eight-producer qualification reader nor scored admission yet consumes the new
-build record as a separate prerequisite. Image preparation alone grants neither.
+At this builder checkpoint, the eight-producer qualification reader and scored
+admission did not yet consume the separate build record. The subsequent
+[image-evidence admission checkpoint](#offline-image-evidence-admission)
+connects those readers; actual isolated producer execution is still required.
+Image preparation alone grants neither qualification nor paid admission.
 
 The builder, Dockerfile, test module and three newly inventoried existing helpers
 expand the prospective union from 243 to 249 files. Only the earlier explicit
@@ -955,3 +957,78 @@ The first inventory check correctly exposed the three previously unbound
 inherited helpers; their new current-parity bindings do not rewrite old proof.
 No completed-native collector, archive transfer/recreation, native build,
 deployment, rehearsal, real registration or new provider request occurred.
+
+## Offline image-evidence admission
+
+The separate image-build evidence is now a mandatory local qualification and
+admission binding. This is preparation only: no real build, native session,
+rehearsal, qualification, registration or repeat launch has occurred. The
+connection still supports only prerequisite inspection and has not been run on
+the VPS. Never invoke it, the image verifier or any other native repeat work
+while custom final89 remains active.
+
+`matched_repeat_images.qualification_binding(active)` calls the actual image
+verifier in the same live, locked session and async task on the service's main
+thread. It checks the two retained private producer files before and after
+verification and binds both exact file hashes plus the canonical build-result
+hash. It accepts no caller-selected image, root, proof or saved receipt. It does
+not build an image, execute a lifecycle or manufacture a qualification. The
+future isolated qualifier must call it after the actual build and rehearsals,
+then include the returned bindings in its actual proof.
+
+The qualification contract requires `image_build_sha256` and the exact two
+`image_evidence_files`: `.runtime/stage2/matched-repeat-image-build.json` and
+`.runtime/stage2/matched-repeat-images.json`. These are additional to the eight
+regression/lifecycle files, for ten actual producer files in total. The runtime
+reader reads their private bytes, validates their hashes and gateway/guard
+identities against the proof, and checks the guard identity in every lifecycle
+result. Canonical equality does not excuse changed raw producer bytes. Old
+eight-file-only proof shapes are refused; none has been produced natively for
+this repeat, so no historical evidence is rewritten or regenerated.
+
+`session.verify_qualification` also calls the actual image verifier, rather than
+accepting the saved report as installed-byte proof. The existing read-only,
+network-less import container rechecks all 31 bound gateway source files and
+the actual original-parent, guard and new-image identities. This is not a model
+call, task attempt or paid-provider access probe. No rebuild, recursive audit,
+archive transfer or ancestor-lock reacquisition occurs. Its fresh binding must
+equal the actual proof; source, input and all ten producer bytes are checked
+again before the session returns. Any failure invalidates the session.
+
+Registration binds the image-build hash. Each next-cell admission performs the
+same fresh image verification, and both raw image producer hashes remain in the
+dispatch scope's quick checks, including the final reread after retained-result
+inspection. Stale image reports, self-consistently edited inputs, changed images,
+missing producers or a retained build failure cannot grant admission. These
+checks do not change baseline tools, model, original turn guards, official
+deadlines, retry behaviour, passive accounting or any old result/collector.
+
+All 27 new tests and 250 focused checks passed. The tests use the real binding,
+builder, verifier, session and admission code with actual temporary files and
+held locks; native readers and Docker are mocked, and rehearsal proof is
+explicitly test-only synthetic metadata. Coverage includes all ten producers,
+current installed-byte observations, changed parent/guard images, private modes,
+symlinks, duplicate keys, same-task lifetime, build/proof/source drift, raw-byte
+changes during and after verification, registration binding and final admission
+rereads. They do not establish native legacy-builder compatibility. Initial
+tests exposed error handling for a saved non-handle and missing build files;
+both now fail closed with explicit validation errors. Review added raw-byte
+rechecks across the verifier-to-binding return boundary.
+
+The new regression module expands the prospective union from 249 to 250 files.
+Only the earlier local `scored_trial.py` hook differs from the 211-file final
+anchor; the other 210 inherited files are unchanged. The actual isolated
+qualifier, trusted native service operations, real pinned image build, repeat
+exporter and completed-Terminus successor reader remain unfinished. OpenHands
+still fails closed. No repeat deployment or real image producer record exists.
+
+Full local discovery ran 1,978 tests: 1,977 passed and one pre-existing skip.
+All 12 repository tests passed separately. The final 27-test image-admission
+recheck passed after a documentation clarification. The suite's mocked study
+completion messages are not paid results. A real read-only saved-anchor check
+matched 178 original rows, 84 original sources, the 211-file final anchor with
+only the previous local scored hook changed, 250 prospective sources, 270
+operator bindings and 227 final native-preflight bindings. All 31 gateway import
+files remain bound and only seven are in the overlay. No completed-native
+collector, archive transfer/recreation, native build, deployment, rehearsal,
+real registration or new provider request occurred.

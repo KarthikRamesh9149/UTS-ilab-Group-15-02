@@ -54,6 +54,7 @@ def _qualified(active):
             or expected['qualification_sha256'] != verified['qualification_sha256']):
         raise ValueError('Registration must bind this live qualified baseline session')
     files.update(live['files']); files.update(proof['evidence_files'])
+    files.update(proof['image_evidence_files'])
     check_files(root, files)
     return root, proof, expected, files
 

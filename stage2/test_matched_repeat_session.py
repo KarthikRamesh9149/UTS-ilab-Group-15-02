@@ -14,6 +14,7 @@ import matched_repeat_session as session
 import matched_repeat_policy as policy
 from run_credit_only import hold
 from test_matched_repeat_runtime import TreeTests
+from test_matched_repeat_policy import image_evidence
 
 
 class SessionTests(TreeTests):
@@ -65,6 +66,12 @@ class SessionTests(TreeTests):
         incoming, outgoing = os.pipe(); os.close(outgoing)
         self.stream = os.fdopen(incoming, 'rb'); self.addCleanup(self.stream.close)
         self.proof_files()
+        # This older session fixture has no actual Docker producer. Dedicated
+        # image/admission tests restore the real binding and verifier together.
+        self.image_binding = self.enterContext(patch('matched_repeat_images.qualification_binding',
+            side_effect=lambda active: self.under_lock('image-verification', {
+                k: deepcopy(self.f.proof[k]) for k in ('image_build_sha256', 'image_evidence_files',
+                    'gateway_image', 'guard_image')})))
 
     def private(self, name, value):
         relative = '.runtime/stage2/' + name
@@ -114,7 +121,7 @@ class SessionTests(TreeTests):
     def open(self, harness='terminus-2', stream=None):
         return session.open_session(self.root, harness, self.stream if stream is None else stream)
 
-    def proof_files(self):
+    def proof_files(self, *, include_images=True):
         proof = self.f.proof
         contents = {proof['regression_path'] + '/regression.json': json.dumps(proof['offline']).encode(),
             proof['regression_path'] + '/regression.txt': b'Synthetic local regression output, not native proof\n'}
@@ -124,7 +131,8 @@ class SessionTests(TreeTests):
             cancelled = case['mode'] == 'cancel_setup'
             result = dict(trial_id=name, harness='terminus-2', stage='final',
                 matched_repeat_experiment=policy.EXPERIMENT, model_protocol_sha256=policy.MODEL_SHA256,
-                gateway_image_id=proof['gateway_image'], status='interrupted' if cancelled else 'verified',
+                gateway_image_id=proof['gateway_image'], guard_image_id=proof['guard_image'],
+                status='interrupted' if cancelled else 'verified',
                 verifier_result=None if cancelled else {'rewards': {'reward': 1.0}},
                 model_revoked=True, containers_removed=True, networks_removed=True, volumes_removed=True)
             contents[case['runtime_path'] + '/.runtime/stage2/scored-trials/' + name + '/result.json'] = json.dumps(result).encode()
@@ -132,6 +140,8 @@ class SessionTests(TreeTests):
             proof['evidence_files'][name] = self.write(name, raw); (self.root / name).chmod(0o600)
         proof['baseline_behaviour_authentication_sha256'] = policy.fingerprint(self.library)
         proof['runtime_identity_sha256'] = policy.fingerprint(self.host)
+        if include_images:
+            image_evidence(self.root, proof)
         for name, value in ((policy.PREDECESSOR_FILE, self.f.predecessor),
                 (policy.RUNTIME_FILE, self.host), (policy.QUALIFICATION_FILE, proof)):
             self.private(name, value)

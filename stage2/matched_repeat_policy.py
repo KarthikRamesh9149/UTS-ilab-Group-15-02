@@ -22,6 +22,10 @@ PREDECESSOR_FILE = 'matched-repeat-predecessor-authentication.json'
 RUNTIME_FILE = 'matched-repeat-runtime.json'
 QUALIFICATION_FILE = 'matched-repeat-qualification.json'
 REGISTRATION_FILE = 'matched-repeat-matrix.json'
+IMAGE_INTENT_FILE = 'matched-repeat-image-build.json'
+IMAGE_RESULT_FILE = 'matched-repeat-images.json'
+IMAGE_EVIDENCE_FILES = frozenset('.runtime/stage2/' + name
+    for name in (IMAGE_INTENT_FILE, IMAGE_RESULT_FILE))
 ORIGINAL_QUALIFICATION_SHA256 = 'fc55f955f3e883b919704fc606e51bb530724559aa89a14a9a7b844ccc9bf686'
 CUSTOM_FINAL_QUALIFICATION_SHA256 = 'b3e05d9c216463b044e3b264aa449cecb92d8b9bd8cbc33b77189e434107087e'
 CUSTOM_FINAL_REGISTRATION_SHA256 = '17a4139c4f68b2e6d8e5b62db910242e3562662192c13da51e62f53441f764b2'
@@ -55,6 +59,7 @@ REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_r
     'matched_repeat_study.py', 'test_matched_repeat_study.py',
     'run_matched_repeat.py', 'test_run_matched_repeat.py',
     'matched_repeat_images.py', 'test_matched_repeat_images.py', 'fixtures/Dockerfile.matched-repeat',
+    'test_matched_repeat_image_admission.py',
     # Inherited gateway import helpers newly inventoried for current image
     # parity, not retrospective additions to either historical qualification.
     'calibrate_tokenizer.py', 'extended_token_calibration.py', 'setup_probe.py',
@@ -71,6 +76,7 @@ TEST_MODULES = ('test_matched_repeat_schedule', 'test_matched_repeat_policy',
     'test_matched_repeat_study',
     'test_run_matched_repeat',
     'test_matched_repeat_images',
+    'test_matched_repeat_image_admission',
     'test_native_agents', 'test_retry_gateway', 'test_credit_only_gateway',
     'test_trial_execution', 'test_scored_trial')
 ORCHESTRATION_FILES = frozenset({'scored_trial.py', 'local_trace.py'})
@@ -230,8 +236,11 @@ def validate_qualification(original, final, predecessors, manifest, proof):
         source_transition=transition)
     if any(fingerprint(proof.get(k)) != fingerprint(v) for k, v in expected.items()):
         raise ValueError('Exact separate native repeat source/runtime/lineage proof required')
-    for key in ('baseline_behaviour_authentication_sha256', 'runtime_identity_sha256'):
+    for key in ('baseline_behaviour_authentication_sha256', 'runtime_identity_sha256', 'image_build_sha256'):
         _hash(proof.get(key))
+    _bindings(proof.get('image_evidence_files'), private=True)
+    if set(proof['image_evidence_files']) != IMAGE_EVIDENCE_FILES:
+        raise ValueError('Exact original image-build intent and result bytes must be bound')
     if (proof.get('host_environment', {}).get('execution_mode') != 'native_linux_x86_64'
             or proof.get('python_runtime', {}).get('sha256') != PYTHON_SHA256):
         raise ValueError('Actual native Linux repeat execution required')
@@ -284,6 +293,7 @@ def registration(original, final, predecessors, manifest, proof):
         predecessor_authentication_sha256=fingerprint(predecessors),
         baseline_behaviour_authentication_sha256=proof['baseline_behaviour_authentication_sha256'],
         runtime_identity_sha256=proof['runtime_identity_sha256'],
+        image_build_sha256=proof['image_build_sha256'],
         original_qualification_sha256=ORIGINAL_QUALIFICATION_SHA256,
         custom_final_qualification_sha256=CUSTOM_FINAL_QUALIFICATION_SHA256,
         model_protocol_sha256=MODEL_SHA256, manifest_canonical_sha256=MANIFEST_SHA256,
