@@ -544,3 +544,61 @@ unchanged final sources, 234 prospective repeat sources, 254 operator bindings
 and 227 future native-preflight bindings. No completed-native collector, real
 archive transfer, archive recreation, deployment, rehearsal, registration or
 model request occurred.
+
+## Offline locked prerequisite session
+
+`matched_repeat_session.py` connects the existing readers in one native process.
+It reads the actual private original/final qualification copies and current
+sources, refuses active/stopped ancestors, and calls the live archive consumer
+and original-178 authenticator before acquiring the outer ancestor locks.
+These are real reader calls, not caller-supplied callbacks or saved documents.
+The collector readers take their own locks; they are not recursively called
+while the outer scope is held. The complete inherited lock chain includes the
+custom-final root and remains held throughout the caller's context.
+
+Under those locks, the session rechecks the live handoff and original results,
+actually compares current installed libraries/constructors, and inspects the
+repeat host, official configurations and images. Their source, harness and
+qualification identities must agree. Later rechecks read actual files and
+inventories, without another collector or archive transfer. A failed check
+invalidates the session permanently; restoring a changed file does not revive
+it. Exit invalidates the handle before releasing locks, including on errors.
+Nested/overlapping sessions, saved metadata, empty handles, copying, and reuse
+from another process, thread or async task are refused.
+
+The qualification recheck binds the actual private policy, manifest,
+predecessor, runtime and qualification files to those freshly read observations.
+The baseline-library and host fingerprints cannot be substituted with arbitrary
+hashes. It invokes the existing reader for all eight actual native producer
+files and both pinned images, then rechecks sources, predecessor/original
+evidence and producer bytes. This helper does not create qualification,
+registration or a paid permit. The real qualifier must still produce the
+evidence; fabricated test JSON is not a substitute. All returned projections
+remain `paid_launch_ready:false`. Historical installed-byte and full-restore
+limitations remain unchanged.
+
+The actual Mac sender over pinned/authenticated SSH must feed this same native
+process. Descriptor checks alone do not authenticate a peer. The service
+connection, scored admission/dispatcher, real isolated lifecycle qualifier,
+pinned image build and repeat exporter remain unfinished. OpenHands remains
+refused until its additional completed-Terminus reader exists. No new reader
+was invoked on the active native host, and no repeat deployment or paid attempt
+was created. All 211 frozen custom-final sources remain unchanged; the new
+prospective repeat union is 236 files.
+
+All 32 new tests and 245 focused checks passed. New tests use real temporary
+private files, real competing locks and mocked native readers. They exercise
+authentication-before-lock ordering, under-lock reads, invalidation/cleanup,
+changed sources and inputs, active/stopped refusal, ownership and lifetime,
+and actual file-based qualification/producer rechecks. They are not native
+qualification, a real SSH transfer or benchmark results. A read-only saved-anchor
+check matched 178 original rows, 84 original sources, 211 unchanged final
+sources, 236 prospective sources, 256 operator bindings and 227 native-preflight
+bindings. Its first invocation omitted the copied qualification's nested
+`.runtime/stage2` path; correcting the inspection path required no evidence or
+production-check changes.
+
+Full local discovery ran 1,818 tests: 1,817 passed and one pre-existing skip.
+All 12 repository tests passed separately. Removing an unused test import was
+followed by another successful 32-test session run. No real qualification,
+registration, archive transfer, deployment or model request occurred.

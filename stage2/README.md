@@ -234,6 +234,22 @@ The tests use real temporary archives and local pipes with mocked native
 services and audits. The prospective source union is 234 files; all 211
 qualified final sources remain unchanged. No new study has launched.
 
+The [locked prerequisite session](protocols/baseline_matched_repeat_20260928.md#offline-locked-prerequisite-session)
+now connects the live handoff, original-result audit, current library comparison
+and host reader locally. Real audits precede outer locks; actual file rechecks
+run under the complete ancestor chain. Its process/thread/task-bound handle
+cannot be saved or reused after exit or a failed check. The qualification
+recheck binds actual producer bytes to fresh library, host and predecessor
+observations, without registering or admitting a paid trial.
+All 32 new tests and 245 focused checks passed with mocked native readers and
+real temporary files/locks. No native session, collector or qualification was
+invoked while custom final89 runs. The prospective union is 236 sources; all
+211 final sources remain unchanged. Pinned SSH/service integration, scored
+dispatch, actual isolated qualification, pinned build, repeat export and the
+OpenHands successor reader remain unfinished. No repeat has launched.
+Full local discovery ran 1,818 tests, with 1,817 passes and one pre-existing
+skip; all 12 repository tests passed. The final 32-test session recheck passed.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The
