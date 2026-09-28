@@ -112,3 +112,30 @@ completed collector or backup and was not run on the native host. The old
 collector and backup remain unchanged; explicit amended audit/archive/export
 and repeat-handoff integration is still pending. No final archive, new native
 qualification, baseline repeat or task replay was produced by this work.
+
+At 21:37:10 UTC, read-only metadata still showed task 71 active and 70/89
+complete: 41 passes, 26 zero-score failures and three missing verifier outcomes.
+The task had 123 physical requests and 30 accepted responses. All 211 frozen
+sources matched; all 70 completed results recorded model revocation and no
+operator/provider stop was present. These remain partial, dated observations.
+
+The separate `no_cutoff_final_report.py` completed-audit reader is now locally
+implemented with 42 passing synthetic tests. It integrates actual phase
+evidence with unchanged native lineage/runtime/coverage readers, ancestor-lock
+ordering, official limits, passive accounting and historical-result checks.
+It preserves null phases and explicit measured/not-run denominators. Native
+observations are mocked in these tests; the new reader was not deployed or
+invoked on the server. Trusted invocation, one absence-aware backup, amended
+snapshot/archive validation, allowlisted export and actual repeat-handoff
+integration remain unfinished. Frozen execution and old collectors are unchanged.
+
+At 21:48:48 UTC, task 71 had finished with an actual zero reward. The service
+was active on task 72, with 71/89 complete: 41 passes, 27 zero-score failures
+and the same three missing verifier outcomes. All 211 frozen sources matched,
+all 71 completed results recorded revocation and no stop was present. Task 72
+had six physical requests and no accepted responses at that observation.
+No cause or final score is inferred from these partial metadata.
+
+Final local discovery ran 2,182 tests: 2,181 passed and one pre-existing skip.
+All 676 guarded repeat-regression checks and 12 repository tests passed. These
+local/mock results do not establish native reporting or repeat qualification.

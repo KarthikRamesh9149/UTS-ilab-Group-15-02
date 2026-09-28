@@ -99,9 +99,9 @@ All exact89 coverage, source/runtime/registration, dataset, official limits,
 trace, revocation, cleanup, original178 and stopped-four preservation checks
 remain mandatory. No historical collector may be patched or silently bypassed.
 
-A separate, explicitly source-bound completed-reporting entry still needs to
-integrate this reader without coercing nulls into the old schema. Its one
-streamed private backup must preserve actual files and attest proven absences,
+A separate completed-reporting entry is now implemented locally as described
+below, without coercing nulls into the old schema. Its trusted invocation and
+one streamed private backup must still preserve actual files and attest proven absences,
 not require or create nonexistent deadlines. Verify every bound original byte
 and reread that same archive before allowlisted export. Do not recreate any
 completed backup. The actual operator capture, native handoff, archive streaming
@@ -125,3 +125,61 @@ changes preserved its canonical identity. The reader now pins the original raw
 runtime hash as well. Frozen collectors and execution sources were not changed.
 The reader, its tests and this amendment are in the prospective repeat source
 inventory and regression set, not retroactively added to the final qualification.
+
+## Offline completed-audit reader
+
+`no_cutoff_final_report.collect()` now integrates the leaf reader into a separate
+completed89 audit. It has no CLI, caller-selected root, callback, saved-proof,
+backup or paid-dispatch entry. It is local preparation and has not been invoked
+on the native host. The future trusted launcher must independently bind its
+five-file reporting bundle before imports, outside the frozen execution tree,
+at `/opt/uts-capstone-custom-no-cutoff-final-reporting-20260928`. That directory
+has not been created. Trusted deployment/invocation is not yet implemented.
+
+The reader requires the original final interpreter with `-I -B`, a fixed
+credential-free environment, an absent bytecode-cache prefix and the original
+trace validator. It checks an inactive/dead successful final service and no
+stop before fresh original-lineage authentication. Authentication occurs before
+the unchanged ancestor-lock chain, never recursively under those locks.
+
+Under the locks it calls the actual unchanged qualification/runtime, image,
+producer, dataset and registered-coverage readers. Each of the 89 rows uses the
+real phase reader, actual official task configuration and unchanged passive
+accounting. Fresh accounting must equal the retained result, with unknown costs
+and missing generation timing retained. Raw request/response bytes are only
+hashed. No native factory, setup, model, registration or dispatcher is called.
+Owned containers, networks and volumes are inspected, never removed. Original
+178 and stopped-four actual result hashes are reread against separately pinned
+historical metadata; those metadata bytes also match the frozen execution
+commit. This does not add them retrospectively to a historical qualification.
+
+Source/input/producer, result, trace, accounting, exact inventory and proven
+absence bindings are retained and reread after the final native observations.
+The actual native qualification/runtime is verified again. The reporting
+bundle is hashed separately, not inserted into the final's 211-file source set.
+Service, stop, coverage, current source and preserved historical outcomes are
+rechecked; a changed or incomplete observation fails closed without a retry.
+
+The new audit schema explicitly distinguishes `completed_final_audit` from
+off-server backup or paid admission. It returns `paid_launch_ready:false`,
+`off_server_backup_verified:false` and
+`archive_export_and_handoff_integrated:false`. The full89, development20 and
+remaining69 aggregates retain missing outcomes and measured/not-run timing
+denominators. A measured duration subtotal is not labelled an all-attempt total.
+Saved records or these flags alone cannot grant predecessor admission.
+
+All 42 new local tests passed using real synthetic private files for 89 trials,
+actual phase/trace/accounting readers and a competing local lock. Native
+service, Docker, task configuration, lineage and qualification observations are
+mocked. Tests exercise setup-only/null, zero and pass results, 105 physical
+requests with unknown costs, historical/result/source/producer mutations,
+privacy, duplicate fields, strict native invocation context, audit-before-lock
+ordering and final-observation mutation checks. These are not native audit,
+qualification or paid benchmark evidence.
+
+The separately bound launcher, one absence-aware streamed backup, strict amended
+snapshot/archive validation, allowlisted export and real operator/native
+handoff integration remain unfinished. Existing completed collectors, backups,
+repeat predecessor readers and admission are unchanged and still fail closed
+for this amended route. No native completed collector may run while final89 is
+active or its state is unknown.

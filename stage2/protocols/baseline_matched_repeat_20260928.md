@@ -1378,3 +1378,50 @@ The actual saved-anchor check matched 178 original rows, 84 original sources,
 sources, 284 operator bindings and 227 final-native-preflight bindings. No
 completed collector, archive transfer/recreation, deployment, image build,
 native rehearsal, qualification, registration or provider request occurred.
+
+## Offline amended completed-final audit
+
+The [phase-reporting amendment](custom_final_phase_reporting_20260928.md#offline-completed-audit-reader)
+now has a separate `no_cutoff_final_report.collect()` completed89 reader and
+42 new passing local tests. It consumes actual phase evidence under the
+unchanged ancestor locks after fresh lineage authentication, retaining native
+runtime/image, dataset, official limits, accounting, cleanup and original178/
+stopped-four checks. It binds and rereads actual bytes, inventories and proven
+absences after the final observations. Full89/development20/remaining69 timing
+aggregates include measured/not-run denominators, never invented durations.
+
+The reader has no CLI, saved-proof, backup, factory or paid-dispatch entry.
+Its future trusted launcher must bind a separate five-file reporting bundle
+outside the frozen execution root and use the original isolated interpreter
+with a credential-free environment and absent bytecode prefix. That reporting
+deployment and launcher do not yet exist. No new reader was invoked natively.
+The old completed collector, backup and actual operator/native predecessor
+readers remain unchanged. Trusted invocation, strict amended snapshot/archive
+validation, one absence-aware backup, allowlisted export and actual handoff
+integration are still required before repeat admission. An audit flag or saved
+leaf record cannot substitute. No final archive is claimed.
+
+The prospective repeat union is now 266 files. Only the prior local
+`scored_trial.py` hooks differ from the 211 final-anchor files; the other 210,
+old collectors and `local_trace.py` remain unchanged. The future gateway still
+overlays eight sources and verifies 32 installed imports. Tests use actual
+synthetic private files, phase/accounting readers and a competing local lock;
+service, Docker, lineage, native qualification and task observations are mocked.
+No repeat root, deployment, build, native rehearsal, qualification, registration
+or paid operation was created. Trusted repeat service operations, native
+compatibility, repeat export and the completed-Terminus successor remain pending.
+
+All 42 new tests passed, as did an earlier 247-test focused run. The complete
+676-test repeat regression set passed with zero skips under the loopback-only
+network guard. All 164 loaded project modules were bound; source checks before
+and after execution passed. Full local discovery ran 2,182 tests: 2,181 passed
+and one pre-existing skip. All 12 repository tests passed. Mocked lifecycle
+completion messages are not paid benchmark evidence.
+
+The actual local anchor check matched 178 original rows, 84 original sources,
+211 final-anchor files with only the prior scored delta, 266 prospective
+sources, 286 operator bindings and 227 final-native-preflight bindings. All
+eight exact final input hashes and all 32 installed gateway import bindings
+matched. No completed-native collector, archive transfer/recreation, reporting
+deployment, build, rehearsal, qualification, registration or model request was
+performed by this offline work.

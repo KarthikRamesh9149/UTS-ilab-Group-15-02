@@ -21,9 +21,22 @@ failures; a 20:35:19 UTC metadata check confirmed their agent-deadline files
 were absent. Their missing agent/verifier durations and rewards must remain
 null, not invented zeros. These are dated observations, not a final score.
 The frozen collector and backup expect those files and remain unchanged.
-Explicit completed-audit, single-backup, export and repeat-handoff integration
-of the amendment is still required. The reader grants no admission, and no
-completed collector or repeat operation may run while final89 is active.
+The separate completed-audit reader is now implemented locally with 42 new
+passing tests. It requires actual inactive-service, lineage, ancestor-lock,
+runtime, source, official-limit, accounting and cleanup checks, retaining
+measured/not-run timing denominators for full89/development20/remaining69.
+Its trusted invocation, one absence-aware backup, amended snapshot/archive
+validation, public export and actual repeat-handoff integration remain pending.
+No completed audit or repeat operation has run. At 21:37:10 UTC, the read-only
+inspector still showed task 71 active and 70/89 complete: 41 passes, 26 zero-score
+failures and three missing verifier outcomes. All 211 frozen sources matched.
+At 21:48:48 UTC, task 71 had completed with a verified zero and task 72 was
+running: 71/89 complete, 41 passes, 27 zero-score failures and the same three
+missing verifier outcomes. No stop or source change was observed.
+The final local checks ran 2,182 tests: 2,181 passed and one pre-existing skip.
+All 676 guarded repeat-regression checks and 12 repository tests passed.
+These are local tests with mocked native observations, not a completed audit
+or additional benchmark attempts.
 
 The finalist must have no artificial spending, model-call, command-time,
 job-count or completion-repair cutoff. C0/C1/C2 still contain their original
