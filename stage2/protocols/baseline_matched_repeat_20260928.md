@@ -125,3 +125,62 @@ the 178 new planned IDs. The deterministic schedule's canonical SHA256 is
 No real repeat registration, native source authentication, qualification or
 provider call occurred. The custom final source inventory and active C0-NC
 execution source were not changed.
+
+## Offline gateway contract checkpoint
+
+`matched_repeat_policy.py` and `matched_repeat_gateway.py` now implement the
+lightweight repeat contract, not a host dispatcher, actual registration or
+paid-ready study. The current scored runner has no admission route for this
+experiment. Native original-baseline authentication, predecessor audit/archive
+authentication, current-host verification, the locked runner, native qualifier,
+pinned gateway build and exporter remain to be implemented and qualified.
+The active custom final deployment is unchanged.
+
+Each prospective block has exactly 89 fresh IDs from the fixed schedule. The
+Terminus-2 block requires the custom final89 predecessor; the OpenHands block
+requires both the custom final89 and the completed Terminus-2 repeat, in that
+order. Each predecessor must bind its exact 89 result identities, qualification,
+registration, sources, audit, private archive and backup record. No reward or
+score floor enters this contract. These are structural checks on a record,
+not proof that an audit or backup happened. The future host must perform the
+real native audits and read/hash the actual off-server archives before issuing
+that record, then recheck the bound files under all ancestor locks. Saved JSON
+or a `checks: true` declaration cannot replace those actions.
+
+The contract pins the original corrected qualification and the actual custom
+final qualification. It preserves their separate source identities: the
+original baseline inventory has 84 files and the qualified shared final
+inventory has 211. Seven existing differences are recorded explicitly:
+`credit_only_gateway.py`, `retry_gateway.py`, `trial_execution.py`,
+`local_trace.py`, `scored_trial.py`, `custom_model.py` and `custom_runner.py`.
+This is not a claim that the two historical source trees were identical.
+The native baseline factories, OpenHands dependency lock, model protocol and
+retry transport/deadline implementation remain byte-identical between those
+anchors. Native installed-library behaviour still needs its own authentication.
+
+The prospective repeat inventory currently contains 220 files, including the
+new contracts, schedule and tests. All declared native test modules and the
+OpenHands test dependency inventory are bound. Only explicitly recorded
+`scored_trial.py` / `local_trace.py` admission or trace integration deltas are
+permitted relative to the qualified final library; neither changed in this
+checkpoint. Every future producer, fixture, runner, exporter and affected test
+must be added before binding the deployment. Baseline agent/tool changes are
+not admitted by this allowance. The inherited million-turn guards remain
+disclosed baseline controls, not benchmark rules or extra study request caps.
+
+The gateway reuses the unchanged passive accounting and shared retry session,
+keeps actual deadline/credit/authentication/identity stops, binds a registration
+throughout an attempt, and retains unknown costs. Local tests exercise both
+baseline gateway identities, over 100 logical calls and physical requests,
+shared cooldown across task boundaries, real temporary gateway locks, no
+replay, private file permissions, sequence/source/registration tampering and
+blocked imports of the heavy host/agent stack. Qualification fixtures in these
+tests are fabricated metadata, not native execution evidence.
+
+All 27 new local tests and 172 affected checks passed. Final full local
+discovery ran 1,615 tests: 1,614 passed and one pre-existing skip; the separate
+36-test legacy suite passed. A read-only local check
+accepted the real saved qualification anchors, all 84 original and 211 shared
+source bindings, the 220-file prospective inventory and every declared test
+module. It performed no native authentication, archive recreation, deployment,
+qualification, registration, model request or benchmark attempt.

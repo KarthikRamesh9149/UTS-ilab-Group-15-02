@@ -137,6 +137,20 @@ one pre-existing skip. This is not paid admission. The protocol also discloses
 the original baselines' inherited one-million-turn guards, separately from
 the absence of additional study request caps; custom C0-NC is unchanged.
 
+The matched-repeat lightweight policy and gateway contracts are now implemented
+locally. They bind the fixed sequence and all predecessor result/audit/archive
+identities, preserve the original baseline factories and shared retry behaviour,
+and add no study financial or request-count cap. Their 27 new tests and 172
+affected checks passed. Full local discovery ran 1,615 tests, with 1,614 passes
+and one pre-existing skip; the separate 36-test legacy suite passed.
+A local check matched the original 84-source and final
+211-source anchors and the prospective 220-file repeat inventory. These are
+not native authentication or execution evidence. The host authenticator,
+runtime checks, scored admission/dispatcher, qualifier, pinned image and
+exporter are still unfinished; no repeat is registered or launched. The
+active custom final source was not changed. See the
+[gateway contract checkpoint](protocols/baseline_matched_repeat_20260928.md#offline-gateway-contract-checkpoint).
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The
