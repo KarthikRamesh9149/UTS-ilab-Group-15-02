@@ -308,3 +308,88 @@ dispatcher change, extra server purchase or API-limit increase has been
 authorised by those questions. The original baselines and diagnostics remain
 immutable. Do not interpret this discussion as permission to start another
 178-attempt matrix or overlap the active validation.
+
+## Revised-final host contract checkpoint, 28 September 2026
+
+`no_cutoff_final_evidence.py` implements fresh authentication of the measured
+100-outcome finalist on a separate final host. It cross-checks the copied
+original/revised anchors, all three completed native source/result maps and
+both sets of evidence logic before executing project code in the original
+C0-NC interpreter. The unchanged qualified collector authenticates the
+original 80 results and audits the revision's 20 results under its original
+ancestor locks. The native preflight first refuses an active validation or
+persistent stop, and hashes the already known revision result files as well
+as the qualified sources and inputs. The complete allowlisted audit must
+match the frozen finalist; only the observation timestamp may change.
+
+Call `authenticate` before acquiring final ancestor locks. Call `recheck`
+under those locks to re-read every bound file and stop marker, without
+recursively acquiring collector locks. A self-created authentication record
+does not prove that the audit occurred. Both the eventual final qualification
+and dispatcher must bind the real returned record. This component neither
+dispatches tasks nor grants paid admission.
+
+`no_cutoff_final_policy.py` and `no_cutoff_final_gateway.py` provide a separate
+lightweight final contract for the actually measured C0-NC 0.5.0 runtime.
+Exactly 89 fresh `customfinal2-c0-nc-` IDs preserve the registered task order,
+one attempt per task, the original primary/secondary comparators and the
+deferred confirmation/diagnostic labels. Neither the original C0 score nor
+C3's identity can be substituted. The unchanged shared retry/session path
+retains uncapped passive accounting, unknown costs, shared Retry-After,
+actual credit/authentication/model-identity stops, deadlines and revocation.
+
+The source transition binds the original 190 revision files, frozen original
+selection logic, revised-finalist capture logic and the new final helpers.
+Only explicit final-admission and trace-label changes to `scored_trial.py`
+and `local_trace.py` are permitted; there are no such changes in this
+checkpoint. Agent, prompt, tool, model, retry and evidence behaviour must
+remain the measured revision. The older C3-only final contract and all
+qualified development modules remain unchanged.
+
+`no_cutoff_final_runtime.py` reads the intended separate final host at
+`/opt/uts-capstone-custom-no-cutoff-final-20260928`. It checks source and loaded
+helper locations, the interpreter/dependencies, original Python archive,
+native host identity, all canonical dataset file hashes and all 89 official
+task configurations. The unchanged baseline reader authenticates all 178
+result hashes and requires both baselines and current local tags to agree
+on each task image and official agent deadline. Declared storage remains
+metadata, not a new enforced quota. No image pull, container or model request
+is started by this reader.
+
+Final qualification must bind a new native regression report and all three
+actual final lifecycle cases, including their eight producer files. Current
+host verification re-reads those files and checks the actual final-stage
+result identities, verifier outcome, gateway image, revocation and cleanup;
+passing JSON flags alone are not accepted as producer-file verification.
+The real producer, isolated fixture path, final Docker build and final
+dispatcher still need implementation. Synthetic test documents are not
+permission to run paid calls or a way to bypass those missing components.
+
+All 62 new local tests and 242 affected tests passed. The host/process readers
+and prior-anchor reader are mocked in the new authentication tests; local
+file permissions, byte hashes, symlink checks and session locks are real.
+Coverage includes 100-result lineage, before/after native file checks,
+under-lock rechecks without a second collector call, active/stop refusal,
+all89 runtime coverage, final producer identity, 105 logical calls and 106
+physical requests, unknown costs without reservations, shared cooldown,
+auth/credit/identity stops, cancellation, registration drift and no replay.
+An initial new registration test caught a mutable nested orchestration-map
+alias; the builder now returns independent maps and the rerun passed.
+Final full local discovery ran 1,512 tests: 1,511 passed and one pre-existing
+skip; separate legacy discovery passed all 36 tests. These tests did not
+perform native-final execution or contact a paid provider.
+
+A read-only local anchor check accepted the saved original selection, the
+190 qualified revision sources and eight native producer bindings. The new
+future source inventory has 201 files, with no changes to the measured 190.
+No actual completed-revision collector, finalist capture/freeze, native-final
+rehearsal, final deployment/registration or additional study launch occurred.
+At 00:15:41 UTC on 28 September, validation was still active with eight
+completed attempts (four passes, four failures, no missing verifier outcome)
+and task nine underway. All 190 frozen source files were unchanged. This is
+a dated partial observation, not a C0-NC /20 result.
+
+Next: after the current validation audit and private backup, freeze its real
+measured evidence. Complete the explicit final scored-runner/dispatcher with
+all ancestor locks, including the C0-NC root, and the isolated native qualifier,
+pinned image and exporter. No paid final89 launch is admitted yet.

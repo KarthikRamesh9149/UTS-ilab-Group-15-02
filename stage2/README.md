@@ -83,13 +83,29 @@ runtime, and cannot inherit the original 15/20 score or grant paid admission.
 The operator capture refuses an active validation before acquiring native locks
 and checks the original native source/input hashes before executing the unchanged
 qualified collector. It has not been used to freeze this unfinished validation.
-The final host authentication, gateway/runner admission, separate qualification
-and exact89 registration must still be completed for this lineage.
+It is not final execution admission for this lineage.
 All 31 new local tests and 172 affected checks passed. Full local discovery
 ran 1,450 tests: 1,449 passed and one pre-existing skip; 36 separate legacy
 tests passed. A read-only local anchor check matched the actual saved original
 selection, 190 revision sources, 20 registered cells and eight native producer
 file bindings. No completed-revision native audit or actual freeze was run.
+
+The C0-NC final-host authentication, lightweight gateway contract and all89
+host-identity reader are now implemented separately. The authenticator checks
+all 100 original/revised result bindings and the native sources before running
+the unchanged completed-revision collector, then rechecks their files. Its
+under-lock recheck does not recursively acquire the collector's locks. The
+new final contract uses fresh `customfinal2-c0-nc-` IDs, keeps the measured
+0.5.0 behaviour unchanged and binds separate final-native producer evidence.
+The identity reader checks all 89 official configurations and their baseline
+image/deadline bindings, without starting containers or making provider calls.
+
+These are still local preparation, not an actual revised-finalist freeze,
+final registration or native-final qualification. Final scored-runner admission,
+the locked dispatcher, isolated native qualifier, pinned final gateway image
+and exporter remain unfinished. No final89 launch has occurred. The active
+C0-NC source and the earlier C3-only final path were not changed. See the
+[new implementation checkpoint](protocols/custom_direct_final_20260928.md#revised-final-host-contract-checkpoint-28-september-2026).
 
 The user's baseline-repeat and parallelism questions were advisory: no new
 baseline matrix or parallel-launch change is authorised. Any repeat requires
