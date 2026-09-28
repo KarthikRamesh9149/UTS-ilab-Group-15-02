@@ -451,3 +451,96 @@ tests: 1,739 passed and one pre-existing skip. The 12 repository tests under
 `tests/` passed separately. No repeat deployment, native qualification,
 registration or model request occurred; all old sources and archives remain
 unchanged.
+
+## Offline live predecessor handoff
+
+`matched_repeat_stream.py` and `matched_repeat_handoff.py` implement the
+operator sender and native consumer for the first, Terminus-2 predecessor.
+This is local preparation, not a real transfer, completed native audit,
+qualification, registration or repeat launch. The custom-final study remains
+on its unchanged source. OpenHands still fails closed until its additional
+completed-Terminus audit and archive reader is implemented.
+
+The sender must run from the Mac operator checkout. It calls the actual
+operator `capture` reader afresh, including the completed-native audit and
+existing off-server archive verification. It then streams the exact saved
+snapshot and receipt bytes plus that existing archive to a binary pipe. It
+never recreates an archive, extracts it or writes another backup. Snapshot
+and receipt strings preserve their raw UTF-8 bytes, including Python numeric
+representations. Sources, anchors, curated exports and archive bytes are
+checked again after transfer; a changed file withholds the final commitment.
+An existing saved predecessor document is not a shortcut around `capture`.
+
+The future native consumer requires a live pipe rather than a regular archive
+file or copied JSON. It cross-checks the exact original/final qualification
+copies, current repeat source, final source/input/producer/result inventory,
+published prerequisite projections and all 89 predecessor identities. It
+reads the compressed checksum, every bound tar member, file and byte counts,
+and gzip trailer without writing or extracting the archive. It refuses unsafe
+members, duplicate names, links, credential-bearing paths, missing bytes,
+changed evidence, an absent commitment or trailing transfer data. Its receipt
+must match the unchanged final exporter's verified backup record. The 64 MiB
+metadata parser window and chunked archive transport are not benchmark-task,
+model-request, financial or agent-time limits.
+
+Pipe descriptor checks do not authenticate a network peer or prove a file's
+geographic location. The sender's actual Mac-side archive read and the future
+launcher's existing pinned, authenticated SSH connection are both required.
+That launcher/service integration is not implemented here; these readers
+must not be exposed as a generic caller-supplied proof or transport callback.
+
+After verifying the archive, the native consumer actually invokes the unchanged
+completed-final collector in the final deployment's own isolated interpreter,
+with a credential-free environment. Standard-library guards check services,
+stops, private permissions and source/input bytes before project imports and
+again afterward. An absent cache prefix prevents reading stale project bytecode.
+The collector freshly authenticates its original/revised lineage and takes its
+own ancestor locks, so the handoff reader must run before future dispatcher
+locks. No old deployment source is patched and no task is replayed.
+
+The fresh audit must match the transferred audit except for collection time.
+Current supporting traces, request/outcome/error/retry files and all 89
+lifecycle records are hashed before and after it. These are current audit-input
+bindings, not a retrospectively recorded private-file inventory. Missing phase
+or lifecycle evidence is refused, not replaced with zeros. Zero results,
+missing verifier outcomes and unknown costs remain represented without a score
+floor or a cost gate.
+
+Successful authentication creates a process-local, non-serialisable witness.
+The later under-lock recheck reads actual native sources, inputs, results and
+supporting-file inventories without another collector or archive transfer.
+Copied metadata, a constructed empty witness or a witness inherited into a
+different process cannot substitute for the live reader. A metadata projection
+is available for binding, but remains `paid_launch_ready:false` and cannot be
+converted back into a witness. This is not a paid dispatch scope.
+
+The original-178 authenticator, current installed-library comparison and
+repeat-host identity remain separate required readers. The pinned SSH/service
+connection, their combined qualification/registration/dispatcher integration,
+scored admission, actual native lifecycle qualifier, pinned image build and
+repeat exporter are still unfinished. No native invocation occurred during
+this unit. The prospective repeat union is now 234 files, with all 211
+qualified custom-final sources unchanged.
+
+All 46 new tests and 213 focused checks passed. The new tests transfer a real
+temporary private archive through real local pipes, hash its complete bytes
+and members, and exercise the actual sender and consumer together. Native
+services, host context and collectors are mocked, so these are not native
+qualification or paid results. Negative coverage includes altered sources,
+results, receipts and supporting inventories, private permissions, symlinks,
+active/stopped refusal, truncated transfers, duplicate/unsafe archive members,
+withheld commitments and saved/forked witness refusal. The stream verifier's
+receipt is also compared with the unchanged qualified path-based verifier.
+An initial missing-lifecycle test exposed an unsanitised filesystem exception;
+the reader now reports a clear fail-closed error without weakening the check.
+The shared synthetic predecessor fixture now contains a real manifest JSON
+instead of a placeholder, so the new consumer reads actual fixture bytes.
+
+Full local discovery ran 1,786 tests: 1,785 passed and one pre-existing skip.
+The 12 repository tests passed separately. A later error-message clarification
+was followed by another successful 46-test handoff/stream run. The real local
+saved-anchor check matched 178 original rows, 84 original sources, all 211
+unchanged final sources, 234 prospective repeat sources, 254 operator bindings
+and 227 future native-preflight bindings. No completed-native collector, real
+archive transfer, archive recreation, deployment, rehearsal, registration or
+model request occurred.

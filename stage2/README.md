@@ -216,6 +216,24 @@ All 211 active final sources remain unchanged. A local check matched all 178
 original rows and the actual saved anchors without invoking a native collector,
 writing an archive or launching a study.
 
+The [live predecessor handoff](protocols/baseline_matched_repeat_20260928.md#offline-live-predecessor-handoff)
+now has a locally tested operator sender and native consumer. The sender
+performs fresh Mac-side capture and streams the existing private archive; the
+consumer checks the actual compressed/member bytes, then freshly audits final89
+in its original interpreter before caller locks. Under-lock rechecks require
+a process-local witness and reread files, without another collector. Saved
+JSON or a receipt flag is not a live witness. This does not supply paid
+admission, authenticate a network peer by itself, or create an SSH/service
+launcher. That connection, combined original/library/runtime authentication,
+scoped dispatch, native qualifier, pinned build, repeat exporter and OpenHands
+successor remain unfinished. No native handoff or completed collector was
+invoked while custom final89 runs.
+All 46 new tests and 213 focused checks passed. Full local discovery ran 1,786
+tests: 1,785 passed and one pre-existing skip; 12 repository tests passed.
+The tests use real temporary archives and local pipes with mocked native
+services and audits. The prospective source union is 234 files; all 211
+qualified final sources remain unchanged. No new study has launched.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

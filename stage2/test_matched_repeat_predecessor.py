@@ -37,6 +37,7 @@ class Fixture:
         names = (set(self.proof['sources']) | policy.BASELINE_BEHAVIOUR_FILES | policy.INHERITED_BASELINE_DELTAS
             | {name + '.py' for name in policy.TEST_MODULES if name + '.py' not in policy.REQUIRED_SOURCE_FILES})
         self.content = {'stage2/' + name: ('# Synthetic ' + name + '\n').encode() for name in names}
+        self.content['stage2/input_manifest.json'] = json.dumps(self.manifest).encode()
         self.proof['sources'] = {name: sha(self.content['stage2/' + name]) for name in names}
         for name in policy.BASELINE_BEHAVIOUR_FILES | policy.INHERITED_BASELINE_DELTAS:
             self.original['sources'][name] = (sha(('old ' + name).encode())
