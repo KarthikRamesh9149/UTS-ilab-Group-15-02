@@ -762,3 +762,87 @@ transfer/recreation, repeat deployment, registration, rehearsal or model
 request occurred. The real isolated qualifier, pinned build, locked paid
 dispatcher/service integration, repeat exporter and OpenHands successor reader
 remain unfinished. A scoped hook alone is not a launch milestone.
+
+## Offline sequential dispatcher
+
+`run_matched_repeat.py` implements a one-shot 89-cell dispatcher that consumes
+the actual live prerequisite session in the same process, main thread and
+async task. It does not authenticate from a saved record, move a prepared
+handle to another worker, reacquire ancestor locks or call a completed
+collector under those locks. The future native service must open a fresh real
+operator handoff/session and await this runner before releasing that scope.
+There is no standalone CLI, arbitrary callback, supplied factory or receipt
+mode. The existing connection remains inspection-only and has not been used
+on the VPS; this checkpoint does not add a paid service operation.
+
+The runner registers through the existing live qualification check and obtains
+the issued original baseline factory. Each cell goes through the actual scoped
+scored admission, fixed order, original model and tools, passive accounting,
+qualified images and 900-second setup allowance. The original official agent
+deadline and million-turn guard remain unchanged. Shared Retry-After is awaited
+at task boundaries before the next task's clock begins, without a new request,
+cost or task-time cap. No live session is passed to another thread or async task.
+
+Before its first call it requires zero retained attempts and no prior dispatch
+intent, terminal result or failure record. It exclusively writes the private
+`matched-repeat-dispatch.json` intent and consumes that session once. This is
+deliberately not an automatic-resumption entry point. A disconnect, process
+failure or earlier invocation requires inspection of the retained operation;
+neither the same handle nor a fresh session restarts it automatically. The
+intent binds the actual registration, qualification and source set. Its bytes
+are rechecked across dispatch, and result/failure files are exclusive and
+private. Only exception types are retained, never exception text or exchanges.
+
+Returned trial objects are not evidence: each boundary rereads actual private
+start/result files, exact sequential coverage, previous hashes, images, model
+revocation and owned cleanup. Zero and missing verifier outcomes remain in the
+matrix. A clean retained exception outcome can advance to the next fresh key;
+an absent/partial/changed result, invalid scope or missing cleanup/revocation
+cannot. Unknown costs and the number of requests are not dispatch conditions.
+Owned scored containers, networks and volumes are checked before launch and
+again before the terminal record. Qualification, current libraries/host and
+producer files are rechecked before a non-stopped completion.
+
+The existing SIGUSR1 boundary handler finishes the active attempt. Operators
+must still persist `operator-stop-request.json` with `automatic_resume:false`
+before signalling the exact current service PID. A final-cell signal is also
+persisted; cancellation is a retained failure, not a successful completion or
+a replay. A narrow metadata observation can read a provider-stop boundary to
+record the last outcome and stop, but all registration and next-cell admission
+paths continue to refuse that marker. No acknowledgement, top-up or marker
+removal is implemented. There is no polling service, client-driven native stop
+or automatic restart.
+
+Terminal metadata reports full89, development20 and remaining69 counts with
+missing outcomes separate from failures. It is not the completed trace,
+official-limit, cost or off-server-backup audit and explicitly records those
+limitations. The repeat exporter must still perform that separate work.
+
+The runner and its tests expand the prospective union from 241 to 243 files.
+Only the earlier explicit local `scored_trial.py` hook differs from the 211-file
+final anchor; baseline agents/tools/model/retry, the other 210 inherited files
+and the active frozen native deployment remain unchanged. OpenHands still
+fails closed until its completed-Terminus audit/archive reader is implemented.
+The actual isolated native qualifier, pinned image build, trusted paid service
+integration and repeat exporter remain unfinished. No repeat root, native
+session, real registration, rehearsal or paid model request was created here.
+
+All 31 new tests and 165 focused checks passed. They use real temporary private
+files, competing ancestor locks, actual session/study scopes, a real original
+Terminus constructor with a dummy key, real cooperative signals and shared
+cooldown files. Native readers, Docker and scored execution are mocked; no
+constructor setup/run or model request occurs. Coverage includes all89 order,
+zeros/missing/unknowns, unchanged guards, durable failures, partials, source/
+producer/result/intent changes, single-use handles, private files, task/process/
+thread boundaries, cooperative/provider stops and cancellation. Review added
+the terminal owned-resource check and a test proving stop observation cannot
+relax next-cell admission. All qualification records are test-only synthetic
+fixtures, not production or native proof.
+
+Final local discovery ran 1,916 tests: 1,915 passed and one pre-existing skip.
+All 12 repository tests passed separately. The suite's mocked study-completion
+messages are not benchmark results. A read-only saved-anchor check matched
+178 original rows, 84 original sources, the 211-file final anchor with only the
+previous local scored hook changed, 243 prospective sources, 263 operator
+bindings and 227 final native-preflight bindings. It did not run a collector,
+transfer/recreate an archive or invoke native repeat code.

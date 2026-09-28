@@ -284,6 +284,22 @@ were not changed.
 All 371 final focused checks passed. Full local discovery ran 1,885 tests:
 1,884 passed and one pre-existing skip; all 12 repository tests passed.
 
+The [sequential repeat dispatcher](protocols/baseline_matched_repeat_20260928.md#offline-sequential-dispatcher)
+is now implemented locally. It consumes a live session in the same process and
+async task, registers through the existing qualification checks and dispatches
+the exact 89 fresh keys using the issued original baseline factory. It retains
+zero/missing outcomes, verifies real result bytes at each boundary, honours
+shared cooldown and cooperative stops, and refuses automatic restart after a
+private launch intent or any prior attempt. Its count summary is not a completed
+evidence audit or verified backup. There is no CLI or saved-receipt launch mode.
+The connection remains inspection-only; native qualification, pinned images,
+paid service integration, repeat export and the OpenHands successor reader are
+still required. No native repeat operation or provider call occurred. The
+prospective union is 243 files, with no additional final-anchor source change.
+All 31 new tests and 165 focused checks passed, using real local scopes/files
+and mocked native execution. Full local discovery ran 1,916 tests: 1,915 passed
+and one pre-existing skip; all 12 repository tests passed separately.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

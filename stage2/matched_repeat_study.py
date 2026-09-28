@@ -58,7 +58,7 @@ def _qualified(active):
     return root, proof, expected, files
 
 
-def _attempts(root, block):
+def _attempts(root, block, *, observe_provider_stops=False):
     """Strict retained coverage metadata; not the completed trace/export audit."""
     rt = root / '.runtime/stage2'
     intended = {cell['trial_id']: cell for cell in block['cells']}
@@ -76,7 +76,7 @@ def _attempts(root, block):
                     or (path != base and path.name not in intended)):
                 raise ValueError('Owned private registered attempt directories required')
             stop = path / 'provider-stop.json'
-            if stop.exists() or stop.is_symlink():
+            if not observe_provider_stops and (stop.exists() or stop.is_symlink()):
                 raise ValueError('Persistent provider stop forbids further repeat admission')
     bindings = {}
     for cell in block['cells']:
