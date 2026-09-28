@@ -350,6 +350,23 @@ Full local discovery ran 2,018 tests: 2,017 passed and one pre-existing skip;
 all 12 repository tests passed separately. These are local checks, not native
 qualification or additional benchmark results.
 
+The [session-owned host rehearsal route](protocols/baseline_matched_repeat_20260928.md#offline-session-owned-host-rehearsal-route)
+is now implemented locally. It awaits the shared scored lifecycle in the same
+live prerequisite session, uses the original baseline factory and a separate
+synthetic-only admission scope, and checks actual service isolation, retained
+results, traces, revocation, cleanup and image evidence. Setup cancellation and
+cooperative boundary stopping have dedicated one-shot fixtures; no production
+qualification is fabricated and no paid admission is patched. The prospective
+inventory is 254 files, with only `scored_trial.py` changed from the final anchor.
+The native qualifier, trusted service operations, real image build, repeat
+exporter and OpenHands successor reader are still unfinished. No native
+rehearsal or repeat dispatch has occurred, and the active custom final remains
+unchanged.
+All 42 new tests and 318 focused checks passed. Full local discovery ran 2,060
+tests: 2,059 passed and one pre-existing skip; all 12 repository tests passed.
+Native Docker, setup/run, verifier and prerequisite readers are mocked. These
+checks do not establish native qualification or additional benchmark results.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

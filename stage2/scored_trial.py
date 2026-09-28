@@ -66,7 +66,7 @@ def audit_task(inspected, config, paths):
 async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                     gateway_image, guard_image, setup_timeout_seconds, model_settings,
                     billing_runtime=None, billing_kind='scored', accounting_mode='reserved',
-                    custom_study=None, matched_repeat=None):
+                    custom_study=None, matched_repeat=None, matched_repeat_fixture=None):
     """Run one qualified native agent; factory gets only task timeout, not tests.
 
     Factory arguments: paths, host_api_base, container_api_base, trial_token,
@@ -94,7 +94,13 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
     passive = accounting_mode == 'provider-credit-only'
     custom_admission = None
     repeat_admission = None
-    if matched_repeat is not None:
+    fixture_route = None
+    if matched_repeat_fixture is not None:
+        if (matched_repeat is not None or custom_study is not None or not passive
+                or billing_runtime is not None or billing_kind != 'scored' or stage != 'final'):
+            raise ValueError('Separate synthetic-only repeat rehearsal required')
+        import matched_repeat_probe as fixture_route
+    elif matched_repeat is not None:
         from matched_repeat_policy import EXPERIMENT as MATCHED_REPEAT
         if (matched_repeat != MATCHED_REPEAT or custom_study is not None or not passive
                 or billing_runtime is not None or billing_kind != 'scored' or stage != 'final'):
@@ -128,6 +134,12 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         custom_binding = None
         repeat_binding = None
+        fixture_binding = None
+        if fixture_route is not None:
+            fixture_binding = fixture_route.admit_trial(matched_repeat_fixture, root,
+                trial_id=trial_id, task_id=task_id, stage=stage, factory=agent_factory,
+                settings=model_settings, gateway_image=gateway_image, guard_image=guard_image,
+                setup_timeout_seconds=setup_timeout_seconds)
         if repeat_admission is not None:
             repeat_binding = repeat_admission(root, trial_id=trial_id, task_id=task_id, stage=stage,
                 factory=agent_factory, settings=model_settings, gateway_image=gateway_image,
@@ -144,7 +156,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         if factory_protocol != protocol_hash:
             raise ValueError('Agent factory and gateway model settings differ')
         accounting_transition = None
-        if matched_repeat is None:
+        if matched_repeat is None and fixture_route is None:
             from receipt_runtime_transition import gateway_for_trial
             gateway_image, accounting_transition = gateway_for_trial(
                 root, gateway_image, guard_image, model_settings)
@@ -152,7 +164,8 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         allowed = manifest['development_ids' if stage == 'development' else 'all_task_ids']
         if task_id not in allowed:
             raise ValueError('Task outside frozen split')
-        task = Task(frozen_dataset(root) / task_id)
+        task = (fixture_route.task(matched_repeat_fixture) if fixture_route is not None
+                else Task(frozen_dataset(root) / task_id))
         completion_wait_seconds = completion_wait_for(task.config.agent.timeout_sec)
         if task.has_steps or task.config.verifier.environment is not None:
             raise ValueError('Unqualified separate verifier or multistep runtime')
@@ -184,17 +197,25 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             result['matched_repeat_experiment'] = matched_repeat
             result['matched_repeat_registration_sha256'] = repeat_binding
             result['guard_image_id'] = guard_image
+        if fixture_binding is not None:
+            # Explicit rehearsal identity, never a paid registration or score.
+            from matched_repeat_policy import EXPERIMENT
+            from matched_repeat_fixture import FIXTURE_KIND
+            result.update(matched_repeat_experiment=EXPERIMENT, matched_repeat_fixture=FIXTURE_KIND,
+                matched_repeat_fixture_sha256=fixture_binding, guard_image_id=guard_image)
         if accounting_transition is not None:
             result['accounting_runtime_transition_sha256'] = accounting_transition
             result['gateway_image_id'] = gateway_image
         durable_json(trial / 'started.json', result)
         environment, bridge, trace = None, None, None
         try:
-            compose = compose_runtime(gateway_image=gateway_image, guard_image=guard_image,
+            compose_options = dict(gateway_image=gateway_image, guard_image=guard_image,
                 state_dir=runtime, tokenizer_dir=root / '.cache/stage2-tokenizer',
                 credential_file=root / '.env', token_file=token_file,
                 trial_id=trial_id, stage=stage, uid=0, gid=0,
                 completion_wait_seconds=completion_wait_seconds)
+            compose = (fixture_route.compose(matched_repeat_fixture, **compose_options)
+                       if fixture_route is not None else compose_runtime(**compose_options))
             override = trial / 'compose.json'
             durable_json(override, compose)
             environment = DockerEnvironment(environment_dir=task.paths.environment_dir,
@@ -219,6 +240,11 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             relay = await asyncio.to_thread(service, project, 'model-relay')
             if relay['Image'] != gateway_image:
                 raise RuntimeError('Unexpected relay image')
+            if fixture_route is not None:
+                observations = {'main': main, 'model-relay': relay}
+                for name in ('model-gateway', 'task-network-guard', 'socket-init'):
+                    observations[name] = await asyncio.to_thread(service, project, name)
+                fixture_route.audit_started(matched_repeat_fixture, observations)
             bridge = HostModelBridge(relay['Id'], completion_wait_seconds=completion_wait_seconds)
             bridge.__enter__()
             agent = agent_factory(paths=paths, host_api_base=bridge.base_url,

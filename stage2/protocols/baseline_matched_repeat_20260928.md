@@ -1115,3 +1115,109 @@ local scored hook changed, 252 prospective sources, 272 operator bindings and
 only eight are overlaid. No completed-native collector, archive transfer or
 recreation, real build, native session, deployment, rehearsal, qualification,
 registration or new provider request occurred.
+
+## Offline session-owned host rehearsal route
+
+`matched_repeat_probe.py` now implements the host side of the separate
+synthetic-only rehearsal. This is local preparation, not a completed native
+rehearsal or qualification. The actual qualifier and trusted service operations
+remain unfinished; the connection still offers only `inspect-prerequisites`
+and has not been used on the VPS. No repeat deployment or image build exists.
+
+The only host entry is `await probe(active, mode)`. It requires the actual live
+prerequisite session on its owning process, main thread and async task, with
+ancestor locks already held. It accepts no caller root, factory, task, image,
+transport, callback, saved receipt or qualification. It neither reopens a
+session nor invokes a completed collector or reacquires ancestor locks. The
+shared scored runner has an explicit synthetic-only argument that cannot mix
+with custom or paid-repeat admission. No production proof is fabricated and
+no production admission function is patched to permit rehearsal.
+
+The route uses the original baseline factory, tools and million-turn guards.
+It reads only the already authenticated image/resource/deadline metadata for
+the fixed `adaptive-rejection-sampler` image. Instructions and verifier come
+from the four source-bound harmless `fixtures/lifecycle` files, not benchmark
+task content. Setup retains the explicit 900-second allowance. The future
+native Terminus run must complete its original confirmation flow through the
+fake-only gateway. The scripted finite dialogue is not a paid request cap.
+
+The gateway uses Docker `network=none`, the dedicated synthetic credential and
+fixed entrypoint. The original task guard, socket and relay architecture is
+retained. Actual inspections of all five services check their lifecycle state,
+image identities, namespaces, privileges, resources and exact mounts before
+native construction. The gateway must have no external network attachment or
+provider credential. Shared task auditing checks the task's resources and log
+mounts. Actual network/container compatibility still requires native rehearsal;
+these local tests do not establish it.
+
+Each mode has an exclusive private intent and fresh isolated runtime. Retained
+intents, partial directories, failures, prior paid attempts or qualification
+refuse automatic replay. Earlier completed modes' actual intent, result, trace,
+accounting, input and image-producer bytes are retained and reread before the
+next mode. Duplicate file bindings must agree. Source, private input, task
+configuration, current host/library and actual installed-image checks surround
+the lifecycle; owned resources must be absent before and after it.
+
+The setup-cancellation mode runs original native setup and then cancels the
+owning task before model execution. Only that exact synthetic cancellation
+request is consumed after the shared lifecycle retains revocation, cleanup
+and interrupted evidence; any additional external cancellation propagates.
+The boundary-stop mode persists `automatic_resume:false` inside its private
+fixture before signalling its own process with SIGUSR1. The unchanged handler
+lets the current native attempt finish, and a separate next-attempt check must
+refuse dispatch. Neither mode signals or stops another native service.
+
+Results are reread from actual private start/result files, traces and passive
+accounting, never trusted from the scored function's return value. Expected
+verifier outcomes, original completion counts, the shared 429 recovery,
+unknown costs, phase/generation traces, revocation and cleanup are checked.
+Raw supporting files are hashed but not returned or published. A failed
+synthetic case is retained as a failure, without replay or a fabricated pass.
+Every failure after the durable intent retains its exception type only,
+disables automatic resume and invalidates the live session. These records
+remain `paid_launch_ready:false` and `repeat_execution_qualified:false`.
+
+The future qualifier must call this route after its real image build inside a
+fresh real Mac-handoff session, retain actual regression and lifecycle
+producers, reread all supporting files, and call
+`matched_repeat_images.qualification_binding(active)` after the rehearsals.
+All eight regression/lifecycle files and both image-build files remain required
+for qualification. The producer does not itself create qualification or paid
+registration. OpenHands remains refused by the live prerequisite readers until
+its additional completed-Terminus audit/archive reader exists.
+
+The new host module and test module expand the prospective inventory from 252
+to 254 files. Only `scored_trial.py` differs locally from the 211-file final
+anchor, now including this explicit rehearsal hook as well as the earlier
+paid-repeat hook. The other 210 inherited files and `local_trace.py` are
+unchanged. Image overlays remain eight sources and installed import checks
+remain 32. Actual native qualification, service integration, pinned native
+image build/legacy-builder verification, repeat export and the completed-Terminus
+successor reader are still required.
+
+All 42 new tests and 318 focused checks passed. Full local discovery ran 2,060
+tests: 2,059 passed and one pre-existing skip. All 12 repository tests passed
+separately. The new tests use real private temporary files, held session locks,
+the original Terminus constructor, shared phase/retry/accounting/trace code and
+a real local cooperative signal. Native readers, installed-image observations,
+Docker, native setup/run and the verifier are mocked; no actual native
+rehearsal or provider call occurred. Production qualification and paid
+admission are explicitly forbidden in these tests.
+
+Coverage includes one-session execution of all three modes, original completion
+confirmation, setup cancellation versus additional external cancellation,
+refusal to replay, source/input/image/trace/result mutation, actual-observation
+wiring, mount/network/credential isolation, same-process/thread/task lifetime,
+owned cleanup and retained prior-mode hashes. Initial local failures exposed
+inherited test-environment Docker settings, cancellation ownership semantics
+and duplicate image-file bindings between modes. The fixture environment was
+isolated, cancellation handling was narrowed to the exact owned request, and
+duplicate bindings now require agreement. Production checks were not relaxed.
+
+A read-only local saved-anchor check matched 178 original rows, 84 original
+sources, all 211 final-anchor files with only the permitted local scored hook
+changed, 254 prospective sources, 274 operator bindings and 227 final native
+preflight bindings. No completed-native collector, archive transfer/recreation,
+native image build, deployment, session, rehearsal, qualification, registration
+or new provider request occurred. Mocked suite completion messages are not
+benchmark results.
