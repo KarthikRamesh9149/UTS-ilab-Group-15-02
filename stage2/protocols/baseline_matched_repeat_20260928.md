@@ -78,3 +78,50 @@ has finished and its evidence is secured. The extra 178 attempts extend the
 schedule; the September 30 target does not justify shortening official task
 limits or skipping qualification. Cancellation still requires action-time
 confirmation after verified backups and no required jobs.
+
+## Offline schedule checkpoint
+
+`matched_repeat_schedule.py` fixes the two repeat blocks and their task order
+without reading custom outcomes or dispatching anything. It uses the exact
+full89 manifest and model-protocol fingerprints, matches the custom final
+task order, and assigns 178 distinct `matchedrepeat1-terminus-2-` and
+`matchedrepeat1-openhands-` identities. Its prerequisite labels require the
+custom final audit/private backup first, then the Terminus-2 repeat audit and
+backup before OpenHands. They are planning requirements, not evidence those
+events have happened. The eventual host must authenticate them.
+
+This schedule is explicitly not a registration, native qualification or paid
+admission. It leaves the original primary/secondary comparison and 52/89 and
+44/89 scores unchanged, has no outcome-dependent selection, retains unknown
+costs and adds no study spending or model/physical-request-count ceiling.
+Confirmation60 and diagnostic20 remain deferred. The existing capped
+`prepare_baseline_repeat.py` / `run_baseline_repeat.py` route is a historical
+experiment and must not be reused as this new repeat's admission.
+
+The original corrected baseline presets do retain one-million-turn guards:
+Terminus-2's default and OpenHands' configured maximum iterations. These are
+baseline-harness settings, not benchmark requirements, and the schedule
+discloses them separately from the absence of additional study request caps.
+It does not call the baselines literally unrestricted or claim the guards
+cannot affect behaviour. Removing them would change the preserved baseline
+behaviour and require an explicit pre-launch protocol amendment. The planned
+native source audit must verify these and any other baseline-specific controls;
+this local inspection is not completed native authentication. These guards
+are not introduced into the custom C0-NC harness.
+
+All 15 new local tests passed, covering exact coverage/order, distinct keys,
+unchanged comparators, uncapped passive-accounting declarations, disclosed
+native guards, deferred phases, no outcome input, no paid-ready flags,
+tampering, deterministic isolated state and lightweight imports. Ordering
+parity uses the real custom-final cell builder with its separate candidate
+validation mocked; it is not a real final freeze. No native source, gateway,
+registration or benchmark attempt was changed by this checkpoint.
+
+The combined affected run passed 55 tests. Full local discovery ran 1,588
+tests: 1,587 passed and one pre-existing skip. A separate read-only check
+verified the original 178-row baseline CSV hash and found no overlap with
+the 178 new planned IDs. The deterministic schedule's canonical SHA256 is
+`bd26df6c19c88c238d0795423699fa9030a12f4ea925b42667ad75321817a6e1`.
+No real repeat registration, native source authentication, qualification or
+provider call occurred. The custom final source inventory and active C0-NC
+execution source were not changed.

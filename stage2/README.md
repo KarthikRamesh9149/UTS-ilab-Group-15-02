@@ -117,6 +117,12 @@ records this decision before the custom final score: custom89, then Terminus-2
 repeat89, then OpenHands repeat89, with no overlapping matrices and all original
 results preserved. These 178 new attempts are authorised but not yet qualified,
 registered or launched. No parallel-dispatch or extra-server authority was given.
+The offline `matched_repeat_schedule.py` now fixes the 178 fresh identities
+and matches custom89's task order without reading outcomes. Its 15 new tests
+and 55 affected checks passed; the full local suite passed 1,587 tests with
+one pre-existing skip. This is not paid admission. The protocol also discloses
+the original baselines' inherited one-million-turn guards, separately from
+the absence of additional study request caps; custom C0-NC is unchanged.
 
 ## Current checkpoint, 27 September 2026
 
