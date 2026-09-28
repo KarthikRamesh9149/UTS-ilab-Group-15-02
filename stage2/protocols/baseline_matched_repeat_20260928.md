@@ -846,3 +846,112 @@ messages are not benchmark results. A read-only saved-anchor check matched
 previous local scored hook changed, 243 prospective sources, 263 operator
 bindings and 227 final native-preflight bindings. It did not run a collector,
 transfer/recreate an archive or invoke native repeat code.
+
+## Offline session-bound image builder
+
+`matched_repeat_images.py` and `fixtures/Dockerfile.matched-repeat` implement a
+separate image-preparation step for the future trusted native qualifier. This
+is local preparation, not an actual build, transfer, native session,
+qualification, registration or paid launch. The existing SSH/service connection
+remains inspection-only and has not been invoked. Never call this builder or
+its image verifier while custom final89 is active.
+
+The builder accepts only a real live prerequisite session, on the native
+service's main thread and same async task. The existing session first performs
+the actual operator handoff, archive read and original/predecessor audits,
+then holds every ancestor lock. Image preparation stays within that scope and
+rechecks actual sources, private inputs, current libraries, host and lineage
+before and after its work. A saved description, constructed handle or separate
+process cannot substitute for the session. Future service wiring must call it
+inside a fresh `open_session`, not reuse an earlier inspection receipt.
+
+The actual original corrected qualification supplies the full parent gateway
+and guard image IDs. The guard is not rebuilt. A repeat-only parent tag includes
+the harness and complete parent digest; an observed conflicting tag is refused,
+not replaced. The Docker command uses the local Unix daemon, a new empty private
+client configuration, a credential-free environment and the legacy builder.
+No registry credentials are copied. Legacy-builder support is not established
+by these tests and must be verified on the real host after its predecessors
+are complete. Unsupported behaviour fails closed, without an automatic retry.
+
+Only seven source files and the fixed Dockerfile enter an in-memory tar build
+context. There is no broad checkout context, private archive, credential, task
+solution, native agent/tool code, download, package install or `RUN` directive.
+Build steps use `--network=none` and `--pull=false`. The overlay contains the new
+repeat policy/schedule/gateway, their lightweight custom-control/policy imports
+and the two already-disclosed shared gateway deltas. It does not substitute
+custom tools into the original baseline. Original million-turn guards and
+agent behaviour remain unchanged; no new task/request/cost ceiling is added.
+
+Image inspection requires the exact Linux/amd64 IDs, all original base layers
+plus one copy layer and identical configuration except the explicit repeat
+entrypoint. Parent build triggers and implicit volumes are refused. A named,
+read-only, network-less container with dropped capabilities and no-new-privileges
+hashes all 31 local import-source files before and after an actual gateway
+import. Its interpreter is isolated, writes no bytecode and uses an absent
+cache prefix. The import effect guard refuses network, subprocess and filesystem
+writes as defence in depth, not as an OS sandbox. Native harness/host imports and
+unbound project modules are refused. The existing `tokenizers` dependency is
+part of the original lean gateway, not a newly introduced harness dependency.
+No gateway session, baseline constructor, task tool or model call is run.
+The owned inspection container must be absent before and after the command;
+leftovers are retained for investigation, never automatically removed/replayed.
+
+The source inventory now also includes `calibrate_tokenizer.py`,
+`extended_token_calibration.py` and `setup_probe.py`. These unchanged inherited
+import helpers were absent from both historical qualified source inventories.
+They remain untouched in the parent image and must match current source bytes
+during actual image inspection. These are new current-parity bindings, not
+retroactive additions to the original 84-file or final 211-file qualification,
+nor proof of historical installed bytes. A real mismatch requires investigation;
+the builder cannot silently overwrite them to manufacture parity.
+
+The builder exclusively retains private intent, result or failure metadata
+under `.runtime/stage2`: `matched-repeat-image-build.json`,
+`matched-repeat-images.json` and `matched-repeat-image-build-failure.json`.
+Existing records/configuration, qualification, registration, dispatch evidence
+or earlier attempts prohibit automatic rebuild. Failures invalidate the live
+session, retain only exception type and any actually observed image ID, and
+never prune an image or retry a command. Uncertain operations require inspection.
+The separate `verify(active)` rereads existing private evidence, actual images,
+installed sources and current prerequisites without rebuilding. These records
+remain `paid_launch_ready:false` and `repeat_execution_qualified:false`.
+The future qualifier must consume this actual evidence; neither the current
+eight-producer qualification reader nor scored admission yet consumes the new
+build record as a separate prerequisite. Image preparation alone grants neither.
+
+The builder, Dockerfile, test module and three newly inventoried existing helpers
+expand the prospective union from 243 to 249 files. Only the earlier explicit
+local `scored_trial.py` hook differs from the final 211-file anchor; the other
+210 inherited files and the active native deployment remain unchanged. The
+actual isolated lifecycle qualifier, trusted service operations, repeat exporter
+and completed-Terminus successor reader remain unfinished. OpenHands is still
+refused by the real prerequisite readers. No repeat root or real build record
+has been created.
+
+All 35 new tests and 223 focused checks passed. They use real temporary private
+files, live session scopes and held locks with mocked native audits, host/library
+readers and Docker. A separate real local subprocess imports the complete
+gateway dependency tree from a temporary directory with the effect guard; this
+is not container/native qualification and calls no provider. Coverage includes
+exact context/import closure, unchanged inherited helpers, environment/daemon
+pinning, source and image drift, malformed metadata, private permissions,
+symlinks, retained attempts, tag conflicts, session lifetime/process/thread/task
+boundaries, no rebuild, owned-container cleanup and verification without build.
+Initial local failures exposed an object-only JSON parser used for Docker's
+list response and an incorrect classification of the existing tokenizer import;
+both were corrected without weakening source, scope or native-harness checks.
+
+A final failure-metadata addition retains the actual built image ID when known;
+the 35-test module passed again afterward. Full local discovery on the final
+candidate ran 1,951 tests: 1,950 passed and one pre-existing skip. All 12 repository
+tests passed separately. Mocked lifecycle-completion output is not benchmark
+evidence. A real read-only local check matched 178 original rows, 84 original
+sources, the 211-file final anchor with only the earlier local scored hook
+changed, 249 prospective source files, 269 operator bindings and 227 final
+native-preflight bindings. All 31 image import files are bound, while the actual
+allowlisted context contains only seven overlay sources and its Dockerfile.
+The first inventory check correctly exposed the three previously unbound
+inherited helpers; their new current-parity bindings do not rewrite old proof.
+No completed-native collector, archive transfer/recreation, native build,
+deployment, rehearsal, real registration or new provider request occurred.

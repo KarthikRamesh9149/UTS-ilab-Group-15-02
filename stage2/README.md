@@ -300,6 +300,24 @@ All 31 new tests and 165 focused checks passed, using real local scopes/files
 and mocked native execution. Full local discovery ran 1,916 tests: 1,915 passed
 and one pre-existing skip; all 12 repository tests passed separately.
 
+The [session-bound image builder](protocols/baseline_matched_repeat_20260928.md#offline-session-bound-image-builder)
+is now implemented locally. It uses the original qualified gateway base,
+overlays seven allowlisted lightweight source files, and checks all 31 gateway
+import-source bytes. The guard image is reused unchanged. A live same-task
+session, held ancestor locks, exclusive private intent and actual Docker
+observations are required; saved receipts cannot build or qualify a repeat.
+Existing image evidence or attempts prohibit automatic rebuild. A separate
+verification function rereads existing evidence and images without rebuilding.
+The prospective source union is now 249 files, including three inherited import
+helpers newly bound for current parity, not retroactive historical attestation.
+No native build has run, and legacy-builder compatibility remains unverified.
+The real isolated qualifier, trusted service integration, exporter and OpenHands
+successor reader remain unfinished. The connection still only inspects
+prerequisites and must not be invoked while custom final89 is active.
+All 35 new tests and 223 focused checks passed. Final local discovery ran 1,951
+tests: 1,950 passed and one pre-existing skip; all 12 repository tests passed.
+These checks did not invoke a native repeat operation or paid provider.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The
