@@ -17,7 +17,7 @@ measured winner. Actual provider limits, finite tool windows and isolation
 still apply. A best-in-world or full-benchmark accuracy win is not established.
 
 The [older-parent no-cutoff revision](protocols/custom_no_cutoff_revision_20260928.md)
-is now running its separately registered fixed20 validation. It omits C3's
+has completed its separately registered fixed20 validation. It omits C3's
 dynamic time advice, retains the whole parent's planning/check choices and
 uses a distinct `-NC` identity.
 The complete four-block audit selected C0 (15/20, versus 14/20, 14/20 and 13/20).
@@ -25,11 +25,12 @@ Its original evidence freeze preserves all 80 outcomes and the actual 0.3 runtim
 it does not transfer that score to C0-NC or grant paid admission.
 Its separate native qualification and fixed20 registration are complete. The
 [C0-NC validation](results/custom-no-cutoff-20260928/README.md) started at
-21:16:50 UTC on 27 September (07:16 Sydney on 28 September). At 01:47:40 UTC on
-28 September, 11/20 were complete (five passes, six failures, no missing
-verifier outcome) and task 12 was underway. This is a dated partial observation,
-not a completed C0-NC score. All 190 frozen source files matched and no stop
-marker was present; older native deployments remain unchanged. The disclosed encoded
+21:16:50 UTC on 27 September and completed at 02:43:35 UTC on 28 September:
+11/20 passes, nine failures, no missing verifier outcomes. The 03:19:50 UTC
+native audit verified all 190 frozen sources, official limits, original/result
+bindings, revocation and cleanup. Its one private off-server backup is verified.
+This is below original C0's 15/20 and is not evidence of an accuracy improvement.
+Older native deployments remain unchanged. The disclosed encoded
 capture correction passed its separate native fixture without replaying the
 original failed command.
 
@@ -47,7 +48,7 @@ regression reports and actual lifecycle results. The current local suite ran
 passed. The separately deployed source then passed 238 native tests and all
 three actual Harbor/graph/gateway/Docker/verifier rehearsals with an isolated
 fake model and zero paid calls. The qualification and exact registration have
-verified private off-server copies. Paid validation is now active on that
+verified private off-server copies. Paid validation is complete on that
 frozen source; it is not the final89 run or an inherited 15/20 score.
 
 The earlier C3-only direct-final gateway contract is implemented and tested locally. It
@@ -72,8 +73,9 @@ identity must match again before execution; it does not grant paid admission.
 These earlier C3-only components do not admit the selected original C0 and
 have not been bypassed or relabelled. The explicit measured C0-NC final route
 is described below. The original-selection freeze is saved and freshly
-verified, but no revised-finalist freeze, native-final proof, actual final
-registration or final attempt exists. The C3 deployment was not changed. See the implementation
+verified. The actual revised-finalist freeze is also saved and freshly verified,
+binding all 100 outcomes and C0-NC's measured 0.5.0 runtime. No native-final proof,
+actual final registration or final attempt exists. The C3 deployment was not changed. See the implementation
 checkpoints in the [direct-final decision](protocols/custom_direct_final_20260928.md).
 
 The revised-finalist evidence reader is now implemented separately in
@@ -82,13 +84,15 @@ all 80 original and 20 revised outcomes, binds the actual measured C0-NC
 runtime, and cannot inherit the original 15/20 score or grant paid admission.
 The operator capture refuses an active validation before acquiring native locks
 and checks the original native source/input hashes before executing the unchanged
-qualified collector. It has not been used to freeze this unfinished validation.
+qualified collector. It has now saved and freshly verified the completed validation,
+with canonical SHA256 `29bcc290a269944441f40d6b8c904aed584d16d2a7c658465e5be16e906a5ecd`.
 It is not final execution admission for this lineage.
 All 31 new local tests and 172 affected checks passed. Full local discovery
 ran 1,450 tests: 1,449 passed and one pre-existing skip; 36 separate legacy
 tests passed. A read-only local anchor check matched the actual saved original
 selection, 190 revision sources, 20 registered cells and eight native producer
-file bindings. No completed-revision native audit or actual freeze was run.
+file bindings. Those initial tests did not perform a completed-revision audit;
+the separate actual audit and freeze described above are now complete.
 
 The C0-NC final-host authentication, lightweight gateway contract and all89
 host-identity reader are now implemented separately. The authenticator checks
@@ -102,10 +106,10 @@ image/deadline bindings, without starting containers or making provider calls.
 
 Final scored-runner admission, the locked dispatcher, isolated native qualifier,
 pinned gateway build and metadata/private-backup exporter are now implemented
-locally. They are not an actual revised-finalist freeze, native-final
-qualification, final registration or paid launch. The active C0-NC deployment
-and the earlier C3-only final path were not changed. Actual final native work
-must wait for the complete revision audit, verified backup and finalist freeze.
+locally. Local tests are not native-final qualification, final registration or
+paid launch. The completed C0-NC deployment and the earlier C3-only final path
+were not changed. The revision audit, verified backup and actual finalist
+freeze are complete; separate final native qualification is next.
 See the [implementation checkpoint](protocols/custom_direct_final_20260928.md#final-runner-and-native-producer-checkpoint-28-september-2026).
 All 61 new tests and 392 affected checks passed. Full local discovery ran
 1,573 tests, with 1,572 passes and one pre-existing skip; 36 legacy tests passed.

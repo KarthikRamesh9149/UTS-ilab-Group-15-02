@@ -1,5 +1,31 @@
 # Route to the custom final 89
 
+## Completed revision and actual freeze, 28 September 2026
+
+C0-NC completed all 20 registered attempts at 02:43:35 UTC: 11 passes, nine
+failures and no missing verifier outcomes. The unchanged native collector's
+03:19:50 UTC audit accepted exact coverage, official limits, all 190 source
+bindings, original evidence, traces, revocation and cleanup. The service was
+inactive with PID 0 and exit status 0. No attempt was replayed.
+
+One private off-server archive was verified: SHA256
+`d80727362dbecc5d84f20203a4e87580ba6341f37c8377f161e7357013bcffaa`,
+52,717,085 compressed bytes, 4,784 files, 20 result files and 225 bound files.
+No full runtime restore was exercised. Curated outcomes are retained in
+`results/custom-no-cutoff-20260928/c0-nc`.
+
+The actual revised-finalist freeze was saved and freshly verified using the
+unchanged native collector. Its canonical SHA256 is
+`29bcc290a269944441f40d6b8c904aed584d16d2a7c658465e5be16e906a5ecd`;
+file SHA256 is `d6d2125ad5df295aff2c098a1d2516a79e6584f78199fde56ba7cb8f3f94dd56`.
+It binds all 100 original/revised outcomes and the measured 0.5.0 runtime.
+The revision does not inherit C0's 15/20 or establish an accuracy improvement.
+There is no score floor, extra revision or per-task best-of selection.
+
+Next is separate final native qualification, exact89 registration and qualified
+launch. The freeze remains `paid_launch_ready:false`; no final89 attempt has
+started at this checkpoint. Earlier confirmation60/diagnostic20 remain deferred.
+
 ## User decision, 28 September Sydney time
 
 The user asked for the best of C0, C1, C2 and C3 to run all 89 tasks after C3

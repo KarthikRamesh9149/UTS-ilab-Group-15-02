@@ -1,13 +1,35 @@
 # C0-NC fixed20 validation
 
-The single registered C0-NC validation started at 21:16:50 UTC on 27 September
-2026 (07:16 Sydney on 28 September). The final89 run has not started.
+The single registered C0-NC validation completed at 02:43:35 UTC on 28 September
+2026: **11/20 passes, nine failures and no missing verifier results**. It started
+at 21:16:50 UTC on 27 September. The final89 run has not started.
 
 At 21:18:03 UTC, the service was active in the correct deployment with one
 started task and zero completed results. Four physical requests had been
 recorded, with three accepted responses. All 190 frozen source files matched;
 no operator or provider stop was present. This is a launch snapshot, not a
-score or a claim about later progress.
+score or a claim about later progress. The completed native audit at 03:19:50
+UTC verified exact coverage, all 190 frozen sources, runtime and registration
+bindings, official limits, traces, model revocation and owned-resource cleanup.
+The service was inactive, PID 0, with exit status 0. Original evidence was unchanged.
+
+Seven failures recorded agent timeouts; two recorded no agent exception.
+There were 612 physical requests: 604 accepted, five interrupted and three
+errors, including three HTTP 429 responses. Known response-reported cost was
+USD 0.55922238, with eight unknown-cost requests. The total remains unknown
+and is not independently receipt-verified.
+
+The one private off-server archive was read and hash-verified: 52,717,085
+compressed bytes, 4,784 files, all 20 results and 225 bound files. Its SHA256 is
+`d80727362dbecc5d84f20203a4e87580ba6341f37c8377f161e7357013bcffaa`.
+The archive is not published; a full runtime restore was not exercised.
+
+The actual finalist freeze was saved and freshly verified against the unchanged
+native collector. It binds all 100 original/revised outcomes and the measured
+0.5.0 runtime, with canonical SHA256
+`29bcc290a269944441f40d6b8c904aed584d16d2a7c658465e5be16e906a5ecd`.
+This is not paid-final admission. The revision scored below original C0's 15/20
+and C3's 13/20; it does not establish an accuracy improvement. All failures stay.
 
 ## Candidate and evidence
 
@@ -44,9 +66,9 @@ Unknown costs stay unknown. No purchase or automatic top-up is authorised.
 - `registration-c0-nc.json`: exactly 20 fresh fixed-development identities.
 - `launch.json`: launch intent and initial service observation.
 - `launch-observation.json`: subsequent read-only first-task observation.
+- `c0-nc/trials.csv` and `c0-nc/summary.json`: completed audited outcomes.
+- `finalist.json`: curated projection of the saved, freshly verified finalist.
 
-The deployment is frozen while active. After all 20 finish, audit coverage,
-official limits, original/result/source bindings, revocation and cleanup;
-retain zeros and missing verifier results, then export curated outcomes and
-make one verified private backup. A separately authenticated finalist freeze,
-native final-run qualification and exact89 registration are still required.
+The completed deployment remains frozen. No attempt was replayed or qualification
+repeated. Separate native final-run qualification and exact89 registration are
+still required. The confirmation60 and diagnostic20 remain deferred, not completed.
