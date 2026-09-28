@@ -1,0 +1,24 @@
+{
+  "intent": {
+    "kind": "single_measured_c0_nc_final89_launch_intent",
+    "service": "uts-stage2-custom-no-cutoff-final-20260928.service",
+    "launched_utc": "2026-09-28T03:37:46.846064+00:00",
+    "source_commit": "fb2d5cc569745e3087a9b3c7b65e695aebc5c0a3",
+    "registration_sha256": "17a4139c4f68b2e6d8e5b62db910242e3562662192c13da51e62f53441f764b2",
+    "qualification_sha256": "b3e05d9c216463b044e3b264aa449cecb92d8b9bd8cbc33b77189e434107087e",
+    "source_set_sha256": "4f73ab4083b76f555ff3bf695d7fed87ddbf4e5982551473418b8005eaf24d05",
+    "candidate_sha256": "29bcc290a269944441f40d6b8c904aed584d16d2a7c658465e5be16e906a5ecd",
+    "intended": 89,
+    "condition": "C0-NC",
+    "original_parent": "C0",
+    "candidate_version": "stage2-candidate-0.5.0",
+    "original_score_inherited": false,
+    "baseline_repeats_started": false
+  },
+  "service_state": {
+    "MainPID": "748079",
+    "ExecMainStatus": "0",
+    "ActiveState": "active",
+    "SubState": "running"
+  }
+}

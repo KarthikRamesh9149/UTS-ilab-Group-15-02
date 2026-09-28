@@ -1,5 +1,45 @@
 # Route to the custom final 89
 
+## Qualified final89 launch, 28 September 2026
+
+The measured C0-NC 0.5.0 finalist now has a separately qualified deployment at
+`/opt/uts-capstone-custom-no-cutoff-final-20260928`, execution source
+`fb2d5cc569745e3087a9b3c7b65e695aebc5c0a3`. Qualification finished at
+03:34:32 UTC: 392 native tests and all three actual native lifecycle rehearsals
+passed, without skips or errors and with zero paid qualification calls. The
+fixture used the unchanged synthetic provider in an isolated gateway; it did
+not manufacture production proof or contact the real provider.
+
+The proof binds 211 sources and eight actual producer files. Only the explicit
+`scored_trial.py` final admission/setup/image-check orchestration differs from
+the measured 190-file revision. Agent, prompt, tools, model, retry, original
+evidence and qualified collectors are unchanged. All fourteen proof/input/
+producer files and the exact registration have verified private off-server copies.
+
+Final qualification canonical SHA256:
+`b3e05d9c216463b044e3b264aa449cecb92d8b9bd8cbc33b77189e434107087e`.
+Source-set SHA256:
+`4f73ab4083b76f555ff3bf695d7fed87ddbf4e5982551473418b8005eaf24d05`.
+Exact89 registration canonical SHA256:
+`17a4139c4f68b2e6d8e5b62db910242e3562662192c13da51e62f53441f764b2`.
+
+After fresh completed-lineage authentication, current-runtime checks and
+all ancestor locks, registration at 03:36:52 UTC bound 89 unique fresh
+`customfinal2-c0-nc-` cells with zero started keys. Live process and owned-resource
+checks preceded the service launch at 03:37:46 UTC. The runner re-authenticates
+before acquiring its locks and beginning sequential dispatch. No final score
+or completed-final backup exists yet. No baseline repeat has started.
+
+The read-only launch observation at 03:39:51 UTC found the service active in
+the correct directory, its first task underway with ten requests and nine
+accepted responses, all 211 source hashes unchanged, and no operator/provider
+stop. This is not a final score. Sixty-three local policy/study/export checks
+also passed; their mocked lifecycle output is not paid trial evidence.
+
+Curated evidence is in `results/custom-no-cutoff-final-20260928`. Complete,
+audit and privately back up final89 before Terminus-2 repeat89 and then
+OpenHands repeat89. Confirmation60 and diagnostic20 remain deferred.
+
 ## Completed revision and actual freeze, 28 September 2026
 
 C0-NC completed all 20 registered attempts at 02:43:35 UTC: 11 passes, nine

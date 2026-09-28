@@ -7,7 +7,11 @@ tasks after C3. The [direct-final decision](protocols/custom_direct_final_202609
 defers the earlier 60-task confirmation and 20-task diagnostic; it does not
 skip final runtime qualification or alter the C3 study. C3 completed at
 18:22:57 UTC on 27 September with 13/20 passes. Its audit and private backup
-are complete. The final 89 has not started.
+are complete. The separately qualified [C0-NC final89](results/custom-no-cutoff-final-20260928/README.md)
+service launched at 03:37:46 UTC on 28 September. No completed final score exists.
+At 03:39:51 UTC its first task was underway, with ten requests and nine accepted
+responses. All 211 sources matched and no stop marker was present. This is a
+dated observation, not a claim about subsequent progress.
 
 The finalist must have no artificial spending, model-call, command-time,
 job-count or completion-repair cutoff. C0/C1/C2 still contain their original
@@ -74,8 +78,9 @@ These earlier C3-only components do not admit the selected original C0 and
 have not been bypassed or relabelled. The explicit measured C0-NC final route
 is described below. The original-selection freeze is saved and freshly
 verified. The actual revised-finalist freeze is also saved and freshly verified,
-binding all 100 outcomes and C0-NC's measured 0.5.0 runtime. No native-final proof,
-actual final registration or final attempt exists. The C3 deployment was not changed. See the implementation
+binding all 100 outcomes and C0-NC's measured 0.5.0 runtime. The separate native-final
+proof and exact89 registration are now complete, and its service has launched.
+The C3 deployment was not changed. See the implementation
 checkpoints in the [direct-final decision](protocols/custom_direct_final_20260928.md).
 
 The revised-finalist evidence reader is now implemented separately in
@@ -106,14 +111,18 @@ image/deadline bindings, without starting containers or making provider calls.
 
 Final scored-runner admission, the locked dispatcher, isolated native qualifier,
 pinned gateway build and metadata/private-backup exporter are now implemented
-locally. Local tests are not native-final qualification, final registration or
-paid launch. The completed C0-NC deployment and the earlier C3-only final path
-were not changed. The revision audit, verified backup and actual finalist
-freeze are complete; separate final native qualification is next.
+locally, then qualified separately on the native host. All 392 native tests
+and all three actual Harbor/graph/gateway/Docker/verifier rehearsals passed
+at 03:34:32 UTC, with an isolated fake model and zero paid qualification calls.
+Fourteen native proof/input/producer files and exact89 registration bytes have
+verified private off-server copies. The 211-file frozen final source is
+`fb2d5cc569745e3087a9b3c7b65e695aebc5c0a3`; only the explicitly recorded
+`scored_trial.py` orchestration differs from the measured revision.
+The completed C0-NC deployment and the earlier C3-only final path were not changed.
 See the [implementation checkpoint](protocols/custom_direct_final_20260928.md#final-runner-and-native-producer-checkpoint-28-september-2026).
 All 61 new tests and 392 affected checks passed. Full local discovery ran
 1,573 tests, with 1,572 passes and one pre-existing skip; 36 legacy tests passed.
-These are local checks, not the remaining native-final rehearsal.
+Those local checks are distinct from the subsequently completed native rehearsal.
 
 The user subsequently approved one separately registered 89-task repeat for
 each baseline after custom final89. The [matched-repeat protocol](protocols/baseline_matched_repeat_20260928.md)
