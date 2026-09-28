@@ -185,6 +185,21 @@ not native qualification. A local anchor check matched all 211 unchanged final
 sources and the 224-file prospective repeat union. No completed collector,
 repeat registration or model request occurred.
 
+The [installed-library and constructor reader](protocols/baseline_matched_repeat_20260928.md#offline-installed-library-and-constructor-reader)
+is now implemented locally. It will compare current original/repeat installed
+library bytes and actual factory settings in separate credential-free
+interpreters, refusing active ancestors and any source or library drift.
+It performs no agent setup/run, task tool or provider call and grants no
+admission. It explicitly does not prove historical installed bytes: the old
+qualification has source/lock bindings but no installed-library byte manifest,
+and its backup excludes `.venv`. Native execution, predecessor integration,
+scoped dispatch and actual repeat qualification remain unfinished.
+All 28 new tests and 204 focused checks passed; final full local discovery ran
+1,710 tests, with 1,709 passes and one pre-existing skip. The 12 repository
+tests under `tests/` passed. The prospective repeat union has 227 files;
+all 211 active custom-final sources remain unchanged. No native reader,
+completed collector, deployment or repeat launch was invoked.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

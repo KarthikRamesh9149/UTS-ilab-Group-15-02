@@ -307,3 +307,79 @@ bindings and 227 future native-preflight bindings. No completed collector,
 native identity inspection, archive recreation, deployment, qualification,
 registration or paid request occurred. All old native roots and the active
 custom-final source remain unchanged.
+
+## Offline installed-library and constructor reader
+
+`matched_repeat_baseline.py` and its standard-library
+`matched_repeat_baseline_probe.py` producer add a current original/repeat
+library comparison. They are not historical installed-byte attestation,
+complete baseline authentication, native task qualification or paid admission.
+No native invocation has been made while custom final89 is active.
+
+The future repeat host must call this reader under its ancestor locks after
+independent predecessor authentication. It first refuses active, failed or
+persistently stopped original/custom-final services and checks the pinned
+original qualification, all original project sources, copied anchors and
+current repeat sources. Each deployment's own isolated interpreter then runs
+the new source-bound producer from stdin. Nothing is copied into or patched
+inside an old deployment. The subprocess environment contains no production
+provider credentials. It never invokes a completed collector, backup operation,
+agent setup/run, task tool, Docker or model request.
+
+The producer hashes the entire current `site-packages` tree, including prompts,
+binary modules, package metadata and files omitted from an installer RECORD.
+RECORD files are included as bytes, not trusted as an exhaustive file list.
+Only bytecode caches are excluded. Imports use an absent bytecode-cache prefix
+and disabled writes so they compile the inspected source, rather than loading
+an old cache. Symlinks, loaded modules from another deployment, unpinned
+application distributions, lock-version drift and changes during the read are
+refused. Seed installers are separately allowed but their actual bytes and
+versions still have to match. External entry-point scripts, the Python stdlib,
+OS and task-container installation are outside this library inventory and
+remain subjects of the separate runtime and native qualification checks.
+
+With a dummy key and no setup or execution, the reader constructs both actual
+corrected factories. It records the million-turn guards, Terminus parser,
+summarisation threshold and tmux dimensions, and the configured model,
+reasoning, sampling, retry and completion-timeout settings. It checks the
+unwrapped native retry bodies and original deadline wrapper. OpenHands retains
+its 0.62.0/Python 3.12 installation and native tool mode. The 7,200-second value
+in this constructor fixture is an input used to observe forwarding, not a new
+benchmark deadline. A Python audit hook rejects writes, network and process
+creation during these constructors; it is defence in depth, not an OS sandbox.
+
+Both current installations must match in interpreter version, every inspected
+library byte, package versions and observed constructor controls. `recheck`
+performs fresh reads, not a comparison of two supplied JSON records. This
+does not connect the reader to scored dispatch or substitute for native
+Harbor/tool/verifier rehearsals, operator archive authentication or scoped
+admission. Those integrations and the OpenHands completed-Terminus reader
+remain unfinished. No repeat is deployed, registered or qualified.
+
+There is a historical evidence limit: the original corrected qualification
+binds the project source and dependency locks, but did not record an installed
+third-party library byte manifest. Its completed private backup does not
+contain `.venv`. Present-day parity and pinned lock versions therefore cannot
+prove which installed bytes were present during the old paid runs. The new
+record explicitly preserves this limitation and never labels it retrospective
+verification. Old qualification, backups, results and scores are not modified
+or recreated to fill the gap. Any actual behaviour discrepancy must be
+investigated and, if material, resolved by a pre-launch protocol amendment.
+
+All 28 new local tests and 204 focused checks passed. Final full local discovery
+ran 1,710 tests: 1,709 passed and one pre-existing skip. The 12 repository tests
+under `tests/` also passed. New tests use real temporary file trees, hashes,
+symlinks and permissions with mocked native contexts and subprocess results.
+One test constructs the real local baseline classes under the effect guard,
+without setup, tools or model access. These are not native study rehearsals.
+Early fixture failures caused by macOS temporary-path aliases were corrected
+without weakening native path checks. Review also added explicit coverage for
+underscore-prefixed binary modules and symlinked library ancestors.
+
+A read-only local scan hashed 13,480 installed library files across 121
+distributions and checked the pinned versions; this is a Mac observation,
+not evidence about the server's installed bytes. The real saved-anchor check
+matched 84 original source bindings, all 211 unchanged final sources, 227
+prospective repeat sources, 247 operator bindings and 227 future native
+preflight bindings. No native inspection, collector, archive recreation,
+deployment, qualification, registration or new provider call occurred.
