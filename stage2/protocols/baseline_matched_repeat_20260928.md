@@ -184,3 +184,70 @@ accepted the real saved qualification anchors, all 84 original and 211 shared
 source bindings, the 220-file prospective inventory and every declared test
 module. It performed no native authentication, archive recreation, deployment,
 qualification, registration, model request or benchmark attempt.
+
+## Offline off-server predecessor reader
+
+`matched_repeat_predecessor.py` implements the operator-side custom-final
+prerequisite for the first Terminus-2 repeat. It is not native repeat admission.
+It runs only from the Mac operator checkout, so a file on the Linux study host
+cannot be presented as an off-server backup by this route. No real capture,
+save or verification has been performed while custom final89 is active.
+
+After final89 has completed, been audited, backed up and publicly exported,
+`capture` checks the exact original qualification and final qualification/
+registration bytes, copied runtime inputs, all eight native producer files,
+curated summary and all 89 exported rows. It requires the already existing
+private snapshot, backup record and archive. It does not call the exporter's
+write operations or create, replace or extract an archive.
+
+Before invoking the unchanged final collector, a generated standard-library
+preflight refuses an active service, nonzero exit status or persistent stop,
+and hashes the pinned native sources, inputs, Python archive and 89 result
+files. The collector runs in its original final interpreter and acquires its
+own ancestor locks, including fresh authentication of the completed lineage.
+The preflight repeats after the collector. Future callers must therefore use
+this audit before, not inside, those native locks.
+
+The fresh audit must equal the saved audit except for its collection timestamp.
+The operator then reads the existing off-server archive, verifies its complete
+checksum, counts and every bound member with the unchanged qualified archive
+verifier, and checks the resulting receipt against the saved backup record.
+Local source, input, audit and archive hashes are rechecked after this work.
+A `checks: true` record or matching archive filename cannot substitute for
+these reads. Missing phase timing remains an error requiring a separate truthful
+reporting amendment, never invented zeros or task replay.
+
+The returned document binds all 89 final result hashes, audit/archive/receipt
+identities and local/native file maps. It adds no score floor and does not
+replace missing verifier results, zero rewards or unknown costs. `save` uses
+an exclusive private file and a local operator lock; `verify` performs a fresh
+native audit and actual archive verification again. Both remain
+`paid_launch_ready:false`. Do not save the real document before the repeat
+capture/admission source is ready to freeze.
+
+Only the custom-final-to-Terminus predecessor route is implemented in this
+component. The OpenHands successor fails closed until the separate completed
+Terminus repeat reader/exporter is implemented. Native original-baseline and
+installed-library authentication, current-repeat-host identity, scoped scored
+admission, the locked dispatcher, native qualifier, pinned images and repeat
+exporter still remain. A copied operator document alone must not open the
+future native gateway or dispatcher.
+
+The repeat source union now contains 222 files, with this reader and its test
+module included in the source inventory and native regression list. None of
+the 211 frozen custom-final sources, 190 measured revision sources or prior
+qualified collectors changed. The new tests mock the native subprocess but
+exercise real temporary archive bytes, hashes, private permissions, symlinks,
+exclusive saves and held operator locks. Generated native preflight tests
+refuse active/stopped/mutated evidence before the collector and detect changes
+after it. The first fixture omitted inherited native regression source names;
+the fixture was corrected without weakening the production inventory check.
+
+All 36 new tests and 89 focused predecessor/policy/schedule/export checks
+passed. Final full local discovery ran 1,651 tests: 1,650 passed and one
+pre-existing skip. The separate 36-test legacy suite also passed. A read-only
+real local anchor check matched 242 operator bindings, 227 future native
+preflight bindings, all 211 final source files and the 222 prospective repeat
+source paths. It invoked no completed native collector, read no unfinished
+final results, created no archive or predecessor document, and made no model
+request. No repeat deployment, qualification, registration or launch occurred.

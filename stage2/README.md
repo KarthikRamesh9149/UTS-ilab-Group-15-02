@@ -151,6 +151,22 @@ exporter are still unfinished; no repeat is registered or launched. The
 active custom final source was not changed. See the
 [gateway contract checkpoint](protocols/baseline_matched_repeat_20260928.md#offline-gateway-contract-checkpoint).
 
+The [off-server predecessor reader](protocols/baseline_matched_repeat_20260928.md#offline-off-server-predecessor-reader)
+is now implemented for the first Terminus-2 successor, with local synthetic
+tests. After custom final89 completes, it will freshly run the unchanged native
+collector and read/hash the existing off-server archive, matching the saved
+audit, actual member bytes, receipt and curated rows. It refuses active/stopped
+native evidence before collector locks and never creates or replaces a backup.
+Its exclusive private save and fresh verification remain non-admitting.
+No real capture/save/verify has run while custom final89 is active. The
+OpenHands predecessor reader and remaining native repeat host/runner/qualifier
+integration are still unfinished. The prospective repeat inventory has 222
+sources; the active final's 211 frozen sources remain unchanged.
+All 36 new tests and 89 focused checks passed; the final local suite ran
+1,651 tests, with 1,650 passes and one pre-existing skip. The separate 36-test
+legacy suite passed. Real local anchor bytes were checked without invoking a
+completed native collector or creating any repeat execution evidence.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The
