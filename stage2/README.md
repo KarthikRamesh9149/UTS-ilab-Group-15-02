@@ -200,6 +200,22 @@ tests under `tests/` passed. The prospective repeat union has 227 files;
 all 211 active custom-final sources remain unchanged. No native reader,
 completed collector, deployment or repeat launch was invoked.
 
+The [original-outcome authenticator](protocols/baseline_matched_repeat_20260928.md#offline-original-outcome-authenticator)
+is now implemented locally. It pins the original 178-row snapshot/CSV and the
+unchanged completed-baseline collector, audits in the original interpreter
+under all ancestor locks, and provides a separate actual-file recheck without
+recursive audits. Active/stopped ancestors, source/anchor drift and changed
+supporting evidence fail closed. No native invocation has occurred while
+custom final89 runs. This does not establish off-server predecessor verification,
+historical installed bytes, repeat runtime qualification or scoped paid admission;
+those remaining integrations must still precede any repeat launch.
+All 30 new tests and 213 focused checks passed. Full local discovery ran 1,740
+tests, with 1,739 passes and one pre-existing skip; 12 repository tests passed.
+The 230-file prospective union includes the unchanged original exporter.
+All 211 active final sources remain unchanged. A local check matched all 178
+original rows and the actual saved anchors without invoking a native collector,
+writing an archive or launching a study.
+
 ## Current checkpoint, 27 September 2026
 
 The user has requested a C3 before final scoring. The

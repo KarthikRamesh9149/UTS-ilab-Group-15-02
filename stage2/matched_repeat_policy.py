@@ -47,12 +47,14 @@ REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_r
     'matched_repeat_predecessor.py', 'test_matched_repeat_predecessor.py',
     'matched_repeat_runtime.py', 'test_matched_repeat_runtime.py',
     'matched_repeat_baseline.py', 'matched_repeat_baseline_probe.py', 'test_matched_repeat_baseline.py',
+    'matched_repeat_original.py', 'test_matched_repeat_original.py', 'export_corrected.py',
     'test_native_agents.py', 'test_trial_execution.py', 'test_scored_trial.py',
     'openhands_fixture_audit.json'})
 TEST_MODULES = ('test_matched_repeat_schedule', 'test_matched_repeat_policy',
     'test_matched_repeat_predecessor',
     'test_matched_repeat_runtime',
     'test_matched_repeat_baseline',
+    'test_matched_repeat_original',
     'test_native_agents', 'test_retry_gateway', 'test_credit_only_gateway',
     'test_trial_execution', 'test_scored_trial')
 ORCHESTRATION_FILES = frozenset({'scored_trial.py', 'local_trace.py'})

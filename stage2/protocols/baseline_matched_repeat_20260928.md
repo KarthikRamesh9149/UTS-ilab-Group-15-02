@@ -383,3 +383,71 @@ matched 84 original source bindings, all 211 unchanged final sources, 227
 prospective repeat sources, 247 operator bindings and 227 future native
 preflight bindings. No native inspection, collector, archive recreation,
 deployment, qualification, registration or new provider call occurred.
+
+## Offline original-outcome authenticator
+
+`matched_repeat_original.py` adds the native original-baseline result audit
+and file recheck. It is local preparation only: no actual native invocation
+has occurred while custom final89 is active. It neither verifies the new
+predecessor's off-server backup nor grants repeat admission. The operator-to-
+native predecessor integration, scoped runner, native qualifier, image build,
+exporter and OpenHands completed-Terminus reader remain unfinished.
+
+The reader pins the exact saved original snapshot, original launch and 178-row
+CSV, both copied qualification files, and the unchanged `export_corrected.py`
+collector. That exporter was not part of the original 84-file qualification;
+it is now explicitly byte-pinned in the prospective repeat inventory, without
+retroactively claiming it was qualified with the original paid run. All 178
+original rows must match the published CSV, including zero rewards and unknown
+costs. Original source, qualification, three producer files, registration,
+provider-check and result hashes are checked before executing native code.
+
+`authenticate` refuses active or stopped ancestors before taking locks. It
+then takes the complete inherited lock chain, including corrected baselines,
+C3 r2 and C0-NC, plus all three locks on the custom-final root. The OpenHands
+lock extension additionally protects the completed Terminus repeat root.
+Missing or symlinked lock directories cannot create a replacement ancestor
+tree. The unchanged corrected collector does not take locks itself, so this
+reader supplies them. Call this reader before acquiring future dispatcher
+locks; calling it inside those locks would correctly fail instead of auditing
+without protection.
+
+The collector runs through stdin in the original deployment's own isolated
+interpreter, with no production provider credentials. A standard-library
+guard checks inactive services, stop markers and bound native bytes before
+any project import, and again after the collector. An absent bytecode-cache
+prefix prevents using old cached project code. No old source is patched,
+benchmark task rerun, qualification repeated or backup recreated.
+
+The fresh audit must equal the saved original audit except for collection
+time. Supporting trace, request/outcome, retry/error, policy and lifecycle
+files are hashed before and after it; only paths and hashes are returned, not
+their private contents. Under the later caller's locks, `recheck` rereads
+those files and their inventory, refusing added, missing or changed evidence
+without recursively running a collector. These supporting hashes describe
+the current audit inputs, not a retrospectively recorded byte manifest.
+Missing phase evidence remains an error, never an invented zero or a replay.
+
+This original-outcome comparison does not impose a repeat score floor or
+discard missing outcomes from a future repeat. The original completed study
+had 178 binary results and is preserved exactly. Historical installed-library
+bytes remain unattested, as disclosed above. Present-day library parity,
+actual off-server predecessor verification, native repeat lifecycle
+qualification and scoped admission are separate requirements. Every returned
+record still has `paid_launch_ready:false`; saved flags alone are not proof
+that the collector ran.
+
+All 30 new tests and 213 focused checks passed. Native services and collector
+responses are mocked; file hashes, private permissions, generated pre-import
+guards and competing locks use real temporary files. Coverage includes all
+178 identities, zero/unknown preservation, before/after audit drift, supporting
+inventory changes, active/stop refusal, original-interpreter isolation,
+credential-free subprocesses, source/anchor drift and non-recursive rechecks.
+The prospective source union is 230 files. The local saved-anchor check
+matched all 178 rows, 84 original sources, all 211 unchanged final sources,
+250 operator bindings and 227 future native-preflight bindings. It made no
+native call or archive/document write. Final full local discovery ran 1,740
+tests: 1,739 passed and one pre-existing skip. The 12 repository tests under
+`tests/` passed separately. No repeat deployment, native qualification,
+registration or model request occurred; all old sources and archives remain
+unchanged.
