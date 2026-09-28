@@ -66,6 +66,8 @@ REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_r
     'matched_repeat_fixture.py', 'test_matched_repeat_fixture.py',
     'matched_repeat_probe.py', 'test_matched_repeat_probe.py',
     'qualify_matched_repeat.py', 'test_qualify_matched_repeat.py',
+    'no_cutoff_final_phase_audit.py', 'test_no_cutoff_final_phase_audit.py',
+    'protocols/custom_final_phase_reporting_20260928.md',
     # Unchanged helpers reached by the current regression import closure.
     # Newly bound here, never retroactive additions to historical proof.
     'cetus_local_probe.py', 'direct_final_gateway.py', 'final_schedule.py',
@@ -90,6 +92,7 @@ TEST_MODULES = ('test_matched_repeat_schedule', 'test_matched_repeat_policy',
     'test_matched_repeat_fixture',
     'test_matched_repeat_probe',
     'test_qualify_matched_repeat',
+    'test_no_cutoff_final_phase_audit',
     'test_native_agents', 'test_retry_gateway', 'test_credit_only_gateway',
     'test_trial_execution', 'test_scored_trial')
 ORCHESTRATION_FILES = frozenset({'scored_trial.py', 'local_trace.py'})

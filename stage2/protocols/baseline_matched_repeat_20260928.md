@@ -1327,3 +1327,54 @@ This was a local regression run, not the native qualifier or a paid operation.
 Final full local discovery ran 2,100 tests: 2,099 passed and one pre-existing
 skip; all 12 repository tests passed. Mocked lifecycle completion output is
 not benchmark evidence.
+
+## Offline final phase-evidence reader
+
+The running predecessor has three observed setup-only outcomes, not verifier
+zeros. The [separate reporting amendment](custom_final_phase_reporting_20260928.md)
+and `no_cutoff_final_phase_audit.py` now provide a read-only leaf reader with
+40 passing local tests. It binds actual original qualification, registration,
+runtime and source bytes, reads retained lifecycle/trace/accounting evidence,
+and distinguishes proven unexecuted phases from missing required evidence.
+Unexecuted agent/verifier durations and missing rewards remain null. Actual
+official allowances, measured setup durations and known/unknown request
+metadata stay distinct. Raw requests/responses are hashed, not returned.
+
+The original collector and backup both expect an agent-deadline file for each
+attempt. A 20:35:19 UTC read-only metadata check confirmed those paths were
+absent for the three setup-only outcomes. No file may be fabricated to satisfy
+that expectation. The new reader does not invoke those collectors, acquire
+locks, create a backup, export a final score or grant repeat admission; it was
+not run on the native deployment. It checks and rereads actual bytes, inventories
+and absences, with all records explicitly non-admitting.
+
+The prospective source union is now 264 files, adding the reader, its tests
+and the source-bound amendment document. Its tests join the repeat regression
+set. Only the previously permitted local `scored_trial.py` hooks differ from
+the 211 final-anchor files; old collectors, the other 210 files and
+`local_trace.py` remain unchanged. Gateway overlays/import bindings stay at
+eight/32. No actual repeat root, build, host rehearsal, qualification,
+registration or paid operation has been created.
+
+Before a completed-final audit or repeat handoff, integrate the amendment into
+a separate source-bound completed reader, one streamed backup with actual
+absence verification, allowlisted export and the real operator/native
+handoff/archive readers. None of those integrations is supplied by this leaf
+reader, and existing predecessor admission has not been relaxed. All original
+lineage, exact89, official-limit, trace, revocation, cleanup and off-server
+verification checks remain mandatory. Trusted repeat service operations, real
+native qualification/build compatibility, the repeat exporter and completed-
+Terminus successor reader remain unfinished. No native reader/collector or
+repeat operation may run while custom final89 is active or its state unknown.
+
+All 267 focused checks passed. The complete 634-test repeat regression set
+passed locally without skips under the loopback-only network audit guard;
+source checks before and after execution matched all 162 loaded project
+modules. Full local discovery ran 2,140 tests: 2,139 passed and one pre-existing
+skip. All 12 repository tests passed. These include local fake lifecycles and
+mocked native operations, not native qualification or benchmark evidence.
+The actual saved-anchor check matched 178 original rows, 84 original sources,
+211 final-anchor files with only the prior local scored delta, 264 prospective
+sources, 284 operator bindings and 227 final-native-preflight bindings. No
+completed collector, archive transfer/recreation, deployment, image build,
+native rehearsal, qualification, registration or provider request occurred.

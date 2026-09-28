@@ -13,6 +13,18 @@ At 03:39:51 UTC its first task was underway, with ten requests and nine accepted
 responses. All 211 sources matched and no stop marker was present. This is a
 dated observation, not a claim about subsequent progress.
 
+The [separate phase-reporting amendment](protocols/custom_final_phase_reporting_20260928.md)
+now has a local read-only evidence reader and 40 passing tests. At 20:20:41 UTC,
+metadata showed 68/89 completed: 41 passes, 24 zero-score failures and three
+missing verifier outcomes, with task 69 running. Tasks 63–65 retained setup-only
+failures; a 20:35:19 UTC metadata check confirmed their agent-deadline files
+were absent. Their missing agent/verifier durations and rewards must remain
+null, not invented zeros. These are dated observations, not a final score.
+The frozen collector and backup expect those files and remain unchanged.
+Explicit completed-audit, single-backup, export and repeat-handoff integration
+of the amendment is still required. The reader grants no admission, and no
+completed collector or repeat operation may run while final89 is active.
+
 The finalist must have no artificial spending, model-call, command-time,
 job-count or completion-repair cutoff. C0/C1/C2 still contain their original
 execution cutoffs: removing those from an older winner requires a labelled,

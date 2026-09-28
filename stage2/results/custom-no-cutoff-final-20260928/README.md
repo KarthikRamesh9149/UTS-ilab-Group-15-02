@@ -96,3 +96,19 @@ metadata do not establish the cause or a connection to the earlier SSH timeout.
 The existing completed-final collector expects those phase timings; a separate
 truthful reporting amendment is required before final audit/export. Preserve
 the actual missing phases and outcomes, never invented zeros or replayed tasks.
+
+At 20:20:41 UTC, the read-only inspector found 68/89 completed: 41 passes,
+24 zero-score failures and the same three missing verifier outcomes, with
+task 69 running. All 211 frozen sources matched and all 68 retained results
+recorded model revocation. No operator/provider stop was present. A separate
+20:35:19 UTC check confirmed the three setup-only agent-deadline files were
+absent and not symlinks. These are dated metadata observations, not final audit.
+
+The [phase-reporting amendment](../../protocols/custom_final_phase_reporting_20260928.md)
+now defines truthful null/not-run reporting and has a separate local reader
+with 40 passing tests. It preserves original files, requires corroborating
+phase/request evidence and binds both bytes and proven absences. It is not a
+completed collector or backup and was not run on the native host. The old
+collector and backup remain unchanged; explicit amended audit/archive/export
+and repeat-handoff integration is still pending. No final archive, new native
+qualification, baseline repeat or task replay was produced by this work.
