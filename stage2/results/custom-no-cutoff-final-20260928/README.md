@@ -1,10 +1,11 @@
 # Measured C0-NC final89
 
-The read-only 15:36:40 UTC observation on 29 September again found 89/89 complete,
+The read-only 16:44:12 UTC observation on 29 September again found 89/89 complete,
 50 passes, 36 verified failures, 3 setup-only missing verifier outcomes and no
 active/partial task, with all 211 sources matching and all 89 revoked. A separate
 [recovery-only setup observer](../../protocols/custom_setup_recovery_instrumentation_20260929.md)
-is now implemented and tested locally. It changes none of these results, the
+and [policy/gateway](../../protocols/custom_setup_recovery_gateway_20260929.md)
+are now implemented and tested locally. They change none of these results, the
 original preparation/lifecycle or the archived reporter. Recovery remains 0/3
 started: actual host/service/admission/reporting integration and native
 qualification are unfinished. No new recovery operation or provider call ran.

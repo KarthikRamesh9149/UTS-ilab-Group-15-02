@@ -1,5 +1,13 @@
 # Matched baseline repeats after custom final89
 
+Recovery gateway checkpoint, 29 September: the separate
+[policy/gateway contracts](custom_setup_recovery_gateway_20260929.md) now enforce
+the fixed three fresh identities and immutable original-evidence bindings in
+local fake-provider tests. They do not perform native qualification or supply a
+live host scope. Recovery remains 0/3 and both baseline repeats are unstarted.
+The actual recovery handoff/host/service/scored/reporting route is unfinished.
+This fixed baseline schedule, original controls and original results are unchanged.
+
 Recovery instrumentation checkpoint, 29 September: a separate source-bound
 [setup observer](custom_setup_recovery_instrumentation_20260929.md) now has local
 tests for the unchanged command, safe failure metadata and shared lifecycle

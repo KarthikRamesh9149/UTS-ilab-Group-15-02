@@ -1,6 +1,40 @@
 # Stage 2 execution status
 
-## Latest: recovery-only setup observer implemented locally
+## Latest: recovery policy and gateway implemented locally
+
+The separate [policy and gateway component](protocols/custom_setup_recovery_gateway_20260929.md)
+now checks the fixed three-task plan, exact original qualification/manifest
+copies, all 89 original result hashes and retained audit/archive/export bindings.
+Seven recovery-only private inputs are reread with raw-byte and file-identity
+checks. Any gateway input refusal is latched; restoring metadata cannot revive
+that gateway. Shared retry, unknown-cost accounting, model identity, official
+deadline, revocation and exclusive attempt directories remain unchanged.
+
+The qualification contract requires the original C0-NC controls, actual image
+producers and six real native preparation/lifecycle cases. It does not run
+them or authenticate saved metadata as a live witness. The prospective source
+inventory is 236 files, preserving all 211 original files except the already
+permitted local scored-runner hooks. Previously unlisted regression/helper
+bytes are bound for current verification only. No new inherited-source edit
+was made. All 38 new tests and 147 affected checks passed with fake providers
+and synthetic private inputs. The 486-test recovery regression set passed with
+zero skips/errors/failures and 236 source bindings/163 final loaded modules.
+All 1,215 broader guarded regressions passed with 319 bindings/202 final loaded
+modules. Full discovery ran 2,721 tests: 2,720 passed, one pre-existing skip,
+with unchanged hashes over 416 Python files before/discovery/after execution.
+All 12 repository tests passed. These are local checks, not native qualification.
+
+The only native operation was the existing read-only inspector at **16:44:12 UTC
+on 29 September**: original final89 **89/89 complete, 50 passed, 36 verified
+failures, 3 missing verifier outcomes**, no active/partial task, all 211 sources
+matching, all 89 revoked, no stop. Recovery remains **0/3 started**; both
+baseline repeats remain unstarted. The real original-audit/same-archive live
+handoff, host/runtime/service, actual qualification, scoped scored hook,
+sequential dispatcher and completed recovery audit/backup/export remain
+unfinished. No recovery root, service, registration, provider request or paid
+attempt was created. Original evidence and archived reporting bytes are intact.
+
+## Earlier checkpoint: recovery-only setup observer implemented locally
 
 The separate [setup observation component](protocols/custom_setup_recovery_instrumentation_20260929.md)
 now wraps the exact original preparation function without changing its command,

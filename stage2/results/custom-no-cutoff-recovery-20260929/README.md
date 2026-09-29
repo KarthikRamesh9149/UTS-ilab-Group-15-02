@@ -1,10 +1,54 @@
 # Separate C0-NC setup recovery
 
-Status: diagnosis and fixed plan published; separate setup observer implemented
-locally. **0/3 recovery attempts started.** No native recovery qualification,
+Status: diagnosis and fixed plan published; separate setup observer, policy and
+gateway implemented locally. **0/3 recovery attempts started.** No native recovery qualification,
 registration or paid admission has occurred.
 
 ## Current implementation checkpoint
+
+The [policy/gateway companion](../../protocols/custom_setup_recovery_gateway_20260929.md)
+defines seven private recovery inputs, exact original evidence bindings and
+the qualification/registration contracts for only the fixed three fresh IDs.
+Raw bytes and identities are checked before each physical request, including
+shared retries. A refusal cannot be cleared by restoring inputs. Unknown costs,
+official deadlines, provider stops and inherited no-restart/overlap guards remain.
+
+All 38 new tests and 147 affected checks passed using synthetic private records
+and fake providers, including 105 unknown-cost calls and 106 physical retry
+requests without a new study cap. An isolated credential-free import guard
+refused writes/network/process creation and host/agent imports. No native or
+paid evidence is claimed. The six-case qualification schema requires genuine
+native producer reads by the future host, not `checks:true` or saved receipts.
+
+Review corrected fresh-audit binding to the stable evidence digest excluding
+only collection time; the real future reader must still perform the audit and
+check its freshness. Actual local source-closure checks initially refused five
+unlisted regression modules, then identified six other unchanged helper imports.
+These are now explicit current bindings, not retroactive historical attestation.
+The prospective recovery union has 236 files. All 486 recovery regression tests
+passed with zero skips/errors/failures and 163 loaded project modules at the
+final source reread. All 1,215 broader guarded regressions passed with 319
+bindings and 202 final loaded modules. Full discovery ran 2,721 tests: 2,720
+passed and one pre-existing skip, with unchanged hashes over 416 Python files
+before discovery, after discovery and after execution. The 12 repository tests
+passed. These are local/synthetic checks, not native qualification or outcomes.
+
+Read-only preservation checks matched all 35 reporter files against `a74e0dd`,
+all 211 original qualification sources with only the prior local scored hook
+delta, seven diagnosis controls, three observer controls and five published
+original/recovery metadata files. The exact original snapshot metadata and
+89-result map also matched the new pins; the archive was not read or recreated.
+No original/reporting/diagnosis/observer source was edited.
+
+Original counts were refreshed read-only at 16:44:12 UTC on 29 September:
+89/89 complete, 50 passed, 36 verified failures, 3 missing verifier outcomes,
+no active/partial task, all 211 frozen sources matching and all 89 revoked.
+The actual original-audit/archive handoff, native host/runtime/service,
+qualifier, scoped scored integration, dispatcher and completed reporting route
+remain unfinished. Neither the observer nor this gateway contract grants host
+admission or authorises replay. No recovery native operation occurred.
+
+## Earlier setup-observer checkpoint
 
 The [instrumentation companion](../../protocols/custom_setup_recovery_instrumentation_20260929.md)
 describes the new single-use observer and exact metadata contract. It executes
