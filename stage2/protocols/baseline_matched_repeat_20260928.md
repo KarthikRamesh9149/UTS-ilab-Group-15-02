@@ -1,5 +1,12 @@
 # Matched baseline repeats after custom final89
 
+Recovery instrumentation checkpoint, 29 September: a separate source-bound
+[setup observer](custom_setup_recovery_instrumentation_20260929.md) now has local
+tests for the unchanged command, safe failure metadata and shared lifecycle
+cleanup. This is not native recovery qualification, service wiring or paid
+admission. No recovery or baseline repeat has begun. This schedule, baseline
+agent controls and the immutable original89/reporting/archive are unchanged.
+
 Recovery preparation update, 29 September: the approved separate three-task
 recovery has a [pre-launch amendment](custom_setup_recovery_20260929.md) and
 fixed fresh identities. Original archive/source evidence narrows the setup

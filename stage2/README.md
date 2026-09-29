@@ -1,5 +1,36 @@
 # Stage 2 execution status
 
+## Latest: recovery-only setup observer implemented locally
+
+The separate [setup observation component](protocols/custom_setup_recovery_instrumentation_20260929.md)
+now wraps the exact original preparation function without changing its command,
+180-second command window, root context, exception/cancellation behaviour or
+the shared lifecycle. It records only stage, allowlisted error class, actually
+returned integer code, elapsed time and returned-text byte counts/hashes.
+Nonzero commands and execution exceptions are distinguished without inventing
+a package, network or SSH cause. Unknowns remain null; incomplete diagnostics
+cannot become a complete observation after a source refusal is restored.
+
+All 43 targeted tests and 134 affected checks passed locally. These include
+the actual unchanged shared lifecycle with synthetic environments and an
+isolated no-write/no-process/no-network import/execution check. Final discovery
+passed 2,682 of 2,683 tests with one pre-existing skip and unchanged hashes over
+413 Python files before/discovery/after execution. All 1,177 guarded regressions
+passed with zero skips/errors/failures, 311 stage2 bindings and 199 loaded
+project modules at the final reread. The 12 repository tests passed. These are not
+native qualification or provider measurements. The real recovery policy,
+gateway, authenticated host/runtime/service, qualification, scoped dispatcher
+and separate reporting route remain unfinished; this observer is not yet wired
+into the scored runner and supplies no admission or durable replay protection.
+
+The latest read-only native observation at **15:36:40 UTC on 29 September**
+still found original Custom C0-NC final89 complete: **89/89, 50 passes, 36 verified
+failures, 3 setup-only missing verifier outcomes**, no active/partial task,
+all 211 source bytes matching, all 89 revoked and no stop. Recovery is **0/3
+started** and both baseline repeats remain unstarted. The original archive,
+35-file reporter, published diagnosis/schedule and every original outcome are
+unchanged. No native recovery installation, qualification or command was run.
+
 ## Latest: separate three-task recovery diagnosis and fixed plan
 
 The original final89 remains audited, privately backed up and publicly exported:
