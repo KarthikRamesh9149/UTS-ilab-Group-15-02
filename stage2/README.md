@@ -1,5 +1,36 @@
 # Stage 2 execution status
 
+## Latest audit outcome: loaded-source inventory gap, 29 September 2026
+
+The one approved further audit at f41e47d was invoked and retained. It returned
+SSH exit 1 / native ValueError at the final loaded-module guard, after internal
+collector/schema return but before the launcher's final evidence rereads.
+It did not time out: native failure was at 176.140959 seconds and operator
+elapsed time was 182.660407 seconds. No successful completed audit, snapshot,
+backup or export was obtained. Exact metadata and scope are recorded in the
+[final-run status](results/custom-no-cutoff-final-20260928/README.md).
+
+Read-only post-failure metadata at 07:54:22 UTC verified the audit PID absent,
+no study processes or held/waiting ancestor locks, all 229 native and 21
+installed reporting byte bindings and the trusted completion/protection guard.
+Static transitive import analysis found five omitted helper bindings:
+setup_probe.py, extended_token_calibration.py, calibrate_tokenizer.py,
+final_schedule.py and freeze_inputs.py. At 07:58:34 UTC a stdlib-only native
+read confirmed their current bytes match original deployment commit fb2d5cc and
+current f41e47d. No project imports, collector or native writes occurred in
+that diagnosis. This is current evidence, not retrospective qualification;
+the first rejected module was not named by the retained exception metadata.
+
+The exclusive private operator intent/failure remain; no snapshot/result exists.
+Do not automatically repeat the consumed audit or weaken its import guard.
+A source-inventory amendment across reporting/backup/export/handoff is needed,
+without changing frozen execution or overwriting the installed reporting root.
+Existing downstream connection bounds and private-parent assumptions remain
+unchanged. Fresh 07:59:43 UTC preliminary progress is 89/89 complete, 50 passes,
+36 verified zeros, three setup-only missing verifier outcomes and no active
+task. The approved three separately reported retries remain conditional on
+actual completed audit and verified backup. Keep the VPS and hourly reporting.
+
 ## Audit transport preparation validated, 29 September 2026
 
 The user approved the reporting connection correction and one further audit.

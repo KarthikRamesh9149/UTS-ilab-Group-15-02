@@ -1,5 +1,33 @@
 # Matched baseline repeats after custom final89
 
+Latest audit outcome, 29 September: the ONE approved further audit at f41e47d
+was consumed and refused at the final loaded-module guard (native ValueError,
+SSH exit 1), not a transport timeout. Internal collector/schema return preceded
+the refusal, but mandatory final launcher rereads did not run; no verified
+completed audit or saved snapshot exists. The exclusive private intent/failure
+remain and prevent automatic repetition. No backup/export, recovery or baseline
+attempt began. See the [final-run status](../results/custom-no-cutoff-final-20260928/README.md).
+
+At 07:54:22 UTC the audit process was absent, all 33 ancestor locks unheld,
+all 229 native and 21 installed reporting bindings unchanged and completion/
+protection checks passing. Static analysis identified five imported helpers
+omitted from the reporting source map: setup_probe.py,
+extended_token_calibration.py, calibrate_tokenizer.py, final_schedule.py and
+freeze_inputs.py. Read-only native hashing at 07:58:34 UTC verified their
+current bytes against original fb2d5cc/current f41e47d Git bytes. This does not
+retroactively qualify them or identify which was rejected first. No project
+import, collector or native write was used for that diagnosis.
+
+The next required reporting-source amendment must bind actual transitive imports
+through the whole audit/archive/export/handoff path, preserve historical limits
+and existing refusal evidence, and retain the import guard. No installed root
+replacement, frozen-source change or automatic collector retry is authorised
+by the consumed attempt. Existing downstream bounds/private-parent assumptions
+also remain unfinished. The 07:59:43 UTC preliminary count is unchanged:
+89/89, 50 passes, 36 verified zeros, three setup-only missing outcomes, no active
+task. Preserve the already approved separate three-task recovery after actual
+audit/verified backup and both fixed baseline schedules/order.
+
 Latest transport preparation, 29 September: the user approved the reporting-only
 connection correction and one further audit. A separate Mac operator preserves
 all original installed bootstrap/main/evidence checks and all 21 installed

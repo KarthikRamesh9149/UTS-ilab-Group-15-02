@@ -1,5 +1,61 @@
 # Measured C0-NC final89
 
+## Latest: one-shot audit reached a source-inventory refusal, 29 September 2026
+
+The approved one further audit ran at operator commit
+f41e47d36bf5315093cc1087fd9078b5233e2f75. The Mac operation began at
+07:50:15.854110 UTC and returned failure at 07:53:24.060774 UTC. Native metadata
+reported ValueError at 176.140959 seconds; SSH exited 1 after 182.660407 operator
+seconds, not the 1,800-second connection timeout. The source-bound traceback is
+bootstrap main line 142, loaded line 94, fail line 11: the final loaded-module
+guard refused an unbound project module. This occurred after the internal
+collector and schema-validation calls returned, but before the launcher's
+mandatory final supporting-file, inventory and absence rereads. There is no
+successful completed audit response or saved snapshot. Internal return is not
+completed audit verification. The earlier generic failure remains independently
+unexplained, and six unrecognised stderr records were redacted rather than exposed.
+
+The exclusive private Mac audit directory retains only intent.json and
+failure.json (mode 0600, directory 0700); no result.json or snapshot.json exists.
+The one approved invocation is consumed and the retained directory prevents
+automatic repetition. No backup, export, recovery or baseline attempt started.
+
+A stdlib-only read-only check at 07:54:22.248718 UTC found PID 1137619 absent,
+no cwd/exe match across 12 fixed study/reporting roots and no holder or waiter
+for any of 33 existing ancestor locks. All 229 original native bindings and
+21 installed reporting files matched, the trusted completion/protection guard
+passed, and all three reporting backup-state paths remained absent. No process
+was signalled and no installed/frozen file or permission was changed.
+
+Local static analysis of 98 transitively imported modules identified five
+unconditional helper imports absent from the report launcher's source map:
+setup_probe.py, extended_token_calibration.py, calibrate_tokenizer.py,
+final_schedule.py and freeze_inputs.py. A separate stdlib-only native byte check
+at 07:58:34.007860 UTC confirmed all five current files match their bytes at
+original deployment commit fb2d5cc and current operator commit f41e47d, with
+all original 229/21 bindings checked again. It imported no project module and
+invoked no collector. This identifies an actual inventory gap; the exception
+metadata does not identify which of the five was encountered first. These
+current byte observations are not retrospective additions to the original
+qualification or proof of historical installed bytes.
+
+The required next correction is an explicit whole-route reporting-source
+inventory amendment, including transitive import coverage and truthful current
+versus historical bindings. Do not delete the refusal, remove the import guard,
+patch the frozen execution tree, overwrite the installed reporting root or
+substitute a saved internal result. The existing backup/export/handoff bounds
+and private-parent assumptions also remain unmigrated. No further actual audit
+is automatic from this consumed one-shot authority.
+
+Fresh existing read-only progress at 07:59:43.911981 UTC is unchanged:
+89/89 complete, 50 passes, 36 verified zeros and three setup-only missing
+verifier outcomes, with no active/partial task, all 211 frozen sources matching,
+all 89 results recording revocation and no stop. These remain preliminary
+metadata. One separately reported recovery attempt each for tasks 63-65 is
+already approved after an actual completed audit and verified backup; do not
+ask again, merge rows, replay old IDs or guarantee passes. Keep the VPS and
+hourly notifications active. The earlier preparation checkpoints below are history.
+
 ## New audit connection prepared and tested, 29 September
 
 The approved correction adds a separate one-shot Mac operator with a fixed
