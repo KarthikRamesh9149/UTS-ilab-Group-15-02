@@ -1,10 +1,62 @@
 # Separate C0-NC setup recovery
 
-Status: diagnosis and fixed plan published; separate setup observer, policy and
-gateway implemented locally. **0/3 recovery attempts started.** No native recovery qualification,
+Status: diagnosis and fixed plan published; separate setup observer, policy,
+gateway and original-evidence handoff implemented locally. **0/3 recovery attempts started.** No native recovery qualification,
 registration or paid admission has occurred.
 
 ## Current implementation checkpoint
+
+The [recovery-specific capture and handoff](../../protocols/custom_setup_recovery_handoff_20260929.md)
+requires a fresh actual original audit and strict reading of the same retained
+archive on both sides of a future trusted handoff. It preserves exact raw
+snapshot/backup bytes, Python numeric types, original 89 outcomes, all 182
+historical hashes and genuine absence evidence. Current recovery source/input
+bindings remain separate from the immutable archived reporter's old revision.
+The 276-file prospective union makes no new inherited-source change.
+
+The in-memory witness is bound to its process, main thread and async task and
+is not a saved admission token. Authentication must precede full ancestor
+locks; under-lock rechecks reread actual evidence without another collector,
+transfer or recursive lock. Failure is latched. Descriptor checks alone are not
+authenticated network identity or proof of an off-server location.
+
+This component has not been invoked with the real archive, collector or native
+recovery host. Original counts refreshed at 17:36:33 UTC on 29 September remain
+89/89 complete, 50 passed, 36 verified failures, 3 missing verifier outcomes,
+no active/partial task, all 211 sources matching and all 89 revoked. No new root,
+service, qualification, registration, paid request or recovery attempt occurred.
+Native absence of the proposed root must still be freshly checked before any
+installation. Actual trusted transport/service, C0-NC runtime/libraries/images,
+full live locked scope, real native qualification, durable observer/scored
+integration, three-cell dispatcher and separate completed reporting remain.
+The original archive, 35 reporter files, seven diagnosis controls, three
+observer controls and five published result/plan metadata files are unchanged.
+
+All 38 new handoff tests and 94 related checks passed locally. The real sender
+and strict consumer ran over local pipes with synthetic original89 archives;
+native audits, service state and Git observations were mocked. Tests reject
+uncommitted or changed sources/public/private bytes, truncated/uncommitted
+transfers, stale audits, reporter/producer drift, new formerly absent files,
+changed historical results and copied/cross-task/process/thread witnesses.
+Failed rereads remain invalid after byte restoration. An isolated import test
+refuses credential reads, writes, process creation and network effects.
+
+All 524 recovery regressions passed with zero skips/errors/failures, 276 bound
+sources and 182 final loaded project modules. All 1,253 broader guarded
+regressions passed with 323 bindings and 205 final loaded modules. Full discovery
+ran 2,759 tests: 2,758 passed, one pre-existing skip, and unchanged hashes over
+419 Python files before discovery, after discovery and after execution. All
+12 repository tests passed. None is actual native qualification or a paid score.
+
+Initial tests caught attempted JSON comparison of raw anchor bytes; these are
+now compared byte-for-byte, with all other metadata compared using exact JSON
+numeric types. Synthetic Linux ACL/private-mode fixtures and verification-count
+assertions were corrected without relaxing production checks. Review added a
+manifest reread after the last service observation and exact private-file modes
+and group checks. Current native backup-producer bytes are read and bound by
+the handoff; this does not invent historical installed-byte attestation.
+
+## Earlier policy/gateway checkpoint
 
 The [policy/gateway companion](../../protocols/custom_setup_recovery_gateway_20260929.md)
 defines seven private recovery inputs, exact original evidence bindings and

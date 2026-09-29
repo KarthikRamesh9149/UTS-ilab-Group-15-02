@@ -1,6 +1,47 @@
 # Stage 2 execution status
 
-## Latest: recovery policy and gateway implemented locally
+## Latest: recovery-specific original-evidence handoff implemented locally
+
+The separate [capture and handoff component](protocols/custom_setup_recovery_handoff_20260929.md)
+now provides the recovery-only route for a fresh original audit and strict
+authentication of the SAME retained archive. It checks committed operator and
+actual native source/input/public bytes, exact raw snapshot/backup metadata,
+all 89 original outcomes, genuine absences and all 182 historical result hashes.
+The native reader audits before the future session's ancestor locks; its
+process/thread/async-task-bound witness permits only nonrecursive rereads under
+those locks. A failed recheck or ownership violation invalidates it permanently.
+The actual pinned SSH/service and locked host scope are still required: this
+local component has not performed a real handoff or granted paid admission.
+
+The current recovery source union is 276 files. The new consumers and unchanged
+archived-reporting dependencies are bound for current verification only, never
+added retroactively to the original 211 or archived 35. The policy change only
+extends that prospective inventory and its test list; the three-task plan,
+gateway behaviour, setup observer and original preparation/lifecycle remain
+unchanged. No original reporter or historical handoff source was edited.
+
+The only native operation was the permitted read-only inspector at **17:36:33 UTC
+on 29 September**: original final89 **89/89 complete, 50 passed, 36 verified
+failures, 3 missing verifier outcomes**, no active/partial task, all 211 sources
+matching, all 89 revoked and no stop. Recovery remains **0/3 started** and both
+baseline repeats remain unstarted. No archive was read/recreated or new native
+operation attempted by this implementation. Actual C0-NC host/runtime/library
+identity, trusted service/locked session, native qualification, scored observer
+durability, dispatcher and separate completed reporting/backup/export remain
+unfinished. The VPS and hourly reports remain needed.
+
+All 38 new handoff tests and 94 related checks passed locally. Final gates
+passed all 524 recovery regressions (276 bindings, 182 final loaded modules)
+and all 1,253 broader guarded regressions (323 bindings, 205 final loaded
+modules), with zero skips/errors/failures. Full discovery ran 2,759 tests:
+2,758 passed and one pre-existing skip; before/discovery/after hashes covered
+419 Python files. All 12 repository tests passed. These use synthetic archives,
+local pipes and mocked native observations, not native qualification or study
+outcomes. Review added final manifest rereads and strict private-file group/mode
+checks. The original 35 reporter files, seven diagnosis controls, three observer
+controls and five published metadata files remain byte-identical.
+
+## Earlier checkpoint: recovery policy and gateway implemented locally
 
 The separate [policy and gateway component](protocols/custom_setup_recovery_gateway_20260929.md)
 now checks the fixed three-task plan, exact original qualification/manifest
@@ -65,7 +106,7 @@ started** and both baseline repeats remain unstarted. The original archive,
 35-file reporter, published diagnosis/schedule and every original outcome are
 unchanged. No native recovery installation, qualification or command was run.
 
-## Latest: separate three-task recovery diagnosis and fixed plan
+## Earlier checkpoint: separate three-task recovery diagnosis and fixed plan
 
 The original final89 remains audited, privately backed up and publicly exported:
 50 passes, 36 verified failures and three setup-only missing outcomes. A fresh

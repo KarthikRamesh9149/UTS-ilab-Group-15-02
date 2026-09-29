@@ -1,5 +1,16 @@
 # Matched baseline repeats after custom final89
 
+Recovery handoff checkpoint, 29 September: the new
+[recovery-only capture and evidence reader](custom_setup_recovery_handoff_20260929.md)
+requires the actual original fresh audit and same retained archive, with a
+process/thread/async-task-bound non-admitting witness and under-lock rereads.
+It does not masquerade recovery as Terminus-2 or change the archived baseline
+handoff/capture sources. It remains local preparation, not a real native
+handoff, service, qualification or paid scope. Recovery remains 0/3 and both
+baseline repeats unstarted; their ordering, schedule and original controls are
+unchanged. Native recovery host/service/qualification/scored/reporting work
+remains required before the three separately reported attempts.
+
 Recovery gateway checkpoint, 29 September: the separate
 [policy/gateway contracts](custom_setup_recovery_gateway_20260929.md) now enforce
 the fixed three fresh identities and immutable original-evidence bindings in
