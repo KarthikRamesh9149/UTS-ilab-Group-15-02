@@ -405,3 +405,60 @@ raw numeric-byte preservation and final commitment refusal. These tests do not
 establish native compatibility, a completed audit, a real backup or permission
 to start a repeat. Allowlisted public export, actual operator/native amended
 handoff integration and trusted repeat service operations remain unfinished.
+
+## Separate allowlisted public exporter checkpoint, 29 September
+
+`no_cutoff_final_export.py` now implements the fixed Mac `export(full_commit)`
+and read-only `verify_export(full_commit)` entries. This is local preparation,
+not an actual native audit, backup, public result export or repeat handoff.
+The exporter and its tests join the reporting bundle, now 15 files, and the
+prospective repeat union, now 276 files. Old collectors and predecessor readers
+remain unchanged. The actual amended operator capture/native handoff integration
+is still required before the reporting/backup/export route may be invoked.
+
+Both entries require current committed source bytes matching HEAD and fetched
+origin/main, the exact private completed backup inventory and the four existing
+public qualification/registration/lineage/policy files. Their hashes are pinned
+for this reporting route, not retrospectively added to native qualification.
+The retained backup intent and receipt must match exact raw snapshot bytes and
+the current reporting bundle. Actual Git bytes from the retained operator commit
+are checked; later result/documentation commits may advance HEAD only while the
+archived reporting source bytes remain unchanged.
+
+The actual separate reporting launcher performs a fresh native completed audit.
+Its inactive-service, lineage-before-lock, under-lock source/runtime/resource,
+supporting-file/inventory/absence and 182 historical-result checks remain required.
+Only collection time may differ from the retained snapshot, and the fresh audit
+cannot predate it. The exporter then rereads the ONE existing private archive
+with the strict member/hash/inventory/absence verifier. Saved audit, backup or
+export flags never replace these operations. Actual local metadata, source,
+prerequisite and archive bytes are reread after the native audit and again before
+the export commitment. No archive is created, extracted or replaced.
+
+The only public outputs are `summary.json`, `trials.json` and `trials.csv` under
+the fixed `results/custom-no-cutoff-final-20260928/c0-nc` directory. They use
+explicit metadata allowlists. No raw result, exception text, exchange, solution
+or private inventory is projected. JSON retains nulls and Python numeric types;
+CSV uses empty cells for nulls with explicit phase-observation labels. Actual
+official allowances remain separate from measured durations. Full89,
+development20 and remaining69 retain measured/not-run timing denominators and
+measured subtotals. Unknown costs remain unknown; missing outcomes stay distinct
+from verified zero rewards. Original 52/89 and 44/89 baselines remain labelled,
+and no recovery outcome is included in this original one-attempt final89.
+
+Private export intent/result/failure records use the separate fixed Mac directory
+`.runtime/netcup/custom-no-cutoff-final89-export-20260928`, leaving the four-file
+backup inventory untouched. Writes are exclusive and durable. Any existing or
+partial export/state refuses automatic repetition; failures retain partial files
+and exception type only. Read-only verification repeats the actual native audit
+and archive read and regenerates expected public bytes for exact comparison.
+Neither its return value nor a public file grants paid admission. Whole-route
+integration and full-runtime-restore claims remain false.
+
+Tests use synthetic89 evidence, real temporary private files and tar/gzip bytes,
+with mocked native audit, SSH and Git observations. They cover null versus zero,
+official allowances, 105 physical requests/104 unknown costs, exact row and
+column allowlists, stale audits, changed bytes, privacy/symlinks/FIFOs, duplicate
+JSON fields, partial writes, no replay and fresh read-only verification. They do
+not establish native compatibility, a real completed audit, off-server archive
+or benchmark results. No production entry has been invoked.

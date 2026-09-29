@@ -102,6 +102,36 @@ closed. Trusted repeat service operations and native verification also remain
 unfinished. The user's requested three-task recovery block awaits an explicit
 sequencing/reporting decision; originals are retained and no recovery is run.
 
+At 02:21:51 UTC on 29 September, read-only metadata showed 86/89 complete:
+50 passes, 33 verified zero-score failures and the same three setup-only missing
+verifier outcomes. Task 87 was active. All 211 frozen source files matched, all
+86 completed results recorded revocation and no stop was present. These are
+dated partial metadata, not a completed score or audit.
+
+At 02:42:39 UTC the service was active on task 88, with 87/89 complete:
+50 passes, 34 verified zero-score failures and the same three missing outcomes.
+Task 87 finished with a verified zero. All 211 frozen sources matched, all 87
+completed results recorded revocation and no stop was present. No repeat or
+recovery was launched.
+
+The separate allowlisted public exporter and its read-only verifier are now
+implemented locally. Both require a fresh actual completed native audit and
+reread the existing private archive; saved flags cannot substitute. The three
+public files retain null/not-run phases, missing outcomes and unknown costs,
+with measured/not-run denominators for full89/development20/remaining69. The
+reporting bundle is now 15 files and the prospective repeat union is 276.
+No actual public result export, reporting deployment, native audit or archive
+has occurred. Actual amended operator capture/native handoff integration remains
+required before native use. Old collectors/readers and frozen execution remain
+unchanged; neither repeats nor recovery attempts have started.
+
+The final local suite ran 2,354 tests: 2,353 passed and one pre-existing skip.
+All 848 guarded repeat regressions passed with zero skips/errors/failures,
+binding all 174 loaded project modules before/discovery/after execution. All
+40 new exporter tests and all 12 repository tests passed. An earlier 363-check
+reporting run also passed. These use temporary synthetic evidence and mocked
+native observations, not completed native audit, export or benchmark evidence.
+
 The finalist must have no artificial spending, model-call, command-time,
 job-count or completion-repair cutoff. C0/C1/C2 still contain their original
 execution cutoffs: removing those from an older winner requires a labelled,

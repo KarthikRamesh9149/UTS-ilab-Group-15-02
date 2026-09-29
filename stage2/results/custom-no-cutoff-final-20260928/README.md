@@ -13,6 +13,33 @@ producer/receiver remains local preparation only; public export and actual
 amended predecessor-handoff integration must be completed before native use.
 No reporting deployment or completed-final archive has been created.
 
+At 02:21:51 UTC on 29 September, the read-only inspector found 86/89 complete:
+50 passes, 33 verified zero-score failures and the same three setup-only missing
+verifier outcomes. Task 87 was active with 25 physical requests and 13 accepted
+responses. Task 85 finished with a verified zero and task 86 passed. All 211
+frozen sources matched, all 86 completed results recorded revocation and no stop
+was present. These are dated partial metadata, not a completed score or audit.
+
+At 02:42:39 UTC task 88 was running, with 87/89 complete: 50 passes,
+34 verified zero-score failures and the same three missing outcomes. Task 87
+had finished with a verified zero, 33 physical requests and 17 accepted responses.
+Task 88 had 31 requests and 18 accepted responses. All 211 frozen sources matched,
+all 87 completed results recorded revocation and no stop was present. This is
+still partial metadata, not a final score, audit or completed backup.
+
+The separate allowlisted exporter and read-only verification route are now
+implemented locally, expanding the reporting bundle to 15 files. They require
+a fresh actual native audit and an actual reread of the one private archive.
+No public result files have been generated. Actual amended predecessor capture
+and native handoff integration still need completion before native reporting,
+backup or export. Local synthetic tests are not benchmark or native evidence.
+
+All 40 exporter tests passed within the final local gates. Full discovery ran
+2,354 tests: 2,353 passed and one pre-existing skip. All 848 guarded repeat
+regressions passed with zero skips and all 174 loaded project modules bound;
+all 12 repository tests passed. Native audit and Git observations are mocked
+in the new tests, while temporary private files and archive bytes are real.
+
 The user has requested recovery attempts for tasks 63–65. The sequencing and
 reporting decision for a separately labelled recovery block is still pending.
 No recovery has run, no original result has been overwritten, and no recovery

@@ -1562,3 +1562,29 @@ handoff must still be implemented and source-bound before using this route.
 The unchanged old readers must not accept it through a receipt flag. Trusted
 repeat service operations, native compatibility, repeat exporter and the
 completed-Terminus successor reader also remain unfinished.
+
+## Amended public exporter preparation, 29 September
+
+The separate `no_cutoff_final_export.py` adds fixed Mac export and read-only
+verification entries. Its tests expand the prospective repeat union to 276
+files and the reporting bundle to 15. No native entry has been invoked. The
+actual amended operator capture/native archive-stream handoff is still required;
+old predecessor/handoff readers are unchanged and must continue to fail closed.
+
+The new route requires a fresh real completed native audit, exact original byte
+anchors, the actual retained one-time Mac archive, current source bindings and
+the already published qualification/registration/lineage/policy bytes. It checks
+all archive members, evidence inventories and genuine absences again, then
+exclusively writes only three allowlisted public files. Verification repeats
+the audit and archive read, not a saved-success shortcut. Missing outcomes and
+unexecuted phase nulls, unknown costs and all full89/development20/remaining69
+denominators remain explicit. Original baseline outcomes and all 182 retained
+historical hashes are unchanged. The export does not include recovery attempts.
+
+Actual public files have not been generated. Synthetic tests use real temporary
+files/archive bytes with mocked native/Git observations; they are not native
+audit, off-server backup, qualification or paid evidence. The separate private
+export state retains failures and refuses automatic repetition without modifying
+the completed backup inventory. No receipt, public result or saved report grants
+admission. Trusted repeat service operations, native compatibility, repeat
+exporter and completed-Terminus successor reader remain unfinished.
