@@ -24,6 +24,13 @@ Real setup diagnostics, recovery scope/service/gateway/qualification/dispatch
 and separate reporting still need implementation before any recovery launch.
 No recovery or baseline repeat has begun; fixed baseline schedules are unchanged.
 
+The committed reader `7656915c3d50b97df1964f2802b9ddf67cca16ea` actually
+completed the local archive diagnosis at 15:22:15 UTC. Its allowlisted
+[diagnosis and fixed schedule](results/custom-no-cutoff-recovery-20260929/README.md)
+are published separately. Final local gates passed: 2,639 of 2,640 discovery
+tests, one pre-existing skip, and all 1,134 guarded regressions with no skips.
+These checks are not native qualification or recovery results; 0/3 have started.
+
 ## Latest: original final89 audit, private backup and public export complete
 
 The version-4 reporter at `a74e0dd053fed70a1ede3eef23e0ccdb6db6fb09`

@@ -3,6 +3,20 @@
 Status: diagnosis and fixed plan only. **0/3 recovery attempts started.** No
 native recovery qualification, registration or paid admission has occurred.
 
+The actual fixed reader at source commit
+`7656915c3d50b97df1964f2802b9ddf67cca16ea` completed its read-only diagnosis at
+15:22:15 UTC on 29 September. It strictly verified the same retained archive,
+original result/source hashes, committed public outputs, private inventories
+and final source/byte rereads. The [diagnosis](diagnosis.json) contains only
+allowlisted metadata. This was a local archive inspection, not a fresh native
+audit, qualification, deployment or provider call; nothing was extracted and
+no archive was created or changed.
+
+The [fixed schedule](schedule.json) has canonical SHA256
+`dd46fb43239d1b84ffcf0e387c234f6f8df693852f18bdaeeb7a034bdc3cdd38`.
+It is a plan, not a registration or admission witness. Both files preserve the
+original null rewards and keep all three recovery outcomes unstarted.
+
 The user authorised one fresh, separately reported attempt for original tasks
 63-65 after the original89 audit and verified backup. Those prerequisites and
 the original allowlisted export are complete. The original89 remain 50 passes,

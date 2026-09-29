@@ -11,6 +11,9 @@ The underlying command error was not retained; no specific package, network or
 SSH cause is claimed. The original 50/36/3 outcomes, all 89 rows, archive and
 35-file reporting bundle remain unchanged. New native recovery qualification
 and admission are still required; no recovery attempt has started or been merged.
+The source-bound read-only archive diagnosis completed at 15:22:15 UTC on
+29 September; its [separate metadata and schedule](../custom-no-cutoff-recovery-20260929/README.md)
+retain this limitation and do not alter these original results.
 
 ## Latest: actual private archive verified and allowlisted results exported
 

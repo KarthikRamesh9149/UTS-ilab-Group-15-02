@@ -11,6 +11,9 @@ The schedule SHA256 remains
 `bd26df6c19c88c238d0795423699fa9030a12f4ea925b42667ad75321817a6e1`.
 Recovery is operationally before the next paid baseline block; Terminus-2
 still precedes OpenHands and each retains its own actual native gates.
+The fixed read-only archive diagnosis actually completed at 15:22:15 UTC;
+its [published metadata and plan](../results/custom-no-cutoff-recovery-20260929/README.md)
+grant no native recovery or baseline admission.
 
 Latest actual completion, 29 September 2026 UTC: the r4 reporting root at
 `a74e0dd053fed70a1ede3eef23e0ccdb6db6fb09` was installed exclusively at
