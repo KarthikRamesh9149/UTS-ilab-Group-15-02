@@ -154,7 +154,7 @@ class BootstrapTests(unittest.TestCase):
         (self.root/'.runtime/stage2').mkdir(parents=True,mode=0o700)
         self.native={'stage2/frozen.py':hashlib.sha256(p.read_bytes()).hexdigest()}
         self.payload={n:b'# source-bound synthetic bootstrap module\n' for n in
-            ('stage2/no_cutoff_final_report.py','stage2/no_cutoff_final_archive.py')}
+            ('stage2/no_cutoff_final_report.py','stage2/no_cutoff_final_archive.py','stage2/no_cutoff_final_backup.py')}
         self.sources={n:hashlib.sha256(raw).hexdigest() for n,raw in self.payload.items()}
         self.bindings=dict(commit='a'*40,native=self.native,reporting=self.sources)
         self.enterContext(patch.object(report,'ROOT',self.root));self.enterContext(patch.object(report,'REPORTING',self.reporting))
@@ -187,10 +187,11 @@ class BootstrapTests(unittest.TestCase):
             prefix=str(self.root/'.venv'),path=list(sys.path),modules=dict(sys.modules),pycache_prefix=None)
         collector=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_report.py'),collect=Mock(return_value=self.snapshot))
         validator=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_archive.py'),validate_snapshot=Mock())
-        fake.modules.update(no_cutoff_final_report=collector,no_cutoff_final_archive=validator)
+        self.producer=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_backup.py'),stream=Mock())
+        fake.modules.update(no_cutoff_final_report=collector,no_cutoff_final_archive=validator,no_cutoff_final_backup=self.producer)
         ns['sys']=fake
         with patch.object(os,'getuid',return_value=0),patch.dict(os.environ,report.ENVIRONMENT,clear=True),\
-                patch.dict(sys.modules,{'no_cutoff_final_report':collector,'no_cutoff_final_archive':validator}),\
+                patch.dict(sys.modules,{'no_cutoff_final_report':collector,'no_cutoff_final_archive':validator,'no_cutoff_final_backup':self.producer}),\
                 patch.object(launch.os,'chdir'):
             # This tiny fixture has no historical anchors. Real operator
             # bindings always derive them from the exact pinned originals.
@@ -283,6 +284,26 @@ class BootstrapTests(unittest.TestCase):
         self.installed();value,collector,validator=self.main(self.namespace('collect'))
         collector.collect.assert_called_once_with();validator.validate_snapshot.assert_called_once_with(self.snapshot,{})
         self.assertIs(value,self.snapshot);self.assertGreaterEqual(self.service.call_count,4)
+
+    def test_binary_backup_enters_fixed_producer_not_a_saved_audit(self):
+        self.installed();value,collector,validator=self.main(self.namespace('backup'))
+        self.assertIsNone(value);self.producer.stream.assert_called_once_with()
+        collector.collect.assert_not_called();validator.validate_snapshot.assert_not_called()
+
+    def test_retained_backup_states_are_inspectable_but_not_sources(self):
+        self.installed();p=self.reporting/'.backup-intent.json';p.write_bytes(b'{}');p.chmod(0o600)
+        value,collector,_=self.main(self.namespace('inspect'))
+        self.assertEqual(value['operation'],'inspect');collector.collect.assert_not_called()
+        p.chmod(0o644)
+        with self.assertRaises(ValueError):self.namespace('inspect')['check']()
+
+    def test_backup_bootstrap_never_appends_a_json_reply_to_binary_stream(self):
+        program=launch._program(self.bindings,'backup')
+        tail='try:\n value=main()'+program.split('\ntry:\n value=main()')[1]
+        output=io.StringIO()
+        with patch.object(sys,'stdout',output):
+            exec(tail,dict(main=lambda:None,c={'operation':'backup'},sys=sys,json=json))
+        self.assertEqual(output.getvalue(),'')
 
     def test_post_audit_absence_inventory_and_source_mutations_refused(self):
         self.installed();p=self.root/'.runtime/stage2/absent.json';p.write_bytes(b'{}')

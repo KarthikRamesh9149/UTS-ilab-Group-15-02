@@ -4,6 +4,20 @@ The exact 89-task final service launched at 03:37:46 UTC on 28 September 2026
 (13:37 Sydney). This is a launch, not a completed final score. Baseline repeats
 have not started. The frozen deployment runs independently of the Mac.
 
+At 01:21:45 UTC on 29 September, the read-only inspector found 81/89 complete:
+46 passes, 32 verified zero-score failures and three setup-only missing verifier
+outcomes. Task 82 was active. All 211 frozen source files matched, all completed
+results recorded revocation and no stop was present. These are dated partial
+metadata, not a completed score or audit. The separately implemented archive
+producer/receiver remains local preparation only; public export and actual
+amended predecessor-handoff integration must be completed before native use.
+No reporting deployment or completed-final archive has been created.
+
+The user has requested recovery attempts for tasks 63–65. The sequencing and
+reporting decision for a separately labelled recovery block is still pending.
+No recovery has run, no original result has been overwritten, and no recovery
+outcome is included in the original one-attempt final89.
+
 At 03:39:51 UTC the service was active in the correct directory, with the
 first task underway and no completed results. Ten physical requests and nine
 accepted responses were recorded. All 211 sources matched, with no operator

@@ -84,6 +84,24 @@ At 23:44:57 UTC, task 76 was still active: 75/89 complete, 43 passes,
 It had 265 physical requests and 174 accepted responses. All 211 frozen sources
 matched, all 75 completed results recorded revocation and no stop was present.
 
+At 01:21:45 UTC on 29 September, read-only metadata showed 81/89 complete:
+46 passes, 32 zero-score failures and the same three setup-only missing verifier
+outcomes. Task 82 was running. All 211 frozen source files matched, all 81
+completed results recorded revocation and no stop was present. This is a dated
+partial observation, not a final score. No baseline repeat has started.
+
+The separate one-shot absence-aware archive producer and fixed Mac receiver
+are now implemented locally, with actual-file/stream tests and mocked native
+observations. They require a fresh real audit and under-lock rereads, preserve
+missing evidence as absent and refuse any existing or partial backup. The
+current reporting bundle is 13 files; the prospective repeat union is 274.
+No native reporting deployment, audit or archive has been attempted. The full
+route still requires allowlisted public export and actual amended predecessor
+handoff integration before native use; old readers remain unchanged and fail
+closed. Trusted repeat service operations and native verification also remain
+unfinished. The user's requested three-task recovery block awaits an explicit
+sequencing/reporting decision; originals are retained and no recovery is run.
+
 The finalist must have no artificial spending, model-call, command-time,
 job-count or completion-repair cutoff. C0/C1/C2 still contain their original
 execution cutoffs: removing those from an older winner requires a labelled,

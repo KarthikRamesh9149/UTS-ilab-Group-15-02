@@ -70,6 +70,8 @@ REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_r
     'no_cutoff_final_report.py', 'test_no_cutoff_final_report.py',
     'no_cutoff_final_archive.py', 'test_no_cutoff_final_archive.py',
     'no_cutoff_final_reporting.py', 'test_no_cutoff_final_reporting.py',
+    'no_cutoff_final_backup.py', 'test_no_cutoff_final_backup.py',
+    'no_cutoff_final_backup_operator.py', 'test_no_cutoff_final_backup_operator.py',
     'protocols/custom_final_phase_reporting_20260928.md',
     # Unchanged helpers reached by the current regression import closure.
     # Newly bound here, never retroactive additions to historical proof.
@@ -99,6 +101,7 @@ TEST_MODULES = ('test_matched_repeat_schedule', 'test_matched_repeat_policy',
     'test_no_cutoff_final_report',
     'test_no_cutoff_final_archive',
     'test_no_cutoff_final_reporting',
+    'test_no_cutoff_final_backup', 'test_no_cutoff_final_backup_operator',
     'test_native_agents', 'test_retry_gateway', 'test_credit_only_gateway',
     'test_trial_execution', 'test_scored_trial')
 ORCHESTRATION_FILES = frozenset({'scored_trial.py', 'local_trace.py'})

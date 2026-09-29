@@ -1,6 +1,7 @@
 """Fixed Mac-side deployment and read-only invocation of the amended reporter.
 
-No CLI, archive writer, exporter, handoff, qualification or paid dispatch.
+No CLI, exporter, handoff, qualification or paid dispatch. The separate backup
+operator uses the fixed binary archive operation, never the JSON reply path.
 Do not invoke against the native host until final89 is inactive and the full
 amended reporting/backup/export/handoff route is ready. Failed or uncertain
 deployment is inspected, never automatically retried or replaced.
@@ -23,7 +24,7 @@ import progress_dashboard as dashboard
 REPO = Path('/Users/karthikramesh/.codex/.chatgpt-projects/g-p-6a789724c2d48191b80421978177d029/terminal-bench-progress-smoke')
 COPIES = '.runtime/netcup/custom-no-cutoff-final-20260928/qualified/'
 KIND = 'separate_final_reporting_operation_not_backup_or_admission'
-OPERATIONS = frozenset({'deploy', 'inspect', 'collect'})
+OPERATIONS = frozenset({'deploy', 'inspect', 'collect', 'backup'})
 WINDOW = 64 * 1024 * 1024  # Metadata reply/parser window, not a study limit.
 
 
@@ -165,6 +166,17 @@ def service():
   if p.exists() or p.is_symlink(): fail('Persistent stop forbids completed reporting')
 def inventory():
  expected={'':{'stage2'}}
+ states={'.backup-intent.json','.backup-result.json','.backup-failure.json'}
+ if reporting.is_dir():
+  for name in states & {v.name for v in reporting.iterdir()}:
+   p=path(reporting,name)
+   # States are not source files or admission witnesses. They are retained
+   # outside the frozen root and must remain private regular owned files.
+   with os.fdopen(os.open(p,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK),'rb') as f:
+    s=os.fstat(f.fileno())
+    if not stat.S_ISREG(s.st_mode) or s.st_nlink!=1 or s.st_uid!=os.getuid() or s.st_mode & 0o077:
+     fail('Private regular retained backup state required')
+   expected[''].add(name)
  for name in c['reporting_files']:
   parts=name.split('/')
   for i,part in enumerate(parts): expected.setdefault('/'.join(parts[:i]),set()).add(part)
@@ -221,7 +233,7 @@ def main():
    try: os.fsync(fd)
    finally: os.close(fd)
  check()
- if c['operation']!='collect':
+ if c['operation'] not in ('collect','backup'):
   return dict(kind=c['kind'],operation=c['operation'],operator_commit=c['commit'],
    reporting_source_files=c['reporting_files'],execution_source_set_sha256=c['source_set'],
    completed_final_audit=False,off_server_backup_verified=False,paid_launch_ready=False)
@@ -232,6 +244,11 @@ def main():
   import no_cutoff_final_report as audit
   import no_cutoff_final_archive as archive
   loaded();check()
+  if c['operation']=='backup':
+   import no_cutoff_final_backup as backup
+   loaded();check()
+   backup.stream()
+   return None
   value=audit.collect()
   anchors={n:read(root,n,h,True) for n,h in c['anchor_files'].items()}
   archive.validate_snapshot(value,anchors)
@@ -255,7 +272,8 @@ def main():
  return value
 try:
  value=main()
- print(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False))
+ if c['operation']!='backup':
+  print(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False))
 except BaseException:
  print('{"status":"reporting_operation_failed_inspect_before_retry","automatic_resume":false,"paid_launch_ready":false}',file=sys.stderr)
  raise SystemExit(1) from None
@@ -285,6 +303,8 @@ def _command():
 
 
 def _invoke(commit, operation):
+    if operation not in ('deploy', 'inspect', 'collect'):
+        raise ValueError('Binary backup requires the exclusive fixed operator receiver')
     bindings = _prepare(commit)
     program = _program(bindings, operation); _recheck(bindings)
     try:

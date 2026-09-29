@@ -1525,3 +1525,40 @@ amended operator/native predecessor integration remain unfinished, as do trusted
 repeat service operations, native compatibility, repeat exporter and the
 completed-Terminus successor reader. No native reporting deployment, collector,
 archive, handoff, repeat qualification or paid launch occurred.
+
+## Offline amended final backup producer and receiver
+
+The separately bound `no_cutoff_final_backup.py` producer and
+`no_cutoff_final_backup_operator.py` receiver now provide local preparation
+for ONE absence-aware streamed final archive. Their two test modules expand
+the current reporting bundle to 13 files and the prospective repeat union to
+274. No native reporting deployment, audit, archive, handoff or repeat operation
+has occurred. The frozen final execution, old collectors and old predecessor
+readers remain unchanged.
+
+The fixed Mac entry requires exact committed main/source bindings and the
+original pinned SSH route. The native entry invokes the actual amended audit,
+authenticates lineage before all ancestor locks and rechecks real supporting
+bytes, exact inventories, absences and all 182 historical result hashes after
+its final service/resource observations. It streams original bytes, never
+creates a server archive or fabricates missing deadline files, and retains
+exclusive intent/result/failure metadata outside the frozen execution root.
+Any retained native operation or existing/partial Mac destination forbids
+automatic repetition. A final receipt is withheld on mutation or failure.
+
+The Mac preserves raw snapshot bytes, verifies the terminal receipt and SSH
+completion, then rereads the one existing private archive and current source
+bindings before committing its distinct backup record. Partial transfers are
+retained for inspection. Only the owned SSH client may be terminated; no native
+unit is stopped. The 900-second transport window is not a benchmark deadline.
+No credential, private archive, raw model exchange or task solution is exported.
+
+Tests use real synthetic files, hashes, locks, tar/gzip streams and local
+subprocess pipes, with native/SSH observations mocked. They are not a native
+audit, transfer, qualification or paid attempt. The record remains
+`paid_launch_ready:false` and `archive_export_and_handoff_integrated:false`.
+Allowlisted public export and the actual amended operator capture/native
+handoff must still be implemented and source-bound before using this route.
+The unchanged old readers must not accept it through a receipt flag. Trusted
+repeat service operations, native compatibility, repeat exporter and the
+completed-Terminus successor reader also remain unfinished.

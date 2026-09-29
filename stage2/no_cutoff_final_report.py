@@ -26,6 +26,8 @@ REPORTING = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260928')
 SERVICE = 'uts-stage2-custom-no-cutoff-final-20260928.service'
 KIND = 'completed_c0_nc_final89_phase_amendment_v1'
 REPORTING_FILES = ('no_cutoff_final_report.py', 'test_no_cutoff_final_report.py',
+    'no_cutoff_final_backup.py', 'test_no_cutoff_final_backup.py',
+    'no_cutoff_final_backup_operator.py', 'test_no_cutoff_final_backup_operator.py',
     'no_cutoff_final_reporting.py', 'test_no_cutoff_final_reporting.py',
     'no_cutoff_final_archive.py', 'test_no_cutoff_final_archive.py',
     'no_cutoff_final_phase_audit.py', 'test_no_cutoff_final_phase_audit.py',

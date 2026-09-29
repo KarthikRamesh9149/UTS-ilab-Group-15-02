@@ -330,3 +330,78 @@ remain required. The old readers still fail closed; this launcher or a receipt
 flag cannot grant successor admission. Trusted repeat service operations,
 native compatibility, repeat exporter and completed-Terminus successor reader
 also remain unfinished.
+
+## Offline one-time archive producer and Mac receiver
+
+`no_cutoff_final_backup.py` and `no_cutoff_final_backup_operator.py` now implement
+the separate one-shot producer and fixed Mac receiver. They have not been
+invoked on the VPS. Their two test modules join the reporting bundle, bringing
+it to 13 files and the prospective repeat union to 274. These are current
+reporting/repeat bindings, not changes to the frozen execution qualification.
+The public exporter and actual amended predecessor/handoff integration must
+still be completed and frozen before any native reporting operation.
+
+The only operator entry is `backup(full_commit)`, with no caller root, callback,
+saved report, supplied archive or CLI. It uses the original byte-pinned SSH
+route and the separate launcher's exact committed-source checks and isolated
+credential-free interpreter. A read-only deployment inspection must first
+confirm the successful inactive final service. The fixed private Mac
+destination is `.runtime/netcup/custom-no-cutoff-final89-c0-nc-20260928`.
+Any existing or partial destination refuses repetition before SSH dispatch.
+The buffered JSON launcher explicitly refuses the binary backup operation.
+
+The native `stream()` entry requires its actual separately deployed module and
+reporting context. It invokes the real amended completed audit, validates its
+schema against the five original byte anchors and performs fresh original
+lineage authentication before acquiring the unchanged full ancestor locks.
+Under those locks it repeats qualification, registration, coverage, loaded
+source, owned-resource, service and stop checks. Supporting bytes, exact
+inventories, genuine absences and all 182 historical result hashes are reread
+after the last native observation. No audit is invoked recursively under
+those locks and no saved audit flag substitutes for these operations.
+
+Only the separate reporting root receives the exclusive private durable
+`.backup-intent.json`, `.backup-result.json` or `.backup-failure.json` records.
+Any retained record forbids another producer attempt. The reporting bootstrap
+permits these exact private state names for later inspection; they are not
+sources, off-server proof or dispatch authority. Existing source trees and
+results are never overwritten. No archive is created on the server.
+
+The producer streams one tar/gzip archive through bounded binary frames.
+It hashes actual source bytes before and while archiving, checks file identity,
+preserves exact empty directories and excludes credential paths. Additional
+private logs are copied only under registered trial directories; their payloads
+are never parsed or returned. Required evidence cannot be excluded. Proven
+absences remain absent, including descendants, rather than synthetic deadline
+files. All source/evidence/inventory checks run again after streaming. Only
+then can the native terminal receipt and final marker be emitted. A transport
+failure or mutation leaves private evidence and an exception-type-only failure
+record, without a retry, deletion or study restart.
+
+The Mac exclusively writes `intent.json`, exact raw `snapshot.json` bytes and
+one `evidence.tar.gz`. It requires the exact receipt, final marker, clean EOF
+and successful SSH exit. It then rereads that same archive with the strict
+member/hash/inventory/absence verifier, rechecks current operator inputs and
+retained file hashes, and only then writes `backup.json`. Python numeric types
+and nulls are preserved. A failed or uncertain transfer retains partial files
+and `failure.json`; it cannot automatically create another backup. The
+900-second whole-transfer bound is a reporting transport window, not a task
+deadline or model-request limit. Cleanup may terminate only the owned SSH
+client, never a native service or benchmark process.
+
+The new backup record deliberately differs from the old receipt schema. Its
+successful future Mac execution can assert `off_server_backup_verified:true`,
+but `paid_launch_ready:false`, `archive_export_and_handoff_integrated:false`
+and `full_runtime_restore_exercised:false` remain explicit. The native stream
+record does not claim an off-server copy. Neither record is a live successor
+witness, and unchanged predecessor readers still refuse the amended route.
+
+Tests exercise real temporary private files, synthetic 89-row phase/accounting
+evidence, tar/gzip bytes, competing local locks and harmless local subprocess
+pipes. Native service, context, Docker, SSH and lineage observations are mocked.
+Coverage includes true missing phases, exclusivity, partial transfers, unknown
+costs, source/result/inventory mutation, malformed framing, private-file drift,
+raw numeric-byte preservation and final commitment refusal. These tests do not
+establish native compatibility, a completed audit, a real backup or permission
+to start a repeat. Allowlisted public export, actual operator/native amended
+handoff integration and trusted repeat service operations remain unfinished.
