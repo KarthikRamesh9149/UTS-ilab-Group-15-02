@@ -1,6 +1,31 @@
 # Matched baseline repeats after custom final89
 
-Latest audit checkpoint, 29 September: the first actual completed-final audit
+Latest diagnostic checkpoint, 29 September: the user approved ONE read-only
+diagnostic audit at operator commit 94e4e99e91ab3981a1ed3732e32c2fc56e1b187a.
+It ran from 06:42:32 to 06:47:32 UTC and exceeded the unchanged 300-second
+reporting connection wait (`TimeoutExpired`). Metadata observations reached
+per-task evidence processing, but no successful completed audit was returned.
+Repeated stages were deduplicated and six unrecognised stderr records were
+suppressed; no final row count or remote failure stage is established. This
+does not explain the earlier generic failure or prove a longer wait sufficient.
+Eight local synthetic diagnostic-wrapper checks passed with original checks and
+bootstrap/main code retained; no installed or frozen source/evidence was edited.
+
+A process still using the execution root at 06:49:28 made the completion guard
+refuse. At 06:57:28 UTC, read-only checks found no cwd/exe match in the 12 study
+roots, no holder/waiter for 33 existing locks, matching 229 native/21 reporter
+bindings and a passing trusted completion guard. No signal/stop/restart was
+issued; no second collector, backup/export, recovery or baseline attempt began.
+A 07:00:36 UTC check repeated the passes and verified PID 1127965 no longer existed.
+The diagnostic authority is consumed. Await a reporting-only connection and
+diagnostics correction/one-further-audit decision, preserving existing roots.
+No wait extension or retry is automatic. Actual audit, ONE verified backup and
+export/push remain prerequisites; inspect the whole affected reporting route.
+The already approved three separate recovery attempts remain conditional on
+the original audit and backup and must not be asked for again or merged into
+the original 89. Keep the baseline schedules/order, VPS and hourly monitoring.
+
+Earlier audit checkpoint, 29 September: the first actual completed-final audit
 at f4e2ddd56584469aadb2023e36d858583b4fb8e8 returned `ValueError` at 06:16:00 UTC,
 without a successful audit result. Only the exception type was retained; the
 failed stage and cause are unestablished. No backup/export or repeat operation

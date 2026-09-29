@@ -1,6 +1,49 @@
 # Stage 2 execution status
 
-## Completed audit blocked; separate recovery approved, 29 September 2026
+## Latest: approved diagnostic audit timed out, 29 September 2026
+
+The user approved ONE read-only diagnostic audit. That invocation ran from
+06:42:32 to 06:47:32 UTC at operator commit
+94e4e99e91ab3981a1ed3732e32c2fc56e1b187a. The unchanged 300-second SSH/operator
+wait expired (`TimeoutExpired`, 300.07346 seconds) before any completed audit
+JSON returned. Metadata-only stage observations reached per-task phase evidence
+and row/accounting processing. Repeated stage events were deduplicated, so they
+do not establish a row count, the final active check, or a successful full audit.
+Six unrecognised stderr records were suppressed; their contents and any remote
+failure are unestablished. The earlier 06:16 failure remains independently
+unexplained. This diagnostic timeout does not retrospectively establish its cause.
+
+The temporary stdin observer retained the exact original bootstrap/main bodies,
+all evidence checks and existing operation/subprocess bounds. Eight local
+synthetic observer tests passed, including privacy, unchanged-code comparison,
+numeric types and a harmless timeout fixture. No installed reporting file,
+frozen source, permission, service or result was edited. This is diagnostic
+evidence, not successful audit, benchmark or qualification evidence.
+
+At 06:49:28 UTC, read-only metadata found an execution-root process still present
+(PID 1127965, parent PID 1); the completion guard correctly refused then. No
+holder/waiter existed for the 33 inspected ancestor locks. At 06:57:28 UTC,
+a further read-only check found no process with cwd/exe in the 12 inspected
+study/reporting roots, no held/waiting locks, and all 229 native and 21 reporting
+bindings matched. The trusted completion guard passed again. No signal, stop,
+restart or second collector was used. All three reporting backup-state paths
+remained absent. These point-in-time checks do not establish successful audit.
+A 07:00:36 UTC metadata check repeated those passes and explicitly confirmed
+that `/proc/1127965` no longer existed.
+
+The single diagnostic authority is consumed. No completed snapshot, backup,
+export, recovery or baseline repeat was obtained or started. A reporting-only
+connection/diagnostics correction and one further audit require a new decision;
+do not extend waits, retry, replace the reporting root or modify frozen evidence
+automatically. Review the whole audit/backup/export/handoff route before a change.
+The existing recovery approval remains valid after actual audit and verified
+backup; do not ask for it again. Keep the VPS and hourly notifications active.
+
+Latest benchmark metadata is the 06:33:33 UTC observation: 89/89 complete,
+50 passes, 36 verified zeros and three setup-only missing verifier outcomes,
+with no active task. These remain preliminary, not an audited final score.
+
+## Earlier audit blocker; separate recovery approved, 29 September 2026
 
 The first actual completed audit through `no_cutoff_final_reporting.collect`
 at operator commit f4e2ddd56584469aadb2023e36d858583b4fb8e8 returned a

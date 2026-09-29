@@ -1,6 +1,55 @@
 # Measured C0-NC final89
 
-## Latest: audit blocked; three separate retries approved, 29 September
+## Latest: one approved diagnostic audit timed out, 29 September
+
+The user approved the requested read-only diagnostic audit, and that single
+invocation has been consumed. At operator revision
+94e4e99e91ab3981a1ed3732e32c2fc56e1b187a it started at
+2026-09-29T06:42:32.385781+00:00 and returned operator `TimeoutExpired` at
+06:47:32.463888 UTC after 300.07346 seconds. The original five-minute reporting
+connection bound was unchanged; this was not a benchmark-task deadline.
+No completed audit JSON or saved snapshot was obtained.
+
+The observed audit reached per-task phase-evidence and row/accounting calls.
+The metadata observer deduplicated repeated call/return events; these events
+are not individual pass assertions or evidence that all 89 rows were audited.
+No validated final return or failure stage arrived. Six unrecognised stderr
+records were suppressed rather than published. Their contents are unknown.
+The earlier 06:16 generic failure remains unexplained; this later timeout does
+not prove the earlier cause, or that a longer wait alone would make the audit pass.
+
+The exact committed original bootstrap and main bodies were retained by the
+temporary stdin observer; no installed or frozen file was changed. All evidence
+checks, original interpreters/environment and subprocess bounds remained.
+The original generated program SHA256 was
+`a879a8607483dc9ae691a9bd45ace35a63bc19339a22a667ee56663e1f13d2ba`;
+the diagnostic stdin SHA256 was
+`4be6b4a4996123f273339629f79640fd50d04fb9c6e7c4d8a427df0d539cde15`.
+Eight local synthetic observer tests passed for privacy, exact original-code
+comparison, numeric preservation and harmless timeout behaviour. They are not
+native audit success or benchmark evidence; profiling can add overhead.
+
+Read-only metadata at 06:49:28 UTC found PID 1127965 (parent PID 1) still using
+the execution root. The completion guard refused while it was present, and no
+holder/waiter existed for 33 ancestor locks. At 06:57:28 UTC no cwd/exe matched
+any of the 12 inspected roots, all 33 locks remained unheld, and the trusted
+completion guard plus all 229 native and 21 reporting byte bindings passed.
+No process was signalled or stopped. Reporting backup intent/result/failure
+paths remained absent. A 07:00:36 UTC check repeated all those passes and
+explicitly verified that `/proc/1127965` no longer existed. The observed process
+has gone, but its audit did not return a verified result. No second collector,
+backup or export was invoked.
+
+The latest benchmark counts remain the 06:33:33 UTC read-only observation:
+89/89 complete, 50 passes, 36 verified zeros and three setup-only missing
+verifier outcomes, with no active task. No recovery or baseline repeat started.
+One separate retry per task 63-65 is already approved after the original audit
+and verified backup, retaining both sets of outcomes. That approval is not a
+completed prerequisite or authority to retry the audit automatically. A new
+reporting-only connection/diagnostics amendment and one further audit decision
+are required; the existing reporting root and original evidence stay intact.
+
+## Earlier: audit blocked; three separate retries approved, 29 September
 
 The first actual completed audit at operator commit
 f4e2ddd56584469aadb2023e36d858583b4fb8e8 returned `ValueError` at 06:16:00 UTC.
