@@ -20,14 +20,14 @@ import tarfile
 import no_cutoff_final_phase_audit as phase
 import no_cutoff_final_report as report
 
-KIND = 'c0_nc_final89_reporting_inventory_archive_v2'
+KIND = 'c0_nc_final89_reporting_environment_archive_v3'
 CHUNK = 64 * 1024
 # Parser window for the five pinned metadata anchors, not a task/model limit.
 ANCHOR_WINDOW = 64 * 1024 * 1024
 EXCLUDED = frozenset({'token', '.env', '.jwt_secret', 'id_ed25519', 'id_rsa', '__pycache__', '.DS_Store'})
 SNAPSHOT_FIELDS = frozenset({'kind', 'condition', 'registration', 'qualification_sha256', 'sources',
     'bindings', 'supporting_file_sha256', 'absent_paths', 'directory_entries', 'reporting_source_files',
-    'amendment', 'amendment_sha256', 'reporting_dependencies', 'preserved_result_files', 'service', 'model_protocol', 'policy',
+    'amendment', 'amendment_sha256', 'reporting_dependencies', 'reporting_environment', 'preserved_result_files', 'service', 'model_protocol', 'policy',
     'rows', 'aggregates', 'collected_utc', 'audit_checks', 'completed_final_audit', 'paid_launch_ready',
     'off_server_backup_verified', 'archive_export_and_handoff_integrated'})
 RECEIPT_FIELDS = frozenset({'kind', 'sha256', 'compressed_bytes', 'files', 'bytes', 'excluded',
@@ -194,6 +194,7 @@ def validate_snapshot(data, anchor_bytes):
     _same(data['amendment'], phase.contract()); _same(data['amendment_sha256'], phase.fingerprint(phase.contract()))
     _same(data['reporting_source_files'], reporting_sources())
     _same(data['reporting_dependencies'], report.dependencies.contract())
+    _same(data['reporting_environment'], report.guard.environment_contract())
     if any(n.removeprefix('stage2/') in proof['sources'] for n in report.dependencies.FILES):
         raise ValueError('Current helper inventory cannot alter original qualification')
     _same(data['audit_checks'], dict.fromkeys(report.CHECKS, True))
@@ -206,6 +207,7 @@ def validate_snapshot(data, anchor_bytes):
     required = {'stage2/' + n: h for n, h in proof['sources'].items()}
     report._merge(required, bindings); report._merge(required, report.HISTORICAL_INPUTS)
     report._merge(required, report.dependencies.FILES)
+    report._merge(required, report.guard.REPORTING_LIBRARY_FILES)
     if any(support.get(n) != h for n, h in required.items()):
         raise ValueError('Actual source/input/producer/historical byte bindings required')
     rows = data['rows']; collected = _utc(data['collected_utc'])

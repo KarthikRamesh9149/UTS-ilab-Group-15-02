@@ -85,6 +85,7 @@ def _bindings():
     if set(native) & set(report.dependencies.FILES):
         raise ValueError('New reporting helpers cannot be historical qualification bindings')
     native.update(report.dependencies.FILES)
+    native.update(guard.REPORTING_LIBRARY_FILES)
     for name, expected in report.dependencies.FILES.items():
         _raw(name, expected); local[name] = expected
         if hashlib.sha256(_git('show', report.dependencies.ORIGINAL_COMMIT + ':' + name)).hexdigest() != expected:
@@ -141,14 +142,16 @@ def _recheck(bindings):
 # Only stdlib executes before check(). All roots, maps and operations below
 # come from fresh fixed-path operator reads, never a saved caller receipt.
 _BOOTSTRAP = r'''
-import base64, contextlib, hashlib, json, os, stat, subprocess, sys
+import base64, contextlib, hashlib, json, os, stat, subprocess, sys, types
 from pathlib import Path
 c=CONFIG
 root=Path(c['root']); reporting=Path(c['reporting'])
 guard_raw=base64.b64decode(c['guard_source'],validate=True)
 if hashlib.sha256(guard_raw).hexdigest()!=c['reporting_files']['stage2/no_cutoff_final_guard.py']:
  raise ValueError('Exact committed pre-import guard required')
-guard={'__file__':str(reporting/'stage2/no_cutoff_final_guard.py')}
+guard_module=types.ModuleType('no_cutoff_final_guard')
+guard=guard_module.__dict__
+guard['__file__']=str(reporting/'stage2/no_cutoff_final_guard.py')
 exec(compile(guard_raw,'<source-bound-final-guard>','exec'),guard)
 dependency_raw=base64.b64decode(c['dependency_source'],validate=True)
 if hashlib.sha256(dependency_raw).hexdigest()!=c['reporting_files']['stage2/no_cutoff_final_dependencies.py']:
@@ -217,6 +220,8 @@ def inventory():
   if not p.is_dir() or st.st_uid!=os.getuid() or st.st_mode & 0o077 or {v.name for v in p.iterdir()}!=children:
    fail('Exact private reporting directory inventory required')
 def check(deployed=True):
+ if dict(os.environ)!=c['environment']: fail('Reporting environment changed')
+ guard['reporting_environment']()
  state=service()
  for name,sha in c['native_files'].items(): read(root,name,sha)
  if deployed:
@@ -227,7 +232,8 @@ def check(deployed=True):
  return state
 def loaded():
  expected={Path(name).name:(base,name,sha) for base,files in
-  ((root,c['native_files']),(reporting,c['reporting_files'])) for name,sha in files.items() if name.endswith('.py')}
+  ((root,c['native_files']),(reporting,c['reporting_files'])) for name,sha in files.items()
+  if name.startswith('stage2/') and name.endswith('.py')}
  for module in tuple(sys.modules.values()):
   filename=getattr(module,'__file__',None)
   if not filename: continue
@@ -282,6 +288,11 @@ def main():
    service=state,
    completed_final_audit=False,off_server_backup_verified=False,paid_launch_ready=False)
  os.chdir(root);sys.path[:0]=[str(reporting/'stage2'),str(root/'stage2')]
+ # The report/backup must see the SAME guard and latched hook state, not a
+ # second execution of its source with a fresh violation flag.
+ if 'no_cutoff_final_guard' in sys.modules: fail('Unexpected preloaded reporting guard')
+ sys.modules['no_cutoff_final_guard']=guard_module
+ guard['install_environment_guard']()
  # Suppress incidental library output, including raw diagnostics. Only the
  # validated amended metadata reaches the SSH stdout on successful completion.
  with open(os.devnull,'w') as quiet,contextlib.redirect_stdout(quiet),contextlib.redirect_stderr(quiet):
@@ -317,6 +328,7 @@ def main():
   # reporting file too, including source/tests not imported into this process.
   loaded();inventory()
   for name,sha in c['reporting_files'].items(): read(reporting,name,sha)
+  guard['reporting_environment']()
  return value
 try:
  value=main()

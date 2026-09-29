@@ -178,6 +178,9 @@ class BootstrapTests(unittest.TestCase):
         program=launch._program(self.bindings,operation)
         ns={};exec(compile(program.split('\ntry:\n value=main()')[0],'<synthetic-report-bootstrap>','exec'),ns)
         ns['guard'].update(ROOT=self.root,OWNER=os.getuid(),GROUP=os.getgid(),service=self.service)
+        # These bootstrap fixtures have no installed native libraries. Their
+        # actual protected-byte/environment checks have separate file tests.
+        ns['guard'].update(reporting_environment=Mock(),install_environment_guard=Mock())
         return ns
 
     def installed(self):
@@ -201,8 +204,8 @@ class BootstrapTests(unittest.TestCase):
         self.collector=collector
         validator=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_archive.py'),validate_snapshot=Mock())
         self.producer=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_backup.py'),stream=Mock())
-        fake.modules.update(no_cutoff_final_report=collector,no_cutoff_final_archive=validator,no_cutoff_final_backup=self.producer,
-            no_cutoff_final_guard=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_guard.py')))
+        fake.modules.update(no_cutoff_final_report=collector,no_cutoff_final_archive=validator,no_cutoff_final_backup=self.producer)
+        fake.modules.pop('no_cutoff_final_guard',None)
         fake.modules['no_cutoff_final_dependencies']=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_dependencies.py'))
         for module in report.dependencies.NATIVE_MODULES:
             fake.modules[module]=NS(__file__=str(self.root/'stage2'/(module+'.py')))
@@ -304,6 +307,39 @@ class BootstrapTests(unittest.TestCase):
         self.installed();value,collector,validator=self.main(self.namespace('collect'))
         collector.collect.assert_called_once_with();validator.validate_snapshot.assert_called_once_with(self.snapshot,{})
         self.assertIs(value,self.snapshot);self.assertGreaterEqual(self.service.call_count,4)
+
+    def test_import_environment_change_refuses_before_collector(self):
+        self.installed()
+        self.import_effect=lambda:os.environ.update(UNEXPECTED_REPORTING_VALUE='synthetic')
+        with self.assertRaisesRegex(ValueError,'environment changed'):
+            self.main(self.namespace('collect'))
+        self.collector.collect.assert_not_called()
+
+    def test_guard_is_installed_before_fixed_reader_imports(self):
+        self.installed();ns=self.namespace('collect')
+        def verify():
+            ns['guard']['install_environment_guard'].assert_called_once_with()
+            self.assertIs(ns['sys'].modules['no_cutoff_final_guard'].__dict__,ns['guard'])
+        self.import_effect=verify
+        self.main(ns)
+
+    def test_library_basename_is_not_mistaken_for_every_project_module(self):
+        name='.venv/lib/python3.12/site-packages/library/__init__.py'
+        path=self.root/name;path.parent.mkdir(parents=True);path.write_bytes(b'# synthetic library')
+        self.native[name]=hashlib.sha256(path.read_bytes()).hexdigest()
+        ns=self.namespace('collect')
+        ns['sys']=NS(modules={'other_library':NS(__file__='/other/site-packages/package/__init__.py')})
+        ns['loaded']()  # Only the separate fixed library-origin checker owns library paths.
+
+    def test_environment_refusal_after_collector_prevents_completed_reply(self):
+        self.installed();ns=self.namespace('collect');state={'failed':False}
+        def environment():
+            if state['failed']: raise ValueError('Latched environment failure')
+        def preload():
+            self.collector.collect.side_effect=lambda:state.update(failed=True) or self.snapshot
+        self.import_effect=preload;ns['guard']['reporting_environment']=environment
+        with self.assertRaisesRegex(ValueError,'Latched environment'):
+            self.main(ns)
 
     def test_binary_backup_enters_fixed_producer_not_a_saved_audit(self):
         self.installed();value,collector,validator=self.main(self.namespace('backup'))

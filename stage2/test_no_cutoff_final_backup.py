@@ -124,6 +124,16 @@ class BackupTests(unittest.TestCase):
         with patch.object(backup, '_pack', side_effect=packed), self.assertRaises(ValueError): backup.stream()
         self.assertFalse(self.output.getvalue().endswith(backup.END))
 
+    def test_caught_environment_refusal_after_stream_prevents_receipt(self):
+        original = backup._pack
+        def packed(*args):
+            value = original(*args)
+            report._context.side_effect = ValueError('latched environment refusal')
+            return value
+        with patch.object(backup, '_pack', side_effect=packed), self.assertRaises(ValueError): backup.stream()
+        self.assertFalse(self.output.getvalue().endswith(backup.END))
+        self.assertTrue((self.reporting / backup.STATE[2]).exists())
+
     def test_new_private_log_after_stream_is_detected(self):
         original = backup._pack
         def packed(*args):

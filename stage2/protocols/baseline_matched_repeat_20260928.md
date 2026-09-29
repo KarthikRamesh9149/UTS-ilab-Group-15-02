@@ -1,5 +1,39 @@
 # Matched baseline repeats after custom final89
 
+Latest reporting checkpoint, 29 September: the approved version-2 installation
+at2fbdc938 succeeded at12:34:30UTC, but its one audit failed at12:35:39UTC at the
+pre-collector exact-environment check after native-reader imports. There is no
+completed audit, backup, public export or repeat. All older failures and both
+installed reporter roots remain retained, with process absence and exact bytes
+verified by read-only inspection. The failure is not the earlier timeout or
+final loaded-source refusal.
+
+The [version-3 environment amendment](custom_final_reporting_environment_20260929.md)
+is locally verified, not installed. It prevents automatic dotenv loading,
+fixes the bundled tokenizer path, preserves exact environment equality and
+shares a latched guard across actual report/backup consumers. Three current
+library-control hashes are separately bound through audit/archive/export/handoff;
+this is neither full installed-library inventory nor historical attestation.
+The original211 qualification and all frozen execution/result bytes stay intact.
+The new candidate has32reporting files and237expected native bindings. All
+original lineage/lock/source/official-limit/accounting/cleanup/absence checks
+remain. A new exclusive root/state will be used; no failed operation is resumed.
+
+The user authorised routine needed in-scope corrections without repeated
+approval prompts. Source-bound final local gates and push still precede any new
+native operation. Final local discovery ran 2,566 tests (2,565 passed, one
+pre-existing skip); all 1,060 guarded regressions passed with zero skips/errors/
+failures. Their 300 stage2 bindings include 296 prospective sources plus four
+metadata files; 191 loaded project modules were checked at completion. The
+stable focused 127-test run and 12 repository tests passed. The new root is not
+installed and no new audit authority is consumed
+by these tests. No recovery or baseline task has started. Last normal11:51:02UTC
+preliminary metadata remains89/89,50passes,36verifiedzeros,3missing verifier
+outcomes,no active task. Recovery63-65 stays separately approved after original
+audit/backup and qualification; both fixed baseline schedules/order remain
+unchanged. The VPS and explicit hourly notifications remain active. All older
+checkpoint descriptions below are historical where superseded.
+
 Latest local correction, 29 September: the explicit
 [reporting-inventory amendment](custom_final_reporting_inventory_20260929.md)
 is implemented through actual audit/archive/backup/export/live-handoff consumers.

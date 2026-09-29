@@ -1,5 +1,66 @@
 # Measured C0-NC final89
 
+## Latest: retained version-2 failure and environment correction
+
+The explicitly approved installation of revision
+`2fbdc93892ee7189f11d84103edf577948488e7e` completed at
+12:34:30.235117 UTC on 29 September, exclusively creating the 28-file
+`/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r2` tree.
+The original ea543e4 21-file reporter and frozen final execution were unchanged.
+
+The one-shot inventory audit began at 12:35:13.759943 UTC and failed at
+12:35:39.939645 UTC. Native ValueError occurred after 9.862414 seconds; SSH
+exited 1 after 16.353344 transport seconds, with zero stdout and zero redacted
+stderr. Exact frames: bootstrap158, report.collect310, report._context88.
+This rejects the exact environment/absent-cache condition after fixed reader
+preload but BEFORE collector lineage authentication, locks or the89-row audit.
+It is neither a timeout nor the earlier final loaded-module failure.
+
+The new private audit directory contains only intent.json/failure.json, both
+0600 under0700; no snapshot/result exists. At12:37:27.883138UTC, read-only
+inspection verified PID1155311 absent, all234 native/28 version-2/21 original
+reporter bindings, fresh completion/protection checks, and absent backup state
+in both reporters. No native operation remained from that audit at that check.
+
+Local isolated imports added OPENROUTER_API_KEY and TIKTOKEN_CACHE_DIR; no values
+were printed or transmitted and no provider call occurred. Native source reads
+at12:43:47UTC confirmed the default dotenv/cache behaviour; native .env contents
+were NOT read, only path presence. The failed audit did not retain its exact
+native environment delta. Earlier failures are not retrospectively assigned
+this cause or claimed credential-free merely because their initial env was empty.
+Guarded import-only native checks at12:45:48 and12:47:09UTC preserved the proposed
+fixed environment, with no credential reads, collector or writes. They blocked
+urllib3's IPv6 capability bind; this is diagnostic evidence, not a full audit.
+
+The [version-3 amendment](../../protocols/custom_final_reporting_environment_20260929.md)
+uses a new exclusive r3 root and environment-audit state. It disables dotenv
+before imports, preselects the actual bundled cache, keeps exact environment
+checks and shares a latched guard through audit/backup. Three current library
+control sources join actual supporting reads, archive members and final rereads;
+the separate public contract disclaims historical/full-library attestation.
+All original source, outcome, limit, lock, lineage and evidence checks remain.
+The original 211-file qualification is not modified. Both old installations
+and failed states stay intact; nothing is cleared, overwritten or replayed.
+
+Routine in-scope correction authority is now valid without another approval
+question. Version 3 is locally implemented, not installed. Final discovery ran
+2,566 tests: 2,565 passed and one pre-existing skip. All 1,060 guarded regressions
+passed without skips/errors/failures, checking 300 stage2 bindings (296
+prospective sources plus four metadata files) before discovery, after discovery
+and after execution. Loaded-module counts were 130, 188 and 191 respectively.
+The stable 127-test focused run and all 12 repository tests also passed.
+Two overlapping development runs caught source changes during their archive
+fixtures and refused matching; those failures were not bypassed. Final gates
+must use one unchanged candidate. Local tests are not native audit success.
+
+No successful final audit, final backup/archive, public export, recovery or
+baseline repeat exists. Last normal read-only progress is11:51:02.520602UTC:
+89/89 complete,50passes,36verifiedzeros,3setup-only missing verifier outcomes,
+no active/partial task,211sources matching,89revocations,no stop. Preliminary
+counts remain distinct from an audited score. The approved recovery 63-65 stays
+separate after audit/backup and qualification; no guaranteed success or merging.
+Keep the VPS and hourly notifications. Older checkpoints below are historical.
+
 ## Latest: separate version-2 reporting candidate, 29 September 2026
 
 The [explicit inventory amendment](../../protocols/custom_final_reporting_inventory_20260929.md)

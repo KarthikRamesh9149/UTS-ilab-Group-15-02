@@ -24,14 +24,16 @@ import no_cutoff_final_guard as guard
 import no_cutoff_final_dependencies as dependencies
 
 ROOT = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
-REPORTING = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r2')
+REPORTING = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r3')
 SERVICE = 'uts-stage2-custom-no-cutoff-final-20260928.service'
-KIND = 'completed_c0_nc_final89_reporting_inventory_v2'
+KIND = 'completed_c0_nc_final89_reporting_environment_v3'
 REPORTING_FILES = ('no_cutoff_final_report.py', 'test_no_cutoff_final_report.py',
     'no_cutoff_final_guard.py', 'test_no_cutoff_final_guard.py',
     'no_cutoff_final_dependencies.py', 'test_no_cutoff_final_dependencies.py',
     'no_cutoff_final_transport.py', 'test_no_cutoff_final_transport.py',
     'no_cutoff_final_inventory_audit.py', 'test_no_cutoff_final_inventory_audit.py',
+    'no_cutoff_final_environment_audit.py', 'test_no_cutoff_final_environment_audit.py',
+    'test_no_cutoff_final_environment.py', 'protocols/custom_final_reporting_environment_20260929.md',
     'protocols/custom_final_reporting_inventory_20260929.md',
     'no_cutoff_final_backup.py', 'test_no_cutoff_final_backup.py',
     'no_cutoff_final_backup_operator.py', 'test_no_cutoff_final_backup_operator.py',
@@ -61,15 +63,14 @@ CHECKS = ('exact_registered_coverage', 'qualification_source_runtime_binding',
     'original_results_unchanged', 'frozen_dataset_bytes', 'official_limits',
     'trace_identities_and_rewards', 'cleanup_and_revocation', 'service_exited',
     'no_owned_resources', 'corroborated_phase_absence', 'supporting_bytes_reread',
-    'actual_passive_accounting', 'separate_reporting_sources', 'current_reporting_dependencies')
+    'actual_passive_accounting', 'separate_reporting_sources', 'current_reporting_dependencies',
+    'credential_free_reporting_environment', 'current_reporting_library_controls')
 ROW_FIELDS = phase.ROW_FIELDS | {'started_utc', 'official_cpus', 'official_memory_mb',
     'accepted_model_responses', 'interrupted_requests', 'error_requests', 'other_unaccepted_requests',
     'http_429_requests', 'transport_error_requests', 'retry_records', 'known_cost_usd',
     'total_cost_usd', 'unknown_cost_requests', 'known_input_tokens', 'input_tokens',
     'known_output_tokens', 'output_tokens', 'cleanup_complete', 'model_revoked'}
-ENVIRONMENT = dict(PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-    LANG='C.UTF-8', DOCKER_HOST='unix:///var/run/docker.sock', DOCKER_CONFIG='/dev/null',
-    LITELLM_LOCAL_MODEL_COST_MAP='True')
+ENVIRONMENT = dict(guard.ENVIRONMENT)
 
 
 def _context():
@@ -86,6 +87,7 @@ def _context():
             or (REPORTING / '.absent-bytecode-cache').exists()
             or (REPORTING / '.absent-bytecode-cache').is_symlink()):
         raise ValueError('Credential-free fixed environment and absent bytecode prefix required')
+    guard.reporting_environment()
     for directory in (ROOT, REPORTING):
         phase._path(directory, 'stage2')
 
@@ -153,6 +155,8 @@ def _anchors():
     if any(name.removeprefix('stage2/') in proof['sources'] for name in dependencies.FILES):
         raise ValueError('Current reporting helpers must not rewrite historical qualification')
     for name, sha in dependencies.FILES.items():
+        phase._file(ROOT, name, files, expected=sha)
+    for name, sha in guard.REPORTING_LIBRARY_FILES.items():
         phase._file(ROOT, name, files, expected=sha)
     return proof, block, host, files
 
@@ -311,6 +315,7 @@ def collect():
     reporting = _reporting_sources()
     proof, block, host, files = _anchors()
     native = _native()
+    _context()  # Imports must preserve the exact environment, before lineage.
     native.runtime.loaded_sources(ROOT, proof['sources'])
     _loaded(proof, reporting)
     # authenticate takes its own ancestor locks. Never move it inside lock_all.
@@ -363,13 +368,14 @@ def collect():
             phase._file(ROOT, name, {}, expected=sha)
         if reporting != _reporting_sources():
             raise ValueError('Separate reporting bundle changed during audit')
-        native.runtime.loaded_sources(ROOT, proof['sources']); _loaded(proof, reporting); _stops()
+        native.runtime.loaded_sources(ROOT, proof['sources']); _loaded(proof, reporting); _stops(); _context()
         return dict(kind=KIND, condition='C0-NC', registration=block,
             qualification_sha256=phase.QUALIFICATION, sources=proof['sources'],
             bindings={n: files[n] for n in files if n in proof['evidence_files'] or n in {phase.RT + k for k in INPUTS}},
             supporting_file_sha256=files, absent_paths=sorted(absent), directory_entries=directories,
             reporting_source_files=reporting, amendment=phase.contract(),
             reporting_dependencies=dependencies.contract(),
+            reporting_environment=guard.environment_contract(),
             amendment_sha256=phase.fingerprint(phase.contract()), preserved_result_files=preserved,
             service=state, model_protocol=native.policy.SETTINGS.document(), policy=native.policy.POLICY,
             rows=rows, aggregates=dict(full89=aggregate(rows), development20=aggregate(rows[:20]),

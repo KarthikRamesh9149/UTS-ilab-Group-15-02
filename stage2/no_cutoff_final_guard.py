@@ -26,7 +26,19 @@ SUCCESS_ID = '7ad2d189f7e94e70a38c781354912448'
 USAGE_ID = 'ae8f7b866b0347b9af31fe1c80b127c0'
 ENVIRONMENT = dict(PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
     LANG='C.UTF-8', DOCKER_HOST='unix:///var/run/docker.sock', DOCKER_CONFIG='/dev/null',
-    LITELLM_LOCAL_MODEL_COST_MAP='True')
+    LITELLM_LOCAL_MODEL_COST_MAP='True', LITELLM_MODE='PRODUCTION', PYTHON_DOTENV_DISABLED='1',
+    TIKTOKEN_CACHE_DIR=str(ROOT / '.venv/lib/python3.12/site-packages/litellm/litellm_core_utils/tokenizers'))
+# CURRENT reporting controls, observed on 29 September. These are not a full
+# installed-library inventory or retrospective paid-execution byte attestation.
+REPORTING_LIBRARY_FILES = {
+    '.venv/lib/python3.12/site-packages/litellm/__init__.py':
+        'abafee5ee09ae560ad06daa9d3577e2cba884c62a9431930351bb0da568f916f',
+    '.venv/lib/python3.12/site-packages/litellm/litellm_core_utils/default_encoding.py':
+        'ba2243d5fdd97a49656b6262519ed67872adf49ea19e864dd71bfaf43d68b895',
+    '.venv/lib/python3.12/site-packages/dotenv/main.py':
+        '697eb33eee75d78b73db61eaf96bf9a6547548c1811c93501b67e056e5470dea'}
+_ENVIRONMENT_VIOLATION = False
+_ENVIRONMENT_GUARD_INSTALLED = False
 PROC = Path('/proc')
 CGROUP = Path('/sys/fs/cgroup/system.slice') / SERVICE
 WINDOW = 1024 * 1024  # Manager metadata only; not a benchmark/request bound.
@@ -97,6 +109,66 @@ def protected_file(root, name, info, *, private=False):
         mask = 0o077 if private else 0o022
     if info.st_mode & mask:
         _fail()
+
+
+def environment_contract():
+    return dict(kind='current_reporting_import_environment_v1',
+        dotenv_disabled=True, litellm_mode='PRODUCTION',
+        tokenizer_cache_directory='.venv/lib/python3.12/site-packages/litellm/litellm_core_utils/tokenizers',
+        library_source_files=dict(REPORTING_LIBRARY_FILES),
+        historical_installed_bytes_attested=False, full_runtime_library_inventory=False,
+        frozen_libraries_modified=False)
+
+
+def reporting_environment():
+    """Exact environment and real current control bytes, never clear-and-accept."""
+    if _ENVIRONMENT_VIOLATION or dict(os.environ) != ENVIRONMENT:
+        _fail()
+    for name, expected in REPORTING_LIBRARY_FILES.items():
+        protection = protected_path(ROOT, name); path = ROOT / name
+        with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as stream:
+            before = os.fstat(stream.fileno()); protected_file(ROOT, name, before)
+            raw = stream.read(WINDOW + 1); after = os.fstat(stream.fileno())
+        if (len(raw) > WINDOW or hashlib.sha256(raw).hexdigest() != expected
+                or identity(before) != identity(after) or identity(after) != identity(path.lstat())
+                or protected_path(ROOT, name) != protection):
+            _fail()
+    name = environment_contract()['tokenizer_cache_directory']
+    protected_path(ROOT, name)
+    if not (ROOT / name).is_dir() or ENVIRONMENT['TIKTOKEN_CACHE_DIR'] != str(ROOT / name):
+        _fail()
+    # Verify actual loaded origins separately from project basename matching:
+    # library __init__.py/main.py are not unique project module names.
+    for module, name in zip(('litellm', 'litellm.litellm_core_utils.default_encoding', 'dotenv.main'),
+            REPORTING_LIBRARY_FILES):
+        loaded = sys.modules.get(module)
+        if loaded is not None and Path(getattr(loaded, '__file__', '')).absolute() != ROOT / name:
+            _fail()
+
+
+def _environment_event(event, args):
+    """Defence in depth in this interpreter, not an OS or child-process sandbox."""
+    global _ENVIRONMENT_VIOLATION
+    refused = False
+    if event == 'open' and isinstance(args[0], (str, bytes, os.PathLike)):
+        name = Path(os.fsdecode(args[0])).name
+        refused = name == '.env' or name.startswith('.env.') or name in ('.jwt_secret', 'id_ed25519', 'id_rsa')
+    elif event == 'os.putenv':
+        key, value = (os.fsdecode(v) for v in args)
+        refused = key not in ENVIRONMENT or value != ENVIRONMENT[key]
+    elif event == 'os.unsetenv':
+        refused = True
+    if refused:
+        _ENVIRONMENT_VIOLATION = True
+        _fail()  # Never return the key, value, path, or credential bytes.
+
+
+def install_environment_guard():
+    global _ENVIRONMENT_GUARD_INSTALLED
+    reporting_environment()
+    if not _ENVIRONMENT_GUARD_INSTALLED:
+        sys.addaudithook(_environment_event)
+        _ENVIRONMENT_GUARD_INSTALLED = True
 
 
 def _pairs(pairs):

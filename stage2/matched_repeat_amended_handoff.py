@@ -209,6 +209,7 @@ def _anchors(root, original, final, harness, header):
     native.update({phase.RT + n: h for n, h in report.INPUTS.items()})
     native.update(final['evidence_files']); native.update(report.HISTORICAL_INPUTS)
     report._merge(native, report.dependencies.FILES)
+    report._merge(native, report.guard.REPORTING_LIBRARY_FILES)
     return dict(data=data, backup=backup, document=document, anchors=anchors, sources=current,
         copied=copied, native=native, reporting_state=_reporting(data, backup))
 

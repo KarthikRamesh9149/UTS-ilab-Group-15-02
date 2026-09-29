@@ -1,5 +1,41 @@
 # Stage 2 execution status
 
+## Latest: version-2 installed; environment correction locally verified
+
+The approved version-2 installation at 2fbdc938 succeeded at 12:34:30 UTC on
+29 September. Its single audit failed at 12:35:39 UTC at the exact environment
+check, after reader preload and before lineage authentication or the result
+audit. It was not a timeout. No completed snapshot, backup or export exists.
+The 28-file version-2 and original 21-file installations, and both failed-audit
+states, remain unchanged. Read-only checks verified the audit process absent
+and all 234 native, 28 version-2 and 21 original reporter bytes intact.
+
+The [environment amendment](protocols/custom_final_reporting_environment_20260929.md)
+addresses observed import-time dotenv loading and tokenizer-cache assignment.
+Version 3 disables dotenv before imports, sets the fixed existing cache path,
+retains exact environment equality and latches credential-read/environment
+violations across the launcher and producer. Three current library-control
+sources are separately hashed, archived and reread. This is not a full library
+inventory or historical installed-byte proof, and the original 211-file
+qualification is unchanged. No frozen source, permission, library or result is
+edited. The proposed new root ends in `20260929-r3`; it is not installed yet.
+
+The user has authorised needed routine in-scope corrections without further
+approval prompts. One new protected installation/audit can follow final local
+gates, source binding and push. Existing/partial roots and audit states remain
+terminal; there is no automatic retry loop. Final discovery ran 2,566 tests:
+2,565 passed and one pre-existing skip. All 1,060 guarded regressions passed
+without skips/errors/failures, with 300 stage2 bindings (296 prospective sources
+plus four metadata files) and 191 loaded project modules at the final check.
+The stable focused 127-test run and all 12 repository tests passed too. Tests
+remain local/synthetic, not native audit or benchmark evidence.
+
+Last normal progress observation: 11:51:02 UTC, 89/89 complete, 50 passes,
+36 verified zero-score failures, three setup-only missing verifier outcomes,
+no active or partial task. These remain preliminary, not audited final scores.
+Recovery63-65 and both baseline repeats have not started. Keep the VPS and
+explicit hourly notifications active. Earlier checkpoints are historical.
+
 ## Latest: version-2 reporting correction prepared locally, 29 September 2026
 
 The explicit [source-inventory amendment](protocols/custom_final_reporting_inventory_20260929.md)

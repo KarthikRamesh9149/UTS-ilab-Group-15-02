@@ -34,6 +34,9 @@ class CompletedAuditTests(unittest.TestCase):
         self.enterContext(patch.object(report, '_loaded'))
         for name, sha in report.dependencies.FILES.items():
             self.assertEqual(self.f.write(name, (fixtures.STAGE / name.removeprefix('stage2/')).read_bytes()), sha)
+        controls = {name: self.f.write(name, b'synthetic reporting control ' + name.encode())
+            for name in report.guard.REPORTING_LIBRARY_FILES}
+        self.enterContext(patch.object(report.guard, 'REPORTING_LIBRARY_FILES', controls))
         self.service = self.enterContext(patch.object(report, '_service', return_value=dict(
             LoadState='not-found', ActiveState='inactive', SubState='dead', MainPID='0', ExecMainStatus='0',
             completion=report.guard.completion_metadata())))
@@ -363,6 +366,7 @@ class ReadOnlyBoundaryTests(unittest.TestCase):
             stack.enter_context(patch.object(report.os, 'getuid', return_value=0))
             stack.enter_context(patch.object(report.Path, 'cwd', return_value=root))
             stack.enter_context(patch.dict(os.environ, report.ENVIRONMENT, clear=True))
+            stack.enter_context(patch.object(report.guard, 'reporting_environment'))
             yield bundle
 
     def test_native_context_requires_separate_bundle_original_interpreter_and_clean_environment(self):

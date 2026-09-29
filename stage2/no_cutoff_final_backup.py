@@ -138,6 +138,7 @@ def _observations(native, data, document, authenticated):
     archive._same(report._coverage(native, data['registration']), complete)
     native.original.recheck(report.ROOT, document, authenticated)
     _recheck(data)
+    report._context()  # Only the original-interpreter producer, not generic handoff rereads.
     report._loaded({'sources': data['sources']}, data['reporting_source_files'])
 
 
@@ -239,6 +240,7 @@ def stream():
             for name in STATE[1:]:
                 if phase._path(report.REPORTING, name).exists(): raise ValueError('Backup state appeared during streaming')
             archive._receipt(data, receipt)
+            report._context()
             _save(report.REPORTING, STATE[1], dict(kind='native_amended_archive_streamed_not_off_server_proof',
                 receipt=receipt, automatic_resume=False, off_server_backup_verified=False, paid_launch_ready=False))
             # This terminal receipt/marker is emitted only after all rereads.
