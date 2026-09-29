@@ -1,5 +1,15 @@
 # Matched baseline repeats after custom final89
 
+Recovery locked-session checkpoint, 29 September: the separate
+[C0-NC prerequisite session](custom_setup_recovery_session_20260929.md) now
+connects real handoff/runtime reader calls under the full ancestor lock chain.
+It remains local implementation, not native invocation, qualification or paid
+admission. Both handles die before unlock, including partial acquisition and
+cancellation. No baseline or archived reader changes. Recovery remains 0/3;
+both fixed baseline repeats remain unstarted. Trusted service, actual native
+image/producer qualification, durable observer/scored integration, dispatcher
+and separate recovery audit/ONE backup/export remain required.
+
 Recovery runtime checkpoint, 29 September: the separate
 [C0-NC current host/library reader](custom_setup_recovery_runtime_20260929.md)
 is now locally implemented. It compares actual original/recovery library bytes

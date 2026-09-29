@@ -1,10 +1,63 @@
 # Separate C0-NC setup recovery
 
 Status: diagnosis and fixed plan published; separate setup observer, policy,
-gateway, original-evidence handoff and current host/library reader implemented locally. **0/3 recovery attempts started.** No native recovery qualification,
-registration or paid admission has occurred.
+gateway, original-evidence handoff, current host/library reader and locked
+prerequisite session implemented locally. **0/3 recovery attempts started.**
+No native recovery qualification, registration or paid admission has occurred.
 
 ## Current implementation checkpoint
+
+The [locked session](../../protocols/custom_setup_recovery_session_20260929.md)
+now connects the actual recovery handoff and host/library readers. The fresh
+original audit and same-retained-archive authentication precede all ancestor
+locks; actual source/input/runtime/library rechecks occur under them. The
+complete 34-lock sequence matches the unchanged inherited order plus original
+final locks. Existing private lock files are checked, never created or changed.
+Descriptors and identities stay bound; lock loss and contention refuse.
+
+Both session and handoff witness are bound to the owning process, main thread
+and async task, and are invalidated before releasing any lock, including partial
+entry failure and cancellation. Source/private file identities also detect
+same-byte replacement. Descriptions are non-admitting deep copies. There is no
+saved-witness, qualification, registration, paid permit or replay entry.
+
+The current union is 283 sources. All 215 affected checks passed, including
+36 new tests with actual local protected files/pipes/locks and mocked native
+observations; none is native
+qualification. The initial local cache-path and symlink-error fixture failures
+were corrected without changing evidence requirements. Earlier recovery
+components, original 211 (apart from the prior local scored delta), archived35
+reporter and all published result/plan bytes remain unchanged.
+
+A wider draft run correctly refused shared temporary-parent identity drift
+from another concurrent local suite. The new fixture now has a stable owned
+parent; final suites use separate temporary directories. Two other local draft
+gates were interrupted for this correction, not counted as passed. No native
+signal or evidence-check relaxation occurred.
+The first `/tmp` isolation choice also inherited the wrong local group and was
+correctly rejected. The harness now uses owned, group-matched directories under
+the normal user temporary location. The 36 new tests passed in that environment
+before wider gates restarted; production ownership checks remain unchanged.
+
+Final local gates: all 607 recovery regressions passed with zero skips/errors/
+failures, 283 source bindings and 187 final loaded project modules. The combined
+broader set passed all 1,675 tests with zero skips/errors/failures, 326 source
+bindings and 245 final loaded modules. Both guarded runs checked sources before
+discovery, after discovery and after execution. Full discovery ran 2,842 tests:
+2,841 passed and one pre-existing skip; all 424 Python source hashes were
+unchanged at those checkpoints. No provider call or native qualification
+occurred; wider mocked lifecycle completion lines are not study outcomes.
+
+The read-only inspector at 19:39:50 UTC on 29 September confirmed original
+89/89 complete, 50 passes, 36 verified failures, 3 missing verifier outcomes,
+no active/partial task and all 211 sources matching. Recovery 0/3 and both
+baseline repeats remain unstarted. No actual native recovery session, collector,
+archive read, new root/service/image/qualification/registration or provider
+request occurred. Trusted pinned SSH/service wiring, actual new-root absence,
+durable observer/scored integration, genuine native regressions/six cases,
+sequential dispatch and separate completed report/ONE backup/export remain.
+
+## Earlier host/library checkpoint
 
 The [current host/library reader](../../protocols/custom_setup_recovery_runtime_20260929.md)
 requires the actual live handoff witness and current original/recovery C0-NC

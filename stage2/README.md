@@ -1,6 +1,64 @@
 # Stage 2 execution status
 
-## Latest: recovery-specific current host and library reader implemented locally
+## Latest: recovery-only locked prerequisite session implemented locally
+
+The new [locked session](protocols/custom_setup_recovery_session_20260929.md)
+consumes the actual recovery handoff before taking the complete 34-lock chain:
+33 existing ancestor locks and the new recovery matrix lock, in the original
+order. It then calls the real current C0-NC host/library reader under those
+locks. Source/private raw bytes, identities and loaded origins are checked on
+entry, during rechecks and at normal exit. Both live handles are invalidated
+before unlocking on success, failure, cancellation or partial acquisition.
+Nonblocking contention, replacement or loss of a held lock refuses; lock files
+are never created, written, replaced or chmodded by this component.
+
+This is LOCAL implementation, not an actual native session or qualification.
+It accepts no saved witness, root override, factory or authentication callback,
+and exposes no registration, qualification-verification or paid-dispatch entry.
+Actual pinned SSH/service wiring and genuine native image/producer verification
+remain required. Recovery remains 0/3 started; both baseline repeats remain
+unstarted. The source union is 283 files, adding only the session, its tests and
+protocol. Only the policy source inventory/test list changes; all earlier
+recovery components, archived 35-file reporter and original evidence are intact.
+
+All 215 affected checks passed, including 36 new tests with real temporary
+files, pipes, competing locks and async cancellation. Native audits/services/host/library observations
+are mocked. The isolated import child refuses credential reads, writes,
+processes and networking. Initial fixture errors concerned the local tokenizer
+cache path and an OS-level symlink refusal; both were corrected without
+relaxing production checks. Review ensured partial lock acquisition also
+invalidates the witness before any descriptor is released.
+
+A wider development run correctly refused a changed shared temporary-parent
+identity while another local suite created files there. The fixture now uses
+an owned stable parent, and wider suites use separate temporary directories.
+The other two local draft gates were interrupted before that fixture correction;
+they are not passed checks. No native process was signalled or guard relaxed.
+An initial `/tmp` isolation directory inherited group 0 instead of the local
+process's group 20, causing the ownership checks to refuse. The final harness
+uses separate owned directories under the user's normal temporary location;
+all 36 new tests passed there before restarting the wider gates. No source or
+ownership check was weakened to accommodate that harness error.
+
+Final local gates passed all 607 recovery regressions (283 bindings, 187 final
+loaded project modules) and all 1,675 combined broader regressions (326 source
+bindings, 245 final loaded modules), with zero skips/errors/failures. Both
+checked source bytes before discovery, after discovery and after execution.
+Full discovery ran 2,842 tests: 2,841 passed and one pre-existing skip, with
+unchanged hashes over 424 Python files at all three checkpoints. These are
+local/synthetic checks, not native qualification or paid evidence; mocked
+lifecycle completion output does not add study outcomes.
+
+The only native operation was the existing read-only progress inspector at
+**19:39:50 UTC on 29 September**: **89/89 complete, 50 passed, 36 verified
+failures, 3 missing verifier outcomes**, no active/partial task and all 211
+source bytes matching. No collector, real archive read, installation, native
+session, image build, qualification, registration, recovery attempt or provider
+request occurred. Actual new-root absence, trusted service/scored integration,
+durable setup observations, six genuine native cases, one-shot dispatcher and
+separate completed reporting/ONE backup/export remain unfinished. Keep the VPS.
+
+## Earlier checkpoint: recovery-specific current host and library reader
 
 The separate [host/library component](protocols/custom_setup_recovery_runtime_20260929.md)
 now requires a live original-evidence witness and actual C0-NC host, dependency,
