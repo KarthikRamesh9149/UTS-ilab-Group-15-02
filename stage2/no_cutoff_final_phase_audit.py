@@ -14,9 +14,9 @@ import math
 import os
 from pathlib import Path, PurePosixPath
 import re
-import stat
 
 import local_trace
+import no_cutoff_final_guard as guard
 
 KIND = 'no_cutoff_final_phase_evidence_not_completed_audit'
 AMENDMENT = 'c0-nc-final-setup-only-reporting-v1'
@@ -98,6 +98,7 @@ def _path(root, name):
         raise ValueError('Normalised relative evidence path required')
     if not root.is_absolute() or root.is_symlink() or root.resolve() != root or not root.is_dir():
         raise ValueError('Regular canonical evidence root required')
+    guard.protected_path(root, name)
     current = root
     for part in name.split('/'):
         current /= part
@@ -107,17 +108,17 @@ def _path(root, name):
 
 
 def _file(root, name, files, *, parse=False, expected=None):
+    protection = guard.protected_path(root, name)
     path = _path(root, name)
     try:
-        with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW), 'rb') as stream:
+        with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as stream:
             before = os.fstat(stream.fileno())
-            if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
-                    or name.startswith('.runtime/') and (before.st_uid != os.getuid() or before.st_mode & 0o077)):
-                raise ValueError('Owned private single-link phase evidence required')
+            guard.protected_file(root, name, before)
             raw = stream.read() if parse else None
             sha = hashlib.sha256(raw).hexdigest() if parse else hashlib.file_digest(stream, 'sha256').hexdigest()
             after = os.fstat(stream.fileno())
-        if (before.st_size, before.st_mtime_ns, before.st_ino) != (after.st_size, after.st_mtime_ns, after.st_ino):
+        if (guard.identity(before) != guard.identity(after) or guard.identity(after) != guard.identity(path.lstat())
+                or protection != guard.protected_path(root, name)):
             raise ValueError('Phase evidence changed while reading')
     except OSError as error:
         raise ValueError('Required phase evidence unavailable') from error
@@ -143,6 +144,7 @@ def _inventory(root, name, absent, directories, *, optional=False):
 
 def _reporting_sources():
     paths = {'no_cutoff_final_phase_audit.py': Path(__file__), 'local_trace.py': Path(local_trace.__file__),
+        'no_cutoff_final_guard.py': Path(guard.__file__),
         'protocols/custom_final_phase_reporting_20260928.md': Path(__file__).parent / 'protocols/custom_final_phase_reporting_20260928.md'}
     result = {}
     for name, path in paths.items():

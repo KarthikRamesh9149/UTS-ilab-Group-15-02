@@ -1,5 +1,40 @@
 # Stage 2 execution status
 
+## Approved reporting compatibility work, 29 September 2026
+
+The user approved the reporting-only correction and ONE new installation
+attempt after validation. The guard now requires the original trusted systemd
+manager start/success records and boot/invocation, inactive/dead state, absent
+service cgroup and no other execution-tree process. Actual LoadState is retained;
+not-found/default exit zero is never used alone as successful-execution proof.
+The narrow file rule retains existing public mode-0664 bytes only behind the
+exact root-owned mode-0700 execution root, with protected path/ACL/identity and
+byte rereads. No frozen permission, source or result is changed.
+
+The complete reporting/phase/archive/amended-handoff route and actual current
+repeat ancestor/connection consumers use the new standard-library guard.
+There are 21 reporting files and 282 prospective repeat sources (286 stage2
+test bindings include four retained metadata files). The previous refused
+deployment at `7bfe217` is preserved. Final local discovery ran 2,448 tests:
+2,447 passed and one pre-existing skip. All 942 guarded regressions passed
+without skips, failures or errors; before/discovery/after checks covered up to
+180 loaded project modules with no unbound imports. All 12 repository tests
+passed. A focused 132-test rerun also passed. The 51 new checks include 44
+guard tests using real temporary files and synthetic procfs/manager records.
+Native services, Docker and transport observations remain mocked in these
+tests; this is not native audit, deployment, qualification or paid evidence.
+
+Initial fixture corrections modelled Linux ACL observations on macOS and
+included the new bound module in the synthetic bootstrap. An intermediate
+source-binding refusal was retained; the stable rerun and final suites passed
+without relaxing production checks. Actual local anchors match 302 old and
+304 merged operator bindings, 229 reporter-native bindings, 40 reporter-local
+bindings (44 with export prerequisites), and five exact metadata anchors.
+Among 211 final-anchor files only the previous permitted local scored-trial
+hooks differ. The newly approved installation is still pending at this source
+checkpoint; no audit, backup, export, recovery or baseline repeat is claimed.
+Recovery sequencing remains pending.
+
 ## Final-run direction, 28 September 2026
 
 The user requested the best whole candidate from C0/C1/C2/C3 to run all 89

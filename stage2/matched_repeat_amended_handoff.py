@@ -99,18 +99,20 @@ def _no_stop(root):
 
 
 def _raw(root, name, expected=None):
+    protection = phase.guard.protected_path(root, name)
     path = phase._path(root, name)
     try:
         with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as stream:
             st = os.fstat(stream.fileno())
             private = root == report.REPORTING or name.startswith('.runtime/')
-            if (not stat.S_ISREG(st.st_mode) or st.st_size > archive.ANCHOR_WINDOW or st.st_nlink != 1
-                    or st.st_uid != os.getuid() or st.st_mode & (0o077 if private else 0o022)):
+            phase.guard.protected_file(root, name, st, private=private)
+            if st.st_size > archive.ANCHOR_WINDOW:
                 raise ValueError('Protected regular bounded single-link metadata required')
             raw = stream.read(archive.ANCHOR_WINDOW + 1)
             after = os.fstat(stream.fileno())
         if (producer._identity(st) != producer._identity(after)
                 or producer._identity(after) != producer._identity(path.lstat())
+                or protection != phase.guard.protected_path(root, name)
                 or expected is not None and export._hash(raw) != expected):
             raise ValueError('Actual metadata bytes changed')
     except OSError:

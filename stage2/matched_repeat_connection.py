@@ -69,6 +69,7 @@ def native_program(harness, nonce, files, *, role, relay_pid=None):
 import hashlib, json, os, platform, subprocess, sys
 from pathlib import Path
 root=Path(ROOT); files=FILES
+FINAL_GUARD
 if (platform.system()!='Linux' or os.getuid()!=0 or not sys.flags.isolated or not sys.dont_write_bytecode
  or root.is_symlink() or root.resolve()!=root or not root.is_dir()
  or (root/'.venv').is_symlink() or Path(sys.prefix).resolve()!=root/'.venv'):
@@ -82,6 +83,9 @@ def check():
   if p.exists() or p.is_symlink(): raise ValueError('Persistent repeat stop')
  for directory,unit in ANCESTORS:
   base=Path(directory)
+  if base==final_guard['ROOT']:
+   final_guard['service']()
+   continue
   if base.is_symlink() or base.resolve()!=base or not base.is_dir(): raise ValueError('Regular ancestor required')
   for name in ('operator-stop-request.json','provider-stop.json'):
    p=base/'.runtime/stage2'/name
@@ -120,6 +124,9 @@ except BaseException:
     call = ('relay(root,' + repr(harness) + ',' + repr(nonce) + ',files)' if role == 'relay' else
         'serve(root,' + repr(harness) + ',' + repr(nonce) + ',files,' + repr(relay_pid) + ')')
     program = program.replace('Path(ROOT)', 'Path(' + repr(root) + ')').replace('files=FILES', 'files=' + repr(files))
+    raw = baseline.final_guard.source(files['stage2/no_cutoff_final_guard.py'])
+    setup = "final_guard={}\nexec(compile(" + repr(raw) + ",'<bound-final-compatibility>','exec'),final_guard)"
+    program = program.replace('FINAL_GUARD', setup)
     program = program.replace('in ANCESTORS:', 'in ' + repr(ancestors) + ':').replace(' CALL', ' ' + call)
     program = program.replace('root/FINAL_INPUT', 'root/' + repr('.runtime/stage2/' + policy.FINAL_FILE))
     program = program.replace('|REQUIRED|INPUTS', '|' + repr(required) + '|' + repr(set(inputs)))

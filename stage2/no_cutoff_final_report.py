@@ -20,12 +20,14 @@ import threading
 from types import SimpleNamespace
 
 import no_cutoff_final_phase_audit as phase
+import no_cutoff_final_guard as guard
 
 ROOT = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
 REPORTING = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260928')
 SERVICE = 'uts-stage2-custom-no-cutoff-final-20260928.service'
 KIND = 'completed_c0_nc_final89_phase_amendment_v1'
 REPORTING_FILES = ('no_cutoff_final_report.py', 'test_no_cutoff_final_report.py',
+    'no_cutoff_final_guard.py', 'test_no_cutoff_final_guard.py',
     'no_cutoff_final_backup.py', 'test_no_cutoff_final_backup.py',
     'no_cutoff_final_backup_operator.py', 'test_no_cutoff_final_backup_operator.py',
     'no_cutoff_final_export.py', 'test_no_cutoff_final_export.py',
@@ -71,6 +73,7 @@ def _context():
             or Path.cwd() != ROOT or Path(sys.prefix).resolve() != ROOT / '.venv'
             or Path(__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_report.py'
             or Path(phase.__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_phase_audit.py'
+            or Path(guard.__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_guard.py'
             or Path(phase.local_trace.__file__).resolve() != ROOT / 'stage2/local_trace.py'):
         raise ValueError('Use the separately bound reporter and original final native interpreter')
     if (dict(os.environ) != ENVIRONMENT or sys.pycache_prefix != str(REPORTING / '.absent-bytecode-cache')
@@ -101,13 +104,7 @@ def _command(args):
 
 
 def _service():
-    output = _command(['systemctl', 'show', SERVICE, '--property=ActiveState', '--property=SubState',
-        '--property=MainPID', '--property=ExecMainStatus'])
-    pairs = [line.split('=', 1) for line in output.splitlines() if '=' in line]
-    state = phase._pairs(pairs)
-    if state != dict(ActiveState='inactive', SubState='dead', MainPID='0', ExecMainStatus='0'):
-        raise ValueError('Successful inactive final service required before any completed audit')
-    return state
+    return guard.service()
 
 
 def _stops():

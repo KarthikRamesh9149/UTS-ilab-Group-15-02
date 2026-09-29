@@ -66,8 +66,14 @@ class LocalTree(unittest.TestCase):
         call = tree.body[1].value.args[0].args[0]
         return base64.b64decode(ast.literal_eval(call.args[0])).decode()
 
-    def guard(self, program=None, state=None, imported=None):
+    def guard(self, program=None, state=None, imported=None, final_error=None):
         program = self.program() if program is None else program
+        final_check=Mock(side_effect=final_error)
+        # Only native observations/constant paths are mocked. The generated
+        # route must call this before AND after its actual project import.
+        program=program.replace('\ncheck()\nos.chdir',
+            "\nfinal_guard['ROOT']=Path("+repr(str(connection.baseline.FINAL_ROOT))+")\n"+
+            "final_guard['service']=synthetic_final_check\ncheck()\nos.chdir")
         # Execute the actual generated pre/post-import guard with host facts
         # mocked. Real path/symlink/hash reads remain in place on local files.
         previous = Path.stat
@@ -89,7 +95,8 @@ class LocalTree(unittest.TestCase):
                 patch('subprocess.check_output', return_value=state), \
                 patch.object(service, 'relay', imported or Mock()) as relay, \
                 patch('os.chdir'), patch.object(sys, 'path', list(sys.path)):
-            exec(compile(program, '<local-native-guard-test>', 'exec'), {})
+            exec(compile(program, '<local-native-guard-test>', 'exec'), {'synthetic_final_check':final_check})
+        self.assertEqual(final_check.call_count,2)
         return relay
 
 
@@ -119,6 +126,12 @@ class CommandTests(LocalTree):
         self.assertEqual(remote[-5:-1], [str(self.repo / '.venv/bin/python'), '-I', '-B', '-c'])
         self.assertNotIn('python3', remote); self.assertNotIn('sshpass', cmd)
         self.assertNotIn('OPENROUTER_API_KEY', remote)
+
+    def test_missing_actual_final_success_refuses_before_native_entry(self):
+        relay=Mock()
+        with self.assertRaisesRegex(ValueError,'Missing manager completion'):
+            self.guard(imported=relay,final_error=ValueError('Missing manager completion'))
+        relay.assert_not_called()
 
     def test_changed_ssh_shape_cannot_silently_add_a_second_interpreter(self):
         with patch.object(connection, 'ssh_command', return_value=['ssh', 'other', 'python3', '-']):

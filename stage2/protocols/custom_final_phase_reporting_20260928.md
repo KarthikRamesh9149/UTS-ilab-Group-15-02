@@ -1,5 +1,54 @@
 # C0-NC final phase-reporting amendment
 
+## Approved compatibility amendment, 29 September 2026
+
+The user approved updating and testing the reporting checks, followed by ONE
+new installation attempt. The failed attempt at `7bfe217` remains part of the
+record. This approval does not authorise another benchmark attempt, a recovery
+block, a service restart, changes to frozen permissions/sources, or automatic
+deployment retries. Complete local validation, source binding, commit and push
+before the one new attempt; an existing or partial reporting root still refuses.
+
+The transient final unit is now `LoadState=not-found`. That value and its default
+exit-zero fields are not successful-execution evidence. The amended guard must
+retain the actual LoadState and independently read trusted systemd-manager
+records for the exact unit: PID 1, UID 0, systemd identity, current original boot,
+invocation `f3ac8546674e4a889c307b3238faa78c`, start realtime microseconds
+`1790566666855537`, and successful deactivation `1790651706030353`. The success
+message ID is `7ad2d189f7e94e70a38c781354912448`; the exact manager success message
+must match. Wrong, missing, duplicate or additional invocation/failure evidence
+refuses. Neither a journal receipt nor a saved snapshot replaces a fresh read.
+The current boot is `3e30b45e3cf44d3f805689699574fb73`; a reboot requires review.
+Require inactive/dead/PID-zero state, absence of the exact service cgroup and a
+fresh procfs scan for remaining processes in that cgroup or execution tree.
+Only the observing process itself is excluded. Recheck service state after
+these observations. No raw journal or process content is returned.
+
+The existing public files are root:root, single-link mode 0664 behind the exact
+root:root mode-0700 frozen root. The narrow compatibility rule may read these
+bytes only while that root, its protected parent, every path component and
+file remain canonical, root-owned, non-symlinked and free of access/default
+ACLs. Public descendants may retain group-write only under that root, with
+root group ownership and no world-write or special mode bits. Runtime inputs
+remain private. Hashes and file/directory identities are reread across reads;
+root protection changes refuse. No chmod, chown, ACL edit or permission bypass
+is provided. Other roots keep their existing stricter checks.
+
+One standard-library-only source-bound guard will serve the pre-import
+reporting launcher, actual completed audit, phase/file reader, archive producer
+and amended handoff. The explicit current repeat connection and ancestor
+reader must use the same final-service evidence, without changing old frozen
+collectors or old predecessor/stream readers. Snapshot validation must preserve
+the real service state and the explicit completion-evidence metadata; it must
+not manufacture `LoadState=loaded` or treat JSON as fresh native proof.
+
+All existing exact89, no-stop, authentication-before-locks, full ancestor-lock,
+official-limit, accounting, revocation/cleanup, source/input/producer,
+inventory/absence and original178/stopped-four checks remain. Final evidence
+rereads follow native observations through audit, archive and live handoff.
+No archive exists yet, so this amendment precedes archive-source freezing.
+Installation alone will not mean the completed native audit or backup passed.
+
 ## Scope and dated evidence
 
 This is a separate reporting amendment for the frozen C0-NC

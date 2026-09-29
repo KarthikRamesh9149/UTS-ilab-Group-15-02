@@ -95,6 +95,8 @@ class OperatorTests(unittest.TestCase):
     def invoke(self,operation,reply=None,error=None,recheck=None):
         if reply is None:reply=dict(kind=launch.KIND,operation=operation,operator_commit=self.commit,
             reporting_source_files=self.bindings['reporting'],execution_source_set_sha256=phase.SOURCE_SET,
+            service=dict(LoadState='not-found',ActiveState='inactive',SubState='dead',MainPID='0',ExecMainStatus='0',
+                completion=launch.guard.completion_metadata()),
             completed_final_audit=False,off_server_backup_verified=False,paid_launch_ready=False)
         with ExitStack() as stack:
             stack.enter_context(patch.object(launch,'_prepare',return_value=self.bindings))
@@ -149,24 +151,27 @@ class OperatorTests(unittest.TestCase):
 class BootstrapTests(unittest.TestCase):
     def setUp(self):
         self.temp=self.enterContext(tempfile.TemporaryDirectory());self.base=Path(self.temp).resolve()
+        self.enterContext(patch.object(os,'listxattr',return_value=[],create=True))
         self.root=self.base/'execution';self.root.mkdir(mode=0o700);self.reporting=self.base/'reporting'
         p=self.root/'stage2/frozen.py';p.parent.mkdir();p.write_bytes(b'# frozen\n');p.chmod(0o644)
         (self.root/'.runtime/stage2').mkdir(parents=True,mode=0o700)
         self.native={'stage2/frozen.py':hashlib.sha256(p.read_bytes()).hexdigest()}
         self.payload={n:b'# source-bound synthetic bootstrap module\n' for n in
             ('stage2/no_cutoff_final_report.py','stage2/no_cutoff_final_archive.py','stage2/no_cutoff_final_backup.py')}
+        self.payload['stage2/no_cutoff_final_guard.py']=Path(launch.guard.__file__).read_bytes()
         self.sources={n:hashlib.sha256(raw).hexdigest() for n,raw in self.payload.items()}
         self.bindings=dict(commit='a'*40,native=self.native,reporting=self.sources)
         self.enterContext(patch.object(report,'ROOT',self.root));self.enterContext(patch.object(report,'REPORTING',self.reporting))
         self.enterContext(patch.object(launch,'_raw',side_effect=lambda n,sha:self.payload[n]))
-        self.service=self.enterContext(patch.object(subprocess,'check_output',return_value=
-            'LoadState=loaded\nActiveState=inactive\nSubState=dead\nMainPID=0\nExecMainStatus=0\n'))
+        self.service=Mock(return_value=dict(LoadState='not-found',ActiveState='inactive',SubState='dead',MainPID='0',
+            ExecMainStatus='0',completion=launch.guard.completion_metadata()))
         self.snapshot=dict(reporting_source_files=self.sources,supporting_file_sha256=self.native,
             directory_entries={},absent_paths=['.runtime/stage2/absent.json'],preserved_result_files={})
 
     def namespace(self,operation):
         program=launch._program(self.bindings,operation)
         ns={};exec(compile(program.split('\ntry:\n value=main()')[0],'<synthetic-report-bootstrap>','exec'),ns)
+        ns['guard'].update(ROOT=self.root,OWNER=os.getuid(),GROUP=os.getgid(),service=self.service)
         return ns
 
     def installed(self):
@@ -188,7 +193,8 @@ class BootstrapTests(unittest.TestCase):
         collector=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_report.py'),collect=Mock(return_value=self.snapshot))
         validator=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_archive.py'),validate_snapshot=Mock())
         self.producer=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_backup.py'),stream=Mock())
-        fake.modules.update(no_cutoff_final_report=collector,no_cutoff_final_archive=validator,no_cutoff_final_backup=self.producer)
+        fake.modules.update(no_cutoff_final_report=collector,no_cutoff_final_archive=validator,no_cutoff_final_backup=self.producer,
+            no_cutoff_final_guard=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_guard.py')))
         ns['sys']=fake
         with patch.object(os,'getuid',return_value=0),patch.dict(os.environ,report.ENVIRONMENT,clear=True),\
                 patch.dict(sys.modules,{'no_cutoff_final_report':collector,'no_cutoff_final_archive':validator,'no_cutoff_final_backup':self.producer}),\
@@ -227,13 +233,13 @@ class BootstrapTests(unittest.TestCase):
         self.assertNotIn('payload',self.namespace('collect')['c'])
 
     def test_active_service_refuses_before_any_reporting_write(self):
-        self.service.return_value='LoadState=loaded\nActiveState=active\nSubState=running\nMainPID=748079\nExecMainStatus=0\n'
+        self.service.side_effect=ValueError('Active service')
         with self.assertRaises(ValueError):self.main(self.namespace('deploy'))
         self.assertFalse(self.reporting.exists())
 
     def test_failed_unknown_and_duplicate_service_states_refused(self):
         for text in ('','ActiveState=failed\n','ActiveState=inactive\nActiveState=inactive\n'):
-            self.service.return_value=text
+            self.service.side_effect=ValueError('Invalid service state')
             with self.subTest(text=text),self.assertRaises(ValueError):self.namespace('deploy')['check'](False)
 
     def test_operator_provider_and_symlink_stop_refused(self):
@@ -337,6 +343,29 @@ class BootstrapTests(unittest.TestCase):
         with patch.object(sys,'stderr',stream),self.assertRaises(SystemExit):exec(compile(program,'<real-context-refusal>','exec'),{})
         value=json.loads(stream.getvalue());self.assertFalse(value['paid_launch_ready']);self.assertFalse(value['automatic_resume'])
         self.assertNotIn('Traceback',stream.getvalue())
+
+    def test_protected_group_writable_source_is_read_without_chmod(self):
+        p=self.root/'stage2/frozen.py';p.chmod(0o664);p.parent.chmod(0o775)
+        self.main(self.namespace('deploy'))
+        self.assertEqual(p.stat().st_mode & 0o777,0o664)
+        self.assertEqual(p.parent.stat().st_mode & 0o777,0o775)
+
+    def test_exposed_root_refuses_before_deployment(self):
+        (self.root/'stage2/frozen.py').chmod(0o664);self.root.chmod(0o755)
+        with self.assertRaises(ValueError):self.main(self.namespace('deploy'))
+        self.assertFalse(self.reporting.exists())
+
+    def test_root_protection_change_after_observation_refuses(self):
+        self.installed()
+        def changed():
+            self.root.chmod(0o755)
+            return self.service.return_value
+        self.service.side_effect=changed
+        with self.assertRaises(ValueError):self.main(self.namespace('inspect'))
+
+    def test_embedded_guard_cannot_differ_from_bound_reporting_source(self):
+        self.bindings['reporting']['stage2/no_cutoff_final_guard.py']='0'*64
+        with self.assertRaises(ValueError):launch._program(self.bindings,'inspect')
 
 
 class ActualLocalBindingTests(unittest.TestCase):

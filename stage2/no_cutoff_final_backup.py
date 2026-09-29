@@ -31,22 +31,22 @@ def _json(value):
 
 
 def _identity(s):
-    return (s.st_dev, s.st_ino, s.st_mode, s.st_uid, s.st_nlink, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
+    return phase.guard.identity(s)
 
 
 @contextmanager
 def _open(root, name):
+    protection = phase.guard.protected_path(root, name)
     path = phase._path(root, name)
     with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as handle:
         before = os.fstat(handle.fileno())
         # Only the fixed execution/historical source trees may contain public
         # sources. Reporting state and every Mac-side output stay private.
         private = root not in (report.ROOT, report.BASELINE, report.STOPPED) or name.startswith('.runtime/')
-        if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_uid != os.getuid()
-                or before.st_mode & (0o077 if private else 0o022)):
-            raise ValueError('Owned protected regular single-link backup source required')
+        phase.guard.protected_file(root, name, before, private=private)
         yield handle, before
-        if _identity(before) != _identity(os.fstat(handle.fileno())) or _identity(before) != _identity(path.lstat()):
+        if (_identity(before) != _identity(os.fstat(handle.fileno())) or _identity(before) != _identity(path.lstat())
+                or protection != phase.guard.protected_path(root, name)):
             raise ValueError('Backup source changed while reading')
 
 

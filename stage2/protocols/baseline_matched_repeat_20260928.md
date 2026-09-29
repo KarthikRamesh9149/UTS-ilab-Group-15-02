@@ -1,5 +1,21 @@
 # Matched baseline repeats after custom final89
 
+Latest compatibility checkpoint, 29 September: the user approved a narrowly
+reviewed reporting amendment plus one new deployment attempt after validation.
+The current ancestor reader and connection now share the explicit final-service
+guard: trusted original manager success, original boot/invocation, real
+LoadState, inactive state, absent service cgroup and no other execution process.
+The amended handoff uses the same protected-root file checks as reporting and
+archiving. Old collectors/predecessor/handoff/stream sources remain unchanged.
+The reporting bundle is 21 files and the prospective repeat union is 282.
+Final local discovery ran 2,448 tests: 2,447 passed and one pre-existing skip.
+All 942 guarded regressions passed without skips/errors/failures, with 286
+stage2 byte bindings and up to 180 loaded project modules checked. All 12
+repository tests passed. Native observations remain mocked in these tests.
+This is local preparation, not completed audit, backup, repeat qualification or
+dispatch. The earlier refused deployment is retained; the new attempt is still
+pending at this source checkpoint. Recovery sequencing is separately pending.
+
 Current checkpoint, 29 September: the custom final has 89/89 retained results
 at 03:21:46 UTC, with 50 passes, 36 verified zeros and three setup-only missing
 outcomes. The service exited successfully; this is metadata, not completed audit

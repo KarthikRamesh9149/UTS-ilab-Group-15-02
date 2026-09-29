@@ -11,6 +11,7 @@ import subprocess
 
 import matched_repeat_policy as policy
 import matched_repeat_runtime as runtime
+import no_cutoff_final_guard as final_guard
 from matched_repeat_baseline_probe import check_files, digest, regular, relative_name
 
 ORIGINAL_ROOT = Path('/opt/uts-capstone-corrected-20260923')
@@ -29,11 +30,14 @@ def inactive_ancestors():
     """Refuse active/stopped ancestors before loading original libraries."""
     for root, service in ((ORIGINAL_ROOT, 'uts-stage2-corrected-20260923.service'),
             (FINAL_ROOT, 'uts-stage2-custom-no-cutoff-final-20260928.service')):
-        state = subprocess.run(['systemctl', 'show', service, '--property=LoadState,ActiveState,SubState,MainPID,ExecMainStatus'],
-            check=True, capture_output=True, text=True).stdout
-        state = dict(line.split('=', 1) for line in state.splitlines() if '=' in line)
-        if state != dict(LoadState='loaded', ActiveState='inactive', SubState='dead', MainPID='0', ExecMainStatus='0'):
-            raise ValueError('Completed inactive original and custom-final services required')
+        if root == FINAL_ROOT:
+            final_guard.service()
+        else:
+            state = subprocess.run(['systemctl', 'show', service, '--property=LoadState,ActiveState,SubState,MainPID,ExecMainStatus'],
+                check=True, capture_output=True, text=True).stdout
+            state = dict(line.split('=', 1) for line in state.splitlines() if '=' in line)
+            if state != dict(LoadState='loaded', ActiveState='inactive', SubState='dead', MainPID='0', ExecMainStatus='0'):
+                raise ValueError('Completed inactive original and custom-final services required')
         for name in ('operator-stop-request.json', 'provider-stop.json'):
             path = root / '.runtime/stage2' / name
             if path.exists() or path.is_symlink():

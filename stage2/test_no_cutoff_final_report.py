@@ -30,7 +30,8 @@ class CompletedAuditTests(unittest.TestCase):
         self.enterContext(patch.object(report, 'REPORTING', self.reporting))
         self.enterContext(patch.object(report, '_context'))
         self.service = self.enterContext(patch.object(report, '_service', return_value=dict(
-            ActiveState='inactive', SubState='dead', MainPID='0', ExecMainStatus='0')))
+            LoadState='not-found', ActiveState='inactive', SubState='dead', MainPID='0', ExecMainStatus='0',
+            completion=report.guard.completion_metadata())))
         self.resources = self.enterContext(patch.object(report, '_resources'))
         self.prepare89()
         self.native = NS(study=NS(read_candidate=Mock(return_value={'synthetic': True}),
@@ -347,6 +348,7 @@ class ReadOnlyBoundaryTests(unittest.TestCase):
             for obj, key, value in ((report, 'ROOT', root), (report, 'REPORTING', bundle),
                     (report, '__file__', str(bundle / 'stage2/no_cutoff_final_report.py')),
                     (phase, '__file__', str(bundle / 'stage2/no_cutoff_final_phase_audit.py')),
+                    (report.guard, '__file__', str(bundle / 'stage2/no_cutoff_final_guard.py')),
                     (phase.local_trace, '__file__', str(root / 'stage2/local_trace.py')),
                     (report.sys, 'prefix', str(root / '.venv')), (report.sys, 'platform', 'linux'),
                     (report.sys, 'dont_write_bytecode', True), (report.sys, 'flags', NS(isolated=1)),
@@ -382,7 +384,12 @@ class ReadOnlyBoundaryTests(unittest.TestCase):
         for state in ('ActiveState=active\nSubState=running\nMainPID=1\nExecMainStatus=0\n',
                 'ActiveState=failed\nSubState=failed\nMainPID=0\nExecMainStatus=1\n', '',
                 'ActiveState=inactive\nSubState=dead\nMainPID=0\nExecMainStatus=0\nMainPID=1\n'):
-            with patch.object(report, '_command', return_value=state), self.assertRaises(ValueError): report._service()
+            with patch.object(report.guard, '_command', return_value=state), self.assertRaises(ValueError): report.guard._state()
+
+    def test_collector_service_calls_fresh_compatibility_guard(self):
+        with patch.object(report.guard, 'service', return_value={'synthetic': True}) as call:
+            self.assertEqual(report._service(), {'synthetic': True})
+        call.assert_called_once_with()
 
     def test_docker_commands_only_inspect_exact_owned_resources(self):
         with patch.object(report, '_command', return_value='') as command:

@@ -1,5 +1,18 @@
 # Measured C0-NC final89
 
+The user has now approved a reporting-only compatibility amendment and one new
+installation attempt after validation. The separately bound guard requires
+fresh trusted manager completion and procfs/cgroup absence evidence, preserves
+actual LoadState and checks the existing source permissions behind the exact
+protected frozen root. The 21-file reporting bundle and all affected current
+readers passed final local gates: 2,448 tests run, 2,447 passed and one
+pre-existing skip; all 942 guarded regressions and 12 repository tests passed.
+These are synthetic/local checks, not a native audit or paid evidence.
+The single newly approved installation attempt is pending at this checkpoint.
+The prior refusal remains recorded below; no
+frozen files/permissions/results are changed. Native completed audit, private
+backup, public export, recovery and baseline repeats have not run.
+
 The exact 89-task final service launched at 03:37:46 UTC on 28 September 2026
 (13:37 Sydney). At 03:21:46 UTC on 29 September (13:21 Sydney), read-only
 metadata showed all 89 attempts complete: 50 passes, 36 verified zero-score

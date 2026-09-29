@@ -17,6 +17,7 @@ import stat
 import subprocess
 
 import no_cutoff_final_archive as archive
+import no_cutoff_final_guard as guard
 import no_cutoff_final_phase_audit as phase
 import no_cutoff_final_report as report
 import progress_dashboard as dashboard
@@ -32,7 +33,7 @@ def _operator():
     if (platform.system() != 'Darwin' or REPO.is_symlink() or REPO.resolve() != REPO
             or not REPO.is_dir() or Path(__file__).resolve() != REPO / 'stage2/no_cutoff_final_reporting.py'):
         raise ValueError('Use the fixed Mac operator checkout')
-    for module in (archive, phase, report, dashboard, phase.local_trace):
+    for module in (archive, phase, report, guard, dashboard, phase.local_trace):
         if Path(module.__file__).resolve() != REPO / 'stage2' / (module.__name__ + '.py'):
             raise ValueError('Reporting helper imported from another checkout')
 
@@ -123,8 +124,14 @@ import base64, contextlib, hashlib, json, os, stat, subprocess, sys
 from pathlib import Path
 c=CONFIG
 root=Path(c['root']); reporting=Path(c['reporting'])
+guard_raw=base64.b64decode(c['guard_source'],validate=True)
+if hashlib.sha256(guard_raw).hexdigest()!=c['reporting_files']['stage2/no_cutoff_final_guard.py']:
+ raise ValueError('Exact committed pre-import guard required')
+guard={'__file__':str(reporting/'stage2/no_cutoff_final_guard.py')}
+exec(compile(guard_raw,'<source-bound-final-guard>','exec'),guard)
 def fail(message): raise ValueError(message)
 def path(base,name):
+ guard['protected_path'](base,name)
  if base.is_symlink() or not base.is_dir() or base.resolve()!=base:
   fail('Canonical reporting/execution directory required')
  p=base
@@ -134,14 +141,13 @@ def path(base,name):
   if p.is_symlink(): fail('Symlinked reporting evidence refused')
  return p
 def identity(s):
- return (s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+ return (s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
 def read(base,name,sha,retain=False):
+ protection=guard['protected_path'](base,name)
  p=path(base,name)
  with os.fdopen(os.open(p,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK),'rb') as f:
   before=os.fstat(f.fileno())
-  if (not stat.S_ISREG(before.st_mode) or before.st_nlink!=1 or before.st_uid!=os.getuid()
-   or before.st_mode & (0o077 if base==reporting or name.startswith('.runtime/') else 0o022)):
-   fail('Owned regular single-link protected evidence required')
+  guard['protected_file'](base,name,before,private=base==reporting)
   digest=hashlib.sha256(); chunks=[]
   while True:
    raw=f.read(65536)
@@ -151,19 +157,18 @@ def read(base,name,sha,retain=False):
     chunks.append(raw)
     if f.tell()>67108864: fail('Bound source/metadata parser window exceeded')
   after=os.fstat(f.fileno())
- if identity(before)!=identity(after) or identity(after)!=identity(p.lstat()) or digest.hexdigest()!=sha:
+ if (identity(before)!=identity(after) or identity(after)!=identity(p.lstat()) or digest.hexdigest()!=sha
+  or guard['protected_path'](base,name)!=protection):
   fail('Bound reporting evidence changed')
  return b''.join(chunks) if retain else None
 def service():
- raw=subprocess.check_output(['systemctl','show',c['service'],
-  '--property=LoadState,ActiveState,SubState,MainPID,ExecMainStatus'],text=True,timeout=10,env=c['environment'])
- pairs=[line.split('=',1) for line in raw.splitlines() if '=' in line]
- state=dict(pairs)
- if len(state)!=len(pairs) or state!=dict(LoadState='loaded',ActiveState='inactive',SubState='dead',MainPID='0',ExecMainStatus='0'):
-  fail('Successful inactive final required before reporting imports or writes')
+ if root!=guard['ROOT'] or c['service']!=guard['SERVICE'] or c['environment']!=guard['ENVIRONMENT']:
+  fail('Only the fixed final compatibility guard is permitted')
+ state=guard['service']()
  for name in ('operator-stop-request.json','provider-stop.json'):
   p=path(root,'.runtime/stage2/'+name)
   if p.exists() or p.is_symlink(): fail('Persistent stop forbids completed reporting')
+ return state
 def inventory():
  expected={'':{'stage2'}}
  states={'.backup-intent.json','.backup-result.json','.backup-failure.json'}
@@ -186,13 +191,14 @@ def inventory():
   if not p.is_dir() or st.st_uid!=os.getuid() or st.st_mode & 0o077 or {v.name for v in p.iterdir()}!=children:
    fail('Exact private reporting directory inventory required')
 def check(deployed=True):
- service()
+ state=service()
  for name,sha in c['native_files'].items(): read(root,name,sha)
  if deployed:
   inventory()
   for name,sha in c['reporting_files'].items(): read(reporting,name,sha)
  cache=reporting/'.absent-bytecode-cache'
  if cache.exists() or cache.is_symlink(): fail('Reporting bytecode prefix must remain absent')
+ return state
 def loaded():
  expected={Path(name).name:(base,name,sha) for base,files in
   ((root,c['native_files']),(reporting,c['reporting_files'])) for name,sha in files.items() if name.endswith('.py')}
@@ -232,10 +238,11 @@ def main():
    fd=os.open(reporting/name,os.O_RDONLY|os.O_DIRECTORY)
    try: os.fsync(fd)
    finally: os.close(fd)
- check()
+ state=check()
  if c['operation'] not in ('collect','backup'):
   return dict(kind=c['kind'],operation=c['operation'],operator_commit=c['commit'],
    reporting_source_files=c['reporting_files'],execution_source_set_sha256=c['source_set'],
+   service=state,
    completed_final_audit=False,off_server_backup_verified=False,paid_launch_ready=False)
  os.chdir(root);sys.path[:0]=[str(reporting/'stage2'),str(root/'stage2')]
  # Suppress incidental library output, including raw diagnostics. Only the
@@ -288,6 +295,8 @@ def _program(bindings, operation):
         reporting_files=bindings['reporting'], commit=bindings['commit'], kind=KIND,
         source_set=phase.SOURCE_SET, anchor_files=archive.anchor_hashes(),
         historical_roots=[str(report.BASELINE), str(report.STOPPED)])
+    config['guard_source'] = base64.b64encode(guard.source(
+        bindings['reporting']['stage2/no_cutoff_final_guard.py'])).decode('ascii')
     if operation == 'deploy':
         config['payload'] = {n: base64.b64encode(_raw(n,sha)).decode('ascii') for n,sha in bindings['reporting'].items()}
     return _BOOTSTRAP.replace('c=CONFIG', 'c=' + repr(config))
@@ -320,8 +329,10 @@ def _invoke(commit, operation):
         archive.validate_snapshot(value, bindings['anchors'])
         archive._same(value['reporting_source_files'], bindings['reporting'])
     else:
+        guard.validate_service(value.get('service'))
         archive._same(value, dict(kind=KIND,operation=operation,operator_commit=commit,
             reporting_source_files=bindings['reporting'],execution_source_set_sha256=phase.SOURCE_SET,
+            service=value['service'],
             completed_final_audit=False,off_server_backup_verified=False,paid_launch_ready=False))
     _recheck(bindings)
     return value

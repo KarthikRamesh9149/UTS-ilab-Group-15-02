@@ -310,11 +310,12 @@ class AncestorTests(unittest.TestCase):
         self.enterContext(patch.object(baseline, 'ORIGINAL_ROOT', self.root / 'original'))
         self.enterContext(patch.object(baseline, 'FINAL_ROOT', self.root / 'final'))
         self.state = 'LoadState=loaded\nActiveState=inactive\nSubState=dead\nMainPID=0\nExecMainStatus=0\n'
+        self.final = self.enterContext(patch.object(baseline.final_guard, 'service'))
 
     def test_only_readonly_service_queries_and_no_collector(self):
         with patch.object(baseline.subprocess, 'run', return_value=NS(stdout=self.state)) as run:
             baseline.inactive_ancestors()
-        self.assertEqual(run.call_count, 2)
+        self.assertEqual(run.call_count, 1); self.final.assert_called_once_with()
         self.assertTrue(all(call.args[0][:2] == ['systemctl', 'show'] for call in run.call_args_list))
 
     def test_active_failed_unloaded_or_persistent_stopped_ancestors_refused(self):
@@ -328,6 +329,11 @@ class AncestorTests(unittest.TestCase):
             with patch.object(baseline.subprocess, 'run', return_value=NS(stdout=self.state)):
                 with self.assertRaises(ValueError): baseline.inactive_ancestors()
             path.unlink()
+
+    def test_final_requires_actual_success_guard_even_if_original_is_inactive(self):
+        self.final.side_effect = ValueError('No retained invocation evidence')
+        with patch.object(baseline.subprocess, 'run', return_value=NS(stdout=self.state)), self.assertRaises(ValueError):
+            baseline.inactive_ancestors()
 
 
 if __name__ == '__main__': unittest.main()

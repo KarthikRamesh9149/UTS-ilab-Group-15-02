@@ -69,6 +69,7 @@ REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_r
     'matched_repeat_probe.py', 'test_matched_repeat_probe.py',
     'qualify_matched_repeat.py', 'test_qualify_matched_repeat.py',
     'no_cutoff_final_phase_audit.py', 'test_no_cutoff_final_phase_audit.py',
+    'no_cutoff_final_guard.py', 'test_no_cutoff_final_guard.py',
     'no_cutoff_final_report.py', 'test_no_cutoff_final_report.py',
     'no_cutoff_final_archive.py', 'test_no_cutoff_final_archive.py',
     'no_cutoff_final_reporting.py', 'test_no_cutoff_final_reporting.py',
@@ -86,6 +87,7 @@ REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_r
     'test_native_agents.py', 'test_trial_execution.py', 'test_scored_trial.py',
     'openhands_fixture_audit.json'})
 TEST_MODULES = ('test_matched_repeat_schedule', 'test_matched_repeat_policy',
+    'test_no_cutoff_final_guard',
     'test_matched_repeat_predecessor',
     'test_matched_repeat_runtime',
     'test_matched_repeat_baseline',

@@ -194,7 +194,7 @@ def validate_snapshot(data, anchor_bytes):
     _same(data['amendment'], phase.contract()); _same(data['amendment_sha256'], phase.fingerprint(phase.contract()))
     _same(data['reporting_source_files'], reporting_sources())
     _same(data['audit_checks'], dict.fromkeys(report.CHECKS, True))
-    _same(data['service'], dict(ActiveState='inactive', SubState='dead', MainPID='0', ExecMainStatus='0'))
+    phase.guard.validate_service(data['service'])
     _same(phase.fingerprint(data['model_protocol']), block['model_protocol_sha256'])
     _same(phase.fingerprint(data['policy']), block['policy_sha256'])
     bindings = {phase.RT + name: sha for name, sha in report.INPUTS.items()}
