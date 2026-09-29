@@ -1,8 +1,27 @@
 # Measured C0-NC final89
 
 The exact 89-task final service launched at 03:37:46 UTC on 28 September 2026
-(13:37 Sydney). This is a launch, not a completed final score. Baseline repeats
-have not started. The frozen deployment runs independently of the Mac.
+(13:37 Sydney). At 03:21:46 UTC on 29 September (13:21 Sydney), read-only
+metadata showed all 89 attempts complete: 50 passes, 36 verified zero-score
+failures and three setup-only missing verifier outcomes. The service was
+inactive/dead, PID 0, exit 0. All 211 frozen source files matched, all 89 results
+recorded model revocation and no stop was present. Task 89 retained a zero,
+30 physical requests and 25 accepted responses. No task remains active.
+
+These are preliminary completed-run metadata, not an audited final score.
+The separate amended capture/handoff is now wired into the actual repeat
+session and inspection connection locally, with a 19-file reporting bundle.
+Native reporting deployment, completed audit, one private archive and public
+result export have not occurred. Baseline repeats and recovery have not started.
+The old collectors/readers, original results and frozen deployment are unchanged.
+
+The final local gates for this integration ran 2,397 tests: 2,396 passed and
+one pre-existing skip. All 891 guarded repeat regressions passed with zero
+skips/errors/failures and 178 loaded project modules bound; all 12 repository
+tests passed. The 42 new capture/handoff tests and one added connection test
+use actual temporary files/archive streams and local locks, while native
+audits, services, Docker and Git observations are mocked. They are not a
+completed native audit, verified production backup or benchmark result.
 
 At 01:21:45 UTC on 29 September, the read-only inspector found 81/89 complete:
 46 passes, 32 verified zero-score failures and three setup-only missing verifier
@@ -27,12 +46,13 @@ Task 88 had 31 requests and 18 accepted responses. All 211 frozen sources matche
 all 87 completed results recorded revocation and no stop was present. This is
 still partial metadata, not a final score, audit or completed backup.
 
-The separate allowlisted exporter and read-only verification route are now
+At the 02:21 checkpoint, the separate allowlisted exporter and read-only verification route were
 implemented locally, expanding the reporting bundle to 15 files. They require
 a fresh actual native audit and an actual reread of the one private archive.
-No public result files have been generated. Actual amended predecessor capture
-and native handoff integration still need completion before native reporting,
-backup or export. Local synthetic tests are not benchmark or native evidence.
+No public result files had been generated. Actual amended predecessor capture
+and native handoff integration were still pending at that checkpoint; the
+03:21 local integration above supersedes that implementation status. Local
+synthetic tests are not benchmark or native evidence.
 
 All 40 exporter tests passed within the final local gates. Full discovery ran
 2,354 tests: 2,353 passed and one pre-existing skip. All 848 guarded repeat

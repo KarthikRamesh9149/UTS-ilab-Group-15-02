@@ -20,7 +20,7 @@ import threading
 import weakref
 
 import matched_repeat_baseline as baseline
-import matched_repeat_handoff as handoff
+import matched_repeat_amended_handoff as handoff
 import matched_repeat_original as original_audit
 import matched_repeat_policy as policy
 import matched_repeat_runtime as runtime
@@ -143,9 +143,10 @@ def recheck(session):
                 raise ValueError('Current prerequisite observation changed within the locked session')
         # The potentially longer library/host reads cannot hide source, result
         # or supporting-inventory changes occurring after the first rechecks.
-        handoff.recheck(root, original, final, harness, state['witness'])
+        handoff._no_stop(root)
         original_audit.recheck(root, original, final, harness, state['original_record'])
-        check_files(root, state['files']); handoff._no_stop(root)
+        handoff.recheck(root, original, final, harness, state['witness'])
+        check_files(root, state['files'])
         return describe(session)
     except BaseException:
         _SESSIONS.pop(session, None)

@@ -232,8 +232,8 @@ def export(commit):
         raise ValueError('Export incomplete or uncertain; inspect retained partial state without retry') from None
 
 
-def verify_export(commit):
-    """Repeat actual audit/archive reads; saved export state is never authority."""
+def _verified_capture(commit):
+    """Internal actual audit/archive capture for the source-bound live sender."""
     bindings = _operator(commit); _public_folder(True)
     _private_folder(STATE, {'intent.json', 'result.json'})
     raw = {n: launch._raw(STATE + '/' + n) for n in ('intent.json', 'result.json')}
@@ -254,4 +254,11 @@ def verify_export(commit):
     for name, value in files.items(): launch._raw(DESTINATION + '/' + name, _hash(value))
     for name, value in raw.items(): launch._raw(STATE + '/' + name, _hash(value))
     _private_folder(STATE, {'intent.json', 'result.json'}); _public_folder(True)
-    return expected
+    captured['export_files'] = {**expected['public_files'],
+        **{STATE + '/' + n: _hash(value) for n, value in raw.items()}}
+    return captured, expected
+
+
+def verify_export(commit):
+    """Repeat actual audit/archive reads; saved export state is never authority."""
+    return _verified_capture(commit)[1]

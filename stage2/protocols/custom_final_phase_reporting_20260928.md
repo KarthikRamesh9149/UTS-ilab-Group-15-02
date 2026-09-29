@@ -2,7 +2,7 @@
 
 ## Scope and dated evidence
 
-This is a separate reporting amendment for the already running, frozen C0-NC
+This is a separate reporting amendment for the frozen C0-NC
 final89, not a new candidate or a change to execution. Its execution source set
 remains `4f73ab4083b76f555ff3bf695d7fed87ddbf4e5982551473418b8005eaf24d05`.
 The qualification and registration remain the exact bindings published in
@@ -462,3 +462,78 @@ column allowlists, stale audits, changed bytes, privacy/symlinks/FIFOs, duplicat
 JSON fields, partial writes, no replay and fresh read-only verification. They do
 not establish native compatibility, a real completed audit, off-server archive
 or benchmark results. No production entry has been invoked.
+
+## Explicit amended predecessor handoff, 29 September
+
+The 03:21:46 UTC metadata observation found all 89 results retained, with 50
+passes, 36 verified zeros and the same three setup-only missing verifier
+outcomes. The service was inactive/dead, PID 0, exit 0; all 211 execution
+sources matched, all 89 results recorded model revocation and no stop was
+present. This is completed-run metadata, not the completed audit or backup.
+
+`matched_repeat_amended_predecessor.py` and
+`matched_repeat_amended_handoff.py` implement the distinct amended route.
+Their two test modules expand the reporting bundle to 19 files and prospective
+repeat union to 280. The actual session and inspection connection now select
+this route. Old predecessor, handoff, stream and completed collectors remain
+unchanged and fail closed for the amended schema. Frozen execution is unchanged.
+
+Fixed Mac capture requires the full current revision, fetched origin/main and
+actual committed bytes for every current repeat/reporting consumer. It calls
+the export verifier's internal actual capture, never accepts its public return
+as authority, and thus performs a fresh completed native audit, a strict reread
+of the ONE retained archive and exact deterministic public/export-state checks.
+All three public result files must already be committed on main. Missing or
+partial backup/export inventories refuse a connection before starting a service.
+The retained backup revision binds its reporting bundle; later current repeat
+code is separately bound, not retroactively added to the historical archive.
+
+The source-bound Mac sender streams exact retained UTF-8 snapshot/backup bytes
+and that existing private archive. It uses protected single-link file reads,
+then rereads current source, private inputs, public export, private state and
+archive bytes before its final commitment. No archive is recreated, extracted
+or copied to a second local pathname. The distinct envelope cannot select the
+old schema. The old framing helper is unchanged; the amended strict archive
+verifier checks the stream, all directory inventories and actual absences,
+gzip/tar termination, hashes and the final operator commitment plus EOF.
+
+Native authentication checks actual copied qualification bytes, current repeat
+sources, deterministic public projections and all five exact native anchors.
+It requires the real separate reporting tree, its exact source inventory and
+both successful native backup producer records, including the same receipt.
+A failure marker, partial deployment or changed state refuses authentication.
+Those records alone still do not prove an off-server copy. The pinned SSH
+connection and exact native Unix peer/PID/cwd checks remain necessary; a regular
+file, pipe descriptor or saved JSON is not peer identity or admission.
+
+After the complete committed stream, the native consumer invokes the actual
+separate reporter through its source-bound bootstrap in the original final
+isolated interpreter, with the exact credential-free environment. Actual
+lineage authentication and audit locks run BEFORE the session's outer locks.
+Only collection time may differ, and the fresh audit cannot predate the retained
+snapshot. Final source/input/supporting/result/inventory/absence and all 182
+historical-result reads follow the last native service observation.
+
+The native witness cannot be constructed from saved metadata, serialised or
+moved across processes, threads or async tasks. The real session consumes it in
+that same task before taking all ancestor locks. Under-lock recheck reads actual
+bytes, separate reporting state, exact inventories and true absences without a
+collector, archive transfer or recursive lock acquisition. Failed rechecks
+permanently invalidate the witness/session. Session ordering leaves the amended
+evidence reread after other native observations. Independent original178,
+current library/constructor/host checks and real native qualification remain
+mandatory. No score, request count or unknown-cost gate is added.
+
+Local tests use actual synthetic89 evidence, private files, tar/gzip bytes,
+pipes, Unix sockets and competing locks. The actual sender, amended archive
+reader and real same-task session are exercised together. Native host/audit,
+Docker, SSH and Git observations are mocked; these tests are not native
+compatibility, completed audit, off-server backup or benchmark evidence.
+No native reporting deployment, collector, archive, public export, handoff,
+repeat build/qualification/dispatch or recovery attempt has occurred here.
+
+Native reporting must use the exact committed source freeze after final local
+gates. Trusted qualify/paid service operations, actual native
+compatibility, repeat exporter and the completed-Terminus OpenHands successor
+reader remain separate work. Recovery sequencing/reporting approval is pending;
+original setup failures cannot be replaced or silently merged with new attempts.

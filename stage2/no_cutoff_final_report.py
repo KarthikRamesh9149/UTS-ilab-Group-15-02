@@ -29,6 +29,8 @@ REPORTING_FILES = ('no_cutoff_final_report.py', 'test_no_cutoff_final_report.py'
     'no_cutoff_final_backup.py', 'test_no_cutoff_final_backup.py',
     'no_cutoff_final_backup_operator.py', 'test_no_cutoff_final_backup_operator.py',
     'no_cutoff_final_export.py', 'test_no_cutoff_final_export.py',
+    'matched_repeat_amended_predecessor.py', 'test_matched_repeat_amended_predecessor.py',
+    'matched_repeat_amended_handoff.py', 'test_matched_repeat_amended_handoff.py',
     'no_cutoff_final_reporting.py', 'test_no_cutoff_final_reporting.py',
     'no_cutoff_final_archive.py', 'test_no_cutoff_final_archive.py',
     'no_cutoff_final_phase_audit.py', 'test_no_cutoff_final_phase_audit.py',

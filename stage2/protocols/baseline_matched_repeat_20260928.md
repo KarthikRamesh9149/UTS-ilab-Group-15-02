@@ -1,5 +1,18 @@
 # Matched baseline repeats after custom final89
 
+Current checkpoint, 29 September: the custom final has 89/89 retained results
+at 03:21:46 UTC, with 50 passes, 36 verified zeros and three setup-only missing
+outcomes. The service exited successfully; this is metadata, not completed audit
+or backup. The explicit amended capture/handoff now feeds the actual repeat
+session and inspection connection locally. Its actual fresh audit and existing
+archive read retain true absences and all original outcomes; old readers and
+execution remain unchanged. The reporting bundle is 19 files; the prospective
+repeat source union is 280. No native reporting deployment, archive, export,
+repeat qualification/dispatch or recovery has occurred. Trusted qualify/paid
+service operations and native verification are still required, followed by the
+repeat exporter and completed-Terminus successor reader before their launches.
+See the [explicit amended handoff](custom_final_phase_reporting_20260928.md).
+
 ## Authority and order
 
 On 28 September 2026, before the custom final89 score was known, the user
@@ -1588,3 +1601,24 @@ export state retains failures and refuses automatic repetition without modifying
 the completed backup inventory. No receipt, public result or saved report grants
 admission. Trusted repeat service operations, native compatibility, repeat
 exporter and completed-Terminus successor reader remain unfinished.
+
+## Amended live handoff local verification, 29 September 03:21 checkpoint
+
+The separate capture and handoff are now wired into the real session and
+inspection connection, leaving the old readers unchanged. Final local
+discovery ran 2,397 tests: 2,396 passed and one pre-existing skip. All 891
+guarded repeat regressions passed with zero skips/errors/failures; the three
+import/source checks covered 178 loaded project modules. All 12 repository
+tests passed. The 42 new capture/handoff tests and one connection regression
+exercise real temporary files, strict archive bytes, local pipes/Unix sockets,
+and the same-task lock scope with native audits/services/libraries/Docker and
+Git mocked. They are not actual native qualification, handoff or paid results.
+
+Actual local anchors matched 280 prospective sources, 300 original operator
+bindings, 227 unchanged old native preflight bindings, 229 reporting-native
+bindings, 38 reporter-local bindings and five metadata anchors. The exporter
+adds four public prerequisite bindings. All 19 reporting files are bound;
+only the prior permitted local scored_trial.py hooks differ among the 211
+frozen final sources. The eight image overlays and 32 installed import names
+remain unchanged. Native reporting, backup, export and repeat operations have
+not been invoked at this local checkpoint.

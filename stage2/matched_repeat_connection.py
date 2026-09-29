@@ -14,7 +14,7 @@ import subprocess
 import time
 
 import matched_repeat_baseline as baseline
-import matched_repeat_handoff as handoff
+import matched_repeat_amended_handoff as handoff
 import matched_repeat_policy as policy
 import matched_repeat_predecessor as operator
 import matched_repeat_runtime as runtime
@@ -38,6 +38,16 @@ def bindings(repo, harness):
     # send() still performs its independent fresh audit/archive read, not reuse.
     for name in ('snapshot.json', 'backup.json', 'evidence.tar.gz'):
         operator._regular(repo, operator.COMPLETED + '/' + name)
+    # Current committed amended sources and completed backup/export inventory
+    # are required BEFORE starting a service; send still freshly audits/reads.
+    commit = handoff.launch._git('rev-parse', 'HEAD').decode().strip()
+    handoff.operator._prepare(commit, harness)
+    # Only the archived reporting bundle is tied to its retained old commit.
+    # Current repeat sources are separately checked above; a later qualified
+    # repeat-service addition must not retroactively rewrite the final backup.
+    handoff.export._read_backup(handoff.export._operator(commit))
+    handoff.export._public_folder(True)
+    handoff.export._private_folder(handoff.export.STATE, {'intent.json', 'result.json'})
     return files
 
 

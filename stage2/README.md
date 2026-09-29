@@ -8,7 +8,34 @@ defers the earlier 60-task confirmation and 20-task diagnostic; it does not
 skip final runtime qualification or alter the C3 study. C3 completed at
 18:22:57 UTC on 27 September with 13/20 passes. Its audit and private backup
 are complete. The separately qualified [C0-NC final89](results/custom-no-cutoff-final-20260928/README.md)
-service launched at 03:37:46 UTC on 28 September. No completed final score exists.
+service launched at 03:37:46 UTC on 28 September. At 03:21:46 UTC on 29 September,
+read-only metadata showed all 89 attempts retained: 50 passes, 36 verified zeros
+and three setup-only missing verifier outcomes. The service was inactive/dead,
+PID 0, exit 0; all 211 sources matched, all 89 results recorded revocation and
+no stop was present. No active task remains. A completed native audit, one
+verified private archive and public final result export are still pending.
+No baseline repeat or recovery has started.
+
+The explicit amended operator capture and native handoff now select the
+absence-aware archive verifier and actual separate fresh audit. The actual
+repeat session/inspection connection is wired to it; old readers and frozen
+execution remain unchanged. The reporting bundle is 19 files and prospective
+repeat inventory is 280. This remains local preparation, not native deployment,
+audit, transfer, qualification or dispatch. Trusted repeat service operations,
+native compatibility, repeat exporter and the OpenHands successor reader remain
+unfinished. The separately labelled recovery proposal still awaits the user's
+sequencing/reporting decision.
+
+Final local verification of this amended handoff ran 2,397 tests: 2,396 passed
+and one pre-existing skip. All 891 guarded repeat regressions passed without
+skips/errors/failures, with 178 loaded project modules bound before discovery,
+after discovery and after execution. The guard covered 284 stage2 bindings:
+280 prospective sources plus four retained metadata files. All 12 repository
+tests passed. The 42 new capture/handoff tests and an additional connection
+regression use real temporary private files, archive bytes, pipes and locks,
+with native observations mocked. These are not native audit or paid evidence.
+
+Historical launch observation:
 At 03:39:51 UTC its first task was underway, with ten requests and nine accepted
 responses. All 211 sources matched and no stop marker was present. This is a
 dated observation, not a claim about subsequent progress.

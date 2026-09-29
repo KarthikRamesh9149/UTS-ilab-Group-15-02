@@ -21,10 +21,10 @@ from unittest.mock import Mock, patch
 import matched_repeat_connection as connection
 import matched_repeat_service as service
 import matched_repeat_policy as policy
-import matched_repeat_handoff as handoff
+import matched_repeat_amended_handoff as handoff
 import matched_repeat_stream as wire
 from scored_gateway import durable_json
-import test_matched_repeat_handoff as handoff_tests
+import test_matched_repeat_amended_handoff as handoff_tests
 
 NONCE = 'a1' * 16
 HARNESS = 'terminus-2'
@@ -34,9 +34,17 @@ class LocalTree(unittest.TestCase):
     def setUp(self):
         # Reuse only setup/cleanup, not the other module's test methods. Its
         # native audits are mocked but actual archive/source readers run.
-        self.fixture = handoff_tests.HandoffTests('runTest'); self.fixture.setUp()
+        self.fixture = handoff_tests.HandoffFixture('runTest'); self.fixture.setUp()
         self.addCleanup(self.fixture.doCleanups)
         self.repo = self.fixture.repo
+        # Current source bytes for the actual stdlib full-inventory guard.
+        stage = Path(__file__).resolve().parent
+        for name in policy.REQUIRED_SOURCE_FILES:
+            raw = (stage / name).read_bytes(); relative = 'stage2/' + name
+            self.fixture.save(relative, raw)
+            self.fixture.current[name] = hashlib.sha256(raw).hexdigest()
+            self.fixture.old_anchors['local'][relative] = hashlib.sha256(raw).hexdigest()
+            self.fixture.git_bytes[relative] = raw
         self.files = connection.bindings(self.repo, HARNESS)
         sockets = tempfile.TemporaryDirectory(dir='/tmp'); self.addCleanup(sockets.cleanup)
         self.run = Path(sockets.name).resolve()
@@ -90,6 +98,14 @@ class CommandTests(LocalTree):
         super().setUp()
         self.original = self.repo / 'original'; self.original.mkdir()
         self.enterContext(patch.object(connection.baseline, 'ORIGINAL_ROOT', self.original))
+
+    def test_archived_reporting_revision_is_separate_from_current_repeat_revision(self):
+        with patch.object(handoff.export, '_read_backup', wraps=handoff.export._read_backup) as read:
+            connection.bindings(self.repo, HARNESS)
+        local = read.call_args.args[0]['local']
+        self.assertIn('stage2/no_cutoff_final_export.py', local)
+        self.assertNotIn('stage2/matched_repeat_service.py', local)
+        self.assertIn('stage2/matched_repeat_service.py', self.files)
 
     def test_exact_pinned_ssh_replaces_only_the_original_interpreter(self):
         old = connection.ssh_command(self.repo)
