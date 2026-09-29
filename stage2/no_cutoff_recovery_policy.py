@@ -103,6 +103,10 @@ REQUIRED_SOURCE_FILES = frozenset({
     'protocols/custom_setup_recovery_runtime_20260929.md',
     'no_cutoff_recovery_session.py', 'test_no_cutoff_recovery_session.py',
     'protocols/custom_setup_recovery_session_20260929.md',
+    'no_cutoff_recovery_bootstrap.py', 'no_cutoff_recovery_connection.py',
+    'no_cutoff_recovery_service.py', 'test_no_cutoff_recovery_connection.py',
+    'protocols/custom_setup_recovery_connection_20260929.md',
+    'progress_dashboard.py',  # Unchanged pinned SSH helper, current binding.
     'matched_repeat_stream.py',
     'no_cutoff_final_report.py',
     'test_no_cutoff_final_report.py',
@@ -144,7 +148,7 @@ ORCHESTRATION_FILES = frozenset({'scored_trial.py'})
 RECOVERY_TEST_MODULES = ('test_no_cutoff_recovery_plan',
     'test_no_cutoff_recovery_setup', 'test_no_cutoff_recovery_policy',
     'test_no_cutoff_recovery_handoff', 'test_no_cutoff_recovery_runtime',
-    'test_no_cutoff_recovery_session')
+    'test_no_cutoff_recovery_session', 'test_no_cutoff_recovery_connection')
 PROBE_MODES = ('tools', 'prepare_not_applicable', 'prepare_nonzero',
     'prepare_exception', 'cancel_setup', 'boundary_stop')
 PREPARATION_OUTCOMES = dict(tools='refreshed', prepare_not_applicable='not_applicable',

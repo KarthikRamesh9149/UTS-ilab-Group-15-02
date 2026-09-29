@@ -1,5 +1,15 @@
 # Matched baseline repeats after custom final89
 
+Recovery connection checkpoint, 29 September: the separate
+[pinned prerequisite inspection route](custom_setup_recovery_connection_20260929.md)
+now joins actual recovery handoff/session calls in a detached native service,
+with pre-import source checks and exact peer/process identity. This is local
+implementation, NOT native invocation, qualification or paid admission. The
+operation is inspection-only; native compatibility, qualification/paid branches,
+observer/scored integration, real image/producers, dispatcher and separate
+recovery audit/ONE backup/export remain. No baseline source, schedule, ordering,
+original result or archived reader changes. Recovery0/3; both repeats unstarted.
+
 Recovery locked-session checkpoint, 29 September: the separate
 [C0-NC prerequisite session](custom_setup_recovery_session_20260929.md) now
 connects real handoff/runtime reader calls under the full ancestor lock chain.

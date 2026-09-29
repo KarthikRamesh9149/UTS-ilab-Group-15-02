@@ -1,6 +1,68 @@
 # Stage 2 execution status
 
-## Latest: recovery-only locked prerequisite session implemented locally
+## Latest: recovery-only pinned inspection connection implemented locally
+
+The [new connection](protocols/custom_setup_recovery_connection_20260929.md)
+joins the actual recovery sender, pinned SSH route, detached native service and
+locked prerequisite session. It is inspection-only: no installer, qualifier,
+registration or paid dispatcher entry was added. It has NOT been invoked on
+the VPS. Full committed current source/private bytes are checked before imports,
+with exact isolated environment, absent cache, loaded origins and actual peer
+PID/start-tick/executable/cwd/owner checks. The service owns its session in one
+main-thread async task; actual original audit/same-archive authentication still
+precedes all34 locks. No witness or saved inspection receipt grants admission.
+
+Mac/native operation folders and service-start records are exclusive; partial
+state is terminal. Final result/acknowledgement comes only after the normal
+session-exit recheck and invalidation. Durable file identities/bytes are reread,
+including same-byte replacement checks. A complete native session can finish
+after client acknowledgement loss. Only an owned Mac SSH client and this
+operation's unchanged ephemeral socket can be cleaned up; no native signal,
+restart, archive copy/recreation or task replay is provided.
+
+The current recovery union is 288 sources, adding the bootstrap, connection,
+service, test module and protocol. The unchanged SSH helper was already in
+original211 and is now also explicit in the current component inventory. The
+policy changes only its inventory/test list. All earlier recovery components,
+archived35, original preparation/lifecycle/scored/trace and published metadata
+remain unchanged. Original211 retain only the previously permitted local
+scored-runner delta.
+
+Local tests use real protected files, pipes, Unix sockets, competing locks and
+the actual sender/archive/session path with synthetic original89 evidence.
+Native manager/procfs/host/library/audit observations are mocked. An isolated
+credential-free import child refuses writes, processes and external networking.
+Initial fixture failures exposed a missing unchanged SSH helper in the minimal
+synthetic inventory, the Mac tokenizer-cache path and an invalid no-replay test
+stdin; these were corrected without relaxing native checks. Review separated
+Mac source reads from Linux-specific ancestry checks and tightened actual unit
+identity, final-exit ordering and durable record/file identity verification.
+
+All 52 new checks passed. Final review also binds the actual live handoff's
+operator revision to the detached operation's committed revision. The first
+new revision-mismatch fixture passed a dictionary to a byte-only test helper;
+its encoding was corrected, without changing the production check. Two wider
+draft gates were interrupted locally before this last correction and are not
+counted as passed; no native process was signalled. Final broader validation
+passed all 1,727 tests with zero skips/errors/failures, including all 659 tests
+in the recovery selection (verified as an exact subset, not a separate final
+run). Its before/discovery/after checks covered 331 source bindings and 249
+final loaded project modules (39 before, 246 after discovery). Full discovery
+passed 2,893 of 2,894 tests with one pre-existing skip and no failures/errors;
+all 428 Python source hashes matched before/discovery/after. All 12 repository
+tests passed. These are local/synthetic checks, not native qualification or
+benchmark outcomes. The later status edits do not change bound source bytes.
+
+The ONLY native operation was the read-only inspector at **20:36:37 UTC on
+29 September**: **89/89 complete, 50 passed, 36 verified failures, 3 missing
+verifier outcomes**, no active/partial task, all211 sources matching, all89
+revoked and no operator/provider stop. Recovery remains0/3 and both baseline
+repeats unstarted. Actual new-root absence/installation, native compatibility,
+qualification/paid service branches, scoped scored and durable observer
+integration, image/native producer qualification, three-cell dispatch and
+separate completed audit/ONE backup/export remain. Keep VPS and hourly updates.
+
+## Earlier checkpoint: recovery-only locked prerequisite session
 
 The new [locked session](protocols/custom_setup_recovery_session_20260929.md)
 consumes the actual recovery handoff before taking the complete 34-lock chain:

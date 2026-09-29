@@ -1,11 +1,60 @@
 # Separate C0-NC setup recovery
 
 Status: diagnosis and fixed plan published; separate setup observer, policy,
-gateway, original-evidence handoff, current host/library reader and locked
-prerequisite session implemented locally. **0/3 recovery attempts started.**
+gateway, original-evidence handoff, current host/library reader, locked
+prerequisite session and pinned inspection connection implemented locally.
+**0/3 recovery attempts started.**
 No native recovery qualification, registration or paid admission has occurred.
 
 ## Current implementation checkpoint
+
+The [pinned inspection connection](../../protocols/custom_setup_recovery_connection_20260929.md)
+now connects the actual recovery sender and session through the existing strict
+SSH route and a detached service. Full source/private bytes and identities are
+read before/after guarded imports. Exact local peer credentials and actual
+PID/start-tick/executable/cwd/owner plus systemd MainPID/invocation checks bind
+the relay and consumer. The service creates its own session in its main async
+task; a handle never crosses the process boundary.
+
+Actual fresh original audit and strict same-retained-archive handoff still
+precede all34 locks. Only after final session-exit checks and invalidation can a
+successful inspection result be retained/acknowledged. Exclusive operation and
+service-start state refuse replay or restart. All failures/partial state stay
+retained, without raw diagnostics. A completed handoff survives lost client
+acknowledgement. Only the exact owned ephemeral socket may be removed and only
+an owned Mac SSH client can be terminated; no native signal exists.
+
+The source union is288files. Original/archive/preparation/scored/trace and all
+earlier recovery components are unchanged; the policy changes only source/test
+inventory. Local tests use real files, pipes, Unix sockets, locks and the actual
+synthetic sender/handoff/session path, with native observations mocked. Initial
+test-only SSH-helper inventory, Mac cache-path and no-replay stdin fixtures were
+corrected. Review tightened exact unit identity, private record verification,
+same-byte source/input replacement and success-after-context-exit ordering.
+All 52 new checks passed. The actual live handoff revision must also equal the
+detached operation's committed revision. Its new negative fixture initially
+needed an explicit JSON-to-bytes conversion in the test-only helper. Two wider
+draft gates were interrupted locally before the final revision check; neither
+is claimed passed, and no native process was signalled. Final broader validation
+passed all 1,727 tests without skips/errors/failures, including the complete
+659-test recovery selection as an explicitly checked subset, not a separate
+final run. All 331 source bindings and 249 final loaded project modules passed
+before/discovery/after guards. Full discovery ran 2,894 tests: 2,893 passed,
+one pre-existing skip, no errors/failures, with all 428 Python sources unchanged
+at those checkpoints. All 12 repository tests passed. These remain local and
+synthetic results, not native compatibility, admission or benchmark outcomes.
+
+The only native call was the existing read-only inspector at20:36:37UTC on
+29September: original89/89,50passes,36verified failures,3missing,noactive/partial,
+all211matching,all89revoked,no stop. Recovery0/3 and both baseline repeats remain
+unstarted. No actual recovery connection/session, collector, archive read,
+root/service/image build, qualification, registration or provider call occurred.
+Actual new-root absence and exclusive installation, genuine native compatibility,
+qualification/paid service integration, durable observer/scored admission,
+six-case native qualifier, dispatcher and separate report/ONE backup/export
+remain required. The inspection receipt is non-admitting and cannot be reused.
+
+## Earlier locked-session checkpoint
 
 The [locked session](../../protocols/custom_setup_recovery_session_20260929.md)
 now connects the actual recovery handoff and host/library readers. The fresh
