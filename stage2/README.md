@@ -1,5 +1,29 @@
 # Stage 2 execution status
 
+## Latest: separate three-task recovery diagnosis and fixed plan
+
+The original final89 remains audited, privately backed up and publicly exported:
+50 passes, 36 verified failures and three setup-only missing outcomes. A fresh
+read-only observation at 14:41:09 UTC on 29 September found 89/89 complete, no
+active/partial task, all 211 sources matching, all 89 revoked and no stop.
+
+Inspection of the SAME retained archive narrows original tasks 63-65 to failure
+inside environment preparation before its return, hence before agent setup.
+The pinned original code stores `environment_preparation` before `agent.setup`;
+that field is absent in all three exact original results. Their command output,
+exit code and exception stack were not retained. A package/mirror/network/SSH
+cause is not established, and no speculative infrastructure change is applied.
+
+The [separate recovery amendment](protocols/custom_setup_recovery_20260929.md)
+and deterministic three-task plan retain the original C0-NC agent, model,
+official limits and preparation command, with fresh recovery IDs and separate
+outcomes. The new read-only diagnosis reader actually verifies the existing
+archive and committed public bytes, but grants no native scope or admission.
+Current diagnosis sources are not added retrospectively to the archived reporter.
+Real setup diagnostics, recovery scope/service/gateway/qualification/dispatch
+and separate reporting still need implementation before any recovery launch.
+No recovery or baseline repeat has begun; fixed baseline schedules are unchanged.
+
 ## Latest: original final89 audit, private backup and public export complete
 
 The version-4 reporter at `a74e0dd053fed70a1ede3eef23e0ccdb6db6fb09`

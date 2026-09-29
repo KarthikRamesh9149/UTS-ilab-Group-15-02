@@ -1,5 +1,17 @@
 # Matched baseline repeats after custom final89
 
+Recovery preparation update, 29 September: the approved separate three-task
+recovery has a [pre-launch amendment](custom_setup_recovery_20260929.md) and
+fixed fresh identities. Original archive/source evidence narrows the setup
+failures to the preparation callback before return; the lower command cause
+was not retained. No native recovery scope, qualification or attempt exists.
+Recovery remains separate from original89 and does not change this outcome-
+independent baseline schedule, its task order or original agent controls.
+The schedule SHA256 remains
+`bd26df6c19c88c238d0795423699fa9030a12f4ea925b42667ad75321817a6e1`.
+Recovery is operationally before the next paid baseline block; Terminus-2
+still precedes OpenHands and each retains its own actual native gates.
+
 Latest actual completion, 29 September 2026 UTC: the r4 reporting root at
 `a74e0dd053fed70a1ede3eef23e0ccdb6db6fb09` was installed exclusively at
 14:12:58 UTC. Its actual read-only inventory preflight passed at 14:14:05 UTC.

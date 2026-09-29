@@ -1,5 +1,17 @@
 # Measured C0-NC final89
 
+## Separate recovery preparation, original results unchanged
+
+The approved recovery for original tasks 63-65 now has an explicit
+[pre-launch amendment](../../protocols/custom_setup_recovery_20260929.md) and
+fixed three-task plan. Read-only inspection of the retained archive, exact
+original results and execution sources places all three errors before the
+environment-preparation callback returned, not inside agent setup or execution.
+The underlying command error was not retained; no specific package, network or
+SSH cause is claimed. The original 50/36/3 outcomes, all 89 rows, archive and
+35-file reporting bundle remain unchanged. New native recovery qualification
+and admission are still required; no recovery attempt has started or been merged.
+
 ## Latest: actual private archive verified and allowlisted results exported
 
 Reporting implementation `a74e0dd053fed70a1ede3eef23e0ccdb6db6fb09` was
