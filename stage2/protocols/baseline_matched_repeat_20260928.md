@@ -1,6 +1,27 @@
 # Matched baseline repeats after custom final89
 
-Latest native checkpoint, 29 September: the single approved reporting
+Latest audit checkpoint, 29 September: the first actual completed-final audit
+at f4e2ddd56584469aadb2023e36d858583b4fb8e8 returned `ValueError` at 06:16:00 UTC,
+without a successful audit result. Only the exception type was retained; the
+failed stage and cause are unestablished. No backup/export or repeat operation
+began, and no automatic audit retry occurred. Read-only diagnosis at 06:17:26
+and 06:24:52 matched all 229 native bindings and 21 installed reporting files
+with fresh trusted completion evidence. The later check found no process with
+its working directory or executable in any of 12 study/reporting roots and no
+holder/waiter for their 33 existing lock files. These checks do not substitute
+for the completed audit. A separately requested diagnostic audit is pending;
+the installed reporting tree must not be overwritten or redeployed.
+
+The user has now explicitly approved one separately reported recovery attempt
+for each of custom tasks 63-65, only after the original audit and verified
+backup. This supersedes older pending-recovery statements below. It does not
+change the original 89 outcomes, either baseline's fixed 89-task schedule, or
+the Terminus-before-OpenHands order. Recovery diagnosis, an explicit pre-launch
+amendment and qualification remain required. No recovery or baseline attempt
+has started; retries may not be merged into the original score or repeated
+until a pass. Preserve all original and new outcomes.
+
+Earlier installation checkpoint, 29 September: the single approved reporting
 installation succeeded at 06:04:02 UTC from
 ea543e46784025f3db7a5ac54c4e8e4624893278; read-only inspection at 06:04:26
 verified the 21-file separate tree and actual completion/protection checks.

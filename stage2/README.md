@@ -1,5 +1,39 @@
 # Stage 2 execution status
 
+## Completed audit blocked; separate recovery approved, 29 September 2026
+
+The first actual completed audit through `no_cutoff_final_reporting.collect`
+at operator commit f4e2ddd56584469aadb2023e36d858583b4fb8e8 returned a
+`ValueError` at 06:16:00 UTC. No successful completed audit was obtained, and
+no backup or export invocation began. The operator wrapper retained only the
+exception type, so the failure stage and cause are not established: neither
+a transport timeout nor an evidence-validation failure may be inferred.
+The failed attempt is retained; there has been no automatic collector retry.
+
+Read-only diagnosis at 06:17:26 UTC passed the actual completion guard and
+all 229 native source/input/producer/anchor and 21 reporting-file bindings.
+The reporting backup intent/result/failure paths were all absent and not
+symlinks. A further metadata-only check at 06:24:52 UTC found no process with
+its working directory or executable in any of the 12 inspected study/reporting
+roots and no holder or waiter for the 33 existing ancestor lock files. All
+229/21 bindings and the trusted completion guard still passed. These checks
+invoked no collector and do not establish a completed audit or its failure cause.
+One read-only diagnostic audit has been requested and is not yet approved.
+Do not retry collect or replace the existing reporting installation automatically.
+
+The user explicitly approved "one separately reported retry each" for tasks
+63-65, only after the original run is audited and backed up. This supersedes
+older pending-recovery statements. Diagnosis and an explicit pre-launch recovery
+amendment/qualification are still required; none has run. Each recovery must use
+one fresh attempt, preserve the original failures and new outcomes separately,
+and never promise a pass or substitute a retry into the original 89 results.
+The fixed baseline repeats remain separate. No recovery or baseline has started.
+
+Last progress metadata is still the 06:05:15 UTC observation below: 89/89
+complete, 50 passes, 36 verified zeros and three setup-only missing verifier
+outcomes, with no active task. It is not an audited final score. Keep the VPS
+and the explicitly requested hourly notifications active.
+
 ## Reporting installation verified, 29 September 2026
 
 The single newly approved reporting deployment succeeded at 06:04:02 UTC from

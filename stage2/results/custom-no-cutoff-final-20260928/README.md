@@ -1,6 +1,35 @@
 # Measured C0-NC final89
 
-## Latest: reporting installation verified, 29 September
+## Latest: audit blocked; three separate retries approved, 29 September
+
+The first actual completed audit at operator commit
+f4e2ddd56584469aadb2023e36d858583b4fb8e8 returned `ValueError` at 06:16:00 UTC.
+No successful completed audit, backup or export was obtained. Only the exception
+type was retained, so the precise failed check and cause remain unknown.
+The audit has not been automatically retried, and the installed reporting tree
+has not been changed or replaced.
+
+Read-only checks at 06:17:26 UTC still matched all 229 native bindings and all
+21 reporting files, with trusted completion evidence and no reporting backup
+state files. At 06:24:52 UTC, a separate metadata-only check also found no
+process with its working directory or executable in the 12 inspected study
+roots and no holder/waiter for their 33 existing lock files. These are narrow
+diagnostic observations, not a completed audit. One further read-only diagnostic
+audit has been requested; no new invocation is authorised by those checks alone.
+
+The user has approved one separately reported recovery attempt for each of
+tasks 63-65 after the original audit and verified backup. Their setup failures
+and missing verifier outcomes remain in the original 89; new outcomes must be
+reported separately, with no guaranteed pass or replacement score. The setup
+cause is still unestablished. No recovery diagnosis, qualification or dispatch
+has occurred, and no baseline repeat has started. Older pending-recovery text
+below is historical and superseded by this explicit decision.
+
+The last progress observation remains 06:05:15 UTC: 89/89 complete, 50 passes,
+36 verified zero-score failures and three setup-only missing verifier outcomes,
+with no active task. These are preliminary metadata, not an audited final score.
+
+## Reporting installation verified, 29 September
 
 The one newly approved deployment succeeded at 06:04:02 UTC from
 ea543e46784025f3db7a5ac54c4e8e4624893278. Read-only inspection at 06:04:26
