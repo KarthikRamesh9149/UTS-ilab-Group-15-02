@@ -29,6 +29,11 @@ class CompletedAuditTests(unittest.TestCase):
         self.enterContext(patch.object(report, 'ROOT', self.root))
         self.enterContext(patch.object(report, 'REPORTING', self.reporting))
         self.enterContext(patch.object(report, '_context'))
+        # Real origin enforcement is tested with isolated module inventories.
+        # This synthetic native tree lives beside the real test process tree.
+        self.enterContext(patch.object(report, '_loaded'))
+        for name, sha in report.dependencies.FILES.items():
+            self.assertEqual(self.f.write(name, (fixtures.STAGE / name.removeprefix('stage2/')).read_bytes()), sha)
         self.service = self.enterContext(patch.object(report, '_service', return_value=dict(
             LoadState='not-found', ActiveState='inactive', SubState='dead', MainPID='0', ExecMainStatus='0',
             completion=report.guard.completion_metadata())))
@@ -349,6 +354,7 @@ class ReadOnlyBoundaryTests(unittest.TestCase):
                     (report, '__file__', str(bundle / 'stage2/no_cutoff_final_report.py')),
                     (phase, '__file__', str(bundle / 'stage2/no_cutoff_final_phase_audit.py')),
                     (report.guard, '__file__', str(bundle / 'stage2/no_cutoff_final_guard.py')),
+                    (report.dependencies, '__file__', str(bundle / 'stage2/no_cutoff_final_dependencies.py')),
                     (phase.local_trace, '__file__', str(root / 'stage2/local_trace.py')),
                     (report.sys, 'prefix', str(root / '.venv')), (report.sys, 'platform', 'linux'),
                     (report.sys, 'dont_write_bytecode', True), (report.sys, 'flags', NS(isolated=1)),

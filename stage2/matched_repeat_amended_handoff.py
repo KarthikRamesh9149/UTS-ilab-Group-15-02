@@ -208,6 +208,7 @@ def _anchors(root, original, final, harness, header):
     native = {'stage2/' + n: h for n, h in final['sources'].items()}
     native.update({phase.RT + n: h for n, h in report.INPUTS.items()})
     native.update(final['evidence_files']); native.update(report.HISTORICAL_INPUTS)
+    report._merge(native, report.dependencies.FILES)
     return dict(data=data, backup=backup, document=document, anchors=anchors, sources=current,
         copied=copied, native=native, reporting_state=_reporting(data, backup))
 
@@ -228,15 +229,13 @@ def _native_audit(value):
     # credential-free environment, source/deployment guard and actual collect.
     bindings = dict(native=value['native'], reporting=value['data']['reporting_source_files'],
         commit=value['document']['operator_commit'])
-    try:
-        response = subprocess.run([str(report.ROOT / '.venv/bin/python'), '-I', '-B', '-'],
-            input=launch._program(bindings, 'collect').encode(), cwd=report.ROOT,
-            capture_output=True, timeout=300, env=dict(report.ENVIRONMENT))
-    except (OSError, subprocess.SubprocessError):
-        raise ValueError('Fresh amended native audit unavailable; preserve evidence without retry') from None
-    if response.returncode or len(response.stdout) > archive.ANCHOR_WINDOW:
-        raise ValueError('Fresh amended native audit refused or incomplete')
-    return phase._loads(response.stdout)
+    aliases = launch._aliases(bindings)
+    program = launch.transport._wrap(launch._program(bindings, 'collect'), aliases)
+    raw, metadata = launch.transport._exchange(program, aliases,
+        [str(report.ROOT / '.venv/bin/python'), '-I', '-B', '-'],
+        dict(report.ENVIRONMENT), cwd=report.ROOT)
+    launch.transport._completed(raw, metadata)
+    return phase._loads(raw)
 
 
 def _record(harness, value, verified):

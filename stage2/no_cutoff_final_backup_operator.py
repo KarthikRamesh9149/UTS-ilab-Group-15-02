@@ -18,9 +18,34 @@ import no_cutoff_final_archive as archive
 import no_cutoff_final_backup as producer
 import no_cutoff_final_phase_audit as phase
 import no_cutoff_final_reporting as launch
+import no_cutoff_final_transport as transport
 
 DESTINATION = '.runtime/netcup/custom-no-cutoff-final89-c0-nc-20260928'
-TRANSPORT_SECONDS = 900  # Whole transfer window, never a benchmark deadline.
+TRANSPORT_SECONDS = transport.BACKUP_SECONDS
+
+
+def _parents():
+    """Owned readable ancestors, then the exact private Netcup boundary."""
+    identities = []
+    for parent in (launch.REPO, launch.REPO / '.runtime', launch.REPO / '.runtime/netcup'):
+        s = parent.lstat()
+        if (parent.is_symlink() or parent.resolve() != parent or not stat.S_ISDIR(s.st_mode)
+                or s.st_uid != os.getuid() or s.st_mode & 0o7022):
+            raise ValueError('Canonical owned non-writable-by-others reporting parents required')
+        if parent == launch.REPO / '.runtime/netcup' and stat.S_IMODE(s.st_mode) != 0o700:
+            raise ValueError('Exact private Netcup boundary required')
+        identities.append((s.st_dev, s.st_ino, s.st_mode, s.st_uid, s.st_gid))
+    return tuple(identities)
+
+
+def _directory_id(path):
+    _directory(path); s = path.lstat()
+    return (s.st_dev, s.st_ino, s.st_mode, s.st_uid, s.st_gid)
+
+
+def _state(folder, identity):
+    if (_parents(), _directory_id(folder)) != identity:
+        raise ValueError('Reporting state parent or leaf identity changed')
 
 
 def _directory(path):
@@ -31,8 +56,7 @@ def _directory(path):
 
 
 def _destination():
-    parent = phase._path(launch.REPO, '.runtime/netcup')
-    for path in (parent.parent, parent): _directory(path)
+    _parents()
     folder = phase._path(launch.REPO, DESTINATION)
     if folder.exists():
         raise ValueError('Existing or partial final backup must never be replaced or recreated')
@@ -135,21 +159,24 @@ def _send(process, program, deadline):
 def backup(commit):
     """One actual native audit and streamed backup to the fixed Mac directory."""
     bindings = launch._prepare(commit)
+    parents = _parents()
     if Path(__file__).resolve() != launch.REPO / 'stage2/no_cutoff_final_backup_operator.py':
         raise ValueError('Use the source-bound fixed Mac backup receiver')
     folder = _destination()
     # This is a read-only deployment/inactive-service check, not a collector.
     launch.inspect_deployment(commit)
     launch._recheck(bindings); _destination()
+    if _parents() != parents: raise ValueError('Backup parent changed during preflight')
     program = launch._program(bindings, 'backup')
     folder.mkdir(mode=0o700); _sync(folder.parent)
+    identity = (parents, _directory_id(folder)); _state(folder, identity)
     process = None
     try:
         producer._save(folder, 'intent.json', dict(kind='exclusive_amended_final_backup_operator_intent',
             operator_commit=commit, created_utc=datetime.now(timezone.utc).isoformat(),
             reporting_source_files=bindings['reporting'], automatic_resume=False, paid_launch_ready=False))
         intent_sha, _ = producer._digest(folder, 'intent.json')
-        launch._recheck(bindings)
+        launch._recheck(bindings); _state(folder, identity)
         deadline = time.monotonic() + TRANSPORT_SECONDS
         process = _start(); _send(process, program, deadline)
         data, receipt, snapshot_hash = _receive(process.stdout, folder, bindings, deadline)
@@ -158,7 +185,7 @@ def backup(commit):
             raise ValueError('Native backup did not finish successfully; inspect without retry')
         # Re-read the actual one retained archive; never regenerate it.
         verified = archive.verify_archive(folder / 'evidence.tar.gz', data, receipt)
-        launch._recheck(bindings); _directory(folder)
+        launch._recheck(bindings); _state(folder, identity)
         producer._digest(folder, 'intent.json', intent_sha)
         producer._digest(folder, 'snapshot.json', snapshot_hash)
         producer._digest(folder, 'evidence.tar.gz', receipt['sha256'])
@@ -169,12 +196,17 @@ def backup(commit):
             off_server_backup_verified=True, archive_export_and_handoff_integrated=False,
             full_runtime_restore_exercised=False, automatic_resume=False, paid_launch_ready=False)
         producer._save(folder, 'backup.json', result)
+        _state(folder, identity); launch._recheck(bindings)
         return result
     except BaseException as error:
         # Preserve partial evidence, including a receipt if a late failure
         # occurred. No native stop, overwrite, removal or automatic retry.
-        producer._save(folder, 'failure.json', dict(kind='amended_backup_inspection_required',
-            error_type=type(error).__name__, automatic_resume=False, paid_launch_ready=False))
+        # Do not follow a replaced leaf/parent to write failure evidence.
+        try:
+            _state(folder, identity)
+            producer._save(folder, 'failure.json', dict(kind='amended_backup_inspection_required',
+                error_type=type(error).__name__, automatic_resume=False, paid_launch_ready=False))
+        except (OSError, ValueError): pass
         raise ValueError('Backup incomplete or uncertain; inspect retained native and Mac state before any action') from None
     finally:
         if process is not None:

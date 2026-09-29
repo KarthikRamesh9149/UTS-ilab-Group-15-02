@@ -18,6 +18,18 @@ import test_no_cutoff_final_archive as fixtures
 
 
 class PublicExportTests(unittest.TestCase):
+    def test_owned_readable_runtime_parent_is_not_chmodded(self):
+        (self.root / '.runtime').chmod(0o755)
+        self.run_export()
+        self.assertEqual((self.root / '.runtime').stat().st_mode & 0o777, 0o755)
+
+    def test_backup_parent_identity_change_during_fresh_audit_refuses_export(self):
+        def changed(*args):
+            (self.root / '.runtime').chmod(0o755)
+            return deepcopy(self.fresh)
+        with patch.object(launch, 'collect', side_effect=changed), self.assertRaises(ValueError): self.run_export()
+        self.assertFalse(self.target.exists())
+
     def setUp(self):
         self.f = fixtures.ArchiveTests(); self.f.setUp(); self.addCleanup(self.f.doCleanups)
         self.root = self.f.root; self.commit = 'a' * 40

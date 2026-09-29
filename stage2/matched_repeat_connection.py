@@ -22,7 +22,7 @@ import matched_repeat_stream as wire
 from progress_dashboard import ssh_command, REMOTE_HOST
 from scored_gateway import durable_json, private_directory
 
-TIMEOUT = 900  # Transport acknowledgement window, not a benchmark deadline.
+TIMEOUT = handoff.launch.transport.HANDOFF_SECONDS  # Reporting only, not task time.
 REPLY_LIMIT = 16384
 
 

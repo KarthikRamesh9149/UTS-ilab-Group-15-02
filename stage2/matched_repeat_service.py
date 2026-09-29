@@ -29,7 +29,7 @@ from run_credit_only import hold
 from scored_gateway import durable_json, private_directory
 
 OPERATION = 'inspect-prerequisites'
-TRANSPORT_SECONDS = 900  # Connection/transfer window, never a task deadline.
+TRANSPORT_SECONDS = session.handoff.launch.transport.HANDOFF_SECONDS
 REPLY_LIMIT = 16384
 RUN_BASE = Path('/run')
 

@@ -69,8 +69,7 @@ def _operator(commit):
 
 def _private_folder(name, entries=None):
     path = phase._path(launch.REPO, name)
-    for directory in (launch.REPO / '.runtime', launch.REPO / '.runtime/netcup', path):
-        receiver._directory(directory)
+    receiver._parents(); receiver._directory(path)
     if entries is not None and {p.name for p in path.iterdir()} != set(entries):
         raise ValueError('Exact completed private inventory required; partial evidence is not success')
     return path
@@ -107,6 +106,7 @@ def _revision(commit, bindings):
 
 def _read_backup(bindings):
     folder = _private_folder(receiver.DESTINATION, BACKUP_FILES)
+    identity = (receiver._parents(), receiver._directory_id(folder))
     raw = {n: launch._raw(receiver.DESTINATION + '/' + n) for n in BACKUP_FILES if n != 'evidence.tar.gz'}
     intent, data, backup = (phase._loads(raw[n]) for n in ('intent.json', 'snapshot.json', 'backup.json'))
     if set(intent) != {'kind', 'operator_commit', 'created_utc', 'reporting_source_files', 'automatic_resume', 'paid_launch_ready'}:
@@ -128,15 +128,20 @@ def _read_backup(bindings):
     hashes = {receiver.DESTINATION + '/' + n: _hash(value) for n, value in raw.items()}
     for name, sha in PREREQUISITES.items(): launch._raw(name, sha)
     hashes.update(PREREQUISITES)
-    return dict(bindings=bindings, folder=folder, data=data, backup=backup, hashes=hashes)
+    receiver._state(folder, identity)
+    return dict(bindings=bindings, folder=folder, data=data, backup=backup, hashes=hashes, identity=identity)
 
 
 def _recheck(capture):
+    receiver._state(capture['folder'], capture['identity'])
     launch._recheck(capture['bindings'])
     _private_folder(receiver.DESTINATION, BACKUP_FILES)
+    receiver._state(capture['folder'], capture['identity'])
     for name, sha in capture['hashes'].items(): launch._raw(name, sha)
     producer._digest(capture['folder'], 'evidence.tar.gz', capture['backup']['receipt']['sha256'])
     _private_folder(receiver.DESTINATION, BACKUP_FILES)
+    receiver._state(capture['folder'], capture['identity'])
+    launch._recheck(capture['bindings'])
 
 
 def _capture(bindings):
@@ -164,7 +169,7 @@ def _projection(capture):
         **{k + '_observation': v for k, v in row['phase_observation'].items()}} for row in rows]
     stream = io.StringIO(newline=''); writer = csv.DictWriter(stream, fieldnames=CSV_FIELDS, lineterminator='\n')
     writer.writeheader(); writer.writerows(csv_rows)
-    summary = dict(kind='c0_nc_final89_phase_amended_public_summary_v1', condition='C0-NC',
+    summary = dict(kind='c0_nc_final89_reporting_inventory_public_summary_v2', condition='C0-NC',
         candidate_version='stage2-candidate-0.5.0', intended=89, attempts_per_task=1, recovery_attempts_included=False,
         execution_source_set_sha256=phase.SOURCE_SET, qualification_sha256=phase.QUALIFICATION,
         qualification_file_sha256=phase.QUALIFICATION_FILE, registration_sha256=phase.REGISTRATION,
@@ -173,6 +178,7 @@ def _projection(capture):
         snapshot_file_sha256=backup['snapshot_file_sha256'],
         backup_record_sha256=capture['hashes'][receiver.DESTINATION + '/backup.json'],
         reporting_source_files=data['reporting_source_files'], amendment_sha256=data['amendment_sha256'],
+        reporting_dependencies=data['reporting_dependencies'],
         public_prerequisite_files=PREREQUISITES, results=data['aggregates']['full89'],
         development_subset=data['aggregates']['development20'], outside_development_subset=data['aggregates']['remaining69'],
         original_baselines=dict(primary=dict(harness='terminus-2', passed=52, intended=89),
@@ -191,13 +197,14 @@ def _projection(capture):
             'Known response-reported costs are not independent receipts; unknown totals remain null.',
             'Development20 was used during development; remaining69 and full89 are reported separately.',
             'No inherited validation score, best-of recovery selection or causal improvement claim.',
+            'Five helpers are bound for current reporting, not added to historical qualification.',
             'This export is not a live predecessor witness or repeat admission.'])
     return {'summary.json': _json(summary), 'trials.json': _json(rows), 'trials.csv': stream.getvalue().encode()}
 
 
 def _unused():
     folder = phase._path(launch.REPO, STATE)
-    receiver._directory(folder.parent)
+    receiver._parents()
     if folder.exists(): raise ValueError('Retained export state forbids automatic repetition')
     return folder
 
@@ -208,27 +215,34 @@ def export(commit):
     captured = _capture(bindings); files = _projection(captured)
     state = _unused(); target = _public_folder(False)
     state.mkdir(mode=0o700); receiver._sync(state.parent)
+    identity = (receiver._parents(), receiver._directory_id(state))
     try:
         producer._save(state, 'intent.json', dict(kind='amended_final_export_intent', operator_commit=commit,
             reporting_source_files=bindings['reporting'], created_utc=datetime.now(timezone.utc).isoformat(),
             automatic_resume=False, paid_launch_ready=False))
         intent_sha, _ = producer._digest(state, 'intent.json')
         _recheck(captured)
+        receiver._state(state, identity)
         target.mkdir(mode=0o755); receiver._sync(target.parent)
         for name, raw in files.items(): receiver._raw_save(target, name, raw)
         _recheck(captured)
         for name, raw in files.items(): launch._raw(DESTINATION + '/' + name, _hash(raw))
         _private_folder(STATE, {'intent.json'}); producer._digest(state, 'intent.json', intent_sha)
+        receiver._state(state, identity)
         _public_folder(True)
         result = dict(kind='amended_final_public_export_not_admission', operator_commit=commit,
             snapshot_file_sha256=captured['backup']['snapshot_file_sha256'],
             public_files={DESTINATION + '/' + n: _hash(raw) for n, raw in files.items()},
             automatic_resume=False, paid_launch_ready=False, archive_export_and_handoff_integrated=False)
         producer._save(state, 'result.json', result)
+        receiver._state(state, identity); _recheck(captured)
         return result
     except BaseException as error:
-        producer._save(state, 'failure.json', dict(kind='amended_export_inspection_required',
-            error_type=type(error).__name__, automatic_resume=False, paid_launch_ready=False))
+        try:
+            receiver._state(state, identity)
+            producer._save(state, 'failure.json', dict(kind='amended_export_inspection_required',
+                error_type=type(error).__name__, automatic_resume=False, paid_launch_ready=False))
+        except (OSError, ValueError): pass
         raise ValueError('Export incomplete or uncertain; inspect retained partial state without retry') from None
 
 
@@ -236,6 +250,8 @@ def _verified_capture(commit):
     """Internal actual audit/archive capture for the source-bound live sender."""
     bindings = _operator(commit); _public_folder(True)
     _private_folder(STATE, {'intent.json', 'result.json'})
+    state = launch.REPO / STATE
+    identity = (receiver._parents(), receiver._directory_id(state))
     raw = {n: launch._raw(STATE + '/' + n) for n in ('intent.json', 'result.json')}
     intent, result = (phase._loads(raw[n]) for n in ('intent.json', 'result.json'))
     if set(intent) != {'kind', 'operator_commit', 'reporting_source_files', 'created_utc', 'automatic_resume', 'paid_launch_ready'}:
@@ -254,6 +270,7 @@ def _verified_capture(commit):
     for name, value in files.items(): launch._raw(DESTINATION + '/' + name, _hash(value))
     for name, value in raw.items(): launch._raw(STATE + '/' + name, _hash(value))
     _private_folder(STATE, {'intent.json', 'result.json'}); _public_folder(True)
+    receiver._state(state, identity)
     captured['export_files'] = {**expected['public_files'],
         **{STATE + '/' + n: _hash(value) for n, value in raw.items()}}
     return captured, expected

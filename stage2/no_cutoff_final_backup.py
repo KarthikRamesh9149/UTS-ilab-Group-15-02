@@ -138,6 +138,7 @@ def _observations(native, data, document, authenticated):
     archive._same(report._coverage(native, data['registration']), complete)
     native.original.recheck(report.ROOT, document, authenticated)
     _recheck(data)
+    report._loaded({'sources': data['sources']}, data['reporting_source_files'])
 
 
 def _write(output, raw):

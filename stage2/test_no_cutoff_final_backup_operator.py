@@ -93,6 +93,21 @@ class OperatorBackupTests(unittest.TestCase):
         with self.assertRaises(ValueError): operator.backup(self.commit)
         self.inspect.assert_not_called()
 
+    def test_owned_readable_runtime_parent_remains_unchanged(self):
+        (self.root/'.runtime').chmod(0o755)
+        operator.backup(self.commit)
+        self.assertEqual((self.root/'.runtime').stat().st_mode & 0o777,0o755)
+
+    def test_parent_identity_change_before_receiver_prevents_success(self):
+        original=self.child
+        def changed():
+            (self.root/'.runtime').chmod(0o755)
+            return original()
+        self.start.side_effect=changed
+        with self.assertRaises(ValueError):operator.backup(self.commit)
+        self.assertFalse((self.folder/'backup.json').exists())
+        self.assertTrue((self.folder/'intent.json').exists())
+
     def failed(self):
         with self.assertRaisesRegex(ValueError, 'inspect retained'): operator.backup(self.commit)
         self.assertTrue((self.folder / 'intent.json').exists()); self.assertTrue((self.folder / 'failure.json').exists())

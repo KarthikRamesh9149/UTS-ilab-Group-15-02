@@ -21,13 +21,18 @@ from types import SimpleNamespace
 
 import no_cutoff_final_phase_audit as phase
 import no_cutoff_final_guard as guard
+import no_cutoff_final_dependencies as dependencies
 
 ROOT = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
-REPORTING = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260928')
+REPORTING = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r2')
 SERVICE = 'uts-stage2-custom-no-cutoff-final-20260928.service'
-KIND = 'completed_c0_nc_final89_phase_amendment_v1'
+KIND = 'completed_c0_nc_final89_reporting_inventory_v2'
 REPORTING_FILES = ('no_cutoff_final_report.py', 'test_no_cutoff_final_report.py',
     'no_cutoff_final_guard.py', 'test_no_cutoff_final_guard.py',
+    'no_cutoff_final_dependencies.py', 'test_no_cutoff_final_dependencies.py',
+    'no_cutoff_final_transport.py', 'test_no_cutoff_final_transport.py',
+    'no_cutoff_final_inventory_audit.py', 'test_no_cutoff_final_inventory_audit.py',
+    'protocols/custom_final_reporting_inventory_20260929.md',
     'no_cutoff_final_backup.py', 'test_no_cutoff_final_backup.py',
     'no_cutoff_final_backup_operator.py', 'test_no_cutoff_final_backup_operator.py',
     'no_cutoff_final_export.py', 'test_no_cutoff_final_export.py',
@@ -56,7 +61,7 @@ CHECKS = ('exact_registered_coverage', 'qualification_source_runtime_binding',
     'original_results_unchanged', 'frozen_dataset_bytes', 'official_limits',
     'trace_identities_and_rewards', 'cleanup_and_revocation', 'service_exited',
     'no_owned_resources', 'corroborated_phase_absence', 'supporting_bytes_reread',
-    'actual_passive_accounting', 'separate_reporting_sources')
+    'actual_passive_accounting', 'separate_reporting_sources', 'current_reporting_dependencies')
 ROW_FIELDS = phase.ROW_FIELDS | {'started_utc', 'official_cpus', 'official_memory_mb',
     'accepted_model_responses', 'interrupted_requests', 'error_requests', 'other_unaccepted_requests',
     'http_429_requests', 'transport_error_requests', 'retry_records', 'known_cost_usd',
@@ -74,6 +79,7 @@ def _context():
             or Path(__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_report.py'
             or Path(phase.__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_phase_audit.py'
             or Path(guard.__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_guard.py'
+            or Path(dependencies.__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_dependencies.py'
             or Path(phase.local_trace.__file__).resolve() != ROOT / 'stage2/local_trace.py'):
         raise ValueError('Use the separately bound reporter and original final native interpreter')
     if (dict(os.environ) != ENVIRONMENT or sys.pycache_prefix != str(REPORTING / '.absent-bytecode-cache')
@@ -144,7 +150,30 @@ def _anchors():
         raise ValueError('All eight actual final qualification producers required')
     for name, sha in proof['evidence_files'].items():
         phase._file(ROOT, name, files, expected=sha)
+    if any(name.removeprefix('stage2/') in proof['sources'] for name in dependencies.FILES):
+        raise ValueError('Current reporting helpers must not rewrite historical qualification')
+    for name, sha in dependencies.FILES.items():
+        phase._file(ROOT, name, files, expected=sha)
     return proof, block, host, files
+
+
+def _loaded(proof, reporting):
+    """Real loaded origins/bytes, including current-only helpers and late imports."""
+    native = {'stage2/' + n: h for n, h in proof['sources'].items()}
+    _merge(native, dependencies.FILES)
+    expected = {Path(n).name: (base, n, h) for base, files in
+        ((ROOT, native), (REPORTING, reporting)) for n, h in files.items() if n.endswith('.py')}
+    for module in tuple(sys.modules.values()):
+        filename = getattr(module, '__file__', None)
+        if not filename: continue
+        path = Path(filename)
+        if path.name in expected:
+            base, name, sha = expected[path.name]
+            if path.is_symlink() or path.absolute() != base / name or path.resolve() != base / name:
+                raise ValueError('Loaded reporting dependency comes from another deployment')
+            phase._file(base, name, {}, expected=sha)
+        elif ROOT / 'stage2' in path.parents or REPORTING in path.parents:
+            raise ValueError('Unbound project import in completed reporting')
 
 
 def _native():
@@ -283,6 +312,7 @@ def collect():
     proof, block, host, files = _anchors()
     native = _native()
     native.runtime.loaded_sources(ROOT, proof['sources'])
+    _loaded(proof, reporting)
     # authenticate takes its own ancestor locks. Never move it inside lock_all.
     document = native.study.read_candidate(ROOT)
     authenticated = native.original.authenticate(ROOT, document)
@@ -333,12 +363,13 @@ def collect():
             phase._file(ROOT, name, {}, expected=sha)
         if reporting != _reporting_sources():
             raise ValueError('Separate reporting bundle changed during audit')
-        native.runtime.loaded_sources(ROOT, proof['sources']); _stops()
+        native.runtime.loaded_sources(ROOT, proof['sources']); _loaded(proof, reporting); _stops()
         return dict(kind=KIND, condition='C0-NC', registration=block,
             qualification_sha256=phase.QUALIFICATION, sources=proof['sources'],
             bindings={n: files[n] for n in files if n in proof['evidence_files'] or n in {phase.RT + k for k in INPUTS}},
             supporting_file_sha256=files, absent_paths=sorted(absent), directory_entries=directories,
             reporting_source_files=reporting, amendment=phase.contract(),
+            reporting_dependencies=dependencies.contract(),
             amendment_sha256=phase.fingerprint(phase.contract()), preserved_result_files=preserved,
             service=state, model_protocol=native.policy.SETTINGS.document(), policy=native.policy.POLICY,
             rows=rows, aggregates=dict(full89=aggregate(rows), development20=aggregate(rows[:20]),

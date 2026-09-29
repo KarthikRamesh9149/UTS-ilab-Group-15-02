@@ -20,6 +20,7 @@ import no_cutoff_final_archive as archive
 import no_cutoff_final_guard as guard
 import no_cutoff_final_phase_audit as phase
 import no_cutoff_final_report as report
+import no_cutoff_final_transport as transport
 import progress_dashboard as dashboard
 
 REPO = Path('/Users/karthikramesh/.codex/.chatgpt-projects/g-p-6a789724c2d48191b80421978177d029/terminal-bench-progress-smoke')
@@ -33,7 +34,7 @@ def _operator():
     if (platform.system() != 'Darwin' or REPO.is_symlink() or REPO.resolve() != REPO
             or not REPO.is_dir() or Path(__file__).resolve() != REPO / 'stage2/no_cutoff_final_reporting.py'):
         raise ValueError('Use the fixed Mac operator checkout')
-    for module in (archive, phase, report, guard, dashboard, phase.local_trace):
+    for module in (archive, phase, report, guard, report.dependencies, transport, dashboard, phase.local_trace):
         if Path(module.__file__).resolve() != REPO / 'stage2' / (module.__name__ + '.py'):
             raise ValueError('Reporting helper imported from another checkout')
 
@@ -81,6 +82,13 @@ def _bindings():
     native = {'stage2/' + name: sha for name, sha in proof['sources'].items()}
     native.update({phase.RT + name: sha for name, sha in report.INPUTS.items()})
     native.update(proof['evidence_files']); native.update(report.HISTORICAL_INPUTS)
+    if set(native) & set(report.dependencies.FILES):
+        raise ValueError('New reporting helpers cannot be historical qualification bindings')
+    native.update(report.dependencies.FILES)
+    for name, expected in report.dependencies.FILES.items():
+        _raw(name, expected); local[name] = expected
+        if hashlib.sha256(_git('show', report.dependencies.ORIGINAL_COMMIT + ':' + name)).hexdigest() != expected:
+            raise ValueError('Current-only helper differs from original Git source bytes')
     for name, expected in native.items():
         if name in proof['evidence_files'] or name.startswith(phase.RT) and not name.endswith('/python-runtime.tar.gz'):
             copy = COPIES + 'no-cutoff-final-matrix.json' if name.endswith('/no-cutoff-final-matrix.json') else COPIES + name
@@ -89,6 +97,19 @@ def _bindings():
     local['stage2/local_trace.py'] = phase.FROZEN_HELPERS['local_trace.py']
     reporting = {'stage2/'+name: hashlib.sha256(_raw('stage2/'+name)).hexdigest() for name in report.REPORTING_FILES}
     local.update(reporting)
+    # No project imports or network: static closure of original bound native
+    # Git bytes and the current separate reporting bundle. Dynamic imports are
+    # independently checked by the actual native loaded-module guards.
+    raw_sources = {}
+    for name, sha in native.items():
+        if name.startswith('stage2/') and name.endswith('.py'):
+            raw = _git('show', report.dependencies.ORIGINAL_COMMIT + ':' + name)
+            if hashlib.sha256(raw).hexdigest() != sha:
+                raise ValueError('Original Git source differs from native reporting binding')
+            raw_sources[name] = raw
+    raw_sources.update({n: _raw(n, h) for n, h in reporting.items() if n.endswith('.py')})
+    project_names = {p.stem for p in (REPO / 'stage2').glob('*.py')}
+    report.dependencies._closure(raw_sources, project_names)
     ssh_source = native.get('stage2/progress_dashboard.py')
     if ssh_source is None:
         raise ValueError('Frozen pinned SSH source is required')
@@ -129,6 +150,11 @@ if hashlib.sha256(guard_raw).hexdigest()!=c['reporting_files']['stage2/no_cutoff
  raise ValueError('Exact committed pre-import guard required')
 guard={'__file__':str(reporting/'stage2/no_cutoff_final_guard.py')}
 exec(compile(guard_raw,'<source-bound-final-guard>','exec'),guard)
+dependency_raw=base64.b64decode(c['dependency_source'],validate=True)
+if hashlib.sha256(dependency_raw).hexdigest()!=c['reporting_files']['stage2/no_cutoff_final_dependencies.py']:
+ raise ValueError('Exact source-bound reporting dependency reader required')
+dependencies={}
+exec(compile(dependency_raw,'<source-bound-reporting-dependencies>','exec'),dependencies)
 def fail(message): raise ValueError(message)
 def path(base,name):
  guard['protected_path'](base,name)
@@ -213,6 +239,16 @@ def loaded():
    read(base,name,sha)
   elif root/'stage2' in p.parents or reporting in p.parents:
    fail('Unbound project module imported into reporting')
+def closure():
+ raw={n:read(root,n,h,True) for n,h in c['native_files'].items() if n.startswith('stage2/') and n.endswith('.py')}
+ for n,h in c['reporting_files'].items():
+  if not n.endswith('.py'): continue
+  value=base64.b64decode(c['payload'][n],validate=True) if c['operation']=='deploy' else read(reporting,n,h,True)
+  if hashlib.sha256(value).hexdigest()!=h: fail('Reporting closure source changed')
+  if n in raw: fail('Reporting source shadows a frozen execution module')
+  raw[n]=value
+ names={p.stem for p in (root/'stage2').glob('*.py')}|{Path(n).stem for n in c['reporting_files'] if n.endswith('.py')}
+ dependencies['_closure'](raw,names)
 def main():
  if (sys.platform!='linux' or os.getuid()!=0 or not sys.flags.isolated or not sys.dont_write_bytecode
   or dict(os.environ)!=c['environment'] or Path(sys.prefix).resolve()!=root/'.venv'):
@@ -221,6 +257,7 @@ def main():
   fail('Reporting must be separate from frozen execution')
  sys.pycache_prefix=str(reporting/'.absent-bytecode-cache')
  check(deployed=c['operation']!='deploy')
+ closure()
  if c['operation']=='deploy':
   if reporting.exists() or reporting.is_symlink(): fail('Existing or partial reporting deployment must not be replaced')
   if reporting.parent.resolve()!=reporting.parent or not reporting.parent.is_dir(): fail('Canonical reporting parent required')
@@ -250,6 +287,10 @@ def main():
  with open(os.devnull,'w') as quiet,contextlib.redirect_stdout(quiet),contextlib.redirect_stderr(quiet):
   import no_cutoff_final_report as audit
   import no_cutoff_final_archive as archive
+  loaded();check()
+  # Import fixed native readers, but never call a collector, before starting
+  # the long audit. Unknown transitive imports fail before lineage/locks.
+  audit._native()
   loaded();check()
   if c['operation']=='backup':
    import no_cutoff_final_backup as backup
@@ -297,6 +338,10 @@ def _program(bindings, operation):
         historical_roots=[str(report.BASELINE), str(report.STOPPED)])
     config['guard_source'] = base64.b64encode(guard.source(
         bindings['reporting']['stage2/no_cutoff_final_guard.py'])).decode('ascii')
+    raw = Path(report.dependencies.__file__).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != bindings['reporting']['stage2/no_cutoff_final_dependencies.py']:
+        raise ValueError('Current source-bound reporting dependency reader required')
+    config['dependency_source'] = base64.b64encode(raw).decode('ascii')
     if operation == 'deploy':
         config['payload'] = {n: base64.b64encode(_raw(n,sha)).decode('ascii') for n,sha in bindings['reporting'].items()}
     return _BOOTSTRAP.replace('c=CONFIG', 'c=' + repr(config))
@@ -315,6 +360,8 @@ def _invoke(commit, operation):
     if operation not in ('deploy', 'inspect', 'collect'):
         raise ValueError('Binary backup requires the exclusive fixed operator receiver')
     bindings = _prepare(commit)
+    if operation == 'collect':
+        return _audit(bindings)[0]
     program = _program(bindings, operation); _recheck(bindings)
     try:
         result = subprocess.run(_command(),input=program.encode(),capture_output=True,timeout=300,
@@ -325,17 +372,55 @@ def _invoke(commit, operation):
     if result.returncode or len(result.stdout)>WINDOW:
         raise ValueError('Reporting operation refused or incomplete; inspect without retry or replacement')
     value = phase._loads(result.stdout)
-    if operation == 'collect':
-        archive.validate_snapshot(value, bindings['anchors'])
-        archive._same(value['reporting_source_files'], bindings['reporting'])
-    else:
-        guard.validate_service(value.get('service'))
-        archive._same(value, dict(kind=KIND,operation=operation,operator_commit=commit,
-            reporting_source_files=bindings['reporting'],execution_source_set_sha256=phase.SOURCE_SET,
-            service=value['service'],
-            completed_final_audit=False,off_server_backup_verified=False,paid_launch_ready=False))
+    guard.validate_service(value.get('service'))
+    archive._same(value, dict(kind=KIND,operation=operation,operator_commit=commit,
+        reporting_source_files=bindings['reporting'],execution_source_set_sha256=phase.SOURCE_SET,
+        service=value['service'],
+        completed_final_audit=False,off_server_backup_verified=False,paid_launch_ready=False))
     _recheck(bindings)
     return value
+
+
+def _aliases(bindings):
+    values = {'<reporting-bootstrap>': 'bootstrap', '<source-bound-final-guard>': 'completion_guard',
+        '<source-bound-reporting-dependencies>': 'reporting_dependencies', '<stdin>': 'transport'}
+    for base, files, label in ((report.ROOT, bindings['native'], 'execution/'),
+            (report.REPORTING, bindings['reporting'], 'reporting/')):
+        for name in files:
+            if name.endswith('.py'): values[str(base / name)] = label + name
+    return values
+
+
+def _audit(bindings):
+    """One real audit with complete-return metadata; no saved snapshot input."""
+    aliases = _aliases(bindings)
+    original = _program(bindings, 'collect')
+    program = transport._wrap(original, aliases)
+    program_hashes = dict(original_program_sha256=transport._hash(original.encode()),
+        transmitted_program_sha256=transport._hash(program.encode()))
+    _recheck(bindings)
+    try:
+        raw, metadata = transport._exchange(program, aliases, _command(),
+            {'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
+    except transport.AuditTransportError as error:
+        error.metadata = dict(error.metadata, **program_hashes)
+        raise
+    metadata = dict(metadata, **program_hashes)
+    stage = 'operator_source_recheck'
+    try:
+        _recheck(bindings)
+        stage = 'completed_return_validation'; transport._completed(raw, metadata)
+        stage = 'snapshot_schema_validation'; value = phase._loads(raw)
+        archive.validate_snapshot(value, bindings['anchors'])
+        archive._same(value['reporting_source_files'], bindings['reporting'])
+        stage = 'final_operator_source_recheck'; _recheck(bindings)
+    except BaseException as error:
+        # Preserve the real transport observations even if a later local gate
+        # refuses. Never mislabel a consumed native invocation as not started.
+        raise transport.AuditTransportError(dict(metadata, operator_failure_stage=stage,
+            operator_error_type=transport._error_type(error), completed_final_audit_verified=False,
+            native_state_requires_inspection=True)) from None
+    return value, raw, metadata
 
 
 def deploy(commit):

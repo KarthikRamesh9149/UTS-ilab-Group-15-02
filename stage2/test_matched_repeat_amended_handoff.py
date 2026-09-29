@@ -344,22 +344,24 @@ class AmendedHandoffTests(HandoffFixture):
 
     def test_native_subprocess_errors_are_sanitised_and_never_retried(self):
         value = handoff._anchors(self.repo, self.f.original, self.f.proof, 'terminus-2', self.header())
-        for error in (OSError('PRIVATE-DIAGNOSTIC'), subprocess.TimeoutExpired('private-command', 300)):
-            with self.subTest(kind=type(error).__name__), patch('subprocess.run', side_effect=error) as run:
+        for error in (OSError('PRIVATE-DIAGNOSTIC'), subprocess.TimeoutExpired('private-command', 1800)):
+            with self.subTest(kind=type(error).__name__), patch('subprocess.Popen', side_effect=error) as run:
                 with self.assertRaises(ValueError) as caught: _NATIVE_AUDIT(value)
                 self.assertNotIn('PRIVATE-DIAGNOSTIC', str(caught.exception)); self.assertEqual(run.call_count, 1)
 
     def test_native_subprocess_uses_actual_reporting_bootstrap_and_exact_environment(self):
         value = handoff._anchors(self.repo, self.f.original, self.f.proof, 'terminus-2', self.header())
         # Call the original implementation retained before fixture patching.
-        with patch('subprocess.run', return_value=NS(returncode=0, stdout=producer._json(self.e.fresh), stderr=b'')) as run:
+        from test_no_cutoff_final_transport import metadata
+        raw=producer._json(self.e.fresh)
+        with patch.object(launch.transport,'_exchange',return_value=(raw,metadata(raw))) as run:
             self.audit.side_effect = None
             result = _NATIVE_AUDIT(value)
         args, kwargs = run.call_args
-        self.assertEqual(args[0], [str(report.ROOT / '.venv/bin/python'), '-I', '-B', '-'])
-        self.assertEqual(kwargs['env'], report.ENVIRONMENT); self.assertEqual(kwargs['cwd'], report.ROOT)
-        self.assertIn(b'value=audit.collect()', kwargs['input'])
-        self.assertIn(b"'operation': 'collect'", kwargs['input'])
+        self.assertEqual(args[2], [str(report.ROOT / '.venv/bin/python'), '-I', '-B', '-'])
+        self.assertEqual(args[3], report.ENVIRONMENT); self.assertEqual(kwargs['cwd'], report.ROOT)
+        self.assertIn('value=audit.collect()', args[0])
+        self.assertIn("'operation': 'collect'", args[0])
         self.assertEqual(result, self.e.fresh)
 
     def test_raw_reader_rejects_fifo_links_public_write_and_private_disclosure(self):

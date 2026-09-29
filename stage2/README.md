@@ -1,6 +1,48 @@
 # Stage 2 execution status
 
-## Latest audit outcome: loaded-source inventory gap, 29 September 2026
+## Latest: version-2 reporting correction prepared locally, 29 September 2026
+
+The explicit [source-inventory amendment](protocols/custom_final_reporting_inventory_20260929.md)
+binds the five missing helpers for CURRENT reporting only, without changing the
+original 211-file qualification. The audit, strict archive, one-time backup,
+public projection and live handoff require the same separate dependency contract.
+Static transitive-import checks run before native imports/writes; actual loaded
+origins and bytes are still checked before the long audit and at final rereads.
+No guard is removed and no historical installed-byte attestation is invented.
+
+Final local discovery ran 2,535 tests: 2,534 passed and one pre-existing skip.
+All 1,029 guarded regressions passed without skips/errors/failures, including
+before/discovery/after checks over 296 stage2 bindings (292 prospective sources
+plus four retained metadata files) and 188 loaded project modules. All 12
+repository tests passed. These use local files/pipes and synthetic native
+observations; they are not native audit, qualification or benchmark evidence.
+
+The candidate targets a NEW exclusive 28-file reporting root,
+`/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r2`, with 234 native
+bindings (the original 229 plus five current-only helpers). The existing 21-file
+ea543e4 installation, frozen execution and prior failures remain untouched.
+Reporting audit connections use the metadata-only 1,800-second transport;
+backup and handoff windows are explicitly 2,700 and 4,500 seconds. These are
+reporting bounds, not task deadlines. Backup/export now check the real private
+Netcup boundary and owned non-writable parents, with identity rereads and no chmod.
+
+The new one-shot Mac audit destination is
+`.runtime/netcup/custom-no-cutoff-final89-inventory-audit-20260929`.
+It cannot reuse the earlier failed audit directory or accept a saved internal
+result. Late local validation failures retain actual transport diagnostics and
+their local failure stage. Existing or partial state still forbids repetition.
+
+This is local implementation, not installation or native audit success. The
+next native unit needs explicit authority for ONE new separate installation and
+ONE fresh audit; consumed earlier attempts are not an automatic retry loop.
+There is no completed audit, final backup/export, recovery or baseline repeat.
+Last observed preliminary progress is 08:04:31 UTC: 89/89 complete, 50 passes,
+36 verified zeros, three setup-only missing verifier outcomes and no active task.
+The approved separate recovery63-65 and fixed baseline order remain unchanged.
+The VPS and requested hourly notifications remain active. Earlier sections below
+are historical checkpoints, superseded by this local-preparation status.
+
+## Earlier audit outcome: loaded-source inventory gap, 29 September 2026
 
 The one approved further audit at f41e47d was invoked and retained. It returned
 SSH exit 1 / native ValueError at the final loaded-module guard, after internal

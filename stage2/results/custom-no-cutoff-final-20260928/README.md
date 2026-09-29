@@ -1,6 +1,72 @@
 # Measured C0-NC final89
 
-## Latest: one-shot audit reached a source-inventory refusal, 29 September 2026
+## Latest: separate version-2 reporting candidate, 29 September 2026
+
+The [explicit inventory amendment](../../protocols/custom_final_reporting_inventory_20260929.md)
+is implemented locally across audit, archive, backup, public export and live
+handoff. It pins the five unchanged helpers as current reporting dependencies,
+never as retrospective members of the original 211-file qualification or proof
+of historical installed bytes. Transitive module-level import coverage is
+checked before imports/writes, with the actual loaded-module origin/hash guard
+retained before the long audit and after it. Genuine missing evidence still
+refuses; setup-only missing rewards and unexecuted phases remain null.
+
+Final local gates passed: 2,535 discovery tests (2,534 passed, one pre-existing
+skip), all 1,029 guarded repeat regressions with no skips/errors/failures, and
+12 repository tests. The guarded before/discovery/after checks covered 296
+stage2 bindings (292 prospective sources plus four retained metadata files)
+and 188 loaded project modules. The 38 added tests cover transitive/late import
+refusal, current-versus-historical dependencies, strict archive membership,
+actual transport/schema wiring, privacy, one-shot state and parent drift.
+Native/SSH/service observations are mocked; real temporary files, hashes and
+local subprocess pipes are used. These are not native qualification or results.
+
+Initial fixture/mocking failures were corrected without relaxing production
+checks. Two final-discovery fixture failures came from an inherited restrictive
+umask; explicit permissions were set only on synthetic test directories, and
+all seven one-shot tests also passed under umask077. An intermediate guarded
+run passed its tests but correctly refused its final source check after a local
+source edit; the stable final run above passed every source check. Earlier
+native failures remain retained and are not erased by these local passes.
+
+The new exclusive reporting target is
+`/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r2`: 28 source,
+document and test files, with 234 native bindings (229 retained plus five
+current-only helpers). Nothing overwrites the installed ea543e4 21-file root.
+Frozen execution, original results, qualifications, permissions, services and
+all earlier failure evidence remain unchanged. The prior transport operator
+source and its private intent/failure directory are retained unchanged too.
+
+The actual audit/export/native-handoff callers now use the same 1,800-second
+metadata-only audit transport. The backup window is 2,700 seconds and repeat
+handoff acknowledgement/socket windows are 4,500 seconds. They do not change
+benchmark allowances or create a native stop/retry path. Backup/export parent
+checks now accept owned non-writable readable ancestors while retaining the
+exact private Netcup boundary/leaf and identity rereads, without chmod.
+
+`no_cutoff_final_inventory_audit.collect(full_commit)` is the new fixed one-shot
+Mac entry after a separately authorised installation. Its exclusive state is
+`.runtime/netcup/custom-no-cutoff-final89-inventory-audit-20260929`; old state
+cannot be deleted, reused or resumed. Only full actual launcher success plus
+local schema/source validation may be retained as a verified snapshot. A late
+local refusal keeps the actual connection diagnostics and failure stage.
+
+No native invocation, installation, snapshot, archive, public result export,
+recovery or repeat occurred during this local correction. ONE new separate
+installation and ONE audit need explicit approval before invocation. After
+actual audit success, the ONE verified private backup and public export/push
+remain mandatory. The user's already approved one separate recovery attempt
+each for tasks 63-65 remains valid after audit/backup and diagnosis/amendment/
+qualification. It is not merged into the original 89 or guaranteed to pass.
+
+The last existing read-only progress observation is 08:04:31.402110 UTC:
+89/89 complete, 50 passes, 36 verified zeros and three setup-only missing
+verifier outcomes; no active or partial task. All 211 frozen sources matched and
+all 89 recorded revocation, with no stop. These are dated preliminary metadata,
+not an audited final score. Keep the VPS and hourly notifications active.
+The earlier checkpoints below describe prior states, not current authority.
+
+## Earlier: one-shot audit reached a source-inventory refusal, 29 September 2026
 
 The approved one further audit ran at operator commit
 f41e47d36bf5315093cc1087fd9078b5233e2f75. The Mac operation began at

@@ -135,10 +135,12 @@ class OperatorTests(unittest.TestCase):
 
     def test_collect_always_validates_fresh_returned_metadata(self):
         reply={'reporting_source_files':self.bindings['reporting']}
-        with patch.object(archive,'validate_snapshot') as validate:
-            value,called,_=self.invoke('collect',reply=reply)
-        validate.assert_called_once_with(reply,{})
-        self.assertEqual(value,reply);self.assertEqual(called.call_count,1)
+        # The shared audit transport now owns complete-return/schema checks;
+        # its real parser/validator wiring has independent coverage.
+        with patch.object(launch,'_prepare',return_value=self.bindings), \
+                patch.object(launch,'_audit',return_value=(reply,b'',{})) as called:
+            self.assertEqual(launch.collect(self.commit),reply)
+        called.assert_called_once_with(self.bindings)
 
     def test_public_operations_have_no_caller_root_or_callback(self):
         with patch.object(launch,'_invoke',return_value={}) as call:
@@ -156,9 +158,13 @@ class BootstrapTests(unittest.TestCase):
         p=self.root/'stage2/frozen.py';p.parent.mkdir();p.write_bytes(b'# frozen\n');p.chmod(0o644)
         (self.root/'.runtime/stage2').mkdir(parents=True,mode=0o700)
         self.native={'stage2/frozen.py':hashlib.sha256(p.read_bytes()).hexdigest()}
+        for module in report.dependencies.NATIVE_MODULES:
+            p=self.root/'stage2'/(module+'.py');p.write_bytes(b'# synthetic native reader\n');p.chmod(0o644)
+            self.native['stage2/'+module+'.py']=hashlib.sha256(p.read_bytes()).hexdigest()
         self.payload={n:b'# source-bound synthetic bootstrap module\n' for n in
             ('stage2/no_cutoff_final_report.py','stage2/no_cutoff_final_archive.py','stage2/no_cutoff_final_backup.py')}
         self.payload['stage2/no_cutoff_final_guard.py']=Path(launch.guard.__file__).read_bytes()
+        self.payload['stage2/no_cutoff_final_dependencies.py']=Path(report.dependencies.__file__).read_bytes()
         self.sources={n:hashlib.sha256(raw).hexdigest() for n,raw in self.payload.items()}
         self.bindings=dict(commit='a'*40,native=self.native,reporting=self.sources)
         self.enterContext(patch.object(report,'ROOT',self.root));self.enterContext(patch.object(report,'REPORTING',self.reporting))
@@ -190,11 +196,16 @@ class BootstrapTests(unittest.TestCase):
         ns['read']=owned(real_read);ns['inventory']=owned(real_inventory)
         fake=NS(platform='linux',flags=NS(isolated=True),dont_write_bytecode=True,
             prefix=str(self.root/'.venv'),path=list(sys.path),modules=dict(sys.modules),pycache_prefix=None)
-        collector=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_report.py'),collect=Mock(return_value=self.snapshot))
+        collector=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_report.py'),collect=Mock(return_value=self.snapshot),
+            _native=Mock(side_effect=getattr(self,'import_effect',None)))
+        self.collector=collector
         validator=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_archive.py'),validate_snapshot=Mock())
         self.producer=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_backup.py'),stream=Mock())
         fake.modules.update(no_cutoff_final_report=collector,no_cutoff_final_archive=validator,no_cutoff_final_backup=self.producer,
             no_cutoff_final_guard=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_guard.py')))
+        fake.modules['no_cutoff_final_dependencies']=NS(__file__=str(self.reporting/'stage2/no_cutoff_final_dependencies.py'))
+        for module in report.dependencies.NATIVE_MODULES:
+            fake.modules[module]=NS(__file__=str(self.root/'stage2'/(module+'.py')))
         ns['sys']=fake
         with patch.object(os,'getuid',return_value=0),patch.dict(os.environ,report.ENVIRONMENT,clear=True),\
                 patch.dict(sys.modules,{'no_cutoff_final_report':collector,'no_cutoff_final_archive':validator,'no_cutoff_final_backup':self.producer}),\
@@ -219,8 +230,11 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(list(self.reporting.iterdir()),[])
 
     def test_partial_deployment_is_retained_and_not_automatically_retried(self):
-        ns=self.namespace('deploy');name=list(self.sources)[-1];ns['c']['payload'][name]='AAAA'
-        with self.assertRaises(ValueError):self.main(ns)
+        ns=self.namespace('deploy');name=list(self.sources)[-1];real_open=os.open
+        def fail_write(path,flags,*args,**kwargs):
+            if Path(path)==self.reporting/name and flags & os.O_WRONLY:raise OSError('synthetic write failure')
+            return real_open(path,flags,*args,**kwargs)
+        with patch.object(os,'open',side_effect=fail_write),self.assertRaises(OSError):self.main(ns)
         first=next(iter(self.sources));self.assertTrue((self.reporting/first).is_file())
         self.assertFalse((self.reporting/name).exists())
         with self.assertRaises(ValueError):self.main(self.namespace('deploy'))
@@ -324,11 +338,11 @@ class BootstrapTests(unittest.TestCase):
         def observed(*args,**kwargs):
             nonlocal calls
             calls+=1
-            if calls==4:p.write_bytes(b'changed')
+            if calls==5:p.write_bytes(b'changed')
             return output
         self.service.side_effect=observed
         with self.assertRaises(ValueError):self.main(self.namespace('collect'))
-        self.assertEqual(calls,4)
+        self.assertEqual(calls,5)
 
     def test_loaded_wrong_deployment_or_unbound_project_module_refused(self):
         self.installed();ns=self.namespace('inspect');fake=NS(modules={'wrong':NS(__file__=str(self.base/'no_cutoff_final_report.py'))})
@@ -336,6 +350,21 @@ class BootstrapTests(unittest.TestCase):
         with self.assertRaises(ValueError):ns['loaded']()
         fake.modules={'unbound':NS(__file__=str(self.root/'stage2/unbound.py'))}
         with self.assertRaises(ValueError):ns['loaded']()
+
+    def test_transitive_static_gap_refuses_before_new_reporting_directory(self):
+        name='stage2/'+report.dependencies.NATIVE_MODULES[0]+'.py'
+        (self.root/name).write_bytes(b'import unbound_transitive\n')
+        self.native[name]=hashlib.sha256((self.root/name).read_bytes()).hexdigest()
+        (self.root/'stage2/unbound_transitive.py').write_bytes(b'# unbound\n')
+        with self.assertRaisesRegex(ValueError,'Unbound'):self.main(self.namespace('deploy'))
+        self.assertFalse(self.reporting.exists())
+
+    def test_late_native_reader_import_refuses_before_collector(self):
+        self.installed();ns=self.namespace('collect')
+        self.import_effect=lambda:ns['sys'].modules.update(
+            unknown=NS(__file__=str(self.root/'stage2/unknown.py')))
+        with self.assertRaisesRegex(ValueError,'Unbound'):self.main(ns)
+        self.collector.collect.assert_not_called()
 
     def test_bootstrap_catches_failures_without_raw_exception_text(self):
         program=launch._program(self.bindings,'inspect')
@@ -380,8 +409,13 @@ class ActualLocalBindingTests(unittest.TestCase):
         for name in report.REPORTING_FILES:
             p=root/'stage2'/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes((Path(__file__).parent/name).read_bytes())
         (root/'stage2/progress_dashboard.py').write_bytes(ssh)
-        with patch.object(launch,'REPO',root),patch.object(launch,'_operator'):
+        # Synthetic proof has only a few bound helper sources. Closure has
+        # dedicated real-byte tests; here Git is a local synthetic byte store.
+        with patch.object(launch,'REPO',root),patch.object(launch,'_operator'), \
+                patch.object(launch,'_git',side_effect=lambda op,ref:(root/ref.split(':',1)[1]).read_bytes()), \
+                patch.object(report.dependencies,'_closure') as closure:
             value=launch._bindings()
+            closure.assert_called_once()
             self.assertEqual(len(value['reporting']),len(report.REPORTING_FILES));self.assertEqual(len(value['anchors']),5)
             self.assertEqual(value['native']['stage2/local_trace.py'],phase.FROZEN_HELPERS['local_trace.py'])
             target=root/launch.COPIES/'no-cutoff-final-matrix.json';target.write_bytes(target.read_bytes()+b' ')

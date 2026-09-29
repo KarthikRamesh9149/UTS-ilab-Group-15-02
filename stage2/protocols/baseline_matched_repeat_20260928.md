@@ -1,6 +1,44 @@
 # Matched baseline repeats after custom final89
 
-Latest audit outcome, 29 September: the ONE approved further audit at f41e47d
+Latest local correction, 29 September: the explicit
+[reporting-inventory amendment](custom_final_reporting_inventory_20260929.md)
+is implemented through actual audit/archive/backup/export/live-handoff consumers.
+The five unchanged helper dependencies are bound for current reporting only;
+the original 211-file qualification is not rewritten and historical installed bytes
+are not attested. Static import closure and actual loaded-module guards both
+apply, retaining all evidence and under-lock rereads. The new reporting root is
+`/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r2` with 28 files and
+234 native bindings. It is a separate exclusive target; the installed 21-file
+ea543e4 reporter and all failed attempts remain untouched.
+
+Final local gates ran 2,535 tests (2,534 passed, one pre-existing skip), all
+1,029 guarded regressions without skips/errors/failures, and 12 repository
+tests. The guarded candidate binds 292 prospective source files plus four
+retained metadata files, and checked 188 loaded project modules. Original 211
+qualification bindings retain only the previously permitted LOCAL scored_trial
+hooks as a difference; the other 210 are unchanged. Gateway overlay/import
+inventories remain eight/32. These tests are local/synthetic, not native audit,
+repeat qualification or paid launch evidence.
+
+Audit connections use the shared 1,800-second safe diagnostic transport, backup
+has 2,700 seconds, and actual repeat connection/service handoff windows have 4,500
+seconds. These reporting-only bounds do not shorten or extend benchmark clocks.
+The backup/export readers now check owned non-writable parents and the exact
+private Netcup boundary/leaf, including identity rereads without chmod. The new
+one-shot audit has its own fixed unused private destination and retains late
+local validation diagnostics; it cannot resume an earlier failed attempt.
+
+This correction is LOCAL PREPARATION. One newly authorised exclusive reporting
+installation and one actual audit are still required before any native retry.
+No installation, completed audit, backup/export, native handoff, recovery or
+baseline attempt happened during this work. Last observed 08:04:31 UTC preliminary
+counts remain 89/89, 50 passes, 36 verified zeros, three setup-only missing verifier
+outcomes, no active task. Already-approved separate recovery63-65 remains after
+actual audit/verified backup plus diagnosis/amendment/qualification. Neither
+baseline schedule/order is changed. Keep the VPS and hourly notifications.
+All earlier checkpoints below are historical and do not grant additional retries.
+
+Earlier audit outcome, 29 September: the ONE approved further audit at f41e47d
 was consumed and refused at the final loaded-module guard (native ValueError,
 SSH exit 1), not a transport timeout. Internal collector/schema return preceded
 the refusal, but mandatory final launcher rereads did not run; no verified
