@@ -1,5 +1,34 @@
 # Stage 2 execution status
 
+## Audit transport preparation validated, 29 September 2026
+
+The user approved the reporting connection correction and one further audit.
+The new Mac-only `no_cutoff_final_audit_transport.collect(full_commit)` retains
+the exact installed bootstrap/main checks, pinned SSH route, original isolated
+interpreter and credential-free environment. It allows 1,800 seconds for this
+reporting connection and samples bound stack locations every 30 seconds instead
+of profiling every call. No benchmark deadline, installed reporting file,
+frozen source, permission, service or result changes. The one-shot private Mac
+state retains safe diagnostics and only a validated exact-byte snapshot; existing
+or partial state forbids repetition. No saved audit grants backup or admission.
+
+All 45 new local tests passed within 181 focused checks. Full discovery ran
+2,493 tests: 2,492 passed and one pre-existing skip. All 987 guarded regressions
+passed without skips/errors/failures, with 289 stage2 bindings (285 prospective
+sources plus four retained metadata files) and 182 loaded project modules checked.
+All 12 repository tests passed. Native/SSH observations are mocked in these
+tests; they are not native audit success. All 21 installed reporting-source
+bytes remain identical to ea543e4; only the prior permitted local scored-trial
+hooks differ among the 211 final-anchor files.
+
+The whole reporting route was inspected. The old exporter/Mac predecessor and
+native handoff still use 300-second audit callers; the old backup has a 900-second
+audit-plus-transfer window. None is monkeypatched or claimed migrated. This is
+a standalone audit route, not downstream completion. See the explicit
+[transport amendment](protocols/custom_final_audit_transport_20260929.md).
+The one further native audit is pending commit/push and fresh preflight at this
+checkpoint. Previous failures and the approved separate recovery remain retained.
+
 ## Latest: approved diagnostic audit timed out, 29 September 2026
 
 The user approved ONE read-only diagnostic audit. That invocation ran from

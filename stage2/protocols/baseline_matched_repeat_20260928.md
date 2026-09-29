@@ -1,5 +1,26 @@
 # Matched baseline repeats after custom final89
 
+Latest transport preparation, 29 September: the user approved the reporting-only
+connection correction and one further audit. A separate Mac operator preserves
+all original installed bootstrap/main/evidence checks and all 21 installed
+reporting files, with an explicit 1,800-second connection window, lightweight
+30-second stack samples, allowlisted diagnostics and exclusive one-shot private
+state. No benchmark limit, result, source permission or service changes.
+The 45 new tests passed; final gates ran 2,493 tests with one pre-existing skip,
+987 guarded regressions without skips/failures, and 12 repository tests. Current
+prospective source inventory is 285; 289 stage2 test bindings include four retained
+metadata files, and 182 loaded project modules were checked. These are local,
+synthetic tests, not a completed audit, native qualification or launch.
+
+The installed exporter and amended handoff remain on their original audit
+callers/bounds, and the original backup retains its 900-second audit-plus-transfer
+window. The new entry is a standalone audit connection only; no consumer is
+silently patched or claimed integrated. Explicit downstream work remains before
+backup/export/live successor admission. The one further native audit is still
+pending at this source checkpoint. Preserve prior failures, separate recovery
+approval and unchanged baseline schedules/order. See the
+[transport amendment](custom_final_audit_transport_20260929.md).
+
 Latest diagnostic checkpoint, 29 September: the user approved ONE read-only
 diagnostic audit at operator commit 94e4e99e91ab3981a1ed3732e32c2fc56e1b187a.
 It ran from 06:42:32 to 06:47:32 UTC and exceeded the unchanged 300-second

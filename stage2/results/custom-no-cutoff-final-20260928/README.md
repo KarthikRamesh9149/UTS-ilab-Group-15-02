@@ -1,5 +1,25 @@
 # Measured C0-NC final89
 
+## New audit connection prepared and tested, 29 September
+
+The approved correction adds a separate one-shot Mac operator with a fixed
+1,800-second reporting wait and 30-second metadata-only stack sampling. The
+original installed bootstrap/main, collector checks and all 21 installed files
+remain unchanged. Private operator intent/result/failure and exact validated
+snapshot bytes are retained exclusively; no partial operation may auto-retry.
+No raw error messages, model content or logs are returned. This does not change
+benchmark limits or constitute a backup, export or repeat-admission witness.
+
+All 45 new tests passed within 181 focused checks. Final local gates passed:
+2,493 tests run with one pre-existing skip, 987 guarded regressions with no skips,
+and 12 repository tests. The guarded checks bound 285 prospective sources plus
+four retained metadata files and 182 loaded project modules. The tests use
+local pipes/private files and synthetic evidence with native/SSH observations
+mocked; they are not a completed native audit. The installed bundle still matches
+ea543e4. The approved one further audit has not yet run at this preparation
+checkpoint. Existing backup/export/handoff callers retain their own old bounds
+and require explicit follow-on integration, not a saved-snapshot shortcut.
+
 ## Latest: one approved diagnostic audit timed out, 29 September
 
 The user approved the requested read-only diagnostic audit, and that single
