@@ -1,5 +1,59 @@
 # Measured C0-NC final89
 
+## Latest: actual private archive verified and allowlisted results exported
+
+Reporting implementation `a74e0dd053fed70a1ede3eef23e0ccdb6db6fb09` was
+installed exclusively as the 35-file r4 tree at 14:12:58.918725 UTC on 29 September.
+The read-only preflight at 14:12:10.979192 UTC verified 237 native bindings,
+all 21/28/32 older reporter bytes, trusted completion/process absence and the
+new root's absence. The installed r4 read-only inventory preflight passed at
+14:14:05.690961 UTC: 27,159 files, 581 directories, 445 trial trees and 89 excluded
+credential/cache entries. Its old snapshot input was a diagnostic selector,
+not a rewritten snapshot or substitute for the new operation's actual audit.
+
+The ONE new backup began at 14:14:51.310807 UTC and completed successfully at
+**14:21:35.647612 UTC**. It performed a fresh completed audit, lineage before
+all ancestor locks, actual inventory/hash/absence/historical rereads, one archive
+stream, final native commitment, successful SSH exit and Mac archive verification.
+The exact private directory contains intent.json, snapshot.json, evidence.tar.gz
+and backup.json, all 0600 under 0700, with no failure or partial-state exception.
+
+- Archive SHA256: `7e53dd3eb45bec457f81d59b694fd171a949fbf123f02baa14f4158d9634a400`.
+- Compressed bytes: 105,731,876; payload bytes: 413,061,496; files: 27,159.
+- Verified result files: 89; bound files: 26,640; true absences: 3.
+- Retained snapshot collection: 14:18:10.503143 UTC; SHA256
+  `1e0855681c4a900d251ef44b6104876e246a71fe5cf502cb9a447e817afc7553`.
+- Backup-record SHA256: `e89db8545f072a44ab590df75ddce40e5f88e7ff6e8782607a247934cc1708f1`.
+
+The actual allowlisted export ran from 14:22:54.222183 to **14:26:29.330741 UTC**.
+Its fresh native audit returned at 198.098949 seconds after all final checks,
+then the exporter reread the SAME retained archive and wrote only the public
+[summary](c0-nc/summary.json), [trial metadata](c0-nc/trials.json) and
+[CSV](c0-nc/trials.csv). Local deterministic-byte comparison and exact private
+state/source rechecks passed without another collector or archive creation.
+Public file SHA256 values are respectively
+`468043e2a2e375e3f15f4e6683b89121e0ee38beab235fa3d02926219c177881`,
+`53b0da52330102e17aebc928cbc3b19466fc3125e8be9ec218862eeb46ca4fe0`
+and `ecc5cf3e7a4220688a8bf87e97ed104f74dc810baa3ad8fc432e0d07c3ac9a72`.
+
+The original 89 retain 50 passes, 36 verified zero-score failures and 3 setup-only
+missing verifier outcomes. Development20 retains 15 passes/5 failures;
+remaining69 retains 35 passes/31 failures/3 missing. All original outcomes and
+182 historical-result bindings are retained. The known response-reported
+subtotal is USD 1.71399138 with 799 unknown-cost requests: total cost is unknown,
+not an independent receipt. Agent/verifier duration denominators remain 86
+measured and 3 not-run; no duration or missing reward is fabricated.
+
+The archive was not recreated, no frozen source/permission/result was edited,
+and all 21/28/32 old reporters, the original successful v3 audit and the first
+failed backup remain intact. Historical payload/installed-library bytes are
+not retrospectively attested and full runtime restore was not exercised.
+This is verified backup/export, not a live predecessor witness or paid repeat
+admission. Recovery for tasks 63-65 and both baseline repeats remain separately approved
+but unstarted, subject to their own diagnosis/amendment/native qualification
+and service/export/successor-reader gates. Keep VPS/hourly reporting active.
+Earlier checkpoint descriptions below are historical where superseded.
+
 ## Latest: completed native audit; first backup retained as failed
 
 The 32-file version-3 reporting installation at

@@ -1,5 +1,32 @@
 # Matched baseline repeats after custom final89
 
+Latest actual completion, 29 September 2026 UTC: the r4 reporting root at
+`a74e0dd053fed70a1ede3eef23e0ccdb6db6fb09` was installed exclusively at
+14:12:58 UTC. Its actual read-only inventory preflight passed at 14:14:05 UTC.
+The ONE new private backup completed at 14:21:35.647612 UTC after fresh actual
+audit, full lineage/ancestor locking, stream/final evidence checks and strict
+Mac archive verification. Archive SHA256
+`7e53dd3eb45bec457f81d59b694fd171a949fbf123f02baa14f4158d9634a400`,
+105,731,876 compressed bytes, 27,159 files; 89 results, 26,640 bound files and 3
+true absences verified. No archive recreation or full runtime restore occurred.
+
+Allowlisted summary/trials JSON/CSV export completed at 14:26:29.330741 UTC after
+another actual fresh native audit and rereading the SAME archive. The original 89
+retain 50 passes, 36 verified zeros, 3 setup-only missing verifier outcomes;
+development20=15/20, remaining69=35 passes/31 zeros/3 missing. Unknown costs/null
+durations and all old outcomes remain intact; no recovery is merged or score
+inherited. The old reporters, successful v3 audit and failed backup are retained.
+
+This completes original-final reporting/backup/export, NOT native repeat
+qualification or paid admission. Real committed-public-output handoff, trusted
+qualify/paid service operations, native compatibility/rehearsal/qualification,
+repeat exporter and completed-Terminus successor reader remain required.
+Recovery for tasks 63-65 still needs separate diagnosis, explicit amendment and qualification
+before its one fresh attempt each. No recovery or baseline repeat has begun.
+Fixed schedules/order and original 52/89 primary Terminus and 44/89 secondary
+OpenHands remain unchanged. Standing routine in-scope authority is valid without
+repeat approval prompts. Keep VPS/hourly updates. Earlier sections are historical.
+
 Latest actual checkpoint, 29 September: the source-bound version-3 native audit
 at7bfb84d completed successfully at13:18:45.897886UTC, with all final rereads.
 Audited original89:50passes,36verifiedzeros,3setup-only missing verifier outcomes;

@@ -1,5 +1,36 @@
 # Stage 2 execution status
 
+## Latest: original final89 audit, private backup and public export complete
+
+The version-4 reporter at `a74e0dd053fed70a1ede3eef23e0ccdb6db6fb09`
+was installed exclusively at 14:12:58 UTC on 29 September. Its read-only actual
+inventory preflight passed at 14:14:05 UTC. The one new backup ran from 14:14:51
+to 14:21:35 UTC and passed fresh native audit, lineage/ancestor-lock checks,
+streaming, final evidence rereads and actual Mac archive verification.
+
+The ONE retained private archive has SHA256
+`7e53dd3eb45bec457f81d59b694fd171a949fbf123f02baa14f4158d9634a400`,
+105,731,876 compressed bytes and 27,159 files. All 89 results, 26,640 bound files
+and 3 true absences were verified. A full runtime restore was not exercised.
+No source permission, original outcome or earlier failed state was changed;
+no archive is recreated. The old reporters and first successful v3 audit remain.
+
+The allowlisted export completed at 14:26:29 UTC after another actual fresh
+native audit and rereading that same archive. The [summary](results/custom-no-cutoff-final-20260928/c0-nc/summary.json),
+[89 rows](results/custom-no-cutoff-final-20260928/c0-nc/trials.json) and
+[CSV](results/custom-no-cutoff-final-20260928/c0-nc/trials.csv) preserve **50 passes,
+36 verified zero-score failures and 3 setup-only missing verifier outcomes**.
+Development20 is 15/20; remaining69 is 35 passes/31 failures/3 missing. Unknown
+cost and unexecuted phase durations remain null, not zero. No recovery is merged.
+
+The reporting/backup/export unit is complete, not the whole capstone or repeat
+admission. The approved separate recovery for tasks 63-65 still needs diagnosis,
+amendment and qualification. Native baseline repeat prerequisites also remain
+unfinished. No recovery or
+baseline attempt has started. Continue routine authorised work without repeated
+approval prompts, retain fixed schedules/order and all evidence, and keep the
+VPS and explicit hourly notifications active. Older sections are historical.
+
 ## Latest: full audit passed; protected-log backup correction in progress
 
 The source-bound version-3 native audit at `7bfb84d` completed successfully at
