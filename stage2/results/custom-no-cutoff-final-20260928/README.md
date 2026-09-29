@@ -15,6 +15,20 @@ Native reporting deployment, completed audit, one private archive and public
 result export have not occurred. Baseline repeats and recovery have not started.
 The old collectors/readers, original results and frozen deployment are unchanged.
 
+After committing the integration as 7bfe217, the first reporting deployment
+was refused by its pre-import/pre-write guard. A read-only inspection also
+refused; subsequent metadata diagnosis confirmed the reporting root is absent,
+not partially deployed. All 229 bound native files still match. The final
+transient unit has been unloaded (LoadState=not-found), although the systemd
+manager journal records successful deactivation at 03:15:06 UTC on 29 September
+for its original invocation. The launcher currently requires a loaded unit.
+The actual frozen deployment also retains 213 root-owned mode-0664 files
+behind its root-owned mode-0700 root, which the new public-source mode check
+would refuse; 16 private files remain mode 0600. No frozen source, permission,
+service or result was changed. No native collector or backup ran. A new
+reporting-only compatibility amendment and deployment decision are pending;
+there was no automatic retry or guard relaxation.
+
 The final local gates for this integration ran 2,397 tests: 2,396 passed and
 one pre-existing skip. All 891 guarded repeat regressions passed with zero
 skips/errors/failures and 178 loaded project modules bound; all 12 repository

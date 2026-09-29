@@ -16,6 +16,20 @@ no stop was present. No active task remains. A completed native audit, one
 verified private archive and public final result export are still pending.
 No baseline repeat or recovery has started.
 
+The first separate reporting deployment attempt, after the source-bound
+handoff commit and local gates, was refused before project imports or writes.
+Read-only diagnosis at 04:03 UTC found no reporting directory, all 229 native
+byte bindings unchanged and no stop. The transient final unit now reports
+LoadState=not-found, while the systemd manager journal records successful
+deactivation at 03:15:06 UTC for the same invocation that started at 03:37:46
+on 28 September. The launcher currently requires LoadState=loaded.
+An additional compatibility mismatch is 213 root-owned source/metadata files
+with mode 0664 inside the unchanged root-owned 0700 deployment; 16 private
+inputs/producers are mode 0600. No permissions or guard were changed.
+A reporting-only compatibility amendment and explicit approval for a new
+deployment attempt are now required. No collector, backup, export or repeat
+was invoked, and no deployment retry was made.
+
 The explicit amended operator capture and native handoff now select the
 absence-aware archive verifier and actual separate fresh audit. The actual
 repeat session/inspection connection is wired to it; old readers and frozen

@@ -1622,3 +1622,17 @@ only the prior permitted local scored_trial.py hooks differ among the 211
 frozen final sources. The eight image overlays and 32 installed import names
 remain unchanged. Native reporting, backup, export and repeat operations have
 not been invoked at this local checkpoint.
+
+The subsequent first reporting deployment was refused before imports/writes.
+At 04:03 UTC, read-only native metadata confirmed no reporting root, all 229
+bound native files unchanged, and no stop. Systemd reports the completed
+transient unit as not-found; its manager journal independently records
+successful deactivation at 03:15:06 UTC for the original launch invocation.
+The current launcher instead requires LoadState=loaded. Its source-mode guard
+also rejects the existing 213 root-owned 0664 source/metadata files, despite
+the unchanged root-owned 0700 enclosing deployment; the 16 private files are
+0600. This is a reporting compatibility refusal, not a new benchmark failure.
+No collector, archive, export, handoff, repeat or recovery was invoked, no
+native metadata was changed and no automatic deployment retry occurred.
+A separately reviewed reporting-only compatibility amendment and a new
+deployment decision are required before continuation of the native route.
