@@ -261,6 +261,32 @@ class OperatorTests(unittest.TestCase):
         with self.assertRaises(ValueError): transport.collect('a'*40)
         self.preflight.assert_not_called(); self.exchange.assert_not_called()
 
+    def test_owned_readable_runtime_parent_keeps_private_boundary(self):
+        (self.root/'.runtime').chmod(0o755)
+        result=transport.collect('a'*40)
+        self.assertTrue(result['completed_final_audit_verified'])
+        self.assertEqual((self.root/'.runtime').stat().st_mode & 0o777,0o755)
+        self.assertEqual((self.root/'.runtime/netcup').stat().st_mode & 0o777,0o700)
+        self.assertEqual(self.folder.stat().st_mode & 0o777,0o700)
+
+    def test_writable_runtime_parent_refuses_before_native_preflight(self):
+        (self.root/'.runtime').chmod(0o775)
+        with self.assertRaises(ValueError): transport.collect('a'*40)
+        self.preflight.assert_not_called(); self.exchange.assert_not_called()
+
+    def test_public_netcup_boundary_refuses_before_native_preflight(self):
+        (self.root/'.runtime/netcup').chmod(0o755)
+        with self.assertRaises(ValueError): transport.collect('a'*40)
+        self.preflight.assert_not_called(); self.exchange.assert_not_called()
+
+    def test_parent_identity_or_mode_drift_refuses_completion(self):
+        def changed(*args):
+            (self.root/'.runtime').chmod(0o755)
+            return self.raw,self.info
+        self.exchange.side_effect=changed
+        with self.assertRaises(transport.AuditTransportError): transport.collect('a'*40)
+        self.assertFalse((self.folder/'result.json').exists())
+
     def test_success_cannot_be_repeated(self):
         transport.collect('a'*40)
         with self.assertRaises(ValueError): transport.collect('a'*40)

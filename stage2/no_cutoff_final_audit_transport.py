@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import selectors
+import stat
 import subprocess
 import sys
 import time
@@ -322,9 +323,24 @@ def _exchange(program, bindings):
     return bytes(output), metadata
 
 
+def _parents():
+    # The shared .runtime directory is owned mode 0755; privacy starts at the
+    # existing exact mode-0700 .runtime/netcup boundary, not its readable parent.
+    identities = []
+    for parent in (launch.REPO, launch.REPO / '.runtime', launch.REPO / '.runtime/netcup'):
+        s = parent.lstat()
+        if (parent.is_symlink() or parent.resolve() != parent or not stat.S_ISDIR(s.st_mode)
+                or s.st_uid != os.getuid() or s.st_mode & 0o7022):
+            raise ValueError('Canonical owned non-writable-by-others audit parents required')
+        if parent == launch.REPO / '.runtime/netcup' and stat.S_IMODE(s.st_mode) != 0o700:
+            raise ValueError('Exact private Netcup boundary required')
+        identities.append((s.st_dev, s.st_ino, s.st_mode, s.st_uid, s.st_gid))
+    return tuple(identities)
+
+
 def _destination():
     path = phase._path(launch.REPO, DESTINATION)
-    for parent in (launch.REPO / '.runtime', path.parent): receiver._directory(parent)
+    _parents()
     if path.exists() or path.is_symlink():
         raise ValueError('Existing or partial audit operation forbids another attempt')
     return path
@@ -336,9 +352,9 @@ def _directory_id(folder):
 
 
 def _state(folder, identity, hashes):
-    if phase._path(launch.REPO, DESTINATION) != folder or _directory_id(folder) != identity:
+    if (phase._path(launch.REPO, DESTINATION) != folder
+            or (_parents(), _directory_id(folder)) != identity):
         raise ValueError('Audit state directory changed')
-    for parent in (launch.REPO / '.runtime', folder.parent): receiver._directory(parent)
     if {p.name for p in folder.iterdir()} != set(hashes):
         raise ValueError('Exact retained audit inventory required')
     for name, sha in hashes.items(): launch._raw(DESTINATION + '/' + name, sha)
@@ -373,7 +389,7 @@ def collect(commit):
     launch._recheck(bindings); _destination()
     program, original_sha = _program(bindings)
     folder.mkdir(mode=0o700); receiver._sync(folder.parent)
-    identity = _directory_id(folder); hashes = {}; stage = 'intent'
+    identity = (_parents(), _directory_id(folder)); hashes = {}; stage = 'intent'
     metadata = dict(status='not_started', automatic_resume=False)
     try:
         intent = dict(kind='one_shot_mac_reporting_audit_transport_v1', operator_commit=commit,

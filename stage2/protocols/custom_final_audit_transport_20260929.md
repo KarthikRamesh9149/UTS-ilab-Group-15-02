@@ -44,6 +44,15 @@ not private archive or benchmark request caps.
 
 The exclusive private Mac directory is
 `.runtime/netcup/custom-no-cutoff-final89-audit-transport-20260929`.
+Local read-only inspection found the shared `.runtime` parent owned and mode
+0755, while `.runtime/netcup` is owned mode 0700. The new operator requires
+canonical owner-controlled, non-group/world-writable parents and that exact
+private Netcup boundary, plus its private leaf. Parent/leaf identities and modes
+are checked across retention. The readable shared parent need not be private;
+no chmod or generic private-file exception is used. The first local preflight
+refused this parent assumption before SSH or state creation; that refusal is
+retained. Existing installed backup/export parent checks remain unchanged and
+also require explicit downstream review.
 Intent, diagnostics, exact UTF-8/Python-numeric snapshot bytes and result/failure
 are retained privately. Any existing or partial directory forbids repetition.
 Native exit success, exact returned-output hash, actual amended schema and
@@ -72,4 +81,3 @@ All tests of this operator use local temporary files, harmless subprocess
 pipes and synthetic audit data, with native/SSH observations mocked. They are
 not native qualification, audit success or benchmark outcomes. Actual evidence
 comes only from the one separately approved future audit operation.
-

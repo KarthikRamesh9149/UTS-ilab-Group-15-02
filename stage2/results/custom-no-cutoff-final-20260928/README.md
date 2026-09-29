@@ -10,8 +10,16 @@ snapshot bytes are retained exclusively; no partial operation may auto-retry.
 No raw error messages, model content or logs are returned. This does not change
 benchmark limits or constitute a backup, export or repeat-admission witness.
 
-All 45 new tests passed within 181 focused checks. Final local gates passed:
-2,493 tests run with one pre-existing skip, 987 guarded regressions with no skips,
+The first local post-push preflight at 2706832 refused the owned, readable
+mode-0755 `.runtime` parent before any SSH or state creation. The corrected
+operator verifies canonical owner-controlled, non-writable-by-others parents,
+the actual private mode-0700 `.runtime/netcup` boundary and its private leaf,
+including parent/leaf identity rereads. No permission was changed; this local
+refusal did not consume the approved native audit attempt. Existing downstream
+backup/export private-parent assumptions remain unchanged and need review.
+
+All 49 new tests passed after that correction. Final local gates passed:
+2,497 tests run with one pre-existing skip, 991 guarded regressions with no skips,
 and 12 repository tests. The guarded checks bound 285 prospective sources plus
 four retained metadata files and 182 loaded project modules. The tests use
 local pipes/private files and synthetic evidence with native/SSH observations

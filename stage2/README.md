@@ -12,8 +12,16 @@ frozen source, permission, service or result changes. The one-shot private Mac
 state retains safe diagnostics and only a validated exact-byte snapshot; existing
 or partial state forbids repetition. No saved audit grants backup or admission.
 
-All 45 new local tests passed within 181 focused checks. Full discovery ran
-2,493 tests: 2,492 passed and one pre-existing skip. All 987 guarded regressions
+The first local post-push preflight at 2706832 refused the readable, owned
+mode-0755 `.runtime` parent before any SSH call or state creation. Read-only
+inspection confirmed the actual private boundary is `.runtime/netcup` mode 0700.
+The correction requires canonical owner-controlled, non-writable-by-others
+parents, that exact private boundary and the private leaf, with parent/leaf
+identity rereads. No permissions were changed, and the native audit authority
+was not consumed by this local refusal.
+
+All 49 new local tests passed after this correction. Full discovery ran
+2,497 tests: 2,496 passed and one pre-existing skip. All 991 guarded regressions
 passed without skips/errors/failures, with 289 stage2 bindings (285 prospective
 sources plus four retained metadata files) and 182 loaded project modules checked.
 All 12 repository tests passed. Native/SSH observations are mocked in these
@@ -23,7 +31,8 @@ hooks differ among the 211 final-anchor files.
 
 The whole reporting route was inspected. The old exporter/Mac predecessor and
 native handoff still use 300-second audit callers; the old backup has a 900-second
-audit-plus-transfer window. None is monkeypatched or claimed migrated. This is
+audit-plus-transfer window. Its existing private-parent assumption also remains
+unchanged and needs explicit downstream review. None is monkeypatched or claimed migrated. This is
 a standalone audit route, not downstream completion. See the explicit
 [transport amendment](protocols/custom_final_audit_transport_20260929.md).
 The one further native audit is pending commit/push and fresh preflight at this

@@ -6,15 +6,20 @@ all original installed bootstrap/main/evidence checks and all 21 installed
 reporting files, with an explicit 1,800-second connection window, lightweight
 30-second stack samples, allowlisted diagnostics and exclusive one-shot private
 state. No benchmark limit, result, source permission or service changes.
-The 45 new tests passed; final gates ran 2,493 tests with one pre-existing skip,
-987 guarded regressions without skips/failures, and 12 repository tests. Current
+An initial local preflight at 2706832 refused the readable, owned mode-0755
+`.runtime` parent before SSH or state creation. The correction verifies
+owner-controlled non-writable-by-others parents and the actual private mode-0700
+Netcup boundary/leaf, with identity rereads and no permission changes. The
+native audit authority remains unused. The 49 new tests passed; final gates ran
+2,497 tests with one pre-existing skip, 991 guarded regressions without
+skips/failures, and 12 repository tests. Current
 prospective source inventory is 285; 289 stage2 test bindings include four retained
 metadata files, and 182 loaded project modules were checked. These are local,
 synthetic tests, not a completed audit, native qualification or launch.
 
 The installed exporter and amended handoff remain on their original audit
 callers/bounds, and the original backup retains its 900-second audit-plus-transfer
-window. The new entry is a standalone audit connection only; no consumer is
+window and private-parent assumptions. The new entry is a standalone audit connection only; no consumer is
 silently patched or claimed integrated. Explicit downstream work remains before
 backup/export/live successor admission. The one further native audit is still
 pending at this source checkpoint. Preserve prior failures, separate recovery
