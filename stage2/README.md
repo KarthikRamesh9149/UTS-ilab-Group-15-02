@@ -1,5 +1,32 @@
 # Stage 2 execution status
 
+## Reporting installation verified, 29 September 2026
+
+The single newly approved reporting deployment succeeded at 06:04:02 UTC from
+commit ea543e46784025f3db7a5ac54c4e8e4624893278. A separate read-only inspection
+at 06:04:26 verified all 21 installed reporting files and the completion guard.
+The preceding read-only preflight at 06:03:29 verified all 229 native bindings,
+the protected mode-0700 root, original manager completion and absence of live
+execution processes, and confirmed that no reporting directory existed.
+The separate reporting root now exists; do not redeploy, overwrite or retry it.
+The previous pre-write refusal at 7bfe217 remains historical evidence.
+
+No frozen execution file, permission, service or result was changed. This was
+installation and inspection only: no completed native audit, final snapshot,
+archive, transfer, public result export, recovery or baseline repeat ran.
+The installed reporting bundle is unchanged by this documentation checkpoint.
+
+Fresh read-only metadata at 06:05:15 UTC still shows 89/89 complete: 50 passes,
+36 verified zero-score failures and three setup-only missing verifier outcomes.
+There is no active or started-without-result task. All 211 frozen sources match,
+all 89 results record revocation and no provider/operator stop is present.
+These remain preliminary metadata, not an audited final score.
+
+Next required work is the actual completed audit, ONE verified private backup,
+allowlisted export and push before any Terminus repeat. Recovery sequencing
+remains separately pending. Keep the VPS and hourly notifications active.
+The following preparation and refusal checkpoints are dated history.
+
 ## Approved reporting compatibility work, 29 September 2026
 
 The user approved the reporting-only correction and ONE new installation

@@ -1,5 +1,17 @@
 # Matched baseline repeats after custom final89
 
+Latest native checkpoint, 29 September: the single approved reporting
+installation succeeded at 06:04:02 UTC from
+ea543e46784025f3db7a5ac54c4e8e4624893278; read-only inspection at 06:04:26
+verified the 21-file separate tree and actual completion/protection checks.
+There is now an existing reporting root, so no redeployment or automatic retry
+is permitted. Frozen execution and results are unchanged. No actual completed
+audit, final archive/export, live repeat handoff, recovery or baseline repeat
+has occurred. Audit, ONE verified private backup and export/push are still
+required before Terminus, as are its unfinished service/qualification work.
+Recovery sequencing remains a separate pending decision. Earlier checkpoints
+below are historical; the existing hourly monitor and VPS remain active.
+
 Latest compatibility checkpoint, 29 September: the user approved a narrowly
 reviewed reporting amendment plus one new deployment attempt after validation.
 The current ancestor reader and connection now share the explicit final-service

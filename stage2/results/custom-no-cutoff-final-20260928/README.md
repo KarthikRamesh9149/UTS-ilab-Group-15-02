@@ -1,5 +1,27 @@
 # Measured C0-NC final89
 
+## Latest: reporting installation verified, 29 September
+
+The one newly approved deployment succeeded at 06:04:02 UTC from
+ea543e46784025f3db7a5ac54c4e8e4624893278. Read-only inspection at 06:04:26
+verified all 21 reporting files, the unchanged native byte bindings and fresh
+trusted completion/process-absence evidence. The separate reporting root now
+exists and must not be overwritten or redeployed. The original frozen run,
+permissions and results remain unchanged; the earlier refused attempt remains
+recorded below.
+
+Read-only progress at 06:05:15 UTC found 89/89 complete, 50 passes, 36 verified
+zeros and the same three setup-only missing verifier outcomes. No task is
+active; all 211 frozen sources match, all 89 results record revocation and no
+stop is present. These are preliminary metadata, not an audited final score.
+
+Installation is not a completed native audit or backup. No completed-final
+snapshot/archive/transfer, public result export, recovery or baseline repeat
+has run. The audit, ONE verified private backup and export remain mandatory.
+The following preparation and refusal descriptions are dated history.
+
+## Compatibility preparation checkpoint
+
 The user has now approved a reporting-only compatibility amendment and one new
 installation attempt after validation. The separately bound guard requires
 fresh trusted manager completion and procfs/cgroup absence evidence, preserves
