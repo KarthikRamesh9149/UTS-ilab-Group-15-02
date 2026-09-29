@@ -1,10 +1,56 @@
 # Separate C0-NC setup recovery
 
 Status: diagnosis and fixed plan published; separate setup observer, policy,
-gateway and original-evidence handoff implemented locally. **0/3 recovery attempts started.** No native recovery qualification,
+gateway, original-evidence handoff and current host/library reader implemented locally. **0/3 recovery attempts started.** No native recovery qualification,
 registration or paid admission has occurred.
 
 ## Current implementation checkpoint
+
+The [current host/library reader](../../protocols/custom_setup_recovery_runtime_20260929.md)
+requires the actual live handoff witness and current original/recovery C0-NC
+identity. It checks the exact original runtime, complete stable host identity,
+dependencies/Python archive, actual dataset, all 89 official configurations and
+three selected task images. Its fixed isolated children compare all current
+site-packages files except bytecode and construct the original C0-NC factory
+without setup/run/tools/model calls. Actual library/source/private bytes are
+reread after the last native observations. Any refusal invalidates the witness.
+The returned record remains non-admitting and does not prove historical
+installed bytes; the original archive contains no virtual environment.
+
+The prospective union is 280 files. Only the source/test inventory changed in
+the policy; no earlier observer, handoff, agent, preparation or reporting source
+changed. All 179 affected checks passed, including 47 new local tests. These use
+real protected temporary files and an actual credential-free constructor child,
+with native host/service/Docker and inspection subprocess observations mocked.
+The child blocks socket capability probes before socket creation and retains
+only a denial count; credential/write/process/connection refusals latch failure.
+Initial draft syntax and macOS Linux-ACL fixture errors were corrected. Review
+added final real library/dataset rereads, parent loaded-library origin checks,
+full canonical ancestry checks and a narrow original-stage2-only permission
+exception. No native evidence guard was relaxed.
+
+Final local gates: all 571 recovery regressions passed with zero skips/errors/
+failures, 280 source bindings and 185 final loaded project modules. The combined
+broader set passed all 1,639 tests with zero skips/errors/failures, 323 source
+bindings and 243 final loaded modules. Both guarded runs checked sources before
+discovery, after discovery and after execution. Full discovery ran 2,806 tests:
+2,805 passed and one pre-existing skip; 422 Python file hashes were unchanged
+at the same three checkpoints. All 12 repository tests passed. The guarded
+local runs refused external model-cost-map fetches and used bundled metadata;
+no provider call or native qualification occurred. The final discovery run
+explicitly selected local cost metadata and disabled dotenv before imports.
+
+The only native operation was the existing read-only progress inspector at
+18:36:19 UTC on 29 September: original 89/89 complete, 50 passed, 36 verified failures,
+3 missing verifier outcomes, no active/partial task, all 211 sources matching,
+all 89 revoked, no stop. Recovery 0/3 and both baseline repeats remain unstarted.
+This component has NOT been invoked natively. No collector/archive read, new
+root/service/build/rehearsal/qualification/registration/dispatch or provider
+request occurred. Actual root absence before installation, trusted service,
+full live locked scope, real native image/qualification, durable observer and
+scored integration, sequential dispatch and separate reporting remain required.
+
+## Earlier original-evidence handoff checkpoint
 
 The [recovery-specific capture and handoff](../../protocols/custom_setup_recovery_handoff_20260929.md)
 requires a fresh actual original audit and strict reading of the same retained

@@ -1,6 +1,45 @@
 # Stage 2 execution status
 
-## Latest: recovery-specific original-evidence handoff implemented locally
+## Latest: recovery-specific current host and library reader implemented locally
+
+The separate [host/library component](protocols/custom_setup_recovery_runtime_20260929.md)
+now requires a live original-evidence witness and actual C0-NC host, dependency,
+Python archive, dataset, all 89 official configurations and three task-image
+bindings. Its two isolated constructor-only children compare current original
+and recovery site-packages bytes, versions and C0-NC controls. Actual libraries,
+inputs and sources are reread after the final native observations. A failure
+invalidates the witness. No saved description is admission, and the future
+session must still hold the full ancestor locks after real authentication.
+
+This is LOCAL implementation, not a native inspection or qualification. The
+original backup excluded its virtual environment: current parity would not
+prove historical installed bytes. The prospective recovery union is now 280
+files, adding only the new runtime, stdlib library producer, tests and protocol.
+The policy AST changes only its source inventory/test list. The original 211
+retain only the prior local scored-runner hooks; archived 35 reporter files, diagnosis,
+observer, handoff, original preparation/lifecycle and published evidence remain
+unchanged. All 179 affected local checks passed, including 47 new tests.
+
+Final local gates passed all 571 recovery regressions (280 bindings, 185 final
+loaded project modules) and all 1,639 combined broader regressions (323 source
+bindings, 243 final loaded modules), with zero skips/errors/failures. Both
+checked source bytes before discovery, after discovery and after execution.
+Full discovery ran 2,806 tests: 2,805 passed and one pre-existing skip, with
+unchanged hashes over 422 Python files at all three checkpoints. All 12
+repository tests passed. These are local/synthetic checks, not native or paid
+evidence; mocked lifecycle completion output does not add study outcomes.
+
+The only native operation was the existing read-only inspector at **18:36:19 UTC
+on 29 September**: **89/89 complete, 50 passed, 36 verified failures, 3 missing verifier
+outcomes**, no active/partial task, all 211 sources matching, all 89 revoked and no
+stop. Recovery remains **0/3 started**; both baseline repeats are unstarted.
+No archive read/recreation, collector, new native root/service/build/rehearsal,
+qualification, registration, provider request or recovery attempt occurred.
+Actual new-root absence, trusted service/live locked session, new image/native
+qualification, durable observer/scored integration, dispatcher and separate
+completed report/ONE backup/export are still required. The VPS remains needed.
+
+## Earlier checkpoint: recovery-specific original-evidence handoff
 
 The separate [capture and handoff component](protocols/custom_setup_recovery_handoff_20260929.md)
 now provides the recovery-only route for a fresh original audit and strict

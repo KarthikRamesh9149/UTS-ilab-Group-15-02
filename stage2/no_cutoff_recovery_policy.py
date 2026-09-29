@@ -98,6 +98,9 @@ REQUIRED_SOURCE_FILES = frozenset({
     'no_cutoff_recovery_handoff.py',
     'test_no_cutoff_recovery_handoff.py',
     'protocols/custom_setup_recovery_handoff_20260929.md',
+    'no_cutoff_recovery_runtime.py', 'no_cutoff_recovery_libraries.py',
+    'test_no_cutoff_recovery_runtime.py',
+    'protocols/custom_setup_recovery_runtime_20260929.md',
     'matched_repeat_stream.py',
     'no_cutoff_final_report.py',
     'test_no_cutoff_final_report.py',
@@ -138,7 +141,7 @@ REQUIRED_SOURCE_FILES = frozenset({
 ORCHESTRATION_FILES = frozenset({'scored_trial.py'})
 RECOVERY_TEST_MODULES = ('test_no_cutoff_recovery_plan',
     'test_no_cutoff_recovery_setup', 'test_no_cutoff_recovery_policy',
-    'test_no_cutoff_recovery_handoff')
+    'test_no_cutoff_recovery_handoff', 'test_no_cutoff_recovery_runtime')
 PROBE_MODES = ('tools', 'prepare_not_applicable', 'prepare_nonzero',
     'prepare_exception', 'cancel_setup', 'boundary_stop')
 PREPARATION_OUTCOMES = dict(tools='refreshed', prepare_not_applicable='not_applicable',

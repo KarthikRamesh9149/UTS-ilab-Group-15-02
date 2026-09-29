@@ -1,5 +1,17 @@
 # Matched baseline repeats after custom final89
 
+Recovery runtime checkpoint, 29 September: the separate
+[C0-NC current host/library reader](custom_setup_recovery_runtime_20260929.md)
+is now locally implemented. It compares actual original/recovery library bytes
+and constructor controls through fixed isolated children, with live-witness
+ownership and final source/input/host/image/dataset checks. It neither changes
+these baseline controls nor supplies historical installed-byte attestation.
+No actual native invocation, recovery qualification or attempt has occurred.
+Recovery remains 0/3; both baseline repeats remain unstarted in the same fixed
+Terminus-2-then-OpenHands order. Trusted service/live session, genuine native
+qualification, durable scored observations and separate recovery reporting are
+still required before those three attempts and subsequent baseline work.
+
 Recovery handoff checkpoint, 29 September: the new
 [recovery-only capture and evidence reader](custom_setup_recovery_handoff_20260929.md)
 requires the actual original fresh audit and same retained archive, with a
