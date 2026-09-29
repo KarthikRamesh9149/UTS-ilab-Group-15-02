@@ -34,7 +34,8 @@ def _operator():
     if (platform.system() != 'Darwin' or REPO.is_symlink() or REPO.resolve() != REPO
             or not REPO.is_dir() or Path(__file__).resolve() != REPO / 'stage2/no_cutoff_final_reporting.py'):
         raise ValueError('Use the fixed Mac operator checkout')
-    for module in (archive, phase, report, guard, report.dependencies, transport, dashboard, phase.local_trace):
+    for module in (archive, phase, report, guard, report.dependencies, report.archive_logs,
+            transport, dashboard, phase.local_trace):
         if Path(module.__file__).resolve() != REPO / 'stage2' / (module.__name__ + '.py'):
             raise ValueError('Reporting helper imported from another checkout')
 

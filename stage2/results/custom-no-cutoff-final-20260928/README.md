@@ -1,5 +1,84 @@
 # Measured C0-NC final89
 
+## Latest: completed native audit; first backup retained as failed
+
+The 32-file version-3 reporting installation at
+`7bfb84d967a4bf4ee0aed97fc4cb58e27e1da2aa` succeeded at 13:13:00.410232 UTC on
+29 September. Actual fixed-reader imports, shared environment-guard identity,
+all237 native bindings and trusted completion/protection checks passed at
+13:14:11.822230 UTC. The full one-shot audit began at13:15:07.204680 UTC and
+completed at **13:18:45.897886 UTC**, including final bootstrap/schema/evidence
+rereads. SSH exited0; transport elapsed208.941005 seconds. Six unrecognised
+stderr records were redacted, not interpreted as benchmark evidence.
+
+The exact completed private snapshot SHA256 is
+`3f21936fb4f36e0897866ab2a08bc63018121ae08a94718e3c8b8334e0c2268f`;
+diagnostics SHA256 is
+`6b391d4a03f2605d663a32b097c725aacd09cb46fe0fa3604a7ccef45d68d668`.
+Intent/diagnostics/snapshot/result are all0600 under0700. Local validation
+reread their actual bytes and schema. This is the first successful completed
+native final audit; the earlier internal return/failures remain distinct.
+
+| Audited original final attempts | Attempts | Passes | Verified failures | Missing verifier |
+| --- | ---: | ---: | ---: | ---: |
+| Full89 | 89 | 50 | 36 | 3 |
+| Fixed development20 | 20 | 15 | 5 | 0 |
+| Remaining69 | 69 | 35 | 31 | 3 |
+
+No recovery is included. Agent/verifier durations are measured for86 and not
+run for3; setup is measured for89. The audit retains3,657 physical requests,
+2,858 accepted responses,19 interrupted,780 errors and774 HTTP429 responses.
+Known response-reported subtotal isUSD1.71399138;799 requests have unknown cost,
+so total cost is unknown and independent receipts are not claimed. No full
+benchmark superiority, inherited validation score or causal improvement is claimed.
+
+The ONE backup began at13:20:22.230347 UTC and failed at13:24:52.812455 UTC with
+ValueError. The wrapper did not retain its exact stage or remote traceback.
+The original destination has only intent.json/failure.json, with respective
+SHA256 `d9fa8a0c3d36601f2d655ff4a22d148449a307c60f43cdae3c84521f2cd43556`
+and `107dbb02d6a7ae6facaae3b68b41d9330ca7779c1f2eb55dd2cc0a566e1daffd`.
+No snapshot, archive or backup.json exists there. No successful backup or
+public export can be inferred from the separate completed audit.
+
+At13:27:34.045279 UTC read-only stdlib checks found no matching processes
+across14 study/reporting roots, no holders/waiters for all33 ancestor locks,
+all237 native and32/28/21 reporter hashes intact, fresh completion/protection,
+and all three native backup states absent. No native work remained at that check.
+At13:30:07 UTC an exact source-bound read-only inventory probe reproduced a
+current refusal at backup._inventory111, phase._path101, guard.protected_path92.
+It invoked no collector or archive writer. The observed current blocker is
+extra log permissions; it does not supply a retrospective traceback for the
+failed operation. Detailed metadata observations and limitations are in the
+[explicit log-archive amendment](../../protocols/custom_final_archive_logs_20260929.md).
+
+The new archive-only compatibility implementation is local, targeting a NEW
+35-file r4 reporter and NEW protected-logs backup destination. It preserves
+exact0700 boundaries, root ownership/group, ACL/link safety and before/after
+identities/hashes while allowing only the observed narrow extra agent/verifier
+log modes. Required audit evidence stays strictly private. The actual successor
+connection checks the same new archive destination, never the old failed path.
+The initial wider runs exposed that stale consumer and failed with38 errors;
+the path correction and no-fallback regression now pass all39 connection tests.
+Final discovery:2,597 run,2,596 passed,one pre-existing skip. All1,091 guarded
+regressions passed with no skips/errors/failures and exact-byte checks over303
+stage2 bindings (299 prospective sources plus4 metadata) and193 loaded modules.
+All27 new permission tests, an earlier335 affected checks and12 repository tests
+also passed. Real temporary files, private modes, hashes, archives and local
+pipes use mocked native observations; these are not native backup evidence.
+An initial local-only preflight-script AST check omitted its commit field and
+was corrected before any SSH call; the resulting native program parses locally.
+No new installation, collector or backup has occurred in this local correction.
+Old roots, completed audit and all failed states remain unchanged. No archive
+exists to recreate. Actual local checks matched59 operator/237 native/35 reporting
+bindings and5 metadata anchors. The original211 local qualification files retain
+only the prior permitted scored_trial.py hooks; the other210 and eight image
+overlays/32 imports are unchanged.
+
+Verified backup, public export/push, separate recovery qualification and native
+baseline repeat prerequisites remain unfinished. No recovery or repeat started.
+Routine in-scope authority is valid; preserve original outcomes and fixed order.
+Keep the VPS and explicit hourly notifications. Earlier sections are historical.
+
 ## Latest: retained version-2 failure and environment correction
 
 The explicitly approved installation of revision

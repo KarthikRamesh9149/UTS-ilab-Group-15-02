@@ -1,5 +1,41 @@
 # Matched baseline repeats after custom final89
 
+Latest actual checkpoint, 29 September: the source-bound version-3 native audit
+at7bfb84d completed successfully at13:18:45.897886UTC, with all final rereads.
+Audited original89:50passes,36verifiedzeros,3setup-only missing verifier outcomes;
+development20 is15/20 and remaining69 is35passes/31zeros/3missing. No recovery
+attempt is merged or score inherited. SnapshotSHA256
+`3f21936fb4f36e0897866ab2a08bc63018121ae08a94718e3c8b8334e0c2268f`
+is privately retained with intent/diagnostics/result. This is completed native
+audit evidence, not an off-server archive or successor admission witness.
+
+The first actual backup failed at13:24:52UTC, retaining only Mac intent/failure,
+no snapshot/archive/backup record. Its exact historical stage is not recorded.
+Read-only checks found no residual processes/held ancestor locks, unchanged
+237native/32r3/28r2/21oldreporter bytes and no native backup states. A separate
+read-only inventory probe reproduced a current protection refusal on extra
+agent/verifier directories. These root-owned container-writable log folders
+remain behind exact0700 boundaries; required trial evidence remains0600.
+
+The explicit [protected-log archive amendment](custom_final_archive_logs_20260929.md)
+is implemented locally with a new r4 root and protected-logs backup destination,
+never replacement of old roots or failed state. The actual current successor
+connection now checks this same destination without falling back to the old
+failed path. Initial wider runs caught that stale consumer; the corrected39
+connection tests passed. Final discovery ran2,597 tests:2,596 passed,one
+pre-existing skip. All1,091 guarded regressions passed with no skips/errors/
+failures,303 stage2 bindings (299 prospective sources plus4 metadata) and193
+loaded modules. All27 new permission tests, an earlier335 affected checks and
+all12 repository tests passed. These remain local/synthetic, not native backup
+or repeat evidence. No new deployment or backup invocation has occurred for
+this correction. ONE verified original archive and allowlisted
+public export/push are still required. No live native repeat qualification,
+recovery dispatch or baseline repeat has begun. Fixed schedules/order and
+separate outcome reporting remain unchanged. The user's routine in-scope
+authority is valid without repeated approval questions; no evidence overwrite,
+replay, payment/topup or cancellation is authorised. Keep VPS/hourly reporting.
+Older descriptions below are historical where superseded.
+
 Latest reporting checkpoint, 29 September: the approved version-2 installation
 at2fbdc938 succeeded at12:34:30UTC, but its one audit failed at12:35:39UTC at the
 pre-collector exact-environment check after native-reader imports. There is no

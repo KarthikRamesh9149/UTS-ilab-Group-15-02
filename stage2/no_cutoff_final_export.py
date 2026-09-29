@@ -169,7 +169,7 @@ def _projection(capture):
         **{k + '_observation': v for k, v in row['phase_observation'].items()}} for row in rows]
     stream = io.StringIO(newline=''); writer = csv.DictWriter(stream, fieldnames=CSV_FIELDS, lineterminator='\n')
     writer.writeheader(); writer.writerows(csv_rows)
-    summary = dict(kind='c0_nc_final89_reporting_environment_public_summary_v3', condition='C0-NC',
+    summary = dict(kind='c0_nc_final89_protected_log_public_summary_v4', condition='C0-NC',
         candidate_version='stage2-candidate-0.5.0', intended=89, attempts_per_task=1, recovery_attempts_included=False,
         execution_source_set_sha256=phase.SOURCE_SET, qualification_sha256=phase.QUALIFICATION,
         qualification_file_sha256=phase.QUALIFICATION_FILE, registration_sha256=phase.REGISTRATION,
@@ -180,6 +180,7 @@ def _projection(capture):
         reporting_source_files=data['reporting_source_files'], amendment_sha256=data['amendment_sha256'],
         reporting_dependencies=data['reporting_dependencies'],
         reporting_environment=data['reporting_environment'],
+        archive_log_permissions=data['archive_log_permissions'],
         public_prerequisite_files=PREREQUISITES, results=data['aggregates']['full89'],
         development_subset=data['aggregates']['development20'], outside_development_subset=data['aggregates']['remaining69'],
         original_baselines=dict(primary=dict(harness='terminus-2', passed=52, intended=89),
@@ -199,6 +200,8 @@ def _projection(capture):
             'Development20 was used during development; remaining69 and full89 are reported separately.',
             'No inherited validation score, best-of recovery selection or causal improvement claim.',
             'Five helpers are bound for current reporting, not added to historical qualification.',
+            'Extra agent/verifier logs use protected private ancestors without changing source permissions.',
+            'Current archived payload bytes do not attest their historical bytes or a full runtime restore.',
             'This export is not a live predecessor witness or repeat admission.'])
     return {'summary.json': _json(summary), 'trials.json': _json(rows), 'trials.csv': stream.getvalue().encode()}
 

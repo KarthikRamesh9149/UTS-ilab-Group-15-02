@@ -358,6 +358,7 @@ class ReadOnlyBoundaryTests(unittest.TestCase):
                     (phase, '__file__', str(bundle / 'stage2/no_cutoff_final_phase_audit.py')),
                     (report.guard, '__file__', str(bundle / 'stage2/no_cutoff_final_guard.py')),
                     (report.dependencies, '__file__', str(bundle / 'stage2/no_cutoff_final_dependencies.py')),
+                    (report.archive_logs, '__file__', str(bundle / 'stage2/no_cutoff_final_archive_logs.py')),
                     (phase.local_trace, '__file__', str(root / 'stage2/local_trace.py')),
                     (report.sys, 'prefix', str(root / '.venv')), (report.sys, 'platform', 'linux'),
                     (report.sys, 'dont_write_bytecode', True), (report.sys, 'flags', NS(isolated=1)),

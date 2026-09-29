@@ -1,5 +1,50 @@
 # Stage 2 execution status
 
+## Latest: full audit passed; protected-log backup correction in progress
+
+The source-bound version-3 native audit at `7bfb84d` completed successfully at
+13:18:45.897886 UTC on 29 September. All final launcher/schema/evidence rereads
+passed and the exact private snapshot was retained. The original 89 attempts
+are now audited: **50 passes, 36 verified zero-score failures and three setup-only
+missing verifier outcomes**. Development20 is 15 passes/5 failures; remaining69
+is 35 passes/31 failures/3 missing outcomes. These are separately measured final
+attempts, not inherited validation scores or merged recovery attempts.
+
+The one backup ran from 13:20:22 to 13:24:52 UTC and returned ValueError. Its
+exact historical failure stage was not retained. Only private intent/failure
+exist; no archive, snapshot or verified backup record was created. Read-only
+checks found no remaining study/reporting process or held/waiting ancestor lock,
+all 237 native and 21/28/32 installed reporter bindings intact, and no native
+backup state. A source-bound read-only inventory check reproduced a current
+permission refusal on extra agent/verifier log directories, not required audit
+evidence. Metadata showed root:root0777 log roots behind exact0700 boundaries;
+required trial files remain0600. No native permission or evidence was changed.
+
+The explicit [extra-log archive amendment](protocols/custom_final_archive_logs_20260929.md)
+is implemented locally for only those registered extra payloads, retaining
+owner/group, canonical private ancestors, ACL/link checks, exact narrow modes,
+before/after identities and hashes, and unchanged strict required-evidence rules.
+The prospective r4 reporting root and new protected-logs backup destination
+preserve the old installations, successful audit and failed backup. The current
+successor connection uses the same new destination without a legacy fallback;
+the old predecessor reader remains unchanged. Final discovery ran 2,597 tests:
+2,596 passed and one pre-existing skip. All 1,091 guarded regressions passed with
+zero skips/errors/failures, before/discovery/after checks over 303 stage2 bindings
+(299 prospective sources plus four metadata files), and 193 loaded project
+modules at completion. All 27 new permission tests, an earlier 335 affected
+checks, the corrected 39 connection tests and all 12 repository tests passed.
+The initial wider runs exposed the stale successor destination and were retained
+as failed; correcting that actual consumer did not relax any evidence check.
+These are local/synthetic checks, not another native audit or backup. No new
+installation or backup invocation has occurred for this correction.
+
+No final public export, recovery or baseline repeat exists. The three separately
+approved recovery attempts still require a verified original backup and their
+own diagnosis/amendment/qualification. Fixed baseline schedules/order remain.
+Routine in-scope authority is valid without repeated approval prompts; it does
+not permit evidence replacement, replay, payment/topup or VPS cancellation.
+Keep the VPS and hourly notifications. Older checkpoints below are historical.
+
 ## Latest: version-2 installed; environment correction locally verified
 
 The approved version-2 installation at 2fbdc938 succeeded at 12:34:30 UTC on

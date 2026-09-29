@@ -220,7 +220,22 @@ class CommandTests(LocalTree):
         self.assertIn('serve(root,', self.program(role='service', relay_pid=123))
 
     def test_incomplete_off_server_backup_refused_before_any_ssh_start(self):
-        (self.repo / connection.operator.COMPLETED / 'evidence.tar.gz').unlink()
+        (self.repo / handoff.receiver.DESTINATION / 'evidence.tar.gz').unlink()
+        with patch.object(connection.subprocess, 'Popen') as start:
+            with self.assertRaises(ValueError): connection.inspect_native(self.repo)
+        start.assert_not_called()
+
+    def test_current_backup_destination_has_no_legacy_fallback(self):
+        current = self.repo / handoff.receiver.DESTINATION
+        legacy = self.repo / connection.operator.COMPLETED
+        self.assertNotEqual(current, legacy)
+        self.assertFalse(legacy.exists())
+        connection.bindings(self.repo, HARNESS)
+        legacy.mkdir(mode=0o700)
+        for name in ('snapshot.json', 'backup.json', 'evidence.tar.gz'):
+            path = legacy / name
+            path.write_bytes((current / name).read_bytes()); path.chmod(0o600)
+        (current / 'evidence.tar.gz').unlink()
         with patch.object(connection.subprocess, 'Popen') as start:
             with self.assertRaises(ValueError): connection.inspect_native(self.repo)
         start.assert_not_called()

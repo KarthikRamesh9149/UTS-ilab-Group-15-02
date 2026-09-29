@@ -19,6 +19,7 @@ import tarfile
 import no_cutoff_final_archive as archive
 import no_cutoff_final_phase_audit as phase
 import no_cutoff_final_report as report
+import no_cutoff_final_archive_logs as logs
 
 MAGIC = b'UTS-C0NC-ABSENCE-BACKUP-1\n'
 END = b'UTS-C0NC-ABSENCE-BACKUP-END\n'
@@ -35,23 +36,27 @@ def _identity(s):
 
 
 @contextmanager
-def _open(root, name):
-    protection = phase.guard.protected_path(root, name)
-    path = phase._path(root, name)
+def _open(root, name, *, log_trials=()):
+    extra_log = root == report.ROOT and logs.applies(name, log_trials)
+    protected = (lambda: logs.protection(root, name, log_trials)) if extra_log else (
+        lambda: phase.guard.protected_path(root, name))
+    protection = protected()
+    path = root / name if extra_log else phase._path(root, name)
     with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as handle:
         before = os.fstat(handle.fileno())
         # Only the fixed execution/historical source trees may contain public
         # sources. Reporting state and every Mac-side output stay private.
         private = root not in (report.ROOT, report.BASELINE, report.STOPPED) or name.startswith('.runtime/')
-        phase.guard.protected_file(root, name, before, private=private)
+        if extra_log: logs.file_protection(name, before, log_trials)
+        else: phase.guard.protected_file(root, name, before, private=private)
         yield handle, before
         if (_identity(before) != _identity(os.fstat(handle.fileno())) or _identity(before) != _identity(path.lstat())
-                or protection != phase.guard.protected_path(root, name)):
+                or protection != protected()):
             raise ValueError('Backup source changed while reading')
 
 
-def _digest(root, name, expected=None):
-    with _open(root, name) as (handle, before):
+def _digest(root, name, expected=None, *, log_trials=()):
+    with _open(root, name, log_trials=log_trials) as (handle, before):
         sha = hashlib.file_digest(handle, 'sha256').hexdigest()
     if expected is not None and sha != expected:
         raise ValueError('Actual backup source differs from audit binding')
@@ -94,21 +99,30 @@ def _inventory(data):
     files = {n: (report.ROOT, n, h) for n, h in data['supporting_file_sha256'].items()}
     files.update({'reporting/' + n: (report.REPORTING, n, h) for n, h in data['reporting_source_files'].items()})
     directories = set(data['directory_entries']); trees = {}; excluded = 0
+    trials = frozenset(row['trial_id'] for row in data['rows'])
+    if any(logs.applies(name, trials) for name in set(files) | directories):
+        raise ValueError('Required evidence cannot use extra-log permission compatibility')
+    def locate(name):
+        if logs.applies(name, trials):
+            return report.ROOT / name, logs.protection(report.ROOT, name, trials)
+        return phase._path(report.ROOT, name), phase.guard.protected_path(report.ROOT, name)
     for row in data['rows']:
         trial = phase.RT + 'scored-trials/' + row['trial_id']
         pending = [trial]
         while pending:
-            name = pending.pop(); path = phase._path(report.ROOT, name); state = path.stat()
-            if not stat.S_ISDIR(state.st_mode) or state.st_uid != os.getuid() or state.st_mode & 0o022:
+            name = pending.pop(); path, protection = locate(name); state = path.stat()
+            if (not stat.S_ISDIR(state.st_mode) or state.st_uid != os.getuid()
+                    or not logs.applies(name, trials) and state.st_mode & 0o022):
                 raise ValueError('Owned protected private trial directory required')
-            children = sorted(p.name for p in path.iterdir()); trees[name] = children; directories.add(name)
+            children = sorted(p.name for p in path.iterdir())
+            trees[name] = (children, _identity(state), protection); directories.add(name)
             for child in children:
                 full = name + '/' + child
                 if child in archive.EXCLUDED:
                     if full in files or full in data['directory_entries']:
                         raise ValueError('Exclusion cannot remove required evidence')
                     excluded += 1; continue
-                archive._name(full); item = phase._path(report.ROOT, full); info = item.lstat()
+                archive._name(full); item, _ = locate(full); info = item.lstat()
                 if stat.S_ISDIR(info.st_mode): pending.append(full)
                 elif stat.S_ISREG(info.st_mode): files.setdefault(full, (report.ROOT, full, None))
                 else: raise ValueError('Links and special private backup files are refused')
@@ -117,10 +131,15 @@ def _inventory(data):
         directories.update(str(p) for p in PurePosixPath(name).parents if str(p) != '.')
     bound = {}
     for name, (root, source, expected) in sorted(files.items()):
-        sha, identity = _digest(root, source, expected)
+        sha, identity = _digest(root, source, expected, log_trials=trials)
         bound[name] = (root, source, sha, identity)
     if any(n == a or n.startswith(a + '/') for n in set(bound) | directories for a in data['absent_paths']):
         raise ValueError('Inventory contradicts proven absence')
+    for name, (children, identity, protection) in trees.items():
+        path, current = locate(name)
+        if (sorted(p.name for p in path.iterdir()) != children or _identity(path.lstat()) != identity
+                or current != protection):
+            raise ValueError('Actual trial directory identity or inventory changed')
     return bound, sorted(directories), trees, excluded
 
 
@@ -180,13 +199,14 @@ class _Hashed:
 def _pack(output, data, inventory):
     files, directories, _, excluded = inventory
     framed = _Framed(output); size = 0
+    trials = frozenset(row['trial_id'] for row in data['rows'])
     with gzip.GzipFile(filename='', mode='wb', fileobj=framed, mtime=0) as compressed:
         with tarfile.open(fileobj=compressed, mode='w|', format=tarfile.PAX_FORMAT) as tar:
             for name in directories:
                 member = tarfile.TarInfo(name); member.type = tarfile.DIRTYPE; member.mode = 0o700
                 tar.addfile(member)
             for name, (root, source, sha, identity) in files.items():
-                with _open(root, source) as (handle, state):
+                with _open(root, source, log_trials=trials) as (handle, state):
                     if _identity(state) != identity: raise ValueError('Source replaced before archiving')
                     member = tarfile.TarInfo(name); member.mode = 0o600; member.size = state.st_size
                     reader = _Hashed(handle); tar.addfile(member, reader)

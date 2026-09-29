@@ -36,8 +36,10 @@ def bindings(repo, harness):
         '.runtime/stage2/' + policy.FINAL_FILE: baseline.FINAL_FILE_SHA256})
     # Refuse unfinished predecessor evidence locally before starting a service.
     # send() still performs its independent fresh audit/archive read, not reuse.
+    # The amended route uses its own exclusive destination. The old reader's
+    # completed path retains a failed operation and is never a fallback.
     for name in ('snapshot.json', 'backup.json', 'evidence.tar.gz'):
-        operator._regular(repo, operator.COMPLETED + '/' + name)
+        operator._regular(repo, handoff.receiver.DESTINATION + '/' + name)
     # Current committed amended sources and completed backup/export inventory
     # are required BEFORE starting a service; send still freshly audits/reads.
     commit = handoff.launch._git('rev-parse', 'HEAD').decode().strip()

@@ -1,6 +1,7 @@
 """Real local streams/private archives; SSH/native context are explicitly mocked."""
 import base64
 from copy import deepcopy
+import hashlib
 import io
 import json
 import os
@@ -28,6 +29,11 @@ class OperatorBackupTests(unittest.TestCase):
         self.enterContext(patch.object(launch, 'REPO', self.root))
         self.enterContext(patch.object(operator, '__file__', str(self.root / 'stage2/no_cutoff_final_backup_operator.py')))
         (self.root / '.runtime').chmod(0o700); (self.root / '.runtime/netcup').mkdir(mode=0o700)
+        self.previous = self.root / operator.PREVIOUS_FAILED; self.previous.mkdir(mode=0o700)
+        for name in ('intent.json', 'failure.json'):
+            producer._save(self.previous, name, {'synthetic_retained_failure': name})
+        self.enterContext(patch.object(operator, 'PREVIOUS_FILES', {
+            path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in self.previous.iterdir()}))
         self.bindings = dict(commit=self.commit, reporting=self.f.data['reporting_source_files'], anchors=self.f.anchors)
         self.prepare = self.enterContext(patch.object(launch, '_prepare', return_value=self.bindings))
         self.recheck = self.enterContext(patch.object(launch, '_recheck'))
@@ -72,6 +78,23 @@ class OperatorBackupTests(unittest.TestCase):
         self.folder.mkdir(mode=0o700)
         with self.assertRaises(ValueError): operator.backup(self.commit)
         self.start.assert_not_called(); self.inspect.assert_not_called()
+
+    def test_earlier_failed_backup_must_remain_exact_before_any_native_operation(self):
+        (self.previous / 'failure.json').write_bytes(b'changed')
+        with self.assertRaises(ValueError): operator.backup(self.commit)
+        self.start.assert_not_called(); self.inspect.assert_not_called()
+
+    def test_earlier_archive_or_partial_snapshot_cannot_be_hidden(self):
+        (self.previous / 'evidence.tar.gz').write_bytes(b'partial'); (self.previous / 'evidence.tar.gz').chmod(0o600)
+        with self.assertRaises(ValueError): operator.backup(self.commit)
+        self.start.assert_not_called(); self.inspect.assert_not_called()
+
+    def test_earlier_failure_is_reread_after_transfer(self):
+        original = archive.verify_archive
+        def verify(*args):
+            value = original(*args); (self.previous / 'failure.json').write_bytes(b'changed'); return value
+        with patch.object(archive, 'verify_archive', side_effect=verify), self.assertRaises(ValueError): operator.backup(self.commit)
+        self.assertFalse((self.folder / 'backup.json').exists()); self.assertTrue((self.folder / 'failure.json').exists())
 
     def test_success_cannot_be_run_again_or_archive_recreated(self):
         operator.backup(self.commit); raw = (self.folder / 'evidence.tar.gz').read_bytes()

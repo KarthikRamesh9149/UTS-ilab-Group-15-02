@@ -22,11 +22,12 @@ from types import SimpleNamespace
 import no_cutoff_final_phase_audit as phase
 import no_cutoff_final_guard as guard
 import no_cutoff_final_dependencies as dependencies
+import no_cutoff_final_archive_logs as archive_logs
 
 ROOT = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
-REPORTING = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r3')
+REPORTING = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r4')
 SERVICE = 'uts-stage2-custom-no-cutoff-final-20260928.service'
-KIND = 'completed_c0_nc_final89_reporting_environment_v3'
+KIND = 'completed_c0_nc_final89_protected_log_reporting_v4'
 REPORTING_FILES = ('no_cutoff_final_report.py', 'test_no_cutoff_final_report.py',
     'no_cutoff_final_guard.py', 'test_no_cutoff_final_guard.py',
     'no_cutoff_final_dependencies.py', 'test_no_cutoff_final_dependencies.py',
@@ -34,6 +35,8 @@ REPORTING_FILES = ('no_cutoff_final_report.py', 'test_no_cutoff_final_report.py'
     'no_cutoff_final_inventory_audit.py', 'test_no_cutoff_final_inventory_audit.py',
     'no_cutoff_final_environment_audit.py', 'test_no_cutoff_final_environment_audit.py',
     'test_no_cutoff_final_environment.py', 'protocols/custom_final_reporting_environment_20260929.md',
+    'no_cutoff_final_archive_logs.py', 'test_no_cutoff_final_archive_logs.py',
+    'protocols/custom_final_archive_logs_20260929.md',
     'protocols/custom_final_reporting_inventory_20260929.md',
     'no_cutoff_final_backup.py', 'test_no_cutoff_final_backup.py',
     'no_cutoff_final_backup_operator.py', 'test_no_cutoff_final_backup_operator.py',
@@ -81,6 +84,7 @@ def _context():
             or Path(phase.__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_phase_audit.py'
             or Path(guard.__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_guard.py'
             or Path(dependencies.__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_dependencies.py'
+            or Path(archive_logs.__file__).resolve() != REPORTING / 'stage2/no_cutoff_final_archive_logs.py'
             or Path(phase.local_trace.__file__).resolve() != ROOT / 'stage2/local_trace.py'):
         raise ValueError('Use the separately bound reporter and original final native interpreter')
     if (dict(os.environ) != ENVIRONMENT or sys.pycache_prefix != str(REPORTING / '.absent-bytecode-cache')
@@ -376,6 +380,7 @@ def collect():
             reporting_source_files=reporting, amendment=phase.contract(),
             reporting_dependencies=dependencies.contract(),
             reporting_environment=guard.environment_contract(),
+            archive_log_permissions=archive_logs.contract(),
             amendment_sha256=phase.fingerprint(phase.contract()), preserved_result_files=preserved,
             service=state, model_protocol=native.policy.SETTINGS.document(), policy=native.policy.POLICY,
             rows=rows, aggregates=dict(full89=aggregate(rows), development20=aggregate(rows[:20]),

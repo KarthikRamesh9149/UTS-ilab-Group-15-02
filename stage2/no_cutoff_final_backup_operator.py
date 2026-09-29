@@ -20,7 +20,11 @@ import no_cutoff_final_phase_audit as phase
 import no_cutoff_final_reporting as launch
 import no_cutoff_final_transport as transport
 
-DESTINATION = '.runtime/netcup/custom-no-cutoff-final89-c0-nc-20260928'
+DESTINATION = '.runtime/netcup/custom-no-cutoff-final89-protected-logs-20260929'
+PREVIOUS_FAILED = '.runtime/netcup/custom-no-cutoff-final89-c0-nc-20260928'
+PREVIOUS_FILES = {
+    'intent.json': 'd9fa8a0c3d36601f2d655ff4a22d148449a307c60f43cdae3c84521f2cd43556',
+    'failure.json': '107dbb02d6a7ae6facaae3b68b41d9330ca7779c1f2eb55dd2cc0a566e1daffd'}
 TRANSPORT_SECONDS = transport.BACKUP_SECONDS
 
 
@@ -57,10 +61,22 @@ def _directory(path):
 
 def _destination():
     _parents()
+    _previous_failure()
     folder = phase._path(launch.REPO, DESTINATION)
     if folder.exists():
         raise ValueError('Existing or partial final backup must never be replaced or recreated')
     return folder
+
+
+def _previous_failure():
+    """Preserve the actual failed pre-archive operation, never resume/replace it."""
+    folder = phase._path(launch.REPO, PREVIOUS_FAILED)
+    before = _directory_id(folder)
+    if {p.name for p in folder.iterdir()} != set(PREVIOUS_FILES):
+        raise ValueError('Exact retained earlier backup failure inventory required')
+    for name, sha in PREVIOUS_FILES.items(): launch._raw(PREVIOUS_FAILED + '/' + name, sha)
+    if _directory_id(folder) != before or {p.name for p in folder.iterdir()} != set(PREVIOUS_FILES):
+        raise ValueError('Earlier backup failure changed')
 
 
 def _ready(handle, event, deadline):
@@ -189,6 +205,7 @@ def backup(commit):
         producer._digest(folder, 'intent.json', intent_sha)
         producer._digest(folder, 'snapshot.json', snapshot_hash)
         producer._digest(folder, 'evidence.tar.gz', receipt['sha256'])
+        _previous_failure()
         if {p.name for p in folder.iterdir()} != {'intent.json', 'snapshot.json', 'evidence.tar.gz'}:
             raise ValueError('Private backup inventory changed before commitment')
         result = dict(kind='verified_mac_amended_final_backup_not_admission', operator_commit=commit,
@@ -196,7 +213,7 @@ def backup(commit):
             off_server_backup_verified=True, archive_export_and_handoff_integrated=False,
             full_runtime_restore_exercised=False, automatic_resume=False, paid_launch_ready=False)
         producer._save(folder, 'backup.json', result)
-        _state(folder, identity); launch._recheck(bindings)
+        _state(folder, identity); launch._recheck(bindings); _previous_failure()
         return result
     except BaseException as error:
         # Preserve partial evidence, including a receipt if a late failure
