@@ -1,4 +1,4 @@
-"""Stdlib-only, committed recovery connection bootstrap; no paid operation.
+"""Stdlib-only bootstrap for fixed committed recovery service operations.
 
 The operator embeds these exact bytes in the pinned SSH command. No project
 module is imported before the complete current inventory and original private
@@ -173,12 +173,14 @@ def no_effects(event, args):
         raise RuntimeError('Recovery bootstrap refuses credential/environment/import effects')
 
 
-def main(nonce, files, commit, role, relay_process=None):
+def main(nonce, files, commit, role, relay_process=None, operation='inspect-recovery-prerequisites'):
     global IMPORTING
     if (type(nonce) is not str or not re.fullmatch('[a-f0-9]{32}', nonce)
             or type(commit) is not str or not re.fullmatch('[a-f0-9]{40}', commit)
-            or role not in ('relay', 'service')
-            or (role == 'relay') != (relay_process is None)):
+            or role not in ('relay', 'service', 'status')
+            or operation not in ('inspect-recovery-prerequisites', 'qualify-recovery', 'run-recovery')
+            or (role != 'service') != (relay_process is None)
+            or role == 'status' and operation == 'inspect-recovery-prerequisites'):
         raise ValueError('Exact fixed recovery inspection entry required')
     sys.pycache_prefix = str(ROOT / '.absent-bytecode-cache')
     identities = check(files); ancestors(files); check(files, identities)
@@ -187,9 +189,39 @@ def main(nonce, files, commit, role, relay_process=None):
     IMPORTING = True
     try:
         import no_cutoff_recovery_service as service
+        # Load the actual fixed consumers while the import-effect guard is
+        # still active. A caller cannot supply an executable or callback.
+        if operation == 'qualify-recovery':
+            import qualify_no_cutoff_recovery
+        elif operation == 'run-recovery':
+            import run_no_cutoff_recovery
     finally: IMPORTING = False
     if VIOLATION: raise ValueError('Refused effect during native project import')
     ancestors(files); check(files, identities)
     service.loaded(files)
-    if role == 'relay': service.relay(nonce, files, commit, identities)
-    else: service.serve(nonce, files, commit, identities, relay_process)
+    if role == 'status':
+        print(json.dumps(service.operation_status(files, commit, identities, operation), sort_keys=True, allow_nan=False))
+        return
+    if operation == 'inspect-recovery-prerequisites':
+        if role == 'relay': service.relay(nonce, files, commit, identities)
+        else: service.serve(nonce, files, commit, identities, relay_process)
+    elif role == 'relay': service.relay(nonce, files, commit, identities, operation=operation)
+    else: service.serve(nonce, files, commit, identities, relay_process, operation=operation)
+
+
+def reporting(files, commit, mode):
+    """Direct fixed pinned reporting transport, never a paid service shortcut."""
+    global IMPORTING
+    if mode not in ('audit', 'backup') or type(commit) is not str or not re.fullmatch('[a-f0-9]{40}', commit):
+        raise ValueError('Exact committed recovery reporting entry required')
+    sys.pycache_prefix = str(ROOT / '.absent-bytecode-cache')
+    identities = check(files); ancestors(files); check(files, identities)
+    os.chdir(ROOT); sys.path.insert(0, str(ROOT / 'stage2'))
+    sys.addaudithook(no_effects); IMPORTING = True
+    try:
+        import asyncio
+        import no_cutoff_recovery_reporting as reporter
+    finally: IMPORTING = False
+    if VIOLATION: raise ValueError('Latched native reporting import refusal')
+    ancestors(files); check(files, identities)
+    asyncio.run(reporter.native(files, commit, mode))

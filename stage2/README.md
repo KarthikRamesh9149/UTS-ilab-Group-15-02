@@ -1,6 +1,38 @@
 # Stage 2 execution status
 
-## Latest: recovery-only pinned inspection connection implemented locally
+## Latest: complete recovery execution candidate, native gates pending
+
+The [separate execution integration](protocols/custom_setup_recovery_execution_20260930.md)
+now includes scoped scored admission, durable setup observations, source-bound
+images, six isolated fake-model cases, one-shot qualification, three-cell
+sequential dispatch, fixed detached service operations, exclusive installation
+and a separate completed audit/ONE private archive/allowlisted export route.
+This is locally verified implementation, not native installation,
+qualification or paid execution. No saved receipt or mocked success grants
+admission. The original preparation, lifecycle, trace, archived reporter,
+89 outcomes, recovery plan and baseline schedule remain unchanged.
+
+The 1,825-test broader gate passed with zero skips/errors/failures, including
+the exact 757-test recovery selection. It checked 355 source bindings and 271
+final loaded project modules. Full discovery ran 2,992 tests: 2,991 passed,
+one pre-existing skip, no errors/failures; 450 Python files matched before,
+after discovery and after execution. A final test-only trailing blank line was
+then removed; every production byte and that test's AST remained unchanged.
+The complete 757-test recovery selection then passed again with zero skips,
+errors or failures against the final 312-source union and 213 final loaded
+project modules. All 12 repository tests passed. These are local/synthetic
+checks, not native qualification or scores.
+
+At the read-only 21:40:58 UTC observation on 29 September, original C0-NC was
+89/89 complete: 50 passed, 36 verified failures, 3 missing verifier outcomes,
+no active/partial task and all 211 deployed source bytes matching. Recovery
+remains 0/3 and both baseline repeats unstarted. Actual new-root absence and
+exclusive installation, native image/library compatibility, isolated regression
+tests and all six real host cases must pass before the three fresh attempts.
+Their actual completed audit and one verified separate backup/export precede
+Terminus-2 89, its audit/backup, then OpenHands 89. No official limits are shortened.
+
+## Earlier pinned inspection connection checkpoint
 
 The [new connection](protocols/custom_setup_recovery_connection_20260929.md)
 joins the actual recovery sender, pinned SSH route, detached native service and

@@ -1,5 +1,22 @@
 # Matched baseline repeats after custom final89
 
+Recovery execution candidate, 30 September Sydney: the separate
+[execution integration](custom_setup_recovery_execution_20260930.md) now has
+scoped admission/durable setup evidence, source-bound images, isolated native
+regression and six-case producers, qualification, sequential dispatcher, fixed
+detached service operations, exclusive installer and completed reporting route.
+It is locally verified implementation, not a native launch. The final recovery
+gate passed 757 tests against 312 source bindings. The broader gate passed
+1,825 tests; full discovery passed 2,991 with one pre-existing skip. Those wider
+runs preceded only a test whitespace cleanup, after which the recovery gate
+was rerun. No local test is native qualification or a benchmark outcome.
+Recovery remains 0/3; both repeats remain unstarted. Actual recovery qualification,
+three fresh attempts, completed audit, ONE verified separate backup and export
+must precede Terminus-2. Its completed audit/backup must precede OpenHands.
+This changes no baseline source, fixed task order, schedule, model, tools,
+inherited controls or original scores. Native baseline service/qualification,
+export and completed-Terminus successor-reader work remain unfinished.
+
 Recovery connection checkpoint, 29 September: the separate
 [pinned prerequisite inspection route](custom_setup_recovery_connection_20260929.md)
 now joins actual recovery handoff/session calls in a detached native service,

@@ -1,7 +1,6 @@
-"""One fixed Mac/pinned-SSH recovery prerequisite inspection.
+"""Fixed Mac/pinned-SSH recovery inspection and detached execution entries.
 
-This is not deployment, qualification, registration, paid dispatch or an
-archive writer. The real sender always captures a fresh original audit and
+This is not deployment or an archive writer. The real sender always captures a fresh original audit and
 reads the SAME retained archive. Partial/uncertain operations are not retried.
 """
 import base64
@@ -50,9 +49,10 @@ def _local_identities(value):
     return result
 
 
-def native_program(nonce, files, commit, *, role, relay_process=None):
-    service.base(nonce, files, commit)
-    if (role not in ('relay', 'service') or (role == 'relay') != (relay_process is None)
+def native_program(nonce, files, commit, *, role, relay_process=None, operation=service.OPERATION):
+    service.base(nonce, files, commit, operation)
+    if (role not in ('relay', 'service', 'status') or (role != 'service') != (relay_process is None)
+            or role == 'status' and operation == service.OPERATION
             or role == 'service' and (type(relay_process) is not dict or set(relay_process) != {'pid', 'start_ticks'}
                 or any(type(v) is not int or v <= 0 for v in relay_process.values()))):
         raise ValueError('Exact recovery inspection role and process identity required')
@@ -78,12 +78,12 @@ def native_program(nonce, files, commit, *, role, relay_process=None):
         "m.__file__=" + repr(str(boot.ROOT / name)) + "\n"
         "sys.modules[m.__name__]=m\n"
         "exec(compile(base64.b64decode(" + repr(encoded) + "),m.__file__,'exec'),m.__dict__)\n"
-        "try:\n m.main(" + ','.join(map(repr, (nonce, files, commit, role, relay_process))) + ")\n"
+        "try:\n m.main(" + ','.join(map(repr, (nonce, files, commit, role, relay_process, operation))) + ")\n"
         "except BaseException:\n print(json.dumps(dict(status='recovery_connection_failed_preserve_evidence',"
         "paid_launch_ready=False)),file=sys.stderr)\n raise SystemExit(1) from None\n")
 
 
-def command(nonce, files, commit):
+def command(nonce, files, commit, operation=service.OPERATION):
     repo = handoff.launch.REPO
     # Independently check the unchanged inherited SSH helper bytes before use.
     handoff.receiver._parents()
@@ -98,7 +98,7 @@ def command(nonce, files, commit):
         raise ValueError('Exact unchanged pinned SSH route required')
     remote = ['/usr/bin/env', '-i', *(k + '=' + v for k, v in boot.environment().items()),
         str(boot.ROOT / '.venv/bin/python'), '-I', '-B', '-c',
-        native_program(nonce, files, commit, role='relay')]
+        native_program(nonce, files, commit, role='relay', operation=operation)]
     return args[:-2] + [shlex.join(remote)]
 
 
@@ -117,8 +117,8 @@ def read_reply(stream):
     return boot.loads(line)
 
 
-def reply(value, nonce, files, commit, *, sent=None, peer=None):
-    expected = service.base(nonce, files, commit)
+def reply(value, nonce, files, commit, *, sent=None, peer=None, operation=service.OPERATION):
+    expected = service.base(nonce, files, commit, operation)
     process = value.get('native_process') if type(value) is dict else None
     if (type(process) is not dict or set(process) != {'pid', 'start_ticks'}
             or any(type(v) is not int or v <= 0 for v in process.values())):
@@ -129,20 +129,24 @@ def reply(value, nonce, files, commit, *, sent=None, peer=None):
             operator_document_sha256=sent['operator_document_sha256'], archive_sha256=sent['archive_sha256'],
             prerequisites_sha256=value.get('prerequisites_sha256'))
         policy._hash(expected['prerequisites_sha256'])
+        if operation != service.OPERATION:
+            expected['kind'] = 'recovery_handoff_committed_operation_accepted_not_completed'
     policy._same(value, expected)
     return value
 
 
-def inspect_native(commit):
+def _operate(commit, operation):
     """One explicit actual connection; never auto-retry or stop native work."""
     value, files = prepare(commit)
     original_identities = _local_identities(value)
     parents = handoff.receiver._parents(); root = handoff.launch.REPO
-    path = root / STATE
+    service.operation_state(operation)
+    state_name = STATE if operation == service.OPERATION else '.runtime/netcup/custom-no-cutoff-recovery-' + service.OPERATIONS[operation] + '-20260929'
+    path = root / state_name
     if path.exists() or path.is_symlink():
         raise ValueError('Existing or partial recovery connection is terminal; inspect without retry')
-    nonce = secrets.token_hex(16); expected = service.base(nonce, files, commit)
-    argv = command(nonce, files, commit)
+    nonce = secrets.token_hex(16); expected = service.base(nonce, files, commit, operation)
+    argv = command(nonce, files, commit, operation)
     operator._current(value)
     if handoff.receiver._parents() != parents: raise ValueError('Operator parents changed')
     path.mkdir(mode=0o700); handoff.receiver._sync(path.parent)
@@ -150,7 +154,7 @@ def inspect_native(commit):
     def save(name, data):
         handoff.receiver._state(path, state); durable_json(path / name, data)
         handoff.receiver._state(path, state)
-        raw = handoff.launch._raw(STATE + '/' + name)
+        raw = handoff.launch._raw(state_name + '/' + name)
         policy._same(boot.loads(raw), data)
         return raw, boot.identity((path / name).lstat())
     def current():
@@ -158,20 +162,20 @@ def inspect_native(commit):
         if _local_identities(value) != original_identities:
             raise ValueError('Operator source/private identity replaced')
     def retained(name):
-        raw = handoff.launch._raw(STATE + '/' + name)
+        raw = handoff.launch._raw(state_name + '/' + name)
         return raw, boot.identity((path / name).lstat())
     try:
         intent_raw = save('intent.json', expected)
         current()
         process = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL, bufsize=0, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
-        ready = reply(read_reply(process.stdout), nonce, files, commit)
+        ready = reply(read_reply(process.stdout), nonce, files, commit, operation=operation)
         ready_raw = save('receiver.json', ready)
         current()
         sent = handoff.send(process.stdin)  # ALWAYS real fresh audit/same-archive capture.
         process.stdin.close()
         result = reply(read_reply(process.stdout), nonce, files, commit,
-            sent=sent, peer=ready['native_process'])
+            sent=sent, peer=ready['native_process'], operation=operation)
         if process.wait(timeout=10) != 0 or process.stdout.read(1):
             raise ValueError('Ambiguous SSH exit; inspect retained native state')
         current()
@@ -190,3 +194,42 @@ def inspect_native(commit):
     finally:
         if process is not None:
             process.stdin.close(); process.stdout.close()
+
+
+def inspect_native(commit):
+    return _operate(commit, service.OPERATION)
+
+
+def qualify_native(commit):
+    """Return committed handoff acknowledgement, never qualification success."""
+    return _operate(commit, 'qualify-recovery')
+
+
+def run_native(commit):
+    """Start the fixed qualified sequential route; acknowledgement is not a score."""
+    return _operate(commit, 'run-recovery')
+
+
+def status_native(commit, operation):
+    """Fresh read-only metadata for an existing fixed operation, never replay."""
+    if operation not in ('qualify-recovery', 'run-recovery'):
+        raise ValueError('Fixed recovery execution status required')
+    value, files = prepare(commit); identities = _local_identities(value)
+    # Validate the inherited route independently, then replace only its fixed
+    # remote program tail with the equally source-bound read-only entry.
+    argv = command('0' * 32, files, commit, operation)
+    remote = ['/usr/bin/env', '-i', *(k + '=' + v for k, v in boot.environment().items()),
+        str(boot.ROOT / '.venv/bin/python'), '-I', '-B', '-c',
+        native_program('0' * 32, files, commit, role='status', operation=operation)]
+    result = subprocess.run(argv[:-1] + [shlex.join(remote)], input=b'', capture_output=True,
+        timeout=120, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
+    if result.returncode or len(result.stdout) > REPLY_LIMIT:
+        raise ValueError('Read-only status refused; preserve native evidence without retrying execution')
+    observed = boot.loads(result.stdout)
+    if (observed.get('kind') != 'read_only_recovery_operation_status_not_admission'
+            or observed.get('operation') != operation or observed.get('paid_launch_ready') is not False
+            or observed.get('automatic_resume') is not False):
+        raise ValueError('Exact source-bound non-admitting status required')
+    operator._current(value)
+    if _local_identities(value) != identities: raise ValueError('Local status inputs changed')
+    return observed

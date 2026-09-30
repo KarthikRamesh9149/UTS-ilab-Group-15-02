@@ -23,7 +23,8 @@ from test_credit_only_gateway import TOKEN
 def qualification(final, predecessor, manifest):
     """Fabricated TEST-ONLY metadata; never write it into a real native root."""
     sources = dict(final['sources'])
-    sources.update(dict.fromkeys(policy.REQUIRED_SOURCE_FILES, '3' * 64))
+    for name in policy.REQUIRED_SOURCE_FILES:
+        sources.setdefault(name, '3' * 64)  # Explicit current inventory may also name inherited sources.
     sources['scored_trial.py'] = '4' * 64
     regression = '.runtime/stage2/native-no-cutoff-recovery-qualification-test'
     files = {regression + '/regression.json': 'a' * 64, regression + '/regression.txt': 'b' * 64}

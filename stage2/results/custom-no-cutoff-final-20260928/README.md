@@ -1,5 +1,24 @@
 # Measured C0-NC final89
 
+Latest recovery update, 30 September Sydney: the separate
+[execution candidate](../../protocols/custom_setup_recovery_execution_20260930.md)
+now includes scored observation/admission, real producer qualification,
+sequential dispatch, fixed service operations, exclusive installation and
+completed audit/ONE backup/export. This is locally verified, not a native launch;
+no recovery attempt or baseline repeat has started. Original 89/89 outcomes,
+50 passes, 36 verified failures and 3 missing verifier outcomes were unchanged
+at the read-only 21:40:58 UTC inspection on 29 September, with no active task.
+The original archive and archived reporting sources remain immutable. Native
+installation and all genuine qualification gates remain required before paid work.
+
+The final recovery gate passed all 757 tests against 312 source bindings; wider
+validation passed 1,825 checks and full discovery passed 2,991 with one
+pre-existing skip. The wider runs preceded only a test whitespace cleanup,
+followed by the final recovery rerun. These are synthetic/local checks,
+not new benchmark outcomes.
+
+## Earlier inspection-connection checkpoint
+
 The read-only 20:36:37 UTC observation on 29 September again found 89/89 complete,
 50 passes, 36 verified failures, 3 setup-only missing verifier outcomes and no
 active/partial task, with all 211 sources matching. A separate

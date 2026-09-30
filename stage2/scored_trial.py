@@ -66,7 +66,8 @@ def audit_task(inspected, config, paths):
 async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                     gateway_image, guard_image, setup_timeout_seconds, model_settings,
                     billing_runtime=None, billing_kind='scored', accounting_mode='reserved',
-                    custom_study=None, matched_repeat=None, matched_repeat_fixture=None):
+                    custom_study=None, matched_repeat=None, matched_repeat_fixture=None,
+                    recovery=None, recovery_fixture=None):
     """Run one qualified native agent; factory gets only task timeout, not tests.
 
     Factory arguments: paths, host_api_base, container_api_base, trial_token,
@@ -95,7 +96,20 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
     custom_admission = None
     repeat_admission = None
     fixture_route = None
-    if matched_repeat_fixture is not None:
+    recovery_route = None
+    recovery_preparation = None
+    if recovery is not None or recovery_fixture is not None:
+        from no_cutoff_recovery_policy import EXPERIMENT as RECOVERY
+        if (matched_repeat is not None or matched_repeat_fixture is not None or custom_study is not None
+                or not passive or billing_runtime is not None or billing_kind != 'scored' or stage != 'final'
+                or recovery is not None and recovery != RECOVERY
+                or recovery is not None and recovery_fixture is not None):
+            raise ValueError('Separate qualified recovery or isolated rehearsal required')
+        if recovery_fixture is not None:
+            import no_cutoff_recovery_probe as recovery_route
+        else:
+            import no_cutoff_recovery_study as recovery_route
+    elif matched_repeat_fixture is not None:
         if (matched_repeat is not None or custom_study is not None or not passive
                 or billing_runtime is not None or billing_kind != 'scored' or stage != 'final'):
             raise ValueError('Separate synthetic-only repeat rehearsal required')
@@ -135,6 +149,17 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         custom_binding = None
         repeat_binding = None
         fixture_binding = None
+        recovery_binding = None
+        if recovery_route is not None:
+            options = dict(trial_id=trial_id, task_id=task_id, stage=stage, factory=agent_factory,
+                settings=model_settings, gateway_image=gateway_image, guard_image=guard_image,
+                setup_timeout_seconds=setup_timeout_seconds)
+            if recovery_fixture is None:
+                recovery_binding = recovery_route.admit_trial(root, **options)
+                recovery_preparation = recovery_route.preparation(root, trial_id)
+            else:
+                recovery_binding = recovery_route.admit_trial(recovery_fixture, root, **options)
+                recovery_preparation = recovery_route.preparation(recovery_fixture, root, trial_id)
         if fixture_route is not None:
             fixture_binding = fixture_route.admit_trial(matched_repeat_fixture, root,
                 trial_id=trial_id, task_id=task_id, stage=stage, factory=agent_factory,
@@ -156,7 +181,7 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         if factory_protocol != protocol_hash:
             raise ValueError('Agent factory and gateway model settings differ')
         accounting_transition = None
-        if matched_repeat is None and fixture_route is None:
+        if matched_repeat is None and fixture_route is None and recovery_route is None:
             from receipt_runtime_transition import gateway_for_trial
             gateway_image, accounting_transition = gateway_for_trial(
                 root, gateway_image, guard_image, model_settings)
@@ -164,7 +189,8 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
         allowed = manifest['development_ids' if stage == 'development' else 'all_task_ids']
         if task_id not in allowed:
             raise ValueError('Task outside frozen split')
-        task = (fixture_route.task(matched_repeat_fixture) if fixture_route is not None
+        task = (recovery_route.task(recovery_fixture) if recovery_fixture is not None
+                else fixture_route.task(matched_repeat_fixture) if fixture_route is not None
                 else Task(frozen_dataset(root) / task_id))
         completion_wait_seconds = completion_wait_for(task.config.agent.timeout_sec)
         if task.has_steps or task.config.verifier.environment is not None:
@@ -203,6 +229,13 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             from matched_repeat_fixture import FIXTURE_KIND
             result.update(matched_repeat_experiment=EXPERIMENT, matched_repeat_fixture=FIXTURE_KIND,
                 matched_repeat_fixture_sha256=fixture_binding, guard_image_id=guard_image)
+        if recovery_binding is not None:
+            result.update(recovery_experiment=RECOVERY, guard_image_id=guard_image)
+            if recovery_fixture is None:
+                result['recovery_registration_sha256'] = recovery_binding
+            else:
+                from no_cutoff_recovery_qualification import FIXTURE_KIND
+                result.update(recovery_fixture=FIXTURE_KIND, recovery_fixture_sha256=recovery_binding)
         if accounting_transition is not None:
             result['accounting_runtime_transition_sha256'] = accounting_transition
             result['gateway_image_id'] = gateway_image
@@ -214,7 +247,8 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 credential_file=root / '.env', token_file=token_file,
                 trial_id=trial_id, stage=stage, uid=0, gid=0,
                 completion_wait_seconds=completion_wait_seconds)
-            compose = (fixture_route.compose(matched_repeat_fixture, **compose_options)
+            compose = (recovery_route.compose(recovery_fixture, **compose_options) if recovery_fixture is not None
+                       else fixture_route.compose(matched_repeat_fixture, **compose_options)
                        if fixture_route is not None else compose_runtime(**compose_options))
             override = trial / 'compose.json'
             durable_json(override, compose)
@@ -228,7 +262,12 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
             main = await asyncio.to_thread(service, project, 'main')
             audit_task(main, task.config.environment, paths)
             result['task_image_id'] = main['Image']
-            if matched_repeat is not None:
+            if recovery_route is not None:
+                if recovery_fixture is None:
+                    recovery_route.require_task_image(root, task_id, main['Image'])
+                else:
+                    recovery_route.require_task_image(recovery_fixture, root, task_id, main['Image'])
+            elif matched_repeat is not None:
                 from matched_repeat_study import require_task_image
                 require_task_image(root, task_id, main['Image'])
             elif custom_study is not None and custom_study == NO_CUTOFF_CUSTOM:
@@ -245,6 +284,11 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 for name in ('model-gateway', 'task-network-guard', 'socket-init'):
                     observations[name] = await asyncio.to_thread(service, project, name)
                 fixture_route.audit_started(matched_repeat_fixture, observations)
+            if recovery_fixture is not None:
+                observations = {'main': main, 'model-relay': relay}
+                for name in ('model-gateway', 'task-network-guard', 'socket-init'):
+                    observations[name] = await asyncio.to_thread(service, project, name)
+                recovery_route.audit_started(recovery_fixture, observations)
             bridge = HostModelBridge(relay['Id'], completion_wait_seconds=completion_wait_seconds)
             bridge.__enter__()
             agent = agent_factory(paths=paths, host_api_base=bridge.base_url,
@@ -270,7 +314,8 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 result.update(await execute_phases(agent=agent, environment=environment,
                     task=task, paths=paths, revoke_model=revoke,
                     setup_timeout_seconds=setup_timeout_seconds, phase_observer=trace,
-                    prepare_environment=refresh_package_metadata, retained_result=phase_evidence))
+                    prepare_environment=(recovery_preparation.prepare if recovery_preparation is not None
+                        else refresh_package_metadata), retained_result=phase_evidence))
             finally:
                 # execute_phases still revokes/cleans on cancellation; keep
                 # those observations even when it cannot return normally.
@@ -320,6 +365,11 @@ async def run_trial(*, root, trial_id, task_id, stage, agent_factory,
                 except Exception as exc:
                     # Preserve the actual verifier outcome; never invent spans.
                     result['trace'] = {'status': 'incomplete', 'error_type': type(exc).__name__}
+            if recovery_preparation is not None:
+                # Diagnostic failures never replace an executed result. The
+                # fixed retainer keeps allowlisted earlier observations, marks
+                # gaps explicitly and has no retry or result-overwrite route.
+                result['recovery_preparation'] = recovery_preparation.finish()
             durable_json(trial / 'result.json', result)
             # Preserve the original result first. A host-only registration may
             # then carry its bounded billing uncertainty into the NEXT trial;

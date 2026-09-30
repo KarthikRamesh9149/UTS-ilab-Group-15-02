@@ -1,12 +1,43 @@
 # Separate C0-NC setup recovery
 
-Status: diagnosis and fixed plan published; separate setup observer, policy,
-gateway, original-evidence handoff, current host/library reader, locked
-prerequisite session and pinned inspection connection implemented locally.
+Status: the separate execution, qualification, exclusive installation and
+completed reporting route is implemented and locally verified.
 **0/3 recovery attempts started.**
 No native recovery qualification, registration or paid admission has occurred.
 
-## Current implementation checkpoint
+## Current execution candidate, native gates pending
+
+The [execution integration](../../protocols/custom_setup_recovery_execution_20260930.md)
+passes the real observer into the unchanged preparation/lifecycle and durably
+retains allowlisted metadata with each result, including failure/cancellation.
+The actual live session owns source-bound image construction, isolated native
+regressions, six fake-model host cases, qualification and sequential dispatch.
+Separate fixed qualification/paid service operations preserve process/task
+ownership and successful-exit evidence. Read-only status never grants admission.
+The new installer requires actual root absence and never patches an old root.
+The separate completed audit, ONE private archive and allowlisted exporter keep
+all original results and the separate denominator of three intact.
+
+Local broader validation passed all 1,825 checks without skips/errors/failures,
+including the exact 757 recovery checks; source/origin guards covered 355
+bindings and 271 final loaded modules. Full discovery passed 2,991 of 2,992
+checks with one pre-existing skip and no errors/failures, checking all 450
+Python sources before/discovery/after. The only subsequent bound-file change
+removed one trailing blank line from a test, preserving its AST and every
+production byte. The final exact 312-source recovery gate then passed all 757
+tests with zero skips/errors/failures and 213 final loaded project modules.
+All 12 repository tests passed. The 98 new tests are synthetic/local; actual
+native image, manager, runtime and lifecycle compatibility remain unexercised.
+
+These native paths have not been invoked. Local synthetic tests do not establish
+Linux/systemd/Docker compatibility or produce benchmark outcomes. Final committed
+source checks and genuine native qualification remain mandatory before launch.
+The latest native operation was only the existing read-only original inspector
+at 21:40:58 UTC on 29 September: 89/89, 50 passed, 36 verified failures, 3 missing,
+no active/partial task, all 211 sources matching. Both baseline repeats remain
+unstarted. No original archive, qualification, result or schedule was recreated.
+
+## Earlier pinned inspection connection checkpoint
 
 The [pinned inspection connection](../../protocols/custom_setup_recovery_connection_20260929.md)
 now connects the actual recovery sender and session through the existing strict
