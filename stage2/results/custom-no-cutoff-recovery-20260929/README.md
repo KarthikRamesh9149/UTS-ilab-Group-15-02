@@ -5,6 +5,12 @@ completed reporting route is implemented and locally verified.
 **0/3 recovery attempts started.**
 No native recovery qualification, registration or paid admission has occurred.
 
+At 00:34 UTC the corrected preflight refused locally, before SSH, on a missing
+Mac Python ACL API. The operator now checks actual Darwin ACLs with fixed
+`/bin/ls -lde`; Linux uses the unchanged bootstrap reader. Twenty focused tests
+passed, with the final 769-test recovery gate running at 00:38 UTC. No corrected
+installation state or server operation was created by that local refusal.
+
 ## Installation refusal and narrow correction, 30 September UTC
 
 The first installation returned ValueError at 00:13:04 UTC. Its historical

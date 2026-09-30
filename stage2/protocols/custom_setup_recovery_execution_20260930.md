@@ -175,6 +175,17 @@ resumes the first state, and still requires fresh actual native-root absence
 immediately before exclusive creation. A partial native root would refuse.
 No original task attempt was consumed by the installation failure.
 
+The first corrected preflight at 00:34 UTC refused locally in
+`prepare -> _failed_installation`, before SSH: the bundled Mac Python has no
+`os.listxattr`, so the Linux bootstrap ACL reader could not check the retained
+Mac failure directory. No corrected installation state or native operation was
+created. The operator now reads actual Darwin ACLs with fixed `/bin/ls -lde`,
+an exact credential-free environment and strict single-line/no-ACL output
+validation; both errors and unexpected output refuse. Actual ACLs are reread
+after the private files, alongside the retained identity/inventory checks.
+Linux retains the unchanged bootstrap ACL check. This does not alter any native
+root, library reader, preparation command, task limit or paid admission gate.
+
 The completed reporter opens a genuine fresh original handoff session, then
 requires actual successful qualification and paid service invocations, exactly
 three retained results, current images, official limits, traces, passive

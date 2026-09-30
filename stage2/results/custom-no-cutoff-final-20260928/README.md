@@ -1,5 +1,9 @@
 # Measured C0-NC final89
 
+Recovery follow-up at 00:38 UTC on 30 September: a Mac-only ACL compatibility
+refusal occurred before SSH. Its narrow correction passed 20 focused tests;
+the final 769-test recovery gate is running. Original evidence remains unchanged.
+
 Recovery installation update, 30 September UTC: the first installer refused
 at 00:13:04 before native-root creation. Read-only diagnosis confirmed absence
 and identified one empty virtual-environment installer lock with mode 0666.

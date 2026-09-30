@@ -1,5 +1,12 @@
 # Stage 2 execution status
 
+Mac compatibility follow-up, 30 September 00:38 UTC: the corrected preflight
+refused locally before SSH because the bundled Mac Python lacks the Linux ACL
+API. The retained-failure reader now checks actual Darwin ACLs through fixed
+`/bin/ls -lde`, with strict output/environment and final rereads. Linux checks
+are unchanged. All 20 focused tests passed; the final 769-test recovery gate
+is running. No corrected installation or native preflight has occurred yet.
+
 ## Latest: narrow installation correction, 30 September UTC
 
 The first recovery installation refused at 00:13:04 UTC before native-root

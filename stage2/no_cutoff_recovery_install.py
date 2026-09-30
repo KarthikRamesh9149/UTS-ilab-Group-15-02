@@ -439,6 +439,21 @@ def _entry(digest):
     print(json.dumps(result,sort_keys=True,allow_nan=False),flush=True)
 
 
+def _operator_acl(path):
+    # This is a Mac operator read, not the Linux bootstrap's xattr API. The
+    # bundled Mac Python has no os.listxattr. ls -e reads actual Darwin ACLs.
+    if platform.system() != 'Darwin':
+        import no_cutoff_recovery_bootstrap as bootstrap
+        bootstrap.acl(path)
+        return
+    observed = subprocess.run(['/bin/ls','-lde',str(path)],capture_output=True,timeout=10,
+        env={'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C'})
+    lines = observed.stdout.splitlines()
+    if (observed.returncode or observed.stderr or len(lines) != 1
+            or not re.fullmatch(rb'[-d][rwxstST-]{9}@?',lines[0].split(maxsplit=1)[0])):
+        raise ValueError('Actual ACL-free private Mac operator path required')
+
+
 def _failed_installation():
     """Retain the exact failed first operator operation; never resume that state."""
     import no_cutoff_recovery_connection as connection
@@ -446,7 +461,8 @@ def _failed_installation():
     launch = operator.launch; receiver = operator.receiver
     folder = launch.REPO / FAILED_STATE
     parents = receiver._parents(); directory = receiver._directory_id(folder)
-    for path in (launch.REPO, launch.REPO/'.runtime', folder.parent, folder): connection.boot.acl(path)
+    paths = (launch.REPO, launch.REPO/'.runtime', folder.parent, folder)
+    for path in paths: _operator_acl(path)
     if stat.S_IMODE(folder.lstat().st_mode) != 0o700 or folder.lstat().st_gid != os.getgid():
         raise ValueError('Private retained failed installation required')
     if {p.name for p in folder.iterdir()} != set(FAILED_FILES):
@@ -454,13 +470,14 @@ def _failed_installation():
     identities = {}
     for name, digest in FAILED_FILES.items():
         path = folder / name; before = connection.boot.identity(path.lstat())
-        connection.boot.acl(path)
+        _operator_acl(path)
         if stat.S_IMODE(path.lstat().st_mode) != 0o600 or path.lstat().st_gid != os.getgid():
             raise ValueError('Private retained failed installation file required')
         launch._raw(FAILED_STATE + '/' + name, digest)
         if connection.boot.identity(path.lstat()) != before:
             raise ValueError('Failed installation evidence replaced during read')
         identities[name] = before
+    for path in (*paths,*(folder/name for name in FAILED_FILES)): _operator_acl(path)
     if (receiver._parents() != parents or receiver._directory_id(folder) != directory
             or {p.name for p in folder.iterdir()} != set(FAILED_FILES)):
         raise ValueError('Retained failed installation changed')

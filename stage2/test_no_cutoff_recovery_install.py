@@ -202,6 +202,26 @@ class FailedOperatorTests(LocalFiles, unittest.TestCase):
         self.assertNotEqual(install.STATE,install.FAILED_STATE)
         self.assertTrue(install.STATE.endswith('20260930-r2'))
 
+    def test_mac_acl_reader_observes_fixed_command_and_exact_environment(self):
+        with patch.object(install.platform,'system',return_value='Darwin'),patch.object(install.subprocess,'run',
+                return_value=SimpleNamespace(returncode=0,stdout=b'drwx------@ 4 owner group 128 Sep 30 10:13 path\n',stderr=b'')) as run:
+            install._operator_acl(self.folder)
+        self.assertEqual(run.call_args.args[0],['/bin/ls','-lde',str(self.folder)])
+        self.assertEqual(run.call_args.kwargs['env'],{'PATH':'/usr/bin:/bin','LANG':'C','LC_ALL':'C'})
+
+    def test_mac_acl_entries_failure_and_unexpected_output_refuse(self):
+        for output,err,code in ((b'drwx------+ 4 owner group path\n 0: everyone allow read\n',b'',0),
+                (b'drwx------+ 4 owner group path\n',b'',0),(b'',b'',0),(b'unknown\n',b'',0),
+                (b'drwx------ 4 owner group path\n',b'warning',0),(b'drwx------ 4 owner group path\n',b'',1)):
+            with patch.object(install.platform,'system',return_value='Darwin'),patch.object(install.subprocess,'run',
+                    return_value=SimpleNamespace(returncode=code,stdout=output,stderr=err)):
+                with self.assertRaises(ValueError): install._operator_acl(self.folder)
+
+    def test_linux_operator_acl_keeps_actual_bootstrap_reader(self):
+        with patch.object(install.platform,'system',return_value='Linux'),patch.object(files.bootstrap,'acl') as acl:
+            install._operator_acl(self.folder)
+        acl.assert_called_once_with(self.folder)
+
 
 class PayloadTests(unittest.TestCase):
     def payload(self):

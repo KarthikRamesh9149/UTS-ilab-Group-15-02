@@ -1,5 +1,9 @@
 # Matched baseline repeats after custom final89
 
+At 00:38 UTC on 30 September a narrow Mac ACL compatibility correction passed
+20 focused tests; the 769-test recovery gate is running. The corrected preflight
+had refused locally before SSH, with no server operation or task started.
+
 Recovery installation update, 30 September UTC: the first installer refused
 before creating a recovery root. Read-only observations confirmed its absence
 and isolated one empty mode-0666 environment installer lock. The explicit
