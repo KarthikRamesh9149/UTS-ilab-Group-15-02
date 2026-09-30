@@ -31,7 +31,8 @@ def attribute(key, value):
 
 
 def payload(events, *, track='cetus-local'):
-    models = {'cetus-local': MODEL, 'netcup-openrouter': OPENROUTER_MODEL}
+    models = {'cetus-local': MODEL, 'netcup-openrouter': OPENROUTER_MODEL,
+              'gemini-laptop': 'google/gemini-3.7-flash'}
     if track not in models:
         raise ValueError('Explicit registered study track required')
     if not events:
@@ -123,7 +124,7 @@ def export(spool, *, base_url, public_key, secret_key, track='cetus-local'):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--spool', type=Path, required=True)
-    parser.add_argument('--track', choices=('cetus-local', 'netcup-openrouter'), default='cetus-local')
+    parser.add_argument('--track', choices=('cetus-local', 'netcup-openrouter', 'gemini-laptop'), default='cetus-local')
     args = parser.parse_args()
     try:
         print(json.dumps(export(args.spool, base_url=os.environ.get('LANGFUSE_BASE_URL', ''),

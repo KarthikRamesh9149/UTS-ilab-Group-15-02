@@ -37,8 +37,8 @@ class TrialModelLimit(AgentMiddleware):
 
 class CustomRunner:
     def __init__(self, model, backend, condition: Condition, *, max_model_calls,
-                 defer_job_cleanup=False, model_middleware=()):
-        if getattr(model, 'model_name', None) != MODEL:
+                 defer_job_cleanup=False, model_middleware=(), model_name=MODEL):
+        if not isinstance(model_name, str) or not model_name or getattr(model, 'model_name', None) != model_name:
             raise ValueError('Explicit pinned model required')
         if max_model_calls is not None and (type(max_model_calls) is not int or max_model_calls <= 0):
             raise ValueError('Positive model call limit or explicit None required')
@@ -84,7 +84,7 @@ class CustomRunner:
             """Stop the process group of a known command inside this trial's container."""
             return json.dumps(await self.jobs.interrupt(job_id))
 
-        register_harness_profile('openai:' + MODEL, HarnessProfile(
+        register_harness_profile('openai:' + model_name, HarnessProfile(
             general_purpose_subagent=GeneralPurposeSubagentProfile(enabled=False),
             excluded_tools=frozenset({'write_todos'}),
             excluded_middleware=frozenset({'SummarizationMiddleware'})))

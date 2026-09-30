@@ -1,0 +1,99 @@
+# Gemini C0-NC development experiment, 30 September 2026
+
+This is a new development experiment, separate from every earlier DeepSeek run.
+The user authorised twenty custom-harness attempts and at most US$20 of new API
+spending. Stop after this milestone and await the user's next instruction.
+There is no baseline replay, final89 evaluation, fine tuning, or model switching.
+
+## Frozen configuration
+
+- Branch: `codex/gemini-dev20-laptop-20260930`.
+- Model: `google/gemini-3.7-flash` through OpenRouter; expected dated snapshot
+  `google/gemini-3.7-flash-20260813` and Google AI Studio provider.
+- Provider restricted in every physical request; no model/provider fallback.
+- Temperature/top-p 1, reasoning high, text-only transport, maximum output 65,536
+  tokens. This is Gemini's output limit, not the earlier DeepSeek limit.
+- Existing C0-NC prompt, completion control, filesystem and encoded execution
+  backend; Deep Agents 0.7.14 on LangGraph; no delegation, persistent memory,
+  automatic summarisation, or model-call quota. Official agent deadline remains.
+- Existing `input_manifest.json` development_ids in their recorded order.
+- Dataset revision `7131e4375048a0e408a8fb404b5f499d726b695b`, verified against all
+  1,037 file hashes in `dataset_provenance.json`. No task answers enter the agent.
+- Sequential execution on Docker Desktop Linux, original task CPU/memory,
+  build/agent/verifier deadlines, and task networking. Docker does not enforce
+  an individual storage quota: official requested storage and this limitation
+  are recorded. Setup allowance is 180 seconds, outside the agent deadline.
+- A fresh portable CPython 3.12.13 bundle is prepared and hash-qualified for this
+  experiment. It is not claimed to match the inaccessible historic private
+  runtime archive. Existing task Python takes precedence over the fallback.
+
+## Budget
+
+The controller rechecks key allowance and account credit before study start and
+each physical request. The study ceiling is the lower of US$20 and available
+credit at start. It never modifies the account, key limit, or purchases credit.
+
+Each request durably reserves US$1.10 before transmission. This exceeds a full
+1,048,576-token input plus 65,536-token output at the frozen maximum prices,
+including a margin. Native billable tools and explicit caching are disabled.
+Only settled response costs or generation receipts release a reservation.
+Unknown, interrupted, and failed charges retain their entire reservation.
+No automatic transport retries occur. A provider/routing/credit-check failure
+stops further dispatch and is reported; unfinished trials are not replayed.
+
+The local ceiling cannot control simultaneous spending by other clients sharing
+this key. Account usage delta is reported separately from this study's charges.
+Budget stops include the current attempt and list every unstarted task.
+
+## Isolation and observability
+
+The Linux controller uses a native Docker volume mounted at its daemon path so
+Harbor's child bind mounts resolve correctly. Only the controller has the Docker
+socket and read-only key file. Task containers have their log mounts, no provider
+key or controller socket, and no privileged execution. Model authorisation is
+revoked before the official verifier is uploaded; teardown follows verification.
+
+Retain full model requests/responses/receipts, graph trajectory, tool input/output,
+container command output, verifier logs, and controller output inside the private
+Docker volume under `.runtime/gemini-dev20-laptop-20260930`. Authorisation headers
+and keys are never serialized. Private logs may contain task solutions and are
+excluded from Git.
+
+Metadata-only phase, graph, tool, and generation spans are saved separately.
+`local_langfuse.py --track gemini-laptop` exports these through the existing
+OpenTelemetry transport when project credentials are available. Missing Langfuse
+credentials do not block evaluation. An ingestion acknowledgement does not prove
+dashboard visibility. Never send raw exchanges or task solutions to Langfuse.
+
+## Qualification and delivery
+
+Before any paid generation, run budget/routing fixtures, affected historic unit
+checks, and a real Harbor Docker lifecycle with a scripted Gemini-labelled model.
+Bind qualification to source hashes. Synthetic reward is never a benchmark score.
+
+The orchestrator creates immutable fresh attempt directories; a lock prevents
+parallel study processes. Progress summaries are atomically updated. Sanitized
+results distinguish passes, verifier failures, infrastructure failures, budget
+stops and unstarted tasks, with known spending and unresolved reservations.
+Commit and push only implementation, registration, qualification, metrics and an
+end-of-run brief. Do not publish credentials, PDFs, private archives, raw exchanges
+or task solutions. Do not merge this branch into main.
+
+## Laptop commands
+
+From PowerShell in the repository, preparation and qualification only:
+
+```powershell
+./stage2/Run-GeminiLaptop.ps1
+```
+
+For a fresh authorised study, add `-RunPaid`. Running the paid entrypoint again
+after registration is rejected; recovery needs a separate reviewed protocol.
+Private evidence stays in Docker volume `uts-gemini-dev20-20260930` even after
+the controller is stopped. Do not remove that volume when cleaning task containers.
+
+Documentation checked: [Deep Agents profiles](https://docs.langchain.com/oss/python/deepagents/profiles),
+[Harbor agents](https://www.harborframework.com/docs/agents),
+[Harbor tasks](https://www.harborframework.com/docs/tasks),
+[OpenRouter provider selection](https://openrouter.ai/docs/guides/routing/provider-selection),
+[Langfuse OpenTelemetry](https://langfuse.com/integrations/native/opentelemetry).
