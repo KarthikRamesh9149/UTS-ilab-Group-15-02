@@ -1,5 +1,52 @@
 # Stage 2 execution status
 
+## Baseline final local tests passed; recovery rehearsal active, 30 September 11:08 UTC
+
+The real Mac source-only launch preflight passes at
+`7e5223343e714394cc71f31b41c297fb86961b0e`: 395 committed sources,
+417 actual local file identities, 151 loaded project origins and all eight
+fixed launch/reporting program ASTs. Six actual pinned SSH command constructors
+also preserved the existing route and generated valid programs. None was
+executed remotely. These checks read no archive and grant no paid admission.
+GitHub author and committer are verified.
+
+Two integration defects were found before baseline installation: Mac callers
+used a native-interpreter source reader, then the service identity builder
+rejected its two required private qualification paths. The Mac callers now use
+the unchanged strict Mac origin reader; the identity builder requires exactly
+the two pinned private inputs separately from normalised stage2 sources.
+Native guards and the original source-only policy validator remain unchanged.
+All 109 affected tests and all 12 repository tests passed. The final full
+**1,410-test local baseline gate passed with zero skips, errors or failures**
+in 1,246.979 seconds (1,247.573 seconds including guard overhead), checking
+395 source bindings before discovery, after discovery and after execution,
+with 249 final loaded project modules. Source-map SHA256:
+`6d5e742f24489d4e3cc506b38e8f4385cf3f5470f5308eb02e2529fa584a148e`.
+The earlier 1,400-test pass predates these fixes. The intervening 1,406-test
+candidate was stopped only at its verified owned local Python parent after
+the real preflight found the second defect; it is not counted as passed.
+These local tests are not native baseline qualification or benchmark outcomes.
+
+Read-only native metadata at 11:08:23 verified the SAME R6 qualification unit,
+invocation and running PID, with advancing CPU counters and all 319 source/
+private bindings intact. Its 834 native regressions passed. The first
+`tools` rehearsal began at 10:24:36 and retained a `verified` synthetic trial
+result (started at 10:40:56), with recorded cleanup flags; its final case evidence
+is not yet complete. The other five case intents and all service/qualifier
+failure or completion records were absent. This is not a paid benchmark result
+or completed qualification. The earlier standard-status refusal was located
+in the unchanged original process guard; its historical triggering process was
+not established. No retry or native signal occurred. All 318 R6 sources and
+35 archived reporter sources remain unchanged.
+
+Recovery remains 0/3 paid; Terminus-2 and OpenHands repeats remain 0/89 each.
+Original 89 remains 50 passed, 36 verified zero-score failures and 3 setup-only
+missing verifier outcomes. Keep the agreed sequential schedule, official limits
+and inherited baseline controls, with no added spending/model/request/retry cap.
+OpenHands' completed-Terminus successor integration remains unfinished.
+There is no guaranteed completion date.
+
+
 ## R6 native regressions passed; qualification active, 30 September 10:11 UTC
 
 The corrected R6 revision `fbefc033cd04c7981e7374f68c9d5b20186d461a`
