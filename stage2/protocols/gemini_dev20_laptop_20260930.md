@@ -2,7 +2,9 @@
 
 This is a new development experiment, separate from every earlier DeepSeek run.
 The user authorised twenty custom-harness attempts and at most US$20 of new API
-spending. Stop after this milestone and await the user's next instruction.
+spending. Finish only this frozen twenty-task batch (at most twenty attempts),
+or stop earlier for the budget, available credit, provider or cleanup failure. Deliver the results,
+logs and end-of-run brief, then ask the user what to do next and await direction.
 There is no baseline replay, final89 evaluation, fine tuning, or model switching.
 
 ## Frozen configuration
@@ -114,3 +116,24 @@ Documentation checked: [Deep Agents profiles](https://docs.langchain.com/oss/pyt
 [Harbor tasks](https://www.harborframework.com/docs/tasks),
 [OpenRouter provider selection](https://openrouter.ai/docs/guides/routing/provider-selection),
 [Langfuse OpenTelemetry](https://langfuse.com/integrations/native/opentelemetry).
+
+## Reviewed deadline stop continuation
+
+Task 12 reached its official 900-second agent deadline. Its last physical API
+request began about 1.85 seconds before that deadline and timed out there without
+a generation ID or settled cost. The verifier returned reward 0 and the task
+container was removed. The gateway stopped the study for a transport failure.
+
+An explicit `--continue-after-deadline-stop` permits only the unstarted task IDs
+after this reviewed stop. It requires a verified last trial, clean teardown,
+matching protocol, a last unresolved request with `TimeoutError`, and an agent
+timeout span showing that the request began and ended within five seconds of the
+official deadline. Arbitrary transport errors, routing failures, changed settings
+and replayed task IDs are rejected. This is an administrative continuation; the
+agent loop, tools, model, settings, official resources and deadlines are unchanged.
+
+Preserve the original stop summary and a numbered, source-bound amendment and
+qualification. The original ledger and all completed attempts remain; the
+unknown charge retains its full US$1.10 reservation across continuation. Recheck
+credit and requalify the changed source with fake-model and Docker fixtures before
+paid work. There is no automatic request retry or background study restart.

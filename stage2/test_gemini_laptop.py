@@ -15,7 +15,45 @@ from no_cutoff_capture_backend import NoCutoffHarborSandbox
 from gemini_laptop_agent import GeminiRunner
 from gemini_laptop_gateway import Gateway
 from gemini_laptop_policy import (MODEL, SNAPSHOT, PROVIDER, PROTOCOL, CAP,
-    CONTEXT, MAX_OUTPUT, INPUT_PRICE, OUTPUT_PRICE, RESERVATION, Ledger, BudgetStop, wire)
+    CONTEXT, MAX_OUTPUT, INPUT_PRICE, OUTPUT_PRICE, RESERVATION, Ledger, BudgetStop, wire, fingerprint)
+
+
+class DeadlineContinuationTests(unittest.TestCase):
+    def evidence(self):
+        row = dict(trial_id='synthetic',status='verified',agent_error_type='TimeoutError',
+            agent_timeout_seconds=900,cleanup_errors=[])
+        request = dict(sequence=0,trial_id='synthetic',reserved_usd=str(RESERVATION),
+            cost_usd=None,error_type='TimeoutError',started_ns=908*10**9,ended_ns=910*10**9)
+        agent = dict(kind='agent',trial_id='synthetic',status='timeout',
+            protocol_sha256=fingerprint(),started_ns=10*10**9,ended_ns=910*10**9)
+        return {'stop_reason':'provider_transport_failure'},[row],{'requests':[request]},[agent]
+
+    def test_reviewed_deadline_keeps_reservation_and_does_not_mutate_ledger(self):
+        from gemini_laptop_run import deadline_stop_evidence
+        evidence = self.evidence()
+        before = json.dumps(evidence,sort_keys=True)
+        result = deadline_stop_evidence(*evidence)
+        self.assertEqual(result['retained_unresolved_reservation_usd'],'1.10')
+        self.assertEqual(result['paid_attempts_replayed'],0)
+        self.assertEqual(result['retries'],0)
+        self.assertEqual(json.dumps(evidence,sort_keys=True),before)
+
+    def test_arbitrary_transport_error_or_changed_evidence_cannot_continue(self):
+        from gemini_laptop_run import deadline_stop_evidence
+        mutations = [
+            lambda p,r,l,s: l['requests'][-1].update(ended_ns=100*10**9),
+            lambda p,r,l,s: l['requests'][-1].update(error_type='ConnectionError'),
+            lambda p,r,l,s: l['requests'][-1].update(cost_usd='.01'),
+            lambda p,r,l,s: l['requests'][-1].update(generation_id='synthetic'),
+            lambda p,r,l,s: r[-1].update(cleanup_errors=['synthetic']),
+            lambda p,r,l,s: s[-1].update(protocol_sha256='b'*64),
+            lambda p,r,l,s: p.update(stop_reason='routing_mismatch'),
+        ]
+        for mutation in mutations:
+            evidence = self.evidence()
+            mutation(*evidence)
+            with self.assertRaises(RuntimeError):
+                deadline_stop_evidence(*evidence)
 
 
 class BudgetTests(unittest.TestCase):

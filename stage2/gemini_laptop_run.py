@@ -87,7 +87,40 @@ def report(public, registration, rows, budget, stop_reason, remaining, langfuse)
     return summary
 
 
-async def run(root, key_path, *, continue_unstarted=False):
+def deadline_stop_evidence(prior, rows, ledger, spans):
+    """Review an end-of-agent timeout, never retry its physical request or task."""
+    if prior.get('stop_reason') != 'provider_transport_failure' or not rows:
+        raise RuntimeError('Not a reviewed agent-deadline stop')
+    row = rows[-1]
+    requests = ledger['requests']
+    if not requests:
+        raise RuntimeError('Missing physical request evidence')
+    request = requests[-1]
+    agents = [e for e in spans if e.get('kind') == 'agent' and e.get('trial_id') == row['trial_id']]
+    if (row.get('status') != 'verified' or row.get('agent_error_type') != 'TimeoutError'
+            or any(r.get('cleanup_errors') for r in rows) or len(agents) != 1
+            or request.get('error_type') != 'TimeoutError' or request.get('cost_usd') is not None
+            or request.get('generation_id') or request.get('http_status') is not None
+            or request.get('trial_id') != row['trial_id']
+            or request.get('reserved_usd') != str(RESERVATION)
+            or request.get('sequence') != len(requests)-1):
+        raise RuntimeError('Deadline, cleanup or unresolved-charge evidence differs')
+    agent = agents[0]
+    deadline_ns = agent['started_ns'] + int(row['agent_timeout_seconds'] * 10**9)
+    margin = 5 * 10**9
+    if (agent.get('status') != 'timeout' or agent.get('protocol_sha256') != fingerprint()
+            or not deadline_ns-margin <= request['started_ns'] <= deadline_ns+margin
+            or not deadline_ns-margin <= request['ended_ns'] <= deadline_ns+margin
+            or not deadline_ns-margin <= agent['ended_ns'] <= deadline_ns+margin):
+        raise RuntimeError('Request did not end at the official agent deadline')
+    return dict(kind='continue_only_unstarted_after_reviewed_agent_deadline_stop',
+        affected_trial=row['trial_id'], affected_request_sequence=request['sequence'],
+        agent_deadline_ns=deadline_ns, request_started_ns=request['started_ns'],
+        request_ended_ns=request['ended_ns'], retained_unresolved_reservation_usd=request['reserved_usd'],
+        retries=0, paid_attempts_replayed=0, unchanged_model_and_budget_protocol=True)
+
+
+async def run(root, key_path, *, continue_unstarted=False, continue_deadline=False):
     os.umask(0o077)
     private = root / '.runtime' / STUDY
     prep = json.loads((private / 'preparation.json').read_text())
@@ -102,7 +135,8 @@ async def run(root, key_path, *, continue_unstarted=False):
     public = root / 'stage2/results' / STUDY
     public.mkdir(parents=True, exist_ok=True)
     ledger_path = private / 'ledger.json'
-    if not continue_unstarted and (ledger_path.exists() or (private / 'registration.json').exists()):
+    continuing = continue_unstarted or continue_deadline
+    if not continuing and (ledger_path.exists() or (private / 'registration.json').exists()):
         raise RuntimeError('Study already started; do not replay')
     gateway = Gateway(credential(key_path), private)
     rows, registration, langfuse = [], {}, {'status': 'local_metadata_retained_credentials_unavailable'}
@@ -110,14 +144,14 @@ async def run(root, key_path, *, continue_unstarted=False):
         credit = await gateway.start()
         bundle = PythonBundle(private / 'python-runtime.tar.gz', prep['python_bundle']['sha256'])
         bundle.validate()
-        if continue_unstarted:
+        if continuing:
             registration = json.loads((private / 'registration.json').read_text())
             prior = json.loads((public / 'summary.json').read_text())
             rows = json.loads((public / 'tasks.json').read_text())
             changed = {name for name in set(source)|set(registration['source_hashes'])
                 if source.get(name) != registration['source_hashes'].get(name)}
             if (registration['protocol'] != PROTOCOL or registration['task_ids'] != tasks
-                    or prior['stop_reason'] != 'interrupted'
+                    or prior['stop_reason'] != ('provider_transport_failure' if continue_deadline else 'interrupted')
                     or [r['task_id'] for r in rows] != tasks[:len(rows)]
                     or any(r.get('cleanup_errors') for r in rows)
                     or not changed <= {'gemini_laptop_logs.py','gemini_laptop_run.py','gemini_laptop_qualify.py'}):
@@ -132,9 +166,19 @@ async def run(root, key_path, *, continue_unstarted=False):
                 unchanged_model_and_budget_protocol=True, completed_attempts_retained=len(rows),
                 paid_attempts_replayed=0, changed_sources=sorted(changed),source_hashes=source,
                 credit_recheck=credit, resumed_utc=datetime.now(timezone.utc).isoformat())
-            durable_json(private / 'continuation-1.json',amendment)
-            durable_json(public / 'continuation-1.json',amendment)
-            durable_json(public / 'qualification-continuation-1.json',qualification)
+            number = 1
+            if continue_deadline:
+                spans = [json.loads(p.read_text()) for p in
+                    (private / 'traces' / rows[-1]['trial_id']).glob('*.json')]
+                reviewed = deadline_stop_evidence(prior,rows,gateway.ledger.data,spans)
+                amendment.update(reviewed, reason='Transport timeout coincides with official agent deadline; unknown charge remains fully reserved')
+                while (private / f'continuation-{number}.json').exists():
+                    number += 1
+                durable_json(private / f'stop-before-continuation-{number}.json',prior)
+                durable_json(public / f'stop-before-continuation-{number}.json',prior)
+            durable_json(private / f'continuation-{number}.json',amendment)
+            durable_json(public / f'continuation-{number}.json',amendment)
+            durable_json(public / f'qualification-continuation-{number}.json',qualification)
         else:
             registration = dict(protocol=PROTOCOL, protocol_sha256=fingerprint(), task_ids=tasks,
                 dataset_revision=prep['dataset_revision'], preparation=prep,
@@ -249,8 +293,11 @@ async def run(root, key_path, *, continue_unstarted=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--key-file', type=Path, default=Path('/run/openrouter-key'))
-    parser.add_argument('--continue-unstarted',action='store_true',
+    continuation = parser.add_mutually_exclusive_group()
+    continuation.add_argument('--continue-unstarted',action='store_true',
         help='Source-bound logging repair only; retain ledger and never replay a started attempt')
+    continuation.add_argument('--continue-after-deadline-stop',action='store_true',
+        help='Reviewed end-of-agent transport timeout only; preserve unknown charge and start only new task IDs')
     args = parser.parse_args()
     lock_path = Path('.runtime') / STUDY / 'study.lock'
     with lock_path.open('a') as lock:
@@ -260,7 +307,8 @@ def main():
             current = asyncio.current_task()
             for signum in (signal.SIGTERM, signal.SIGINT):
                 loop.add_signal_handler(signum, current.cancel)
-            await run(Path.cwd(), args.key_file,continue_unstarted=args.continue_unstarted)
+            await run(Path.cwd(), args.key_file,continue_unstarted=args.continue_unstarted,
+                continue_deadline=args.continue_after_deadline_stop)
         asyncio.run(bounded())
 
 
