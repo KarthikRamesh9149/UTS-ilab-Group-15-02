@@ -16,6 +16,49 @@ from test_no_cutoff_recovery_execution import LocalFiles
 from test_no_cutoff_recovery_runtime import save
 
 
+def synthetic_qualification_inputs(test, root):
+    """Retain both synthetic inputs and bind their actual bytes, never paid proof."""
+    result = {}
+    for name, attribute in ((completion.bootstrap.BASELINE_INPUT, 'BASELINE_SHA'),
+            (completion.bootstrap.FINAL_INPUT, 'FINAL_SHA')):
+        raw = json.dumps(dict(kind='synthetic_private_qualification_only', name=name)).encode()
+        save(root, name, raw)
+        digest = hashlib.sha256(raw).hexdigest()
+        test.enterContext(patch.object(completion.bootstrap, attribute, digest))
+        result[name] = digest
+    return result
+
+
+class BindingContractTests(unittest.TestCase):
+    def setUp(self):
+        self.files = {'stage2/fixture.py': 'a' * 64,
+            completion.bootstrap.BASELINE_INPUT: completion.bootstrap.BASELINE_SHA,
+            completion.bootstrap.FINAL_INPUT: completion.bootstrap.FINAL_SHA}
+
+    def base(self, files):
+        return completion.base('terminus-2', '1' * 32, files, '2' * 40, 'qualify-repeat')
+
+    def test_sources_and_both_actual_private_anchor_paths_are_bound(self):
+        self.assertEqual(self.base(self.files)['bindings_sha256'], policy.fingerprint(self.files))
+        self.assertFalse(self.base(self.files)['paid_launch_ready'])
+
+    def test_missing_changed_or_extra_private_inputs_refuse(self):
+        for name in (completion.bootstrap.BASELINE_INPUT, completion.bootstrap.FINAL_INPUT):
+            missing = dict(self.files); missing.pop(name)
+            changed = dict(self.files); changed[name] = 'f' * 64
+            for value in (missing, changed):
+                with self.subTest(name=name, value=value), self.assertRaises(ValueError): self.base(value)
+        for name in ('.runtime/stage2/extra.json', '.runtime/secret', 'outside.py',
+                'stage2/../outside.py', '/absolute.py', 'stage2//fixture.py', 1):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                self.base({**self.files, name: 'b' * 64})
+
+    def test_private_anchors_alone_and_malformed_source_digests_refuse(self):
+        private = {n: h for n, h in self.files.items() if n.startswith('.runtime/')}
+        for value in (private, dict(self.files, **{'stage2/fixture.py': 'bad'}), [], None):
+            with self.subTest(value=value), self.assertRaises(ValueError): self.base(value)
+
+
 class CompletionTests(LocalFiles, unittest.TestCase):
     def setUp(self):
         temporary=tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
@@ -24,6 +67,7 @@ class CompletionTests(LocalFiles, unittest.TestCase):
         self.enterContext(patch.object(completion,'__file__',str(self.root/'stage2/matched_repeat_completion.py')))
         save(self.root,'stage2/fixture.py',b'# synthetic only')
         self.bound=files.capture(self.root,['stage2/fixture.py'])[0]
+        self.bound.update(synthetic_qualification_inputs(self, self.root))
         self.enterContext(patch.object(session,'_live',return_value=dict(root=self.root,harness='terminus-2',files=self.bound)))
         self.operation='qualify-repeat'; self.relative=completion.operation_state(self.operation)
         self.path=self.root/self.relative

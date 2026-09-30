@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import subprocess
 
+import matched_repeat_execution_bootstrap as bootstrap
 import matched_repeat_policy as policy
 import matched_repeat_runtime as runtime
 import matched_repeat_session as session
@@ -36,7 +37,13 @@ def identity(harness, nonce, operation):
 def base(harness, nonce, files, commit, operation):
     if type(commit) is not str or not re.fullmatch('[a-f0-9]{40}', commit):
         raise ValueError('Full committed baseline revision required')
-    policy._bindings(files)
+    private = {bootstrap.BASELINE_INPUT: bootstrap.BASELINE_SHA,
+        bootstrap.FINAL_INPUT: bootstrap.FINAL_SHA}
+    if (type(files) is not dict or any(type(name) is not str for name in files)
+            or {name: sha for name, sha in files.items() if not name.startswith('stage2/')} != private):
+        raise ValueError('Only bound stage2 sources and both exact private qualifications are allowed')
+    policy._bindings({name: sha for name, sha in files.items() if name.startswith('stage2/')})
+    policy._bindings(private, private=True)
     return dict(operation=operation, nonce=nonce, unit=identity(harness, nonce, operation),
         root=str(runtime.DEPLOYMENTS[harness]), experiment=policy.EXPERIMENT, harness=harness,
         operator_commit=commit, bindings_sha256=policy.fingerprint(files),

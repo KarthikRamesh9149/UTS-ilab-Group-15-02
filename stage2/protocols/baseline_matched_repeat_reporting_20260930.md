@@ -154,7 +154,7 @@ verifies that archive before recording completion. The exporter freshly audits
 and rereads the SAME archive before exclusive publication of only the three
 allowlisted outputs. Any partial result/failure remains terminal and retained.
 
-These components remain local, uncommitted implementation under test. Actual
+These components remain local implementation under test. Actual
 installation, qualification, paid runs, backup and export have not occurred.
 The completed-Terminus successor reader and corresponding OpenHands launch
 route remain unfinished and fail closed. No local test grants launch authority.
@@ -194,3 +194,14 @@ Git/anchor and fixed-checkout observations are fixtures; the native interpreter
 checker is forbidden at those Mac call sites. The earlier 1,400-test result
 predates this correction; affected and final current-source results are
 recorded separately in the status documents.
+
+The next real committed preflight exposed a second orchestration mismatch:
+the completion identity builder used a source-only path validator for a map
+that also contains two required private qualification inputs. It now validates
+normalised stage2 sources separately and requires exactly those two pinned
+private paths and hashes. Unknown private paths, missing/changed anchors,
+non-source paths and traversal still refuse; no generic hidden-path allowance
+was added. Synthetic service/connection fixtures now retain both actual-byte
+test inputs, and an unmocked fixed program-generator regression covers all
+qualify/run relay/service/status combinations. The native root, benchmark
+controls and original source-only policy validator are unchanged.

@@ -18,6 +18,7 @@ import qualify_matched_repeat as qualifier
 import run_matched_repeat as runner
 from test_no_cutoff_recovery_execution import LocalFiles
 from test_no_cutoff_recovery_runtime import save
+from test_matched_repeat_completion import synthetic_qualification_inputs
 
 
 class ServiceExecutionTests(LocalFiles, unittest.IsolatedAsyncioTestCase):
@@ -29,6 +30,8 @@ class ServiceExecutionTests(LocalFiles, unittest.IsolatedAsyncioTestCase):
         self.operation = 'qualify-repeat'; self.nonce = '1' * 32; self.commit = '2' * 40
         save(self.root, 'stage2/synthetic.py', b'# local fixture only\n')
         self.files, self.identities = service.evidence.capture(self.root, ['stage2/synthetic.py'])
+        self.files.update(synthetic_qualification_inputs(self, self.root))
+        self.identities = service.evidence.capture(self.root, self.files)[1]
         self.path = self.root / service.completion.operation_state(self.operation)
         self.expected = service.completion.base('terminus-2', self.nonce, self.files, self.commit, self.operation)
         self.process = dict(pid=12345, start_ticks=56789); self.relay = dict(pid=12344, start_ticks=56780)
@@ -171,6 +174,22 @@ class ServiceExecutionTests(LocalFiles, unittest.IsolatedAsyncioTestCase):
 
 
 class ServiceContractTests(unittest.TestCase):
+    def test_real_program_generator_accepts_actual_source_and_private_input_shape(self):
+        stage = Path(service.__file__).absolute().parent
+        files = {'stage2/' + name: hashlib.sha256((stage / name).read_bytes()).hexdigest()
+            for name in service.policy.REQUIRED_SOURCE_FILES}
+        files.update({service.boot.BASELINE_INPUT: service.boot.BASELINE_SHA,
+            service.boot.FINAL_INPUT: service.boot.FINAL_SHA})
+        for operation in ('qualify-repeat', 'run-repeat'):
+            for role in ('relay', 'service', 'status'):
+                with self.subTest(operation=operation, role=role):
+                    program = service.native_program('terminus-2', 'a' * 32, files, 'b' * 40,
+                        role=role, operation=operation,
+                        relay_process={'pid': 123, 'start_ticks': 456} if role == 'service' else None)
+                    ast.parse(program)
+                    self.assertIn(service.boot.BASELINE_INPUT, program)
+                    self.assertIn(service.boot.FINAL_INPUT, program)
+
     def test_fixed_detached_command_has_no_parent_wait_restart_or_runtime_ceiling(self):
         root = service.boot.root_for('terminus-2'); path = root / service.completion.operation_state('qualify-repeat')
         with patch.object(service, 'folder', return_value=path), patch.object(service, 'native_program', return_value='BOUND'):

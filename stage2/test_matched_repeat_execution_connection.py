@@ -14,6 +14,7 @@ from unittest.mock import Mock, patch
 
 import matched_repeat_execution_connection as connection
 import matched_repeat_runtime as native_runtime
+from test_matched_repeat_completion import synthetic_qualification_inputs
 
 NONCE = 'a1' * 16
 COMMIT = 'c2' * 20
@@ -30,6 +31,7 @@ class OperatorTests(unittest.TestCase):
         source = Path(connection.__file__).parent / 'progress_dashboard.py'
         raw = source.read_bytes(); self.root.joinpath('stage2/progress_dashboard.py').write_bytes(raw)
         self.files = {'stage2/progress_dashboard.py': hashlib.sha256(raw).hexdigest()}
+        self.files.update(synthetic_qualification_inputs(self, self.root))
         self.enterContext(patch.object(connection, 'REPO', self.root))
         self.enterContext(patch.object(connection, '__file__', str(self.root / 'stage2/matched_repeat_execution_connection.py')))
         self.enterContext(patch.object(connection.secrets, 'token_hex', return_value=NONCE))
