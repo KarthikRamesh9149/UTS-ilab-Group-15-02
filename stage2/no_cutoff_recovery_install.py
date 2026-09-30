@@ -23,14 +23,14 @@ import subprocess
 import sys
 import types
 
-ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260929')
+ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r2')
 ORIGINAL = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
 REPORTER = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r4')
 QUALIFICATION = '.runtime/stage2/no-cutoff-recovery-original-qualification.json'
 ORIGINAL_QUALIFICATION = '.runtime/stage2/no-cutoff-final-qualification.json'
 QUALIFICATION_SHA = '008f2998d0df7646ba351c76b5a343354e25f4d99fdf66f05dee39e6ea19d110'
 MANIFEST = '.runtime/stage2/no-cutoff-recovery-manifest.json'
-STATE = '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r2'
+STATE = '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r3'
 FAILED_STATE = '.runtime/netcup/custom-no-cutoff-recovery-installation-20260929'
 FAILED_FILES = {
     'intent.json': '5849ac36f8f936854160b430ab7db10d66adb4335698a8e9405ead1136db3ea1',
@@ -42,7 +42,7 @@ EARLY = ('uts-capstone', 'uts-capstone-baseline-repeat-20260921', 'uts-capstone-
     'uts-capstone-custom-development-20260926', 'uts-capstone-custom-portable-20260926',
     'uts-capstone-custom-deadline-20260927')
 LATE = ('uts-capstone-custom-deadline-20260927-r2', 'uts-capstone-custom-no-cutoff-20260928',
-    'uts-capstone-custom-no-cutoff-final-20260928')
+    'uts-capstone-custom-no-cutoff-final-20260928', 'uts-capstone-custom-no-cutoff-recovery-20260929')
 
 
 def _sha(value): return hashlib.sha256(value).hexdigest()
@@ -159,16 +159,26 @@ def _quiet(guard):
 
 def _old(value, bootstrap, libraries, guard):
     _context(); _quiet(guard)
+    retained = _revision(value)
     bootstrap.directories(ROOT.parent)
     if ROOT.exists() or ROOT.is_symlink(): raise ValueError('Existing or partial recovery root is terminal')
     bootstrap.raw(ORIGINAL, ORIGINAL_QUALIFICATION, QUALIFICATION_SHA)
-    result = {}
+    result = {'retained_installation': retained}
     for base, bindings in ((ORIGINAL,value['native']),(REPORTER,value['reporter'])):
         for name, sha in bindings.items():
             libraries.read(base,name,sha); result[(str(base),name)] = libraries.identity((base/name).lstat())
     if value['native'].get(ORIGINAL_QUALIFICATION) != QUALIFICATION_SHA:
         raise ValueError('Actual original qualification must be independently reread')
     return result
+
+
+def _revision(value):
+    name = 'stage2/no_cutoff_recovery_revision.py'
+    raw = base64.b64decode(value['files'][name], validate=True)
+    if _sha(raw) != value['hashes'][name]: raise ValueError('Bound revision source required')
+    revision = _module('no_cutoff_recovery_revision', raw)
+    if revision.ROOT != ROOT: raise ValueError('Exact amended installation root required')
+    return revision.inspect()
 
 
 def _reread(value, identities, libraries):
@@ -399,6 +409,7 @@ def _install(value):
                 created['.runtime/stage2/'+name] = _write('.runtime/stage2/'+name,b'',bootstrap)
             created['source-commit.txt'] = _write('source-commit.txt',(value['commit']+'\n').encode(),bootstrap)
             _quiet(guard); locks(); _reread(value,old,libraries)
+            if _revision(value) != old['retained_installation']: raise ValueError('Retained installation replaced')
             if _runtime(bootstrap,libraries,decoded) != (dataset,trees): raise ValueError('Original runtime changed during copy')
             if _interpreter(bootstrap) != interpreter: raise ValueError('Original interpreter target changed during copy')
             _installed(decoded,trees,created,bootstrap,libraries)
@@ -416,6 +427,7 @@ def _install(value):
             _installed(decoded,trees,created,bootstrap,libraries)
             created['installation-result.json'] = _write('installation-result.json',_json(result),bootstrap)
             _installed(decoded,trees,created,bootstrap,libraries); locks()
+            if _revision(value) != old['retained_installation']: raise ValueError('Retained installation replaced')
             return result
         except BaseException:
             path=ROOT/'installation-failure.json'
@@ -484,6 +496,41 @@ def _failed_installation():
     return parents, directory, identities
 
 
+def _retained_operator_states():
+    """Exact successful installation and refused launch; no fallback or reuse."""
+    import no_cutoff_recovery_connection as connection
+    import no_cutoff_recovery_predecessor as operator
+    import no_cutoff_recovery_revision as revision
+    launch, receiver = operator.launch, operator.receiver
+    parents = receiver._parents(); identities = {}
+    for name, files in revision.OPERATOR_STATES.items():
+        folder = launch.REPO / name
+        directory = receiver._directory_id(folder); _operator_acl(folder)
+        if (stat.S_IMODE(folder.lstat().st_mode) != 0o700 or folder.lstat().st_gid != os.getgid()
+                or {p.name for p in folder.iterdir()} != set(files)):
+            raise ValueError('Exact retained operator evidence required')
+        identities[name] = directory
+        for leaf, digest in files.items():
+            path = folder / leaf; before = connection.boot.identity(path.lstat()); _operator_acl(path)
+            if stat.S_IMODE(path.lstat().st_mode) != 0o600 or path.lstat().st_gid != os.getgid():
+                raise ValueError('Private retained operator file required')
+            launch._raw(name + '/' + leaf, digest)
+            if connection.boot.identity(path.lstat()) != before: raise ValueError('Retained operator identity replaced')
+            identities[name + '/' + leaf] = before
+        if receiver._directory_id(folder) != directory or {p.name for p in folder.iterdir()} != set(files):
+            raise ValueError('Retained operator evidence changed')
+    if receiver._parents() != parents: raise ValueError('Retained operator ancestry changed')
+    for name, files in revision.OPERATOR_STATES.items():
+        folder = launch.REPO / name; _operator_acl(folder)
+        if receiver._directory_id(folder) != identities[name] or {p.name for p in folder.iterdir()} != set(files):
+            raise ValueError('Late retained operator directory change')
+        for leaf, digest in files.items():
+            path = folder / leaf; _operator_acl(path); launch._raw(name + '/' + leaf, digest)
+            if connection.boot.identity(path.lstat()) != identities[name + '/' + leaf]:
+                raise ValueError('Late retained operator file identity change')
+    return parents, identities
+
+
 def prepare(commit):
     from no_cutoff_recovery_connection import prepare as connection_prepare, _local_identities
     from no_cutoff_recovery_session import _lock_paths
@@ -502,7 +549,7 @@ def prepare(commit):
     hashes.update({QUALIFICATION:_sha(decoded[QUALIFICATION]),MANIFEST:_sha(decoded[MANIFEST])})
     payload=dict(kind=KIND,commit=commit,files={n:base64.b64encode(raw).decode() for n,raw in decoded.items()},
         hashes=hashes,native=value['bindings']['native'],reporter=value['bindings']['reporting'])
-    _payload(payload); operator._current(value); _failed_installation()
+    _payload(payload); operator._current(value); _failed_installation(); _retained_operator_states()
     return value,payload,_local_identities(value)
 
 
@@ -511,7 +558,7 @@ def deploy(commit):
     import no_cutoff_recovery_connection as connection
     import no_cutoff_recovery_predecessor as operator
     value,payload,identities=prepare(commit); launch=operator.launch
-    failed = _failed_installation()
+    failed = (_failed_installation(), _retained_operator_states())
     root=launch.REPO; state=root/STATE
     if state.exists() or state.is_symlink(): raise ValueError('Existing installation state requires inspection')
     # Reuse the actual independently checked pinned SSH prefix. Never append a
@@ -532,7 +579,7 @@ def deploy(commit):
         operator._current(value)
         operator.receiver._state(state,state_identity)
         if (connection._local_identities(value)!=identities or operator.receiver._parents()!=parents
-                or _failed_installation()!=failed):
+                or (_failed_installation(), _retained_operator_states())!=failed):
             raise ValueError('Local committed installer inputs replaced')
         result=subprocess.run(args,input=raw,capture_output=True,timeout=1800,
             env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'})
@@ -542,7 +589,7 @@ def deploy(commit):
                 or observed.get('paid_launch_ready') is not False or observed.get('recovery_execution_qualified') is not False):
             raise ValueError('Exact non-admitting installation result required')
         operator._current(value)
-        if connection._local_identities(value)!=identities or _failed_installation()!=failed:
+        if connection._local_identities(value)!=identities or (_failed_installation(), _retained_operator_states())!=failed:
             raise ValueError('Local inputs or retained failed installation replaced')
         operator.receiver._state(state,state_identity)
         if (intent!=(launch._raw(STATE+'/intent.json'),connection.boot.identity((state/'intent.json').lstat()))

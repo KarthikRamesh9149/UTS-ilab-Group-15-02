@@ -392,8 +392,10 @@ class ContractTests(unittest.TestCase):
             final.lock_all(ExitStack(), handoff.ROOT)
         paths.extend(handoff.report.ROOT / handoff.phase.RT / n
             for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
+        paths.extend(handoff.revision.RETIRED / handoff.phase.RT / n
+            for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
         self.assertEqual(session._lock_paths(handoff.ROOT), tuple(paths))
-        self.assertEqual(len(paths), 34)
+        self.assertEqual(len(paths), 37)
         self.assertEqual(sum(p.parent == handoff.ROOT / handoff.phase.RT for p in paths), 1)
 
     def test_full_system_ancestry_is_included(self):

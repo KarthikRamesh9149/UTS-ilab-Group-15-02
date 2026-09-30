@@ -56,6 +56,7 @@ class LocalTree(unittest.TestCase):
         self.enterContext(patch.object(service, '_peer', return_value=deepcopy(PEER)))
         # Only Linux completion facts are replaced, not pre-import file checks.
         self.ancestors = self.enterContext(patch.object(boot, 'ancestors'))
+        self.enterContext(patch('no_cutoff_recovery_install._retained_operator_states', return_value=('local-synthetic-retained-state',)))
 
     def ready(self):
         return dict(service.base(NONCE, self.files, self.commit),

@@ -18,6 +18,7 @@ import weakref
 
 import no_cutoff_recovery_predecessor as operator
 import no_cutoff_recovery_policy as policy
+import no_cutoff_recovery_revision as revision
 import matched_repeat_stream as wire
 import no_cutoff_final_archive as archive
 import no_cutoff_final_backup as producer
@@ -27,7 +28,7 @@ import no_cutoff_final_phase_audit as phase
 import no_cutoff_final_report as report
 import no_cutoff_final_reporting as launch
 
-ROOT = Path(policy.plan.ROOT)
+ROOT = revision.ROOT
 KIND = 'live_recovery_original_evidence_not_scored_admission'
 TRANSFER_KIND = 'existing_off_server_recovery_original_archive_v1'
 TRANSFER_FIELDS = frozenset({'kind', 'schema_version', 'successor_experiment',
@@ -115,13 +116,7 @@ def _context():
 
 def _no_stop(root):
     report.guard.service()  # Actual retained manager/procfs/protected-root proof.
-    state = subprocess.run(['systemctl', 'show', 'uts-stage2-corrected-20260923.service',
-        '--property=LoadState,ActiveState,SubState,MainPID,ExecMainStatus'],
-        check=True, capture_output=True, text=True).stdout
-    entries = [line.split('=', 1) for line in state.splitlines() if '=' in line]
-    if len(entries) != 5 or dict(entries) != dict(LoadState='loaded', ActiveState='inactive',
-            SubState='dead', MainPID='0', ExecMainStatus='0'):
-        raise ValueError('Original baseline service must be successfully inactive')
+    observed = revision.inspect()  # Actual trusted manager/procfs and untouched unused installation.
     for base in (root, report.ROOT, report.BASELINE):
         for name in ('operator-stop-request.json', 'provider-stop.json'):
             relative = phase.RT + name
@@ -129,6 +124,7 @@ def _no_stop(root):
             path = phase._path(base, relative)
             if path.exists() or path.is_symlink():
                 raise ValueError('Persistent stop forbids recovery authentication')
+    return observed
 
 
 def _raw(root, name, expected=None):
@@ -256,8 +252,10 @@ def _anchors(root, header):
         sources=current, copied=copied, native=native, reporting_state=_reporting(data, backup))
 
 
-def _check(root, value):
-    _no_stop(root)  # Last service observations precede the final evidence reads.
+def _check(root, value, revision_state=None):
+    observed = _no_stop(root)  # Last service observations precede the final evidence reads.
+    if revision_state is not None and observed != revision_state:
+        raise ValueError('Retained unstarted installation identity changed')
     for name, sha in value['native'].items(): producer._digest(report.ROOT, name, sha)
     archive._same(_reporting(value['data'], value['backup']), value['reporting_state'])
     producer._recheck(value['data'])  # Real files/inventories/absences/all182 historical results.
@@ -298,25 +296,25 @@ def _record(value, verified):
 
 def authenticate(stream):
     """Actual original audit BEFORE future full ancestor locks; no saved entry."""
-    root = _context(); wire.pipe_only(stream); _no_stop(root)
+    root = _context(); wire.pipe_only(stream); revision_state = _no_stop(root)
     header, header_digest = wire.read_header(stream)
-    value = _anchors(root, header); _check(root, value)
+    value = _anchors(root, header); _check(root, value, revision_state)
     verified = archive.verify_stream(stream, value['data'], value['backup']['receipt'])
     archive._same(verified, value['backup']['verification'])
     trailer = wire.COMMIT + header_digest + bytes.fromhex(verified['sha256'])
     if wire._exact(stream, len(trailer)) != trailer or stream.read(1):
         raise ValueError('Exact final operator commitment and EOF required')
-    _check(root, value)
+    _check(root, value, revision_state)
     fresh = _native_audit(value)
     archive.validate_snapshot(fresh, value['anchors'])
     archive._same(operator.audit_hash(fresh), policy.AUDIT_SHA256)
     if archive._utc(fresh['collected_utc']) < archive._utc(value['data']['collected_utc']):
         raise ValueError('Fresh original audit cannot predate the retained snapshot')
     operator._same_anchored(_anchors(root, header), value)
-    _check(root, value)
+    _check(root, value, revision_state)
     witness = _Witness()
     _WITNESSES[witness] = dict(pid=os.getpid(), thread=threading.get_ident(), task=_task(),
-        root=root, header=deepcopy(header), record=deepcopy(_record(value, verified)))
+        root=root, header=deepcopy(header), revision=revision_state, record=deepcopy(_record(value, verified)))
     return witness
 
 
@@ -346,7 +344,7 @@ def recheck(witness):
         if root != state['root']: raise ValueError('Recovery deployment changed')
         value = _anchors(root, state['header'])
         archive._same(_record(value, state['record']['streamed_backup']), state['record'])
-        _check(root, value)
+        _check(root, value, state['revision'])
         return describe(witness)
     except BaseException:
         invalidate(witness)

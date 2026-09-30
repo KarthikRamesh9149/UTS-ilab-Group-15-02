@@ -1,5 +1,18 @@
 # Matched baseline repeats after custom final89
 
+Recovery correction, 30 September 01:15 UTC: installation succeeded, but its
+first qualification connection refused before any native service or handoff.
+A separately bound execution-location amendment preserves that installed root
+and all failures, requires actual trusted baseline completion/procfs reads,
+and leaves the fixed plan, three recovery IDs and baseline schedule unchanged.
+The corrected root is not installed/qualified. All 791 final recovery tests and
+12 repository tests passed; recovery remains 0/3 and neither baseline repeat has started.
+The sequence remains recovery audit/ONE verified backup/export, Terminus-2 89,
+its audit/ONE backup, then OpenHands 89. No parallel launch or shortened limit.
+See [the amendment](custom_setup_recovery_location_20260930.md).
+
+Earlier checkpoints follow; their pending statements are historical.
+
 At 00:38 UTC on 30 September a narrow Mac ACL compatibility correction passed
 20 focused tests; the 769-test recovery gate is running. The corrected preflight
 had refused locally before SSH, with no server operation or task started.

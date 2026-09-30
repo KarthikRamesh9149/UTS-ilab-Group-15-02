@@ -31,6 +31,7 @@ class InstallTests(LocalFiles, unittest.TestCase):
         self.enterContext(patch.object(install,'_context'))
         self.enterContext(patch.object(install,'_interpreter',return_value=('local-synthetic-executable','a'*64,())))
         self.quiet=self.enterContext(patch.object(install,'_quiet'))
+        self.enterContext(patch.object(install,'_revision'))
         self.qual=b'{"local_synthetic_original":true}'
         sha=install._sha(self.qual); self.enterContext(patch.object(install,'QUALIFICATION_SHA',sha))
         save(self.old,install.ORIGINAL_QUALIFICATION,self.qual)
@@ -200,7 +201,7 @@ class FailedOperatorTests(LocalFiles, unittest.TestCase):
 
     def test_second_operator_destination_is_distinct_and_failed_hashes_are_fixed(self):
         self.assertNotEqual(install.STATE,install.FAILED_STATE)
-        self.assertTrue(install.STATE.endswith('20260930-r2'))
+        self.assertTrue(install.STATE.endswith('20260930-r3'))
 
     def test_mac_acl_reader_observes_fixed_command_and_exact_environment(self):
         with patch.object(install.platform,'system',return_value='Darwin'),patch.object(install.subprocess,'run',

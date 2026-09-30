@@ -20,7 +20,7 @@ import no_cutoff_recovery_service as service
 from progress_dashboard import ssh_command, REMOTE_HOST
 from scored_gateway import durable_json
 
-STATE = '.runtime/netcup/custom-no-cutoff-recovery-prerequisites-20260929'
+STATE = '.runtime/netcup/custom-no-cutoff-recovery-prerequisites-20260930-r2'
 TIMEOUT = handoff.launch.transport.HANDOFF_SECONDS
 REPLY_LIMIT = 16384
 
@@ -138,10 +138,12 @@ def reply(value, nonce, files, commit, *, sent=None, peer=None, operation=servic
 def _operate(commit, operation):
     """One explicit actual connection; never auto-retry or stop native work."""
     value, files = prepare(commit)
+    from no_cutoff_recovery_install import _retained_operator_states
+    retained_operator = _retained_operator_states()
     original_identities = _local_identities(value)
     parents = handoff.receiver._parents(); root = handoff.launch.REPO
     service.operation_state(operation)
-    state_name = STATE if operation == service.OPERATION else '.runtime/netcup/custom-no-cutoff-recovery-' + service.OPERATIONS[operation] + '-20260929'
+    state_name = STATE if operation == service.OPERATION else '.runtime/netcup/custom-no-cutoff-recovery-' + service.OPERATIONS[operation] + '-20260930-r2'
     path = root / state_name
     if path.exists() or path.is_symlink():
         raise ValueError('Existing or partial recovery connection is terminal; inspect without retry')
@@ -159,6 +161,8 @@ def _operate(commit, operation):
         return raw, boot.identity((path / name).lstat())
     def current():
         operator._current(value)
+        if _retained_operator_states() != retained_operator:
+            raise ValueError('Earlier operator evidence replaced')
         if _local_identities(value) != original_identities:
             raise ValueError('Operator source/private identity replaced')
     def retained(name):

@@ -1,5 +1,34 @@
 # Stage 2 execution status
 
+## Current recovery launch correction, 30 September 01:15 UTC
+
+The first recovery installation succeeded at 00:47:33 UTC from `c9b357c`.
+Its one qualification connection refused before receiver acknowledgement; no
+native qualification case or paid task started. Read-only inspection identified
+a loaded-unit assumption for the completed original baseline. Actual trusted
+manager journal and procfs evidence then corroborated successful completion
+and no remaining baseline/first-recovery process.
+
+The [explicit location amendment](protocols/custom_setup_recovery_location_20260930.md)
+keeps the fixed plan, three IDs and controls unchanged. It preserves the first
+installed root and all failed state, uses a new fixed `20260930-r2` native root,
+and requires fresh manager/procfs evidence plus the exact retained unused tree.
+The original 34-lock order remains a prefix, with three retired-root locks added.
+No archived reporter or old baseline route is changed. The earlier 769-test
+local gate passed before installation. The correction's 227 targeted tests
+passed during development. The final 791-test gate passed in 331.202 seconds,
+with zero skips/errors/failures, 315 before/discovery/after source bindings and
+215 final loaded modules (37 before, 214 after discovery). Its source-map SHA is
+`e4381cd45705ee09609898479bd7b097bfab1bee788e096851415f5fd681a7bb`.
+All 12 repository tests also passed.
+These are local/synthetic checks, not native qualification. The corrected root
+has not been installed; actual committed preflight/absence and native gates remain.
+Recovery is 0/3 started; both baseline repeats remain unstarted. Original results
+remain 89/89 complete, 50 passed, 36 verified failures and 3 missing verifier
+outcomes at the dated 29 September 21:40:58 UTC metadata observation.
+
+## Earlier Mac installer compatibility checkpoint
+
 Mac compatibility follow-up, 30 September 00:38 UTC: the corrected preflight
 refused locally before SSH because the bundled Mac Python lacks the Linux ACL
 API. The retained-failure reader now checks actual Darwin ACLs through fixed

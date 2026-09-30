@@ -348,6 +348,15 @@ class RecoveryOriginalHandoffTests(unittest.TestCase):
             return value
         self.pipe(self.packet(), action=action)
 
+    def test_retained_unstarted_identity_change_latches_the_live_witness(self):
+        self.no_stop.return_value = {'retained_identity': {'inode': 1}}
+        async def action(witness):
+            self.no_stop.return_value = {'retained_identity': {'inode': 2}}
+            with self.assertRaises(ValueError): handoff.recheck(witness)
+            self.no_stop.return_value = {'retained_identity': {'inode': 1}}
+            with self.assertRaises(ValueError): handoff.recheck(witness)
+        self.pipe(self.packet(), action=action)
+
     def test_failed_reread_latches_and_restoration_does_not_revive(self):
         async def action(witness):
             path = self.root / 'stage2/input_manifest.json'; raw = path.read_bytes()
@@ -474,12 +483,12 @@ class RecoveryOriginalHandoffTests(unittest.TestCase):
     def test_no_stop_uses_actual_manager_check_and_refuses_duplicate_service_state(self):
         (report.BASELINE / '.runtime/stage2').chmod(0o700); report.BASELINE.chmod(0o700)
         good = 'LoadState=loaded\nActiveState=inactive\nSubState=dead\nMainPID=0\nExecMainStatus=0\n'
-        with patch.object(report.guard, 'service') as manager:
+        with patch.object(report.guard, 'service') as manager, patch.object(handoff.revision, 'inspect') as baseline:
             self.no_process.side_effect = None; self.no_process.return_value = NS(stdout=good)
             ACTUAL_NO_STOP(self.root); manager.assert_called_once()
-            self.no_process.return_value = NS(stdout=good + 'MainPID=0\n')
+            baseline.side_effect = ValueError('synthetic changed trusted manager record')
             with self.assertRaises(ValueError): ACTUAL_NO_STOP(self.root)
-            self.no_process.return_value = NS(stdout=good)
+            baseline.side_effect = None
             self.e.save(phase.RT + 'operator-stop-request.json', b'{"automatic_resume":false}')
             with self.assertRaises(ValueError): ACTUAL_NO_STOP(self.root)
 

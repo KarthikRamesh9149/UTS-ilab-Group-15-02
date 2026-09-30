@@ -15,7 +15,7 @@ import stat
 import subprocess
 import sys
 
-ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260929')
+ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r2')
 ORIGINAL = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
 QUALIFICATION = '.runtime/stage2/no-cutoff-recovery-original-qualification.json'
 QUALIFICATION_SHA = '008f2998d0df7646ba351c76b5a343354e25f4d99fdf66f05dee39e6ea19d110'
@@ -137,12 +137,11 @@ def ancestors(files):
     guard = {}; exec(compile(source, '<bound-original-completion-guard>', 'exec'), guard)
     if guard['ROOT'] != ORIGINAL: raise ValueError('Original completion root changed')
     guard['service']()
-    completed = subprocess.check_output(['systemctl', 'show', 'uts-stage2-corrected-20260923.service',
-        '--property=LoadState,ActiveState,SubState,MainPID,ExecMainStatus'], text=True, timeout=10)
-    entries = [line.split('=', 1) for line in completed.splitlines() if '=' in line]
-    if len(entries) != 5 or dict(entries) != dict(LoadState='loaded', ActiveState='inactive',
-            SubState='dead', MainPID='0', ExecMainStatus='0'):
-        raise ValueError('Successful inactive original baseline required')
+    name = 'stage2/no_cutoff_recovery_revision.py'
+    source = raw(ROOT, name, files[name])[0]
+    revision = {}; exec(compile(source, '<bound-recovery-location-amendment>', 'exec'), revision)
+    if revision['ROOT'] != ROOT: raise ValueError('Exact amended recovery root required')
+    revision['inspect']()
     for base in (ROOT, ORIGINAL, Path('/opt/uts-capstone-corrected-20260923')):
         for name in ('operator-stop-request.json', 'provider-stop.json'):
             path = base / '.runtime/stage2' / name

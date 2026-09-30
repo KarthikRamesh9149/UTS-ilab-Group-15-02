@@ -119,6 +119,8 @@ REQUIRED_SOURCE_FILES = frozenset({
     'no_cutoff_recovery_report.py', 'no_cutoff_recovery_archive.py', 'no_cutoff_recovery_reporting.py',
     'test_no_cutoff_recovery_reporting.py',
     'protocols/custom_setup_recovery_execution_20260930.md',
+    'no_cutoff_recovery_revision.py', 'test_no_cutoff_recovery_revision.py',
+    'protocols/custom_setup_recovery_location_20260930.md',
     'fixtures/lifecycle/task.toml', 'fixtures/lifecycle/instruction.md',
     'fixtures/lifecycle/environment/Dockerfile', 'fixtures/lifecycle/tests/test.sh',
     # Explicit current installed-image closure; unchanged inherited files.
@@ -176,7 +178,8 @@ RECOVERY_TEST_MODULES = ('test_no_cutoff_recovery_plan',
     'test_no_cutoff_recovery_result', 'test_no_cutoff_recovery_execution',
     'test_no_cutoff_recovery_qualification', 'test_no_cutoff_recovery_images',
     'test_no_cutoff_recovery_service_operations', 'test_qualify_no_cutoff_recovery',
-    'test_no_cutoff_recovery_probe', 'test_no_cutoff_recovery_install', 'test_no_cutoff_recovery_reporting')
+    'test_no_cutoff_recovery_probe', 'test_no_cutoff_recovery_install', 'test_no_cutoff_recovery_reporting',
+    'test_no_cutoff_recovery_revision')
 PROBE_MODES = ('tools', 'prepare_not_applicable', 'prepare_nonzero',
     'prepare_exception', 'cancel_setup', 'boundary_stop')
 PREPARATION_OUTCOMES = dict(tools='refreshed', prepare_not_applicable='not_applicable',

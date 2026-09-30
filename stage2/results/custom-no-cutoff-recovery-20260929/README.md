@@ -1,5 +1,29 @@
 # Separate C0-NC setup recovery
 
+## Current: launch compatibility correction, 30 September 01:15 UTC
+
+The first installation succeeded at 00:47:33 UTC. Qualification launch refused
+at 00:50:05, before any receiver acknowledgement, handoff or native service.
+A read-only check reproduced an obsolete requirement that the completed
+original baseline unit remain loaded. Trusted manager records and procfs
+subsequently confirmed that baseline's successful completion and absence.
+
+The [separate location amendment](../../protocols/custom_setup_recovery_location_20260930.md)
+preserves the installed first root, exact failed state and fixed plan/three IDs.
+Only the corrected new root may receive the new source-bound check. No original
+result, archive, model, prompt, tool or official limit changes. The first-root
+source/input bytes and unused inventory are reread; all original locks remain,
+plus its three locks. Recovery is still **0/3 started**; both repeats are unstarted.
+The new location is not installed or qualified. The 769 tests for the earlier
+installed candidate passed; 227 correction checks passed during development;
+the final 791-test gate passed with zero skips/errors/failures, 315 source bindings
+and 215 final loaded modules. Source-map SHA256:
+`e4381cd45705ee09609898479bd7b097bfab1bee788e096851415f5fd681a7bb`.
+All 12 repository tests passed. Local tests are not
+native qualification or benchmark results.
+
+## Earlier implementation and installation history
+
 Status: the separate execution, qualification, exclusive installation and
 completed reporting route is implemented and locally verified.
 **0/3 recovery attempts started.**

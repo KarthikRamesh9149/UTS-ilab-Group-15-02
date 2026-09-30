@@ -1,5 +1,18 @@
 # Measured C0-NC final89
 
+Recovery launch correction, 30 September 01:15 UTC: the separate recovery
+root was installed successfully, but its qualification connection refused
+before starting a native service. The original baseline's unloaded service
+was the reproduced current blocker; trusted journal/procfs reads corroborated
+its successful completion. A separately bound new-root amendment is undergoing
+final publication after 791 recovery tests passed without skips/errors/failures
+and all 12 repository tests passed. The first installed root and original 89 results/archive
+remain immutable. Recovery 0/3; baseline repeats unstarted. The corrected
+new root is neither installed nor qualified. See the
+[execution-location amendment](../../protocols/custom_setup_recovery_location_20260930.md).
+
+Earlier checkpoints follow; their pending statements are historical.
+
 Recovery follow-up at 00:38 UTC on 30 September: a Mac-only ACL compatibility
 refusal occurred before SSH. Its narrow correction passed 20 focused tests;
 the final 769-test recovery gate is running. Original evidence remains unchanged.
