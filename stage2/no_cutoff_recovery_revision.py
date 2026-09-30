@@ -14,7 +14,7 @@ import stat
 import subprocess
 import sys
 
-ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r4')
+ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r5')
 RETIRED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260929')
 REJECTED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r2')
 BASELINE = Path('/opt/uts-capstone-corrected-20260923')
@@ -112,7 +112,30 @@ REGRESSION_IMAGES = {
     "sha256:780a545c444b5b1d8f8afa7252f27e1201e1c62d840a043dd9f15bbc822aa23b": "f5acb7af91cbb80cc0ea4fdd2710be44a31b0f8bdd3971d93c7fd74796b3007e",
     "sha256:d9650b626cae3e27cdf2b5bd95649cb4da8f8c0a6d11127cba65b9663be91eb7": "bd802a2587197b3823c7d239a556c0e3853458fc4e837dbeeb0b45c92a1cb7ef"
 }
+CONNECTION_REJECTED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r4')
+CONNECTION_UNIT = 'uts-recovery-qualify-43aef4a7066003697fe4e73f12f2f03b.service'
+CONNECTION_INVOCATION = 'b9d16f8f41d24de7b88339979f0ee43b'
+CONNECTION_RECORDS = {
+    'installation-files.json': '7f5c356b6fa205cbb76a84a45a67df9d1b7bbb4b6ba995ebbb1729b093deb337',
+    'installation-intent.json': '5eaa2d2769a6c1926588b56994a024ddc9eefd58c5051eaf421eaf57365836f2',
+    'installation-result.json': 'a5fe787d75a2cab313890186a516d0fdc5b168cd74deb4fc3a78a778072ae90e',
+    'source-commit.txt': '3befbe4cbaf93c3c67a64cf8b6440cfb0cb819522157f6c576d3dd1c8e00493c'}
+CONNECTION_SOURCE_MAP = '34242e32cf1fb1b3cba96ddbfb2a8f6e75741c65817b2fce4c5c15894c253e75'
+CONNECTION_FILES = {
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/failure.json': '18b4e2cd7bbdac03f8672e6946eea24e6b8031ce5164d711f28e2e7f991f542d',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/intent.json': '80de8c0b26878d7c95d3a08d2c5d4675048833fed79135876088e6d061b6027b',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/relay-failure.json': '18b4e2cd7bbdac03f8672e6946eea24e6b8031ce5164d711f28e2e7f991f542d',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/service-started.json': 'f60b0a9b657d0d972fd60fa54fe9b47576d7010e2b9ca27c1a999d402a432b43',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/service.log': '3f767f4ee721f508fb2c9f7d5be320b4a48cff70b6b5c332d42259fe09ca22c6'}
+CONNECTION_DIRECTORIES = ('.runtime/stage2/no-cutoff-recovery-qualify-connection',)
 OPERATOR_STATES = {
+    '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r5': {
+        'intent.json': '85fd2e7e14484848ba493392f0acb13c57a0fea69a73ec31ae50b89be20a5d16',
+        'result.json': CONNECTION_RECORDS['installation-result.json']},
+    '.runtime/netcup/custom-no-cutoff-recovery-qualify-20260930-r4': {
+        'intent.json': 'c22198085ebde8c0fd2ad2d7bbce41ca3d70d2b0eae0d8b0b09b5ea0fb18eb52',
+        'receiver.json': '570966939f25d55b95096ab9fc85aa6a7102665005760822583ecbad0ac01f02',
+        'failure.json': '4afef265e1cf768dd6551f247c855ab6c401b2ebec4e4be11394cd6e914072d7'},
     '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r4': {
         'intent.json': '6204671db54e7ec44bbf47ac577c8b9376f88d3fd729abd6e6aa259b70944b69',
         'result.json': REGRESSION_RECORDS['installation-result.json']},
@@ -439,15 +462,28 @@ def regression_rejected():
         paid_attempts_started=0, qualification_passed=False)
 
 
+def connection_rejected():
+    """Retain the failed pre-handoff r4 operation without restarting it."""
+    args = (CONNECTION_REJECTED, CONNECTION_UNIT, CONNECTION_INVOCATION, '1271584')
+    before = _rejected_manager(*args)
+    _rejected_processes(*args[:2])
+    if _rejected_manager(*args) != before: _fail()
+    tree = _retained_tree(CONNECTION_REJECTED, CONNECTION_RECORDS, 326,
+        CONNECTION_SOURCE_MAP, CONNECTION_FILES, CONNECTION_DIRECTORIES)
+    return dict(manager=before, retained_identity=tree, paid_attempts_started=0,
+        qualification_passed=False, handoff_accepted=False)
+
+
 def inspect():
     before = baseline()
     first = retained()
     failed = rejected()
     regressions = regression_rejected()
+    connection = connection_rejected()
     if (baseline() != before or retained() != first or rejected() != failed
-            or regression_rejected() != regressions): _fail()
+            or regression_rejected() != regressions or connection_rejected() != connection): _fail()
     return dict(kind='recovery_execution_location_amendment_not_admission',
         execution_root=str(ROOT), retained_unstarted_root=str(RETIRED),
         original_plan_unchanged=True, retained_installation_attempts_started=0,
         retained_identity=first, retained_failed_qualification=failed,
-        retained_failed_regressions=regressions, paid_launch_ready=False)
+        retained_failed_regressions=regressions, retained_failed_connection=connection, paid_launch_ready=False)

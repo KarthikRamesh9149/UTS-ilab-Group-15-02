@@ -40,6 +40,14 @@ TIMEOUT = handoff.launch.transport.HANDOFF_SECONDS
 OUTPUTS = ('summary.json', 'trials.json', 'trials.csv')
 
 
+def _ready(files, commit, mode):
+    if mode not in ('audit', 'backup') or type(commit) is not str or not re.fullmatch('[a-f0-9]{40}', commit):
+        raise ValueError('Exact committed reporting readiness required')
+    return dict(kind='recovery_reporting_receiver_ready_not_authenticated', mode=mode,
+        root=str(boot.ROOT), operator_commit=commit, bindings_sha256=policy.fingerprint(files),
+        paid_launch_ready=False)
+
+
 def _json(value):
     return json.dumps(value, sort_keys=True, allow_nan=False, indent=2).encode() + b'\n'
 
@@ -63,6 +71,10 @@ async def native(files, commit, mode):
     path = boot.ROOT / NATIVE_BACKUP
     if mode == 'backup' and (path.exists() or path.is_symlink()):
         raise ValueError('A previous/partial recovery backup is terminal, never recreated')
+    # All actual bootstrap ancestor checks finish before the sender begins its
+    # original audit. The session then waits for its post-audit header before
+    # checking ancestor processes again. Readiness itself is never admission.
+    output.write(service._line(_ready(files, commit, mode))); output.flush()
     created = False; state = data = inventory = inventory_state = receipt = None
     try:
         with redirect_stdout(sys.stderr), session.open_session(incoming) as active:
@@ -198,6 +210,7 @@ def _capture(commit, mode, *, path=None):
     try:
         process = subprocess.Popen(_command(files, commit, mode), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL, bufsize=0, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
+        policy._same(connection.read_reply(process.stdout), _ready(files, commit, mode))
         handoff.send(process.stdin)  # Actual fresh original audit + SAME original archive, never a saved receipt.
         process.stdin.close()
         result = _receive(process, mode, value, path=path)

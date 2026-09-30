@@ -377,6 +377,16 @@ def _failure(path, name, expected):
     save(path / name, dict(expected, status='uncertain_preserve_evidence_inspect_without_retry'))
 
 
+def _failure_diagnostic(path, stage, error):
+    if stage not in ('service_identity', 'socket_connect', 'peer_identity', 'live_session'):
+        raise ValueError('Fixed service failure stage required')
+    classes = {ValueError: 'ValueError', OSError: 'OSError', TimeoutError: 'TimeoutError',
+        BrokenPipeError: 'BrokenPipeError', RuntimeError: 'RuntimeError',
+        asyncio.CancelledError: 'CancelledError', SystemExit: 'SystemExit', KeyboardInterrupt: 'KeyboardInterrupt'}
+    save(path / 'failure-diagnostic.json', dict(stage=stage,
+        error_class=classes.get(type(error), 'OtherException'), automatic_resume=False, paid_launch_ready=False))
+
+
 def relay(nonce, files, commit, identities, operation=OPERATION):
     """One pinned SSH operation; never signal or retry the detached service."""
     check(files, identities); boot.ancestors(files); check(files, identities)
@@ -553,21 +563,26 @@ def serve(nonce, files, commit, identities, relay_process, operation=OPERATION):
     if operation != OPERATION:
         started['invocation_id'] = _execution_start(expected['unit'], process)
     save(path / 'service-started.json', started)
+    stage = 'service_identity'
     try:
         if _service_process(expected['unit']) != process_identity(os.getpid()):
             raise ValueError('Inspection must run in the actual detached unit MainPID')
         sock = endpoint(nonce); socket_id = _socket_identity(sock)
+        stage = 'socket_connect'
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
             connection.settimeout(TIMEOUT); connection.connect(str(sock))
+            stage = 'peer_identity'
             if _peer(connection) != relay_process or _socket_identity(sock) != socket_id:
                 raise ValueError('Native service peer is not the original SSH relay process')
             check(files, identities)
+            stage = 'live_session'
             with connection.makefile('rb') as incoming:
                 if operation == OPERATION:
                     asyncio.run(inspect_session(nonce, files, commit, identities, incoming, connection, path, intent_raw))
                 else:
                     asyncio.run(execute_session(nonce, files, commit, identities, incoming,
                         connection, path, intent_raw, operation))
-    except BaseException:
+    except BaseException as error:
         _failure(path, 'failure.json', expected)
+        _failure_diagnostic(path, stage, error)
         raise

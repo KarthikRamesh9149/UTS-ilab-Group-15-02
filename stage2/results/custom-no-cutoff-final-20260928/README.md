@@ -1,5 +1,46 @@
 # Measured C0-NC final89
 
+## Recovery handoff ordering correction, 30 September UTC
+
+The r4 installation succeeded at 05:17:51 UTC and its actual import check passed
+at 05:20:46. The ONE qualification connection failed before handoff acceptance
+or any qualification producer/paid task. Read-only 05:39:23 inspection verified
+the exact failed service, no remaining service/relay process, all 326 installed
+source/input files and the five retained connection files. No native signal,
+restart, replay or evidence replacement occurred.
+
+A deterministic local pipe test reproduced an ordering defect: the receiver
+could reject the sender's required original audit as an active original-root
+process. The corrected receiver waits for the sender's post-audit header,
+then performs all actual ancestor/stop/archive/native-audit/lock checks.
+Reporting now uses a strict pre-audit readiness barrier too. The unavailable
+historical r4 exception remains unknown; the reproduced defect is not an
+invented traceback. Original archived guards and benchmark behaviour are unchanged.
+
+The correction is restricted to a new exclusive r5 native root, with the complete
+failed r4 tree and private operator state pinned alongside r1/r2/r3. Installation
+requires 45 existing locks; the live session holds 46. All actual native gates
+and the six isolated fake-model cases remain mandatory. No new-root absence,
+installation or qualification is inferred from local checks.
+
+The first 227 targeted checks had one stale test-only expected Mac directory
+suffix; it was corrected. The 14 affected installer/baseline-lock checks then
+passed. The final exact-source recovery gate passed all 826 tests with zero
+skips, errors or failures in 358.019 seconds, checking all 318 source bindings
+before imports/discovery and after execution, with 215 loaded project modules.
+The source-map SHA256 is
+`a0e12663958bcb6ffe7c34776cf20b05b3502433635a8e2ef77976cb37988166`.
+These are local tests, not native qualification or benchmark outcomes.
+
+Recovery is **0/3 started** and both baseline repeats are unstarted. Original
+Custom C0-NC is **89/89 complete: 50 passed, 36 verified failures, 3 missing
+verifier outcomes**, with no active benchmark task. Recovery tonight Sydney
+and whole-project Saturday 3 October morning remain conditional, at-risk targets,
+not guarantees; baseline runtime alone is approximately 51 hours, plus remaining
+integration, qualification, audits and backups. The VPS and hourly updates remain on.
+
+Older pending-install/source-count statements below are historical.
+
 ## Native regression refusal and test correction, 30 September UTC
 
 The r3 installation at `7596aaed36f1a41b0d382d732a44ce392ada569b` succeeded.

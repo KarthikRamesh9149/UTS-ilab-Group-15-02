@@ -223,11 +223,12 @@ class SessionTests(LocalTree, unittest.IsolatedAsyncioTestCase):
             with session.open_session(io.BytesIO(b'saved')): self.fail('Saved input accepted')
         self.auth.assert_not_called()
 
-    async def test_stop_refuses_before_authentication(self):
-        self.stops.side_effect = ValueError('persistent stop')
+    async def test_authentication_stop_refuses_before_locks_and_host(self):
+        self.auth.side_effect = ValueError('persistent stop')
         with self.assertRaises(ValueError):
             with session.open_session(self.stream): self.fail('Stopped entry accepted')
-        self.auth.assert_not_called()
+        self.auth.assert_called_once(); self.inspect.assert_not_called()
+        self.assertFalse(any(self.is_locked(p) for p in self.paths))
 
     async def test_authentication_failure_releases_gate_without_host_execution(self):
         self.auth.side_effect = ValueError('uncommitted transfer')
@@ -393,10 +394,11 @@ class ContractTests(unittest.TestCase):
         paths.extend(handoff.report.ROOT / handoff.phase.RT / n
             for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
         paths.extend(base / handoff.phase.RT / n
-            for base in (handoff.revision.RETIRED, handoff.revision.REJECTED, handoff.revision.REGRESSION_REJECTED)
+            for base in (handoff.revision.RETIRED, handoff.revision.REJECTED, handoff.revision.REGRESSION_REJECTED,
+                handoff.revision.CONNECTION_REJECTED)
             for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
         self.assertEqual(session._lock_paths(handoff.ROOT), tuple(paths))
-        self.assertEqual(len(paths), 43)
+        self.assertEqual(len(paths), 46)
         self.assertEqual(sum(p.parent == handoff.ROOT / handoff.phase.RT for p in paths), 1)
 
     def test_full_system_ancestry_is_included(self):

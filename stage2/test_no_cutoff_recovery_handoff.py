@@ -269,6 +269,22 @@ class RecoveryOriginalHandoffTests(unittest.TestCase):
             with self.subTest(length=len(packet)), self.assertRaises(ValueError): self.pipe(packet)
         self.native_audit.assert_not_called()
 
+    def test_post_header_stop_refuses_before_archive_authentication_and_native_audit(self):
+        packet = self.packet()
+        self.no_stop.side_effect = ValueError('synthetic persistent stop')
+        with patch.object(archive, 'verify_stream', wraps=archive.verify_stream) as verify, \
+                self.assertRaisesRegex(ValueError, 'synthetic persistent stop'):
+            self.pipe(packet)
+        verify.assert_not_called(); self.native_audit.assert_not_called()
+        self.assertFalse(handoff._WITNESSES)
+
+    def test_truncated_header_never_observes_ancestors_or_authenticates_archive(self):
+        with patch.object(archive, 'verify_stream', wraps=archive.verify_stream) as verify, \
+                self.assertRaises(ValueError):
+            self.pipe(b'incomplete transport header')
+        self.no_stop.assert_not_called(); verify.assert_not_called()
+        self.native_audit.assert_not_called()
+
     def test_corrupt_archive_refuses_before_native_audit(self):
         raw = bytearray(self.archive_raw); raw[len(raw) // 2] ^= 1
         with self.assertRaises((ValueError, OSError, EOFError)): self.pipe(self.packet(archive_raw=bytes(raw)))

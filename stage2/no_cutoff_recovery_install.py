@@ -23,14 +23,14 @@ import subprocess
 import sys
 import types
 
-ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r4')
+ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r5')
 ORIGINAL = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
 REPORTER = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r4')
 QUALIFICATION = '.runtime/stage2/no-cutoff-recovery-original-qualification.json'
 ORIGINAL_QUALIFICATION = '.runtime/stage2/no-cutoff-final-qualification.json'
 QUALIFICATION_SHA = '008f2998d0df7646ba351c76b5a343354e25f4d99fdf66f05dee39e6ea19d110'
 MANIFEST = '.runtime/stage2/no-cutoff-recovery-manifest.json'
-STATE = '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r5'
+STATE = '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r6'
 FAILED_STATE = '.runtime/netcup/custom-no-cutoff-recovery-installation-20260929'
 FAILED_FILES = {
     'intent.json': '5849ac36f8f936854160b430ab7db10d66adb4335698a8e9405ead1136db3ea1',
@@ -43,7 +43,8 @@ EARLY = ('uts-capstone', 'uts-capstone-baseline-repeat-20260921', 'uts-capstone-
     'uts-capstone-custom-deadline-20260927')
 LATE = ('uts-capstone-custom-deadline-20260927-r2', 'uts-capstone-custom-no-cutoff-20260928',
     'uts-capstone-custom-no-cutoff-final-20260928', 'uts-capstone-custom-no-cutoff-recovery-20260929',
-    'uts-capstone-custom-no-cutoff-recovery-20260930-r2', 'uts-capstone-custom-no-cutoff-recovery-20260930-r3')
+    'uts-capstone-custom-no-cutoff-recovery-20260930-r2', 'uts-capstone-custom-no-cutoff-recovery-20260930-r3',
+    'uts-capstone-custom-no-cutoff-recovery-20260930-r4')
 
 
 def _sha(value): return hashlib.sha256(value).hexdigest()

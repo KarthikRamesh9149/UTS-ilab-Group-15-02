@@ -296,8 +296,14 @@ def _record(value, verified):
 
 def authenticate(stream):
     """Actual original audit BEFORE future full ancestor locks; no saved entry."""
-    root = _context(); wire.pipe_only(stream); revision_state = _no_stop(root)
+    root = _context(); wire.pipe_only(stream)
+    # The pinned sender cannot emit a header until its actual original audit
+    # and retained-archive verification finish. Before then, its required audit
+    # may legitimately occupy the original root. Bootstrap ancestor checks run
+    # before receiver-ready; repeat them here after the header, before reading
+    # archive bytes or acquiring locks. This header alone grants no authority.
     header, header_digest = wire.read_header(stream)
+    revision_state = _no_stop(root)
     value = _anchors(root, header); _check(root, value, revision_state)
     verified = archive.verify_stream(stream, value['data'], value['backup']['receipt'])
     archive._same(verified, value['backup']['verification'])

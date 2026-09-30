@@ -81,7 +81,8 @@ def _lock_paths(root):
     paths.extend(base / handoff.phase.RT / n for base in (C3_ROOT, NC_ROOT, handoff.report.ROOT)
         for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
     paths.extend(base / handoff.phase.RT / n
-        for base in (handoff.revision.RETIRED, handoff.revision.REJECTED, handoff.revision.REGRESSION_REJECTED)
+        for base in (handoff.revision.RETIRED, handoff.revision.REJECTED, handoff.revision.REGRESSION_REJECTED,
+            handoff.revision.CONNECTION_REJECTED)
         for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
     if len(set(paths)) != len(paths): raise ValueError('Distinct complete recovery lock chain required')
     return tuple(paths)
@@ -233,7 +234,9 @@ def open_session(stream):
         raise ValueError('Nested or overlapping recovery sessions are refused')
     session = witness = None
     try:
-        root = _context(); handoff.wire.pipe_only(stream); handoff._no_stop(root)
+        root = _context(); handoff.wire.pipe_only(stream)
+        # authenticate checks actual ancestor completion/stops after waiting for
+        # the sender's post-audit header, never concurrently with that audit.
         inputs = _inputs(root)
         witness = handoff.authenticate(stream)
         try:

@@ -209,6 +209,7 @@ class RetainedTests(LocalFiles, unittest.TestCase):
         with patch.object(revision, 'baseline', return_value={'actual_synthetic': True}), \
                 patch.object(revision, 'rejected', return_value={'retained_failure': True}), \
                 patch.object(revision, 'regression_rejected', return_value={'retained_regression_failure': True}), \
+                patch.object(revision, 'connection_rejected', return_value={'retained_connection_failure': True}), \
                 patch.object(revision, 'retained', side_effect=replace), self.assertRaises(ValueError):
             revision.inspect()
 
@@ -252,6 +253,7 @@ class ContractTests(unittest.TestCase):
         with patch.object(revision, 'baseline', return_value={}) as live, \
                 patch.object(revision, 'rejected', return_value={'retained_failure': True}), \
                 patch.object(revision, 'regression_rejected', return_value={'retained_regression_failure': True}), \
+                patch.object(revision, 'connection_rejected', return_value={'retained_connection_failure': True}), \
                 patch.object(revision, 'retained', side_effect=[{'identity': 1}, {'identity': 2}]), \
                 self.assertRaises(ValueError):
             revision.inspect()
@@ -370,6 +372,7 @@ class RejectedTests(unittest.TestCase):
         with patch.object(revision, 'baseline', return_value={}), \
                 patch.object(revision, 'retained', return_value={}), \
                 patch.object(revision, 'regression_rejected', return_value={}), \
+                patch.object(revision, 'connection_rejected', return_value={}), \
                 patch.object(revision, 'rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
             with self.assertRaises(ValueError): revision.inspect()
 
@@ -435,7 +438,69 @@ class RegressionFailureTests(unittest.TestCase):
         with patch.object(revision, 'baseline', return_value={}), \
                 patch.object(revision, 'retained', return_value={}), \
                 patch.object(revision, 'rejected', return_value={}), \
+                patch.object(revision, 'connection_rejected', return_value={}), \
                 patch.object(revision, 'regression_rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
+            with self.assertRaises(ValueError): revision.inspect()
+
+
+class ConnectionFailureTests(unittest.TestCase):
+    def setUp(self):
+        fixture = RegressionFailureTests('runTest'); self.addCleanup(fixture.doCleanups); fixture.setUp()
+        self.root = fixture.root
+        inventory = json.loads((self.root / 'installation-files.json').read_bytes())
+        save(self.root, 'stage2/connection_source.py', b'connection source')
+        inventory['files']['stage2/connection_source.py'] = revision._sha(b'connection source')
+        raw = json.dumps(inventory).encode(); save(self.root, 'installation-files.json', raw)
+        records = dict(revision.REGRESSION_RECORDS, **{'installation-files.json': revision._sha(raw)})
+        for name, value in dict(CONNECTION_REJECTED=self.root, CONNECTION_RECORDS=records,
+                CONNECTION_SOURCE_MAP=revision._sha(json.dumps(inventory['files'], sort_keys=True, allow_nan=False).encode()),
+                CONNECTION_FILES=revision.REGRESSION_FILES, CONNECTION_DIRECTORIES=revision.REGRESSION_DIRECTORIES).items():
+            self.enterContext(patch.object(revision, name, value))
+        self.manager = dict(fixture.manager, InvocationID=revision.CONNECTION_INVOCATION,
+            ExecMainPID='1271584', WorkingDirectory=str(self.root))
+
+    def tree(self):
+        return revision._retained_tree(self.root, revision.CONNECTION_RECORDS, 326,
+            revision.CONNECTION_SOURCE_MAP, revision.CONNECTION_FILES, revision.CONNECTION_DIRECTORIES)
+
+    def test_actual_connection_failure_tree_and_true_absences_are_required(self):
+        first = self.tree(); self.assertEqual(self.tree(), first)
+        save(self.root, '.runtime/stage2/no-cutoff-recovery-qualification.json', b'{}')
+        with self.assertRaises(ValueError): self.tree()
+
+    def test_same_byte_failed_evidence_replacement_changes_identity(self):
+        first = self.tree(); path = self.root / '.runtime/stage2/retained-failure.json'
+        raw = path.read_bytes(); path.unlink()
+        with self.assertRaises((OSError, ValueError)): self.tree()
+        save(self.root, '.runtime/stage2/retained-failure.json', raw)
+        self.assertNotEqual(self.tree(), first)
+
+    def test_exact_r4_manager_is_not_default_exit_metadata(self):
+        args = (self.root, revision.CONNECTION_UNIT, revision.CONNECTION_INVOCATION, '1271584')
+        with patch.object(revision, '_command', return_value='\n'.join(k+'='+v for k,v in self.manager.items())) as command:
+            self.assertEqual(revision._rejected_manager(*args), self.manager)
+            self.assertEqual(command.call_args.args[0][2], revision.CONNECTION_UNIT)
+        for key, value in (('InvocationID', revision.REGRESSION_INVOCATION), ('ExecMainPID', '1247160'),
+                ('MainPID', '9'), ('ExecMainStatus', '0'), ('LoadState', 'not-found')):
+            changed = dict(self.manager, **{key: value})
+            with patch.object(revision, '_command', return_value='\n'.join(k+'='+v for k,v in changed.items())):
+                with self.assertRaises(ValueError): revision._rejected_manager(*args)
+
+    def test_actual_tree_reread_follows_last_native_observation(self):
+        order = []
+        tree = revision._retained_tree
+        with patch.object(revision, '_rejected_manager', side_effect=lambda *a: order.append('manager') or self.manager), \
+                patch.object(revision, '_rejected_processes', side_effect=lambda *a: order.append('process')), \
+                patch.object(revision, '_retained_tree', side_effect=lambda *a: order.append('tree') or tree(*a)):
+            value = revision.connection_rejected()
+        self.assertEqual(order, ['manager', 'process', 'manager', 'tree'])
+        self.assertFalse(value['handoff_accepted']); self.assertFalse(value['qualification_passed'])
+        self.assertEqual(value['paid_attempts_started'], 0)
+
+    def test_late_connection_identity_drift_refuses_complete_inspection(self):
+        with patch.object(revision, 'baseline', return_value={}), patch.object(revision, 'retained', return_value={}), \
+                patch.object(revision, 'rejected', return_value={}), patch.object(revision, 'regression_rejected', return_value={}), \
+                patch.object(revision, 'connection_rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
             with self.assertRaises(ValueError): revision.inspect()
 
 

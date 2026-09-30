@@ -75,6 +75,24 @@ class LocalTree(unittest.TestCase):
 
 
 class GuardTests(LocalTree):
+    def test_service_failure_diagnostic_never_serializes_messages_or_subclass_names(self):
+        path = self.native_folder()
+        class PrivateExceptionName(ValueError):
+            def __str__(self): raise AssertionError('Do not stringify private exceptions')
+        service._failure_diagnostic(path, 'live_session', PrivateExceptionName('private output'))
+        raw = (path / 'failure-diagnostic.json').read_bytes()
+        self.assertEqual(boot.loads(raw), dict(stage='live_session', error_class='OtherException',
+            automatic_resume=False, paid_launch_ready=False))
+        self.assertNotIn(b'private', raw); self.assertNotIn(b'PrivateExceptionName', raw)
+
+    def test_service_failure_diagnostic_retains_fixed_class_and_refuses_unknown_stage(self):
+        path = self.native_folder()
+        with self.assertRaises(ValueError): service._failure_diagnostic(path, 'arbitrary output', ValueError())
+        self.assertFalse((path / 'failure-diagnostic.json').exists())
+        service._failure_diagnostic(path, 'socket_connect', TimeoutError('unpublished'))
+        self.assertEqual(boot.loads((path / 'failure-diagnostic.json').read_bytes())['error_class'], 'TimeoutError')
+        with self.assertRaises(FileExistsError): service._failure_diagnostic(path, 'socket_connect', TimeoutError())
+
     def test_actual_full_inventory_and_identities_are_read(self):
         self.assertEqual(set(boot.check(self.files)), set(self.files))
         self.assertIn('stage2/no_cutoff_recovery_service.py', self.files)
@@ -439,6 +457,35 @@ class ServiceSessionTests(LocalTree):
         self.assertEqual((self.f.e.folder / 'evidence.tar.gz').read_bytes(), before)
         self.assertEqual(len(session._SESSIONS), 0); self.assertEqual(len(handoff._WITNESSES), 0)
         self.f.e.collect.assert_called_once(); self.f.native_audit.assert_called_once(); peer.sendall.assert_called_once()
+
+    def test_sender_audit_finishes_before_receiver_ancestor_process_checks(self):
+        # The real sender does its required original audit before emitting any
+        # header. Keep it pending until the real receiver is reading the pipe:
+        # a pre-header ancestor process check would reject this required audit.
+        receiving = threading.Event(); audited = threading.Event(); events = []
+        read_header = handoff.wire.read_header
+        def audit(commit):
+            self.assertEqual(commit, self.commit)
+            if not receiving.wait(5): raise AssertionError('Receiver never waited for the live header')
+            events.append('operator-audit-finished'); audited.set()
+            return deepcopy(self.f.e.fresh)
+        def header(stream):
+            events.append('waiting-for-header'); receiving.set()
+            value = read_header(stream); events.append('header-received'); return value
+        def ancestors(root):
+            if not audited.is_set():
+                receiving.set()  # Release the local test writer on old-code refusal.
+                raise ValueError('Required sender audit is still active')
+            self.assertIn('header-received', events)
+            events.append('ancestor-check')
+        self.f.e.collect.side_effect = audit; self.f.no_stop.side_effect = ancestors
+        with patch.object(handoff.wire, 'read_header', side_effect=header):
+            result, _, sent = self.invoke()
+        self.assertEqual(events[:4], ['waiting-for-header', 'operator-audit-finished',
+            'header-received', 'ancestor-check'])
+        self.f.e.collect.assert_called_once_with(self.commit)
+        self.f.native_audit.assert_called_once()
+        self.assertEqual(len(sent), 1); self.assertFalse(result['paid_launch_ready'])
 
     def test_missing_final_commit_never_saves_success(self):
         with self.assertRaises(ValueError): self.invoke(self.f.packet(committed=False))

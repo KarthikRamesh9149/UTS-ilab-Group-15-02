@@ -273,7 +273,9 @@ class ReportingTests(LocalFiles, unittest.IsolatedAsyncioTestCase):
     async def test_native_backup_commit_follows_normal_session_exit_and_no_second_archive(self):
         await self.produce(); output=io.BytesIO(); read,write=os.pipe(); os.close(write)
         @contextmanager
-        def open_session(stream): yield object()
+        def open_session(stream):
+            self.assertEqual(boot.loads(output.getvalue()), reporting._ready(self.bound, 'a'*40, 'backup'))
+            yield object()
         with os.fdopen(read,'rb',buffering=0) as incoming, \
                 patch.object(reporting,'__file__',str(self.root/'stage2/no_cutoff_recovery_reporting.py')), \
                 patch.object(boot,'check',side_effect=lambda bound,*args:files.capture(self.root,bound)[1]), \
@@ -300,3 +302,54 @@ class ReportingTests(LocalFiles, unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(ValueError): await reporting.native(self.bound,'a'*40,'backup')
         self.assertFalse(output.getvalue().endswith(archive.END))
         self.assertTrue((self.root/reporting.NATIVE_BACKUP/'failure.json').is_file())
+
+
+class ReadinessTests(unittest.TestCase):
+    def setUp(self):
+        self.bound = {'stage2/local-synthetic.py': 'b'*64}; self.commit = 'a'*40
+        self.value = {'local_test_only': True}; self.ids = {'identity': 'local'}
+        self.enterContext(patch.object(reporting.connection, 'prepare', return_value=(self.value, self.bound)))
+        self.enterContext(patch.object(reporting.connection, '_local_identities', return_value=self.ids))
+        self.enterContext(patch.object(reporting, '_command', return_value=['fixed-synthetic-command']))
+        self.enterContext(patch.object(reporting, '_current'))
+
+    def test_sender_never_starts_original_audit_until_exact_bootstrap_readiness(self):
+        import threading
+        read, write = os.pipe(); events = []; pending = threading.Event()
+        process = NS(stdin=io.BytesIO(), stdout=os.fdopen(read, 'rb', buffering=0), poll=lambda: 0)
+        original_read = reporting.connection.read_reply
+        def read_reply(stream):
+            events.append('waiting'); pending.set(); return original_read(stream)
+        def writer():
+            with os.fdopen(write, 'wb', buffering=0) as output:
+                if not pending.wait(5): return
+                events.append('bootstrap-finished')
+                output.write(service._line(reporting._ready(self.bound, self.commit, 'audit')))
+        thread = threading.Thread(target=writer); thread.start()
+        try:
+            with patch.object(reporting.subprocess, 'Popen', return_value=process), \
+                    patch.object(reporting.connection, 'read_reply', side_effect=read_reply), \
+                    patch.object(reporting.handoff, 'send', side_effect=lambda stream: events.append('sender-audit')), \
+                    patch.object(reporting, '_receive', return_value={'synthetic': 'audit'}):
+                result, _, _ = reporting._capture(self.commit, 'audit')
+        finally: thread.join(5)
+        self.assertFalse(thread.is_alive()); self.assertEqual(result, {'synthetic': 'audit'})
+        self.assertEqual(events, ['waiting', 'bootstrap-finished', 'sender-audit'])
+
+    def test_wrong_mode_commit_root_or_bindings_cannot_start_sender(self):
+        ready = reporting._ready(self.bound, self.commit, 'audit')
+        for field, changed in [('mode', 'backup'), ('operator_commit', 'c'*40), ('root', '/wrong'),
+                ('bindings_sha256', 'd'*64), ('paid_launch_ready', True), ('extra', True)]:
+            process = NS(stdin=io.BytesIO(), stdout=io.BytesIO(), poll=lambda: 0)
+            with self.subTest(field=field), patch.object(reporting.subprocess, 'Popen', return_value=process), \
+                    patch.object(reporting.connection, 'read_reply', return_value=dict(ready, **{field: changed})), \
+                    patch.object(reporting.handoff, 'send') as send, self.assertRaises(ValueError):
+                reporting._capture(self.commit, 'audit')
+            send.assert_not_called()
+
+    def test_saved_readiness_is_not_a_complete_audit(self):
+        ready = reporting._ready(self.bound, self.commit, 'audit')
+        self.assertFalse(ready['paid_launch_ready'])
+        self.assertNotIn('completed', ready)
+        for mode, commit in [('run', self.commit), ('audit', 'HEAD')]:
+            with self.assertRaises(ValueError): reporting._ready(self.bound, commit, mode)
