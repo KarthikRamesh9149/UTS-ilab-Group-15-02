@@ -1,5 +1,42 @@
 # Separate C0-NC setup recovery
 
+## Recovery complete; backup attempt failed, 1 October Sydney
+
+The actual recovery is **3/3 completed: 0 passed, 3 failed, 0 missing verifier
+outcomes**, with no active task. The genuine completed-operation status reader
+passed at 2026-09-30T22:59:41.680665Z after the exact paid service successfully
+exited. All three zero-score results are retained separately. Their detailed
+failure causes have not been inspected. Original89 remains unchanged: 50 passed,
+36 verified zero-score failures and 3 original setup-only missing outcomes.
+
+The ONE private backup attempt began at 23:04:13.584138Z and failed at
+23:11:28.846296Z. Only its private intent/failure remain; no recovery archive or
+export exists. No task or qualification was repeated. Both baselines remain
+unstarted at 0/89. The [Mac reporting amendment](../../protocols/custom_recovery_mac_reporting_20260930.md)
+records the retained failure, safe diagnosis and narrow sender-pipe correction.
+The failed folder is terminal. A separately approved backup-only preservation
+amendment is required before another attempt; current paths have not changed.
+
+The new real-pipe regression failed before the Mac-only correction. All **241
+affected local tests** then passed on the final source bytes in 244.259 seconds
+(248.542 including guards), with zero skips/errors/failures, 413 source bindings
+before/discovery/after, 208 final loaded project modules and per-test cache
+isolation checks. Source-map SHA256:
+`82a3b6767812bd5536b363bf8ea2571499d7504a6f95a53e0dcd2698f0a94ca6`.
+This includes seven new child regressions and the actual fixed SSH-argv path
+stopped by a separate local audit hook before process creation. No SSH connection
+or provider call is made by that test. Synthetic archive/host observations are
+not native qualification, a completed audit or a verified recovery backup.
+
+The first 241-test invocation omitted the owned Mac TMPDIR and had 34 protected
+fixture-ancestry errors plus one downstream fixture-lock mismatch. It is not
+counted as passed. The corrected invocation used the actual owned temporary
+directory; no source or protection rule was changed between those invocations.
+All 318 frozen R6 files, archived35, and original211 (except the already disclosed
+local scored-trial orchestration delta) were checked unchanged. Earlier wider
+1,490-test evidence predates this correction and has not been rerun for it.
+The earlier dated checkpoints below are historical.
+
 ## Current qualification observation, 30 September 14:14 UTC
 
 Recovery remains **0/3 paid**. The SAME R6 unit/process was verified active at

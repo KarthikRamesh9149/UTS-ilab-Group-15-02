@@ -2,15 +2,65 @@
 
 This is a Mac operator compatibility correction, not new native qualification,
 paid admission, a task attempt, a score change or a replacement backup. The
-running R6 tree, all 318 source bytes, original reporter35 and every retained
+frozen R6 tree, all 318 source bytes, original reporter35 and every retained
 failed root remain unchanged. No permissions or ACLs are changed.
+
+## First actual backup refusal and local pipe correction, 1 October Sydney
+
+The recovery run completed with three retained zero-score results and no missing
+verifier outcomes. Its genuine completed-operation reader passed at
+2026-09-30T22:59:41.680665Z. This does not establish a completed study audit.
+
+The ONE actual Mac backup invoked at 23:04:13.584138Z returned ValueError at
+23:11:28.846296Z without a retained historical traceback. Its terminal private
+directory `.runtime/netcup/custom-no-cutoff-recovery3-20260929` contains only
+`intent.json` (207 bytes, SHA256
+7a49bd3ba8d0bd215cfb80f3cf03ec801f88bd8ca91a18f57a6ed306fedd4e5d) and
+`failure.json` (113 bytes, SHA256
+9cbc70820f9403c958bd5ba879b64f60d004fd2e3f11ecfb08028e2a317ee65c).
+No archive, snapshot, inventory or backup completion exists. At 23:31:24.304428Z
+a source-bound read-only native diagnostic verified all 319 source/private
+bindings and final identities, absence of the native backup operation directory
+and relevant native processes, and successful current reporting pre-readiness
+checks. It did not open a session, collect evidence, read an archive or write.
+An earlier disposable diagnostic omitted the required read-only Docker image
+inspection from its own guard; that diagnostic refusal was not the backup cause.
+
+A separate actual source-bound Mac sender diagnostic at 23:40:25.470624Z
+reproduced its own always-on guard rejecting `os.fdopen` on the existing stdin
+FIFO before the original audit SSH subprocess could start. `Popen(stdin=PIPE)`
+wraps this already-created descriptor before its subprocess audit event. The
+outer diagnostic permitted only that existing FIFO wrapper and blocked all SSH
+creation and archive reads; it recorded no refusal of its own. The real sender
+returned allowlisted `transport_start` / `PermissionError`, with zero stdout
+and no native connection or archive read. This establishes a current mechanism,
+not the unavailable exact historical traceback.
+
+The separate Mac child now permits a write-mode wrapper only for an already-open
+integer FIFO descriptor, only after imports and only in `send` mode. No pathname
+write, regular-file descriptor write, import-time write or prepare-mode write is
+permitted. The subsequent exact SSH command allowlist, credential/environment
+guards, refusal latch, source/private identity rereads and withheld commitment
+remain unchanged. No native source, archived guard, benchmark or agent changes.
+An isolated real-pipe regression failed before this correction. Positive pipe
+transport and negative file/regular-descriptor/arbitrary-process/import/prepare
+cases exercise the actual child; native audit/archive observations stay synthetic.
+
+This is a local correction, not a successful backup or replacement admission.
+The failed private state must never be reused, overwritten or deleted. No backup
+retry, export or baseline installation was performed by this correction. A new
+backup-only attempt needs an explicitly approved separate destination and bound
+preservation amendment; the current destination remains terminal. Both baseline
+repeats still await a genuine completed recovery audit, verified separate archive
+and allowlisted export. Existing run/qualification results must never be replayed.
 
 ## Observed issue and scope
 
 An actual credential-free read-only Mac check reproduced both recovery and
 baseline reporting calling Linux-only `os.listxattr` checks. That attribute is
 absent in the bundled Darwin interpreter. Earlier synthetic OS fixtures hid
-this incompatibility. No real recovery/baseline backup or export was attempted.
+this incompatibility. At that earlier checkpoint no real recovery/baseline backup
+or export had been attempted; the later first backup refusal is recorded above.
 
 The separate `mac_operator_files` reader actually runs fixed `/bin/ls -lde`
 under a credential-free environment and validates complete canonical ancestry,

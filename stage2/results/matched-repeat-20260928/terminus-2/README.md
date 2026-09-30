@@ -1,5 +1,22 @@
 # Separate Terminus-2 repeat
 
+## Current blocker, 1 October Sydney
+
+Terminus-2 remains **0/89, unstarted**, with no passes, failures, missing results
+or active task. Recovery3 has completed with 0 passes, 3 failures and no missing
+verifier outcomes, but its first backup failed before creating an archive. The
+[recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records the
+Mac-only correction and 241 passing affected local checks. The old 1,490-test
+gate below predates that correction. A genuine completed recovery audit,
+verified separate backup and allowlisted export are still mandatory before
+the first baseline installation. No failed folder is reused or task replayed.
+
+The user left the disclosed inherited million-turn guard choice to the operator;
+the original defaults are retained for faithful baseline repeats. They are not
+Terminal-Bench rules and the run is not described as literally unrestricted.
+No added study cost/model-call/physical-request/retry-count cap, reserve or score
+floor is introduced. The earlier dated implementation history follows.
+
 ## Both baseline routes now have a local implementation
 
 The [OpenHands completed-Terminus successor route](../../../protocols/baseline_openhands_successor_20260930.md)

@@ -1,5 +1,17 @@
 # Separate OpenHands repeat
 
+## Current blocker, 1 October Sydney
+
+OpenHands remains **0/89, unstarted**, with no passes, failures, missing results
+or active task. Recovery3 has finished (0 passed, 3 failed, no missing verifier),
+but its first private backup failed before an archive was created. The
+[recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records the
+Mac-only correction and 241 passing affected local checks. The earlier 1,490-test
+gate below predates that correction. Recovery audit/verified backup/export,
+then the complete Terminus89 sequence, remain required. No parallel baseline
+installation or dispatch is authorised. The disclosed inherited million-turn
+guard is retained; no added study spending/model/request/retry cap is introduced.
+
 The approved repeat is **0/89**. No baseline root, native qualification or paid
 attempt has been created. There is no new score here.
 

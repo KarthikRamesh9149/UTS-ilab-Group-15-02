@@ -67,7 +67,7 @@ class ChildTests(unittest.TestCase):
         self.environment=bridge._environment()
         self.environment['TIKTOKEN_CACHE_DIR']=str(self.root/'.tools/stage2-custom/lib/python3.12/site-packages/litellm/litellm_core_utils/tokenizers')
 
-    def fixture(self,effect='',delay=False):
+    def fixture(self,effect='',delay=False,send_prelude='',prepare_prelude=''):
         self.native_names={'no_cutoff_recovery_connection.py','no_cutoff_recovery_policy.py'}
         for name in bridge.EXTRAS:
             path=self.stage/name; path.parent.mkdir(parents=True,exist_ok=True)
@@ -89,6 +89,7 @@ def loaded(root,native):
   if filename and Path(filename).is_relative_to(root/'stage2') and Path(filename).name not in native:
    raise ValueError('Unbound synthetic import')
 def prepare(commit):
+PREPARE_PRELUDE
  local=mapping()
  return {'bindings':{'local':local},'recovery_local':local,'publication':{}},local
 def ids(value):
@@ -98,6 +99,7 @@ def merge(a,b):
   if n in a and a[n]!=h:raise ValueError('Conflict')
   a[n]=h
 def send(output):
+SEND_PRELUDE
  output.write(b'synthetic-payload'*40)
  output.flush()
  time.sleep(DELAY)
@@ -106,7 +108,9 @@ def send(output):
 operator=NS(loaded=loaded,_current=lambda value:None)
 handoff=NS(report=NS(_merge=merge),send=send,wire=NS(COMMIT=b'COMMIT\\n'))
 _local_identities=ids
-'''.replace('NATIVE',repr(self.native_names)).replace('DELAY','0.3' if delay else '0')
+'''.replace('NATIVE',repr(self.native_names)).replace('DELAY','0.3' if delay else '0').replace(
+    'SEND_PRELUDE','\n'.join(' '+line for line in send_prelude.splitlines())).replace(
+    'PREPARE_PRELUDE','\n'.join(' '+line for line in prepare_prelude.splitlines()))
         (self.stage/'no_cutoff_recovery_connection.py').write_text(connection)
         final=self.root/bridge.FINAL; final.parent.mkdir(parents=True,mode=0o700)
         # Every private leaf in the real metadata path is actually protected.
@@ -149,6 +153,91 @@ _local_identities=ids
         if sys.platform!='darwin':self.assertNotEqual(result.returncode,0);return
         self.assertEqual(result.returncode,0,result.stderr.decode())
         self.assertEqual(result.stdout,b'synthetic-payload'*40+b'COMMIT\n'+b'h'*32+b'a'*32)
+
+    def test_send_allows_fdopen_of_own_existing_anonymous_pipe(self):
+        self.fixture(send_prelude="""reader,writer=os.pipe()
+with os.fdopen(writer,'wb',buffering=0) as stream: stream.write(b'pipe-check')
+with os.fdopen(reader,'rb',buffering=0) as stream:
+ assert stream.read()==b'pipe-check'""")
+        result=self.run_child('send')
+        if sys.platform!='darwin':self.assertNotEqual(result.returncode,0);return
+        self.assertEqual(result.returncode,0,result.stderr.decode())
+        self.assertEqual(result.stdout,b'synthetic-payload'*40+b'COMMIT\n'+b'h'*32+b'a'*32)
+
+    def test_send_regular_file_write_still_latches_refusal(self):
+        self.fixture(send_prelude="""try: open('must-not-exist-after-import','wb')
+except PermissionError: pass""")
+        result=self.run_child('send')
+        self.assertNotEqual(result.returncode,0)
+        self.assertFalse((self.root/'must-not-exist-after-import').exists())
+        self.assertNotIn(b'COMMIT\n'+b'h'*32+b'a'*32,result.stdout)
+
+    def test_send_regular_descriptor_write_still_latches_refusal(self):
+        self.fixture(send_prelude="""descriptor=os.open(root/'stage2/no_cutoff_recovery_policy.py',os.O_RDONLY)
+try:
+ try: os.fdopen(descriptor,'wb')
+ except PermissionError: pass
+finally:
+ try: os.close(descriptor)
+ except OSError: pass""")
+        result=self.run_child('send')
+        self.assertNotEqual(result.returncode,0)
+        self.assertNotIn(b'COMMIT\n'+b'h'*32+b'a'*32,result.stdout)
+
+    def test_send_arbitrary_process_with_stdin_pipe_still_refused(self):
+        self.fixture(effect='import subprocess',send_prelude="""try: subprocess.Popen(['/usr/bin/true'],stdin=subprocess.PIPE)
+except PermissionError: pass""")
+        result=self.run_child('send')
+        self.assertNotEqual(result.returncode,0)
+        self.assertNotIn(b'COMMIT\n'+b'h'*32+b'a'*32,result.stdout)
+
+    def test_exact_sender_popen_reaches_local_veto_without_launching_ssh(self):
+        argv=['ssh','-F','/dev/null','-i',str(self.root/'.runtime/netcup/id_ed25519'),
+            '-o','IdentitiesOnly=yes','-o','StrictHostKeyChecking=yes','-o','BatchMode=yes',
+            '-o','UserKnownHostsFile='+str(self.root/'.runtime/netcup/known_hosts'),
+            '-o','ConnectTimeout=10','-o','ConnectionAttempts=1','-o','ClearAllForwardings=yes',
+            '-o','RequestTTY=no','-o','LogLevel=ERROR','root@62.83.32.126','python3 -']
+        self.fixture(effect='import subprocess',send_prelude=f"""expected={argv!r}
+observed=[]
+def veto(event,args):
+ if event=='subprocess.Popen' and args[1][0]=='ssh':
+  assert list(args[1])==expected
+  observed.append(True)
+  raise RuntimeError('Synthetic veto before actual process creation')
+sys.addaudithook(veto)
+try: subprocess.Popen(expected,stdin=subprocess.PIPE)
+except RuntimeError: pass
+assert observed==[True]""")
+        result=self.run_child('send')
+        if sys.platform!='darwin':self.assertNotEqual(result.returncode,0);return
+        self.assertEqual(result.returncode,0,result.stderr.decode())
+        self.assertEqual(result.stdout,b'synthetic-payload'*40+b'COMMIT\n'+b'h'*32+b'a'*32)
+
+    def test_import_pipe_write_still_latches_refusal(self):
+        self.fixture(effect="""reader,writer=os.pipe()
+try:
+ try: os.fdopen(writer,'wb',buffering=0)
+ except PermissionError: pass
+finally:
+ for descriptor in (reader,writer):
+  try: os.close(descriptor)
+  except OSError: pass""")
+        result=self.run_child('send')
+        self.assertNotEqual(result.returncode,0)
+        self.assertNotIn(b'COMMIT\n'+b'h'*32+b'a'*32,result.stdout)
+
+    def test_prepare_pipe_write_still_latches_refusal(self):
+        self.fixture(prepare_prelude="""reader,writer=os.pipe()
+try:
+ try: os.fdopen(writer,'wb',buffering=0)
+ except PermissionError: pass
+finally:
+ for descriptor in (reader,writer):
+  try: os.close(descriptor)
+  except OSError: pass""")
+        result=self.run_child('prepare')
+        self.assertNotEqual(result.returncode,0)
+        self.assertFalse(result.stdout)
 
     def test_preimport_drift_refused(self):
         self.fixture(); (self.stage/'no_cutoff_recovery_policy.py').write_bytes(b'raise AssertionError("should never import")')

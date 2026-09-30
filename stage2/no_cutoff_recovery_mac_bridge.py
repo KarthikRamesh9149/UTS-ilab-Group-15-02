@@ -178,10 +178,18 @@ def _child(mode, commit, expected):
         if event == 'open':
             path, access, flags = args
             name = Path(os.fsdecode(path)).name if isinstance(path, (str, bytes, os.PathLike)) else ''
+            writing = (isinstance(access, str) and any(c in access for c in 'wax+')
+                or bool(flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND)))
+            transport_pipe = False
+            if writing and mode == 'send' and not importing and type(path) is int:
+                # Popen wraps its already-created stdin pipe with os.fdopen
+                # BEFORE the subprocess audit event. This is not a file open
+                # by pathname; the later exact SSH argv check still applies.
+                try: transport_pipe = stat.S_ISFIFO(os.fstat(path).st_mode)
+                except OSError: pass
             denied |= (name == '.env' or name.startswith('.env.') or name in {'.jwt_secret','id_ed25519','id_rsa'}
                 or mode == 'prepare' and name == 'evidence.tar.gz'
-                or isinstance(access, str) and any(c in access for c in 'wax+')
-                or bool(flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND)))
+                or writing and not transport_pipe)
         if event == 'os.putenv':
             key, value = map(os.fsdecode, args); denied |= environment.get(key) != value
         if event == 'os.unsetenv': denied = True
