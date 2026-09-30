@@ -41,13 +41,13 @@ class LoggedEnvironment:
                 error_type=type(error).__name__)
             raise
 
-    async def upload_file(self, source, target):
-        self.log.record('upload_file',source=str(source),target=str(target))
-        return await self.environment.upload_file(source,target)
+    async def upload_file(self, source_path, target_path):
+        self.log.record('upload_file',source=str(source_path),target=str(target_path))
+        return await self.environment.upload_file(source_path=source_path,target_path=target_path)
 
-    async def upload_dir(self, source, target):
-        self.log.record('upload_dir',source=str(source),target=str(target))
-        return await self.environment.upload_dir(source,target)
+    async def upload_dir(self, source_dir, target_dir):
+        self.log.record('upload_dir',source=str(source_dir),target=str(target_dir))
+        return await self.environment.upload_dir(source_dir=source_dir,target_dir=target_dir)
 
 
 class ToolCallbacks(LocalGraphCallbacks):

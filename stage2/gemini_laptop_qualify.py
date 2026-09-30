@@ -13,6 +13,9 @@ from harbor.models.trial.paths import TrialPaths
 from custom_python_runtime import PythonBundle
 from custom_runner_tests import SequenceModel, completion
 from gemini_laptop_agent import GeminiAgent
+from gemini_laptop_logs import PrivateLog, LoggedEnvironment, ToolCallbacks
+from local_trace import TraceSpool, PhaseRecorder
+from gemini_laptop_policy import fingerprint
 from gemini_laptop_policy import MODEL, atomic_json
 from gemini_laptop_run import environment_for, audit, STUDY
 from scored_gateway import durable_json
@@ -47,8 +50,12 @@ async def fixture(root, private):
     try:
         await asyncio.wait_for(env.start(force_build=False),task.config.environment.build_timeout_sec)
         inspected = audit(env,task)
-        result = await execute_phases(agent=agent,environment=env,task=task,paths=paths,
-            revoke_model=gateway.revoke,setup_timeout_seconds=180)
+        log = PrivateLog(paths.trial_dir / 'private-activity.jsonl')
+        recorder = PhaseRecorder(TraceSpool(paths.trial_dir / 'traces'),trial_id=paths.trial_dir.name,
+            task_id='fixture',harness='C0-NC',protocol_sha256=fingerprint())
+        agent.callbacks = ToolCallbacks(recorder,log)
+        result = await execute_phases(agent=agent,environment=LoggedEnvironment(env,log),task=task,paths=paths,
+            revoke_model=gateway.revoke,setup_timeout_seconds=180,phase_observer=recorder)
         names = subprocess.check_output(['docker','ps','-aq','--filter',
             'label=com.docker.compose.project=' + env.session_id],text=True).strip()
         passed = (result['status']=='verified' and result['verifier_result']['rewards']['reward']==1

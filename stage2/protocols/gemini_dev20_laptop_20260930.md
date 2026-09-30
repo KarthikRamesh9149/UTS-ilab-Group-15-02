@@ -92,6 +92,23 @@ after registration is rejected; recovery needs a separate reviewed protocol.
 Private evidence stays in Docker volume `uts-gemini-dev20-20260930` even after
 the controller is stopped. Do not remove that volume when cleaning task containers.
 
+## Logging repair amendment during development
+
+The first paid attempt finished its agent phase but encountered `AddTestsDirError`:
+the new logging wrapper did not preserve Harbor's keyword names for `upload_dir`.
+It received no verifier score. The controller was gracefully interrupted during
+the second attempt to prevent further affected attempts; both task containers were
+removed and their spending retained. Neither attempt may be replayed or relabelled
+as a scored failure/pass.
+
+The wrapper now preserves `source_dir`/`target_dir` and `source_path`/`target_path`.
+Qualification must exercise the actual logging wrapper in the real Docker fixture.
+A single explicit `--continue-unstarted` entrypoint may retain these two attempts
+and the original ledger, source-bind this repair, and run only the remaining
+eighteen IDs. Model settings, core C0-NC mechanics, deadlines, and the total US$20
+ceiling remain fixed. The amendment and new qualification are separate immutable
+artifacts; the original registration and results remain evidence of the failure.
+
 Documentation checked: [Deep Agents profiles](https://docs.langchain.com/oss/python/deepagents/profiles),
 [Harbor agents](https://www.harborframework.com/docs/agents),
 [Harbor tasks](https://www.harborframework.com/docs/tasks),

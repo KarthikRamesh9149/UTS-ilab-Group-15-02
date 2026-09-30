@@ -127,6 +127,17 @@ class GatewayTests(unittest.IsolatedAsyncioTestCase):
 
 
 class ModelTests(unittest.IsolatedAsyncioTestCase):
+    async def test_logged_uploads_preserve_harbor_keyword_api(self):
+        from types import SimpleNamespace
+        from gemini_laptop_logs import LoggedEnvironment
+        env = SimpleNamespace(upload_file=AsyncMock(),upload_dir=AsyncMock())
+        log = SimpleNamespace(record=lambda *args,**kwargs:None)
+        wrapped = LoggedEnvironment(env,log)
+        await wrapped.upload_file(source_path='/source/file',target_path='/tmp/file')
+        await wrapped.upload_dir(source_dir='/source/tests',target_dir='/tests')
+        env.upload_file.assert_awaited_once_with(source_path='/source/file',target_path='/tmp/file')
+        env.upload_dir.assert_awaited_once_with(source_dir='/source/tests',target_dir='/tests')
+
     def test_langfuse_gemini_track_metadata_only(self):
         from local_trace import observation
         from local_langfuse import payload

@@ -87,7 +87,7 @@ def report(public, registration, rows, budget, stop_reason, remaining, langfuse)
     return summary
 
 
-async def run(root, key_path):
+async def run(root, key_path, *, continue_unstarted=False):
     os.umask(0o077)
     private = root / '.runtime' / STUDY
     prep = json.loads((private / 'preparation.json').read_text())
@@ -102,7 +102,7 @@ async def run(root, key_path):
     public = root / 'stage2/results' / STUDY
     public.mkdir(parents=True, exist_ok=True)
     ledger_path = private / 'ledger.json'
-    if ledger_path.exists() or (private / 'registration.json').exists():
+    if not continue_unstarted and (ledger_path.exists() or (private / 'registration.json').exists()):
         raise RuntimeError('Study already started; do not replay')
     gateway = Gateway(credential(key_path), private)
     rows, registration, langfuse = [], {}, {'status': 'local_metadata_retained_credentials_unavailable'}
@@ -110,16 +110,43 @@ async def run(root, key_path):
         credit = await gateway.start()
         bundle = PythonBundle(private / 'python-runtime.tar.gz', prep['python_bundle']['sha256'])
         bundle.validate()
-        registration = dict(protocol=PROTOCOL, protocol_sha256=fingerprint(), task_ids=tasks,
-            dataset_revision=prep['dataset_revision'], preparation=prep,
-            source_hashes=source, initial_credit=credit, new_spending_limit_usd=gateway.ledger.data['cap_usd'],
-            started_utc=datetime.now(timezone.utc).isoformat())
-        # Public registration excludes private controller paths.
-        registration['preparation'] = {k:v for k,v in prep.items() if k != 'tasks_path'}
-        durable_json(private / 'registration.json', registration)
-        durable_json(public / 'registration.json', registration)
-        durable_json(public / 'qualification.json', qualification)
-        for index, task_id in enumerate(tasks):
+        if continue_unstarted:
+            registration = json.loads((private / 'registration.json').read_text())
+            prior = json.loads((public / 'summary.json').read_text())
+            rows = json.loads((public / 'tasks.json').read_text())
+            changed = {name for name in set(source)|set(registration['source_hashes'])
+                if source.get(name) != registration['source_hashes'].get(name)}
+            if (registration['protocol'] != PROTOCOL or registration['task_ids'] != tasks
+                    or prior['stop_reason'] != 'interrupted'
+                    or [r['task_id'] for r in rows] != tasks[:len(rows)]
+                    or any(r.get('cleanup_errors') for r in rows)
+                    or not changed <= {'gemini_laptop_logs.py','gemini_laptop_run.py','gemini_laptop_qualify.py'}):
+                raise RuntimeError('Continuation would change protocol or replay an attempt')
+            expected_dirs = {r['trial_id'] for r in rows}
+            actual_dirs = {p.name for p in (private / 'trials').iterdir()}
+            if actual_dirs != expected_dirs or gateway.pending:
+                raise RuntimeError('Interrupted trial evidence inventory differs')
+            amendment = dict(kind='continue_only_unstarted_after_logging_keyword_fix',
+                reason='Harbor upload_dir uses source_dir/target_dir; logger now preserves this API',
+                original_registration_sha256=prior['registration_sha256'],
+                unchanged_model_and_budget_protocol=True, completed_attempts_retained=len(rows),
+                paid_attempts_replayed=0, changed_sources=sorted(changed),source_hashes=source,
+                credit_recheck=credit, resumed_utc=datetime.now(timezone.utc).isoformat())
+            durable_json(private / 'continuation-1.json',amendment)
+            durable_json(public / 'continuation-1.json',amendment)
+            durable_json(public / 'qualification-continuation-1.json',qualification)
+        else:
+            registration = dict(protocol=PROTOCOL, protocol_sha256=fingerprint(), task_ids=tasks,
+                dataset_revision=prep['dataset_revision'], preparation=prep,
+                source_hashes=source, initial_credit=credit, new_spending_limit_usd=gateway.ledger.data['cap_usd'],
+                started_utc=datetime.now(timezone.utc).isoformat())
+            # Public registration excludes private controller paths.
+            registration['preparation'] = {k:v for k,v in prep.items() if k != 'tasks_path'}
+            durable_json(private / 'registration.json', registration)
+            durable_json(public / 'registration.json', registration)
+            durable_json(public / 'qualification.json', qualification)
+        for index in range(len(rows),len(tasks)):
+            task_id = tasks[index]
             await gateway.reconcile()
             current = await gateway.credit()
             if (gateway.stop_reason or gateway.ledger.known + gateway.ledger.unresolved + RESERVATION
@@ -169,6 +196,9 @@ async def run(root, key_path):
                 except Exception as cleanup:
                     row['cleanup_errors'] = [type(cleanup).__name__]
                 if isinstance(error, asyncio.CancelledError):
+                    row.update(status='interrupted',agent_error_type='CancelledError',
+                        phase_seconds=result.get('phase_seconds'),cleanup_errors=result.get('cleanup_errors'),
+                        model_attempts=(result.get('agent_context',{}).get('metadata') or {}).get('model_attempts'))
                     gateway.stop_reason = 'interrupted'
                     raise
             finally:
@@ -187,8 +217,9 @@ async def run(root, key_path):
         await gateway.reconcile()
         final_credit = await gateway.credit()
         atomic_json(public / 'request-metadata.json', gateway.ledger.data['requests'])
-        budget = dict(gateway.ledger.report(), initial_credit=credit, final_credit=final_credit,
-            account_usage_delta_usd=str(money(final_credit['key_usage_usd']) - money(credit['key_usage_usd'])),
+        original_credit = registration['initial_credit']
+        budget = dict(gateway.ledger.report(), initial_credit=original_credit, final_credit=final_credit,
+            account_usage_delta_usd=str(money(final_credit['key_usage_usd']) - money(original_credit['key_usage_usd'])),
             account_delta_may_include_other_key_users=True)
         if all(os.environ.get(k) for k in ('LANGFUSE_BASE_URL','LANGFUSE_PUBLIC_KEY','LANGFUSE_SECRET_KEY')):
             from local_langfuse import export
@@ -218,6 +249,8 @@ async def run(root, key_path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--key-file', type=Path, default=Path('/run/openrouter-key'))
+    parser.add_argument('--continue-unstarted',action='store_true',
+        help='Source-bound logging repair only; retain ledger and never replay a started attempt')
     args = parser.parse_args()
     lock_path = Path('.runtime') / STUDY / 'study.lock'
     with lock_path.open('a') as lock:
@@ -227,7 +260,7 @@ def main():
             current = asyncio.current_task()
             for signum in (signal.SIGTERM, signal.SIGINT):
                 loop.add_signal_handler(signum, current.cancel)
-            await run(Path.cwd(), args.key_file)
+            await run(Path.cwd(), args.key_file,continue_unstarted=args.continue_unstarted)
         asyncio.run(bounded())
 
 
