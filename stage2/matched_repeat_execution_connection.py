@@ -15,7 +15,6 @@ import matched_repeat_execution_bootstrap as boot
 import matched_repeat_execution_service as service
 import matched_repeat_policy as policy
 import matched_repeat_recovery_handoff as handoff
-import matched_repeat_runtime as runtime
 from no_cutoff_recovery_connection import read_reply
 from progress_dashboard import ssh_command, REMOTE_HOST
 from scored_gateway import durable_json
@@ -48,7 +47,7 @@ def _current(value):
     if _identities(value['bindings']) != value['identities']:
         raise ValueError('Committed baseline operator source/private identity changed')
     handoff.operator._current(value['recovery'])
-    runtime.loaded_sources(REPO, {n[7:]: h for n, h in value['bindings']['local'].items() if n.startswith('stage2/')})
+    handoff.operator._loaded(value['bindings'])
 
 
 def prepare(commit, harness):
@@ -73,7 +72,7 @@ def _source_inputs(commit, harness):
     files.update({boot.BASELINE_INPUT: boot.BASELINE_SHA, boot.FINAL_INPUT: boot.FINAL_SHA})
     value = dict(bindings=bindings, identities=_identities(bindings),
         sources={n[7:]: h for n, h in files.items() if n.startswith('stage2/')})
-    runtime.loaded_sources(REPO, {n[7:]: h for n, h in bindings['local'].items() if n.startswith('stage2/')})
+    handoff.operator._loaded(bindings)
     return value, files
 
 
@@ -192,5 +191,5 @@ def status_native(commit, operation, harness='terminus-2'):
     handoff.original.launch._recheck(value['bindings'])
     if _identities(value['bindings']) != value['identities']:
         raise ValueError('Operator status inputs replaced')
-    runtime.loaded_sources(REPO, {n[7:]: h for n, h in value['bindings']['local'].items() if n.startswith('stage2/')})
+    handoff.operator._loaded(value['bindings'])
     return observed

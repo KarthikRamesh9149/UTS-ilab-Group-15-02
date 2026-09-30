@@ -15,7 +15,6 @@ import subprocess
 
 import matched_repeat_amended_predecessor as original
 import matched_repeat_execution_bootstrap as bootstrap
-import matched_repeat_runtime as runtime
 import no_cutoff_recovery_reporting as recovery
 
 KIND = 'actual_recovery_capture_for_baseline_not_admission'
@@ -155,11 +154,20 @@ def _retained(bindings, sources):
         archive_identity=recovery.boot.identity((root/recovery.BACKUP/'evidence.tar.gz').lstat()))
 
 
+def _loaded(bindings):
+    """Actual fixed Mac origins/bytes, not a native .venv admission check."""
+    original.launch._operator()
+    if Path(__file__).absolute() != REPO/'stage2/matched_repeat_recovery_operator.py':
+        raise ValueError('Fixed Mac baseline recovery source reader required')
+    return recovery.connection.operator.loaded(REPO,
+        {n[7:]:h for n,h in bindings['local'].items() if n.startswith('stage2/')})
+
+
 def _current(value):
     original.launch._recheck(value['bindings'])
     if _sources(value['bindings']) != value['sources'] or _retained(value['bindings'],value['sources']) != value['retained']:
         raise ValueError('Recovery source/archive/export evidence changed after actual capture')
-    runtime.loaded_sources(REPO,{n[7:]:h for n,h in value['bindings']['local'].items() if n.startswith('stage2/')})
+    _loaded(value['bindings'])
 
 
 def capture(commit):

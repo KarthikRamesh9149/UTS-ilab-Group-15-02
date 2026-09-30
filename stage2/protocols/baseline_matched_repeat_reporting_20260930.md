@@ -175,3 +175,22 @@ combined final gate; earlier checks are not its result. That gate uses an
 absent bytecode prefix and checks all395 bound sources before imports,
 after discovery and after execution. Its result is recorded separately in
 the current status documents, not inferred from this protocol.
+
+## Mac source-reader correction after the first publication
+
+The committed local preflight exposed a native-only interpreter check in Mac
+orchestration. Code inspection confirmed that the actual Mac connection and
+recovery capture used that same native reader, whose required `.venv` prefix
+does not describe the Mac operator installation. Native runtime checks remain
+unchanged. Only those Mac callers now use the existing fixed-Mac context check
+and unchanged actual loaded-origin/source-byte reader with the full current
+baseline bindings. It still refuses wrong checkout origins, unbound or
+origin-less imports, changed bytes and a wrong operator location. It grants
+no native admission and does not read an archive during source-only preparation.
+
+The new regressions execute the real source-preparation/current-reader call
+sites and the real file/origin verifier against protected local files. Only
+Git/anchor and fixed-checkout observations are fixtures; the native interpreter
+checker is forbidden at those Mac call sites. The earlier 1,400-test result
+predates this correction; affected and final current-source results are
+recorded separately in the status documents.

@@ -6,11 +6,14 @@ import json
 import os
 from pathlib import Path
 import shlex
+import sys
 import tempfile
+from types import ModuleType
 import unittest
 from unittest.mock import Mock, patch
 
 import matched_repeat_execution_connection as connection
+import matched_repeat_runtime as native_runtime
 
 NONCE = 'a1' * 16
 COMMIT = 'c2' * 20
@@ -152,7 +155,76 @@ class OperatorTests(unittest.TestCase):
         with patch.object(connection, '_source_inputs', return_value=(value, self.files)), \
                 patch.object(connection.subprocess, 'run', return_value=Mock(returncode=0, stdout=json.dumps(observed).encode())), \
                 patch.object(connection.handoff.original.launch, '_recheck'), \
-                patch.object(connection.runtime, 'loaded_sources'):
+                patch.object(connection.handoff.operator, '_loaded'):
             self.assertEqual(connection.status_native(COMMIT, 'run-repeat'), observed)
         self.prepare.assert_not_called(); self.send.assert_not_called(); self.popen.assert_not_called()
         self.assertEqual(list((self.root/'.runtime/netcup').iterdir()), [])
+
+
+class MacSourceReaderTests(unittest.TestCase):
+    """Real Mac-source reader; Git/anchor and fixed-checkout facts are fixtures."""
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)
+        self.root = Path(temp.name).resolve(); self.root.chmod(0o700)
+        stage = self.root/'stage2'; stage.mkdir(mode=0o700)
+        self.operator = connection.handoff.operator
+        modules = (connection, self.operator)
+        self.sources = {}
+        for module in modules:
+            path = stage/Path(module.__file__).name
+            path.write_bytes(Path(module.__file__).read_bytes()); path.chmod(0o600)
+            self.sources[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+            self.enterContext(patch.object(module, '__file__', str(path)))
+        self.bindings = dict(commit=COMMIT,
+            local={'stage2/'+n:h for n,h in self.sources.items()})
+        for module in modules:
+            self.enterContext(patch.object(module, 'REPO', self.root))
+        self.enterContext(patch.object(self.operator.original.launch, 'REPO', self.root))
+        self.mac = self.enterContext(patch.object(self.operator.original.launch, '_operator'))
+        self.enterContext(patch.object(self.operator.original, '_prepare',
+            return_value=(self.bindings, {'proof':{'sources':dict(self.sources)}})))
+        self.enterContext(patch.object(connection.policy, 'REQUIRED_SOURCE_FILES', frozenset(self.sources)))
+        self.native = self.enterContext(patch.object(native_runtime, 'loaded_sources',
+            side_effect=AssertionError('Mac orchestration cannot use the native interpreter gate')))
+
+    def test_actual_source_preparation_uses_real_mac_origins_not_native_prefix(self):
+        self.assertNotEqual(Path(sys.prefix).resolve(), self.root/'.venv')
+        value, files = connection._source_inputs(COMMIT, 'terminus-2')
+        self.assertEqual(value['sources'], self.sources)
+        self.assertEqual(set(files), set(self.bindings['local']) |
+            {connection.boot.BASELINE_INPUT, connection.boot.FINAL_INPUT})
+        self.assertEqual(len(value['identities']), 2)
+        self.mac.assert_called_once(); self.native.assert_not_called()
+
+    def test_current_operator_rechecks_real_loaded_mac_source(self):
+        value, _ = connection._source_inputs(COMMIT, 'terminus-2')
+        value['recovery'] = dict(bindings=self.bindings, sources={}, retained={})
+        with patch.object(self.operator.original.launch, '_recheck'), \
+                patch.object(self.operator, '_sources', return_value={}), \
+                patch.object(self.operator, '_retained', return_value={}):
+            connection._current(value)
+            path = self.root/'stage2/matched_repeat_execution_connection.py'
+            path.write_bytes(path.read_bytes()+b'\n# changed\n')
+            with self.assertRaises(ValueError): self.operator._current(value['recovery'])
+        self.native.assert_not_called()
+
+    def test_late_unbound_project_import_is_refused(self):
+        path = self.root/'stage2/unbound_mac_reader_fixture.py'; path.write_text('pass\n'); path.chmod(0o600)
+        module = ModuleType(path.stem); module.__file__ = str(path)
+        with patch.dict(sys.modules, {path.stem:module}), self.assertRaises(ValueError):
+            self.operator._loaded(self.bindings)
+
+    def test_other_checkout_origin_is_refused(self):
+        with patch.object(connection, '__file__', str(self.root/'elsewhere/matched_repeat_execution_connection.py')):
+            with self.assertRaises(ValueError): self.operator._loaded(self.bindings)
+
+    def test_bound_module_without_origin_is_refused(self):
+        with patch.dict(sys.modules, {connection.__name__:ModuleType(connection.__name__)}):
+            with self.assertRaises(ValueError): self.operator._loaded(self.bindings)
+
+    def test_wrong_operator_location_and_mac_context_refuse(self):
+        with patch.object(self.operator, '__file__', str(self.root/'elsewhere/matched_repeat_recovery_operator.py')):
+            with self.assertRaises(ValueError): self.operator._loaded(self.bindings)
+        self.mac.side_effect = ValueError('Not the fixed Mac checkout')
+        with self.assertRaises(ValueError): self.operator._loaded(self.bindings)
