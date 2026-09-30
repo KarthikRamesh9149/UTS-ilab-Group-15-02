@@ -1,5 +1,19 @@
 # Matched baseline repeats after custom final89
 
+## Current filename compatibility correction, 30 September 01:39 UTC
+
+Read-only native preflight found the corrected root absent and rejected only
+literal exclamation marks in 36 pinned virtualenv filenames. The narrow
+relative-path correction preserves traversal, ownership, ACL, link, identity
+and complete-inventory checks; it changes no installed file. All 793 local
+recovery tests passed in 351.242 seconds, with zero skips/errors/failures,
+315 source bindings and 215 final loaded modules. Source-map SHA256:
+`f488c3cad39eb508646507dec13b3f7b6ad4e48c5d28c94018a77971740a4706`.
+The 23 focused and 12 repository tests also passed. These are local checks,
+not native qualification. Corrected installation and actual qualification
+remain pending; recovery is 0/3 and both baseline repeats are unstarted.
+The original 89 outcomes and ONE verified archive remain unchanged.
+
 Recovery correction, 30 September 01:15 UTC: installation succeeded, but its
 first qualification connection refused before any native service or handoff.
 A separately bound execution-location amendment preserves that installed root

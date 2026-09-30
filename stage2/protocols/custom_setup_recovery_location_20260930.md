@@ -48,6 +48,18 @@ attestation; credentials and archives are never opened by this reader.
 The corrected root still requires its own actual full library, dataset,
 host, image and producer checks.
 
+The read-only corrected preflight at 01:29 UTC found the new root absent but
+refused a retained-runtime filename. At 01:31 UTC, a metadata-only inspection
+of the exact pinned inventory identified 36 virtualenv files containing a
+literal exclamation mark, with no absolute or dot-path components. The new
+reader permits that character in an otherwise unchanged safe relative path;
+it still authenticates the complete pinned inventory and actual ancestry,
+ownership, modes, ACLs, links and identities. It never interpolates these
+paths into a shell. No installed source or runtime file is changed. A draft
+diagnostic had a regular-expression error; its corrected read-only invocation
+returned the character counts, not private paths or payloads. Neither
+preflight created an installation or qualification state.
+
 The original 34-lock session order remains as a prefix. The retained
 unstarted root's three existing locks are added, giving 37 locks.
 They must already be private, canonical, owned, single-link, ACL-free and

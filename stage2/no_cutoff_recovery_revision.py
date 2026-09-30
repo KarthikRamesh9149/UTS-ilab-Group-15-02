@@ -80,7 +80,7 @@ def _loads(raw):
 
 
 def _relative(name):
-    if (type(name) is not str or not re.fullmatch(r'[A-Za-z0-9_.\-/]+', name)
+    if (type(name) is not str or not re.fullmatch(r'[A-Za-z0-9_!.\-/]+', name)
             or name.startswith('/') or any(p in ('', '.', '..') for p in name.split('/'))):
         _fail()
     return name

@@ -161,6 +161,21 @@ class RetainedTests(LocalFiles, unittest.TestCase):
             with self.assertRaises(ValueError): revision.retained()
             # Each extra retained directory alone still correctly refuses.
 
+    def test_pinned_runtime_inventory_allows_literal_exclamation_filename(self):
+        name = '.venv/share/installed!asset.bin'
+        save(self.root, name, b'synthetic installed runtime asset')
+        path = self.root / 'installation-files.json'
+        inventory = json.loads(path.read_bytes())
+        inventory['runtime'][0]['files'][name] = revision._sha(b'synthetic installed runtime asset')
+        inventory['runtime'][0]['directories'].append('.venv/share')
+        raw = json.dumps(inventory).encode(); save(self.root, path.name, raw)
+        revision.RECORDS[path.name] = revision._sha(raw)
+        first = revision.retained()
+        self.assertIn(name, first['files'])
+        self.assertEqual(revision.retained(), first)
+        (self.root / name).chmod(0o666)
+        with self.assertRaises(ValueError): revision.retained()
+
     def test_source_content_same_byte_identity_and_manifest_changes_refuse(self):
         first = revision.retained(); p = self.root / 'stage2/source_0.py'
         p.write_bytes(b'changed')
@@ -197,6 +212,13 @@ class RetainedTests(LocalFiles, unittest.TestCase):
 
 
 class ContractTests(unittest.TestCase):
+    def test_relative_paths_allow_literal_exclamation_not_traversal_or_shell_syntax(self):
+        self.assertEqual(revision._relative('.venv/share/asset!name'), '.venv/share/asset!name')
+        for name in ('/absolute!', '../parent!', 'nested/../parent!', 'nested//empty!',
+                'nested/./dot!', 'nested\\backslash!', 'bad\x00name!', 'bad\nname!',
+                'bad;name!', 'bad$name!', 'bad name!', ''):
+            with self.subTest(name=repr(name)), self.assertRaises(ValueError): revision._relative(name)
+
     def test_bootstrap_consumes_exact_bound_revision_reader_before_service_work(self):
         original = ('from pathlib import Path\nROOT=Path(' + repr(str(bootstrap.ORIGINAL)) +
             ')\ndef service(): return None\n').encode()
