@@ -232,6 +232,7 @@ async def qualify(active):
         predecessor_authentication_sha256=policy.fingerprint(live['predecessor']['predecessor']),
         regression_path=regression, started_utc=_utc(), pid=os.getpid(), automatic_resume=False, paid_launch_ready=False)
     files.save(rt / INTENT, intent)
+    stage = 'retain_qualification_inputs'
     try:
         folder.mkdir(mode=0o700)
         bound = files.private(root, INTENT)[1]
@@ -250,9 +251,11 @@ async def qualify(active):
             bound.update(_input(root, name, value))
         identities = files.capture(root, bound)[1]
         _check(active, bound, identities)
+        stage = 'qualify_gateway_image'
         images.build(active)
         binding = images.qualification_binding(active); bound.update(binding['image_evidence_files'])
         files.extend(root, bound, identities)
+        stage = 'native_regressions'
         await _regression(active, folder, bound)
         _check(active, bound, identities)
         offline, core = reader._json(root, regression + '/regression.json')
@@ -264,6 +267,7 @@ async def qualify(active):
             raise ValueError('Actual complete native regressions required')
         cases = []
         for mode in policy.PROBE_MODES:
+            stage = 'native_case_' + mode
             _check(active, bound, identities)
             await probe.probe(active, mode)
             operation = files.private(root, 'no-cutoff-recovery-rehearsal-' + mode + '.json')[0]
@@ -276,6 +280,7 @@ async def qualify(active):
             core.update({n: h for n, h in supporting.items() if n in {relative + '/evidence.json',
                 relative + '/.runtime/stage2/scored-trials/synthetic-nc-recovery-' + mode + '/result.json'}})
             _check(active, bound, identities)
+        stage = 'final_qualification_evidence'
         probe._owned_clear()
         policy._same(images.qualification_binding(active), binding)
         _check(active, bound, identities)
@@ -297,5 +302,6 @@ async def qualify(active):
         session.invalidate(active)
         if not (rt / FAILURE).exists() and not (rt / FAILURE).is_symlink():
             files.save(rt / FAILURE, dict(kind='retained_native_recovery_qualification_failure',
+                stage=stage,
                 error_type=_error(exc), failed_utc=_utc(), automatic_resume=False, paid_launch_ready=False))
         raise

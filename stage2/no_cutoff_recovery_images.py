@@ -207,11 +207,35 @@ print(json.dumps(dict(installed=read_files(), loaded=loaded, import_only=True, l
 '''.replace('BASE', repr(base), 1).replace('EXPECTED', repr(expected), 1)
 
 
+def _same_linux_config(parent, image):
+    """One observed legacy-builder omission; retain exact raw image hashes.
+
+    ArgsEscaped is a deprecated Windows command-line flag. The pinned Linux
+    builder omits the parent's true flag when setting a JSON entrypoint. No
+    other configuration difference, null/type coercion or Windows image is
+    accepted by this compatibility rule.
+    """
+    if any(value.get('Os') != 'linux' or value.get('Architecture') != 'amd64'
+            for value in (parent, image)):
+        return False
+    old = dict(parent['Config'], Entrypoint=ENTRYPOINT)
+    new = dict(image['Config'])
+    if any('ArgsEscaped' in value and type(value['ArgsEscaped']) is not bool
+            for value in (old, new)):
+        return False
+    if old == new:
+        return True
+    if old.get('ArgsEscaped') is not True or 'ArgsEscaped' in new:
+        return False
+    del old['ArgsEscaped']
+    return old == new
+
+
 def _observations(root, sources, parent, guard, image):
     old = _inspect(root, parent); firewall = _inspect(root, guard); new = _inspect(root, image)
     if (new['RootFS']['Layers'][:len(old['RootFS']['Layers'])] != old['RootFS']['Layers']
             or len(new['RootFS']['Layers']) != len(old['RootFS']['Layers']) + 1
-            or new['Config'] != dict(old['Config'], Entrypoint=ENTRYPOINT)):
+            or not _same_linux_config(old, new)):
         raise ValueError('Gateway changed the qualified original base or configuration')
     name = 'uts-no-cutoff-recovery-image-probe-' + image.removeprefix('sha256:')
     retained = ('container', 'ls', '--all', '--quiet', '--filter', 'name=^/' + name + '$')
@@ -286,16 +310,20 @@ def build(active):
     identities = {}
     _, intent_files = private(root, INTENT, identities); check_files(root, intent_files, identities)
     image = None
+    stage = 'prepare_fixed_image_context'
     try:
         _config(root, create=True)
         old = _inspect(root, inputs['parent_gateway_image']); _inspect(root, inputs['guard_image'])
         if old['Config'].get('OnBuild') or old['Config'].get('Volumes'):
             raise ValueError('Qualified gateway must not contain build triggers or implicit volumes')
         tag = _parent_tag(root, inputs['parent_gateway_image'], policy.CONDITION.lower())
+        stage = 'build_fixed_gateway_image'
         image = _image(_command(root, 'build', '--quiet', '--pull=false', '--network=none',
             '--build-arg', 'PARENT=' + tag, '-', data=context).strip())
+        stage = 'verify_built_gateway_image'
         observation = _observations(root, state['host']['sources'], inputs['parent_gateway_image'],
             inputs['guard_image'], image)
+        stage = 'recheck_image_prerequisites'
         _, current_context, current_inputs = _inputs(active)
         if current_context != context or current_inputs != inputs:
             raise ValueError('Image preparation inputs changed during the build')
@@ -310,6 +338,7 @@ def build(active):
     except BaseException as exc:
         session.invalidate(active)
         save(rt / FAILURE, dict(kind='retained_no_cutoff_recovery_image_build_failure',
+            stage=stage,
             exception_type=type(exc).__name__ if type(exc) in (ValueError, RuntimeError, OSError,
                 TimeoutError, KeyboardInterrupt, SystemExit) else 'OtherException',
             failed_utc=_utc(), automatic_rebuild=False,

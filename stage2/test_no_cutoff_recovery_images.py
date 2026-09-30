@@ -108,15 +108,58 @@ class ImageTests(local.LocalFiles, unittest.IsolatedAsyncioTestCase):
             async def child(): return images.build(active)
             with self.assertRaises(ValueError): await asyncio.create_task(child())
 
+    async def test_observed_linux_legacy_args_escaped_omission_preserves_raw_identity(self):
+        self.native['Config']['ArgsEscaped'] = True
+        with self.open() as active:
+            result = images.build(active)
+            self.assertEqual(images.verify(active), result)
+        self.assertEqual(result['observations']['parent_metadata_sha256'], policy.fingerprint(self.native))
+        self.assertEqual(result['observations']['gateway_metadata_sha256'], policy.fingerprint(self.gateway))
+        self.assertNotIn('ArgsEscaped', self.gateway['Config'])
+
+    async def test_windows_null_numeric_and_wider_config_changes_are_not_normalized(self):
+        self.native['Config']['ArgsEscaped'] = True
+        self.assertTrue(images._same_linux_config(self.native, self.gateway))
+        for value in (False, None, 0, 1, 'true', [], {}):
+            with self.subTest(value=value):
+                changed = deepcopy(self.gateway)
+                changed['Config']['ArgsEscaped'] = value
+                self.assertFalse(images._same_linux_config(self.native, changed))
+        for key, value in (('Cmd', ['unexpected']), ('Env', ['CHANGED=1']),
+                ('User', 'other'), ('WorkingDir', '/other'), ('Entrypoint', ['sh']),
+                ('OnBuild', ['RUN unexpected']), ('Volumes', {'/data': {}})):
+            with self.subTest(key=key):
+                changed = deepcopy(self.gateway); changed['Config'][key] = value
+                self.assertFalse(images._same_linux_config(self.native, changed))
+        for key, value in (('Os', 'windows'), ('Architecture', 'arm64')):
+            changed = deepcopy(self.gateway); changed[key] = value
+            self.assertFalse(images._same_linux_config(self.native, changed))
+
+    async def test_false_parent_omission_is_not_the_observed_exception(self):
+        self.native['Config']['ArgsEscaped'] = False
+        self.assertFalse(images._same_linux_config(self.native, self.gateway))
+        self.native['Config']['ArgsEscaped'] = 0
+        self.gateway['Config']['ArgsEscaped'] = False
+        self.assertFalse(images._same_linux_config(self.native, self.gateway))
+
+    async def test_later_args_escaped_drift_still_refuses_bound_build(self):
+        self.native['Config']['ArgsEscaped'] = True
+        with self.open() as active: images.build(active)
+        self.gateway['Config']['ArgsEscaped'] = True
+        with self.assertRaises(ValueError), self.open() as active:
+            images.verify(active)
+
     async def test_parent_build_triggers_refuse_without_build(self):
         self.native['Config']['OnBuild']=['RUN unapproved']
         with self.assertRaises(ValueError), self.open() as active: images.build(active)
         self.assertFalse(self.contexts); self.assertTrue((self.rt/images.FAILURE).exists())
+        self.assertEqual(json.loads((self.rt/images.FAILURE).read_bytes())['stage'], 'prepare_fixed_image_context')
 
     async def test_installed_source_mismatch_retains_failure_not_qualification(self):
         self.report = dict(installed={},loaded={},import_only=True,live_api_calls=0)
         with self.assertRaises(ValueError), self.open() as active: images.build(active)
         self.assertTrue((self.rt/images.FAILURE).exists()); self.assertFalse((self.rt/images.RESULT).exists())
+        self.assertEqual(json.loads((self.rt/images.FAILURE).read_bytes())['stage'], 'verify_built_gateway_image')
 
     async def test_extra_layer_or_changed_configuration_refuses(self):
         self.gateway['RootFS']['Layers'].append('sha256:'+'d'*64)

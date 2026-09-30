@@ -207,6 +207,7 @@ class RetainedTests(LocalFiles, unittest.TestCase):
                 p.rename(q); save(self.root, 'stage2/source_0.py', q.read_bytes()); q.unlink()
             return real()
         with patch.object(revision, 'baseline', return_value={'actual_synthetic': True}), \
+                patch.object(revision, 'rejected', return_value={'retained_failure': True}), \
                 patch.object(revision, 'retained', side_effect=replace), self.assertRaises(ValueError):
             revision.inspect()
 
@@ -248,11 +249,126 @@ class ContractTests(unittest.TestCase):
 
     def test_saved_or_partial_proof_has_no_inspection_shortcut(self):
         with patch.object(revision, 'baseline', return_value={}) as live, \
+                patch.object(revision, 'rejected', return_value={'retained_failure': True}), \
                 patch.object(revision, 'retained', side_effect=[{'identity': 1}, {'identity': 2}]), \
                 self.assertRaises(ValueError):
             revision.inspect()
         self.assertEqual(live.call_count, 2)
         with self.assertRaises(TypeError): revision.inspect({'passed': True})
+
+
+class RejectedTests(unittest.TestCase):
+    def setUp(self):
+        fixture = RetainedTests('runTest')
+        fixture._callCleanup = lambda function, *args, **kwargs: function(*args, **kwargs)
+        self.addCleanup(fixture.doCleanups); fixture.setUp()
+        self.root = fixture.root
+        inventory = json.loads((self.root / 'installation-files.json').read_bytes())
+        for i in range(321, 324):
+            name = 'stage2/source_' + str(i) + '.py'; raw = ('synthetic source ' + str(i)).encode()
+            save(self.root, name, raw); inventory['files'][name] = revision._sha(raw)
+        raw = json.dumps(inventory).encode(); save(self.root, 'installation-files.json', raw)
+        records = dict(revision.RECORDS, **{'installation-files.json': revision._sha(raw)})
+        extra = {'.runtime/stage2/retained-failure.json': b'{"error_type":"ValueError"}',
+            '.runtime/stage2/connection/service.log': b'private synthetic infrastructure metadata'}
+        for name, raw in extra.items(): save(self.root, name, raw)
+        (self.root / '.runtime/stage2/empty-producer').mkdir(mode=0o700)
+        (self.root / '.runtime/stage2/no-cutoff-recovery-image-docker-config').mkdir(mode=0o700)
+        self.enterContext(patch.object(revision, 'REJECTED', self.root))
+        self.enterContext(patch.object(revision, 'REJECTED_RECORDS', records))
+        self.enterContext(patch.object(revision, 'REJECTED_SOURCE_MAP',
+            revision._sha(json.dumps(inventory['files'], sort_keys=True, allow_nan=False).encode())))
+        self.enterContext(patch.object(revision, 'REJECTED_FILES', {n: revision._sha(v) for n, v in extra.items()}))
+        self.enterContext(patch.object(revision, 'REJECTED_DIRECTORIES',
+            ('.runtime/stage2/empty-producer', '.runtime/stage2/connection',
+             '.runtime/stage2/no-cutoff-recovery-image-docker-config')))
+        self.manager = dict(LoadState='loaded', ActiveState='failed', SubState='failed', MainPID='0',
+            InvocationID=revision.REJECTED_INVOCATION, Result='exit-code', ExecMainCode='1',
+            ExecMainStatus='1', ExecMainPID='1226555', NRestarts='0', Restart='no', Type='exec',
+            RemainAfterExit='yes', WorkingDirectory=str(self.root))
+
+    def tree(self):
+        return revision._retained_tree(self.root, revision.REJECTED_RECORDS, 324,
+            revision.REJECTED_SOURCE_MAP, revision.REJECTED_FILES, revision.REJECTED_DIRECTORIES)
+
+    def test_exact_failure_tree_preserves_empty_directories_and_never_reads_credentials(self):
+        actual = os.open
+        def safe(path, *args, **kwargs):
+            if isinstance(path, (str, bytes, os.PathLike)) and Path(path).name == '.env':
+                self.fail('Retired credential must stay unopened')
+            return actual(path, *args, **kwargs)
+        with patch.object(os, 'open', side_effect=safe):
+            first = self.tree(); self.assertEqual(self.tree(), first)
+        self.assertIn('.runtime/stage2/empty-producer', first['directories'])
+
+    def test_missing_changed_or_extra_failure_evidence_refuses(self):
+        path = self.root / '.runtime/stage2/retained-failure.json'
+        raw = path.read_bytes(); path.write_bytes(b'{}')
+        with self.assertRaises(ValueError): self.tree()
+        path.write_bytes(raw)
+        save(self.root, '.runtime/stage2/scored-trials/unapproved/started.json', b'{}')
+        with self.assertRaises(ValueError): self.tree()
+
+    def test_same_byte_replacement_changes_the_retained_identity(self):
+        first = self.tree(); path = self.root / '.runtime/stage2/retained-failure.json'
+        raw = path.read_bytes(); other = path.with_suffix('.old')
+        path.rename(other); save(self.root, '.runtime/stage2/retained-failure.json', raw); other.unlink()
+        self.assertNotEqual(self.tree(), first)
+
+    def test_failure_evidence_remains_private_and_single_link(self):
+        path = self.root / '.runtime/stage2/retained-failure.json'; path.chmod(0o644)
+        with self.assertRaises(ValueError): self.tree()
+        path.chmod(0o600); os.link(path, self.root / 'linked-evidence')
+        with self.assertRaises(ValueError): self.tree()
+
+    def test_exact_failed_invocation_not_default_dead_metadata_is_required(self):
+        raw = '\n'.join(k + '=' + v for k, v in self.manager.items())
+        with patch.object(revision, '_command', return_value=raw):
+            self.assertEqual(revision._rejected_manager(), self.manager)
+        for key, value in (('LoadState', 'not-found'), ('MainPID', '12'), ('NRestarts', '1'),
+                ('InvocationID', 'a' * 32), ('ExecMainStatus', '0'), ('WorkingDirectory', '/other')):
+            with self.subTest(key=key), patch.object(revision, '_command',
+                    return_value='\n'.join(k + '=' + v for k, v in dict(self.manager, **{key: value}).items())):
+                with self.assertRaises(ValueError): revision._rejected_manager()
+
+    def test_actual_failed_process_or_unit_membership_refuses(self):
+        proc = self.root / 'synthetic-proc'; proc.mkdir()
+        with patch.object(revision, 'PROC', proc):
+            revision._rejected_processes()
+            save(proc, '123/cgroup', b'0::/system.slice/unrelated.service\n')
+            (proc / '123/cwd').symlink_to(self.root)
+            with self.assertRaises(ValueError): revision._rejected_processes()
+            (proc / '123/cwd').unlink()
+            save(proc, '123/cgroup', ('0::/system.slice/' + revision.REJECTED_UNIT + '\n').encode())
+            with self.assertRaises(ValueError): revision._rejected_processes()
+
+    def test_retained_image_is_inspected_not_rebuilt(self):
+        image = dict(Id='sha256:' + 'a' * 64, Os='linux', Architecture='amd64',
+            RootFS={'Type': 'layers', 'Layers': ['sha256:' + 'b' * 64]}, Config={'Entrypoint': ['python']})
+        expected = revision._sha(json.dumps(image, sort_keys=True, allow_nan=False).encode())
+        with patch.object(revision, 'REJECTED_IMAGES', {image['Id']: expected}), \
+                patch.object(revision, '_command', return_value=json.dumps([image])) as command:
+            self.assertEqual(revision._rejected_images(), {image['Id']: expected})
+            args = command.call_args.args[0]
+            self.assertEqual(args[-3:], ['image', 'inspect', image['Id']])
+            image['Config']['Entrypoint'] = ['sh']
+            command.return_value = json.dumps([image])
+            with self.assertRaises(ValueError): revision._rejected_images()
+
+    def test_last_native_observation_precedes_real_failed_tree_reads(self):
+        order = []
+        with patch.object(revision, '_rejected_manager', side_effect=lambda: order.append('manager') or self.manager), \
+                patch.object(revision, '_rejected_processes', side_effect=lambda: order.append('process')), \
+                patch.object(revision, '_rejected_images', side_effect=lambda: order.append('images') or {}), \
+                patch.object(revision, '_retained_tree', side_effect=lambda *args: order.append('actual_tree') or {'files': {}}):
+            self.assertFalse(revision.rejected()['qualification_passed'])
+        self.assertEqual(order, ['manager', 'process', 'images', 'process', 'manager', 'actual_tree'])
+
+    def test_complete_inspection_rejects_late_failed_evidence_replacement(self):
+        with patch.object(revision, 'baseline', return_value={}), \
+                patch.object(revision, 'retained', return_value={}), \
+                patch.object(revision, 'rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
+            with self.assertRaises(ValueError): revision.inspect()
 
 
 class OperatorPreservationTests(LocalFiles, unittest.TestCase):

@@ -14,8 +14,9 @@ import stat
 import subprocess
 import sys
 
-ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r2')
+ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r3')
 RETIRED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260929')
+REJECTED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r2')
 BASELINE = Path('/opt/uts-capstone-corrected-20260923')
 COMMIT = 'c9b357c3a4dde44b04900ec8d6bc719981124a84'
 SERVICE = 'uts-stage2-corrected-20260923.service'
@@ -37,7 +38,48 @@ RECORDS = {
     'installation-result.json': 'c4bafa52f4ef146b6b1cb6c54e9abb00aa31c89b77da4aa6822e651eb5ab9a69',
     'source-commit.txt': '2927c7aca7991b21428dc60549ab10fb3bd9402160bd2f509914ba17654a799b'}
 SOURCE_MAP = '936adc773d85fddda9e1be464e269bdd6515e171b25d4cb7d9659863a8714a0a'
+REJECTED_UNIT = 'uts-recovery-qualify-319ee77d63cd9852455863e4947088dc.service'
+REJECTED_INVOCATION = 'e3d8f5dbacaf480ea7dda744932d7bdc'
+REJECTED_RECORDS = {
+    "installation-intent.json": "f38082ad0e3fba260cd71974162087ea948c6d4dd8d28de9214f3e832c74132f",
+    "installation-files.json": "33129d47cc11a4fd2f595c00709354adc5ac7871be0b9e282e9775aa249458e9",
+    "installation-result.json": "6600e0cd9eefdd49521a097853f3654b429066c3ff0637c62f8492d54332d9ac",
+    "source-commit.txt": "736850f51721e5c65ee6d1ab4241ba354926df336361aa077f604e6b7daad7fb"
+}
+REJECTED_SOURCE_MAP = '8f2b7daecc7db1a6cdf68d2b4c23ffe6d277ce76b69667780974beae15ceb9a2'
+REJECTED_FILES = {
+    ".runtime/stage2/no-cutoff-recovery-credit-policy.json": "15460104bd6794a8b2af7d7761cc61a7a7541c79204abb715a9796d7908c8161",
+    ".runtime/stage2/no-cutoff-recovery-image-build-failure.json": "70bc194867682398847de58d4df86f36c8f45a5cb8e6bd5ab037041de4c2dd81",
+    ".runtime/stage2/no-cutoff-recovery-image-build.json": "9725b568e285c6b31752395456b15a7d13ffa587285da84d0089d0f42965ff4d",
+    ".runtime/stage2/no-cutoff-recovery-plan.json": "0ea9ef5f27558c441bb10dc1f5278dde15f262877011930464f5c408c284220a",
+    ".runtime/stage2/no-cutoff-recovery-predecessor.json": "6ff1c2275bb6cc4c58ce6218b4b6e01216a1734179925fc24a6e294dc4e10018",
+    ".runtime/stage2/no-cutoff-recovery-qualification-failure.json": "8771172e9a6db451637aab7797e356cdd2abbb72be307f0ad8b64fe1fce5a0f8",
+    ".runtime/stage2/no-cutoff-recovery-qualification-intent.json": "5d7ece34f9e4b6f3cc6b9e7728a1802306170f16f06d7d9fb2285efcdc85b10f",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/accepted.json": "7ee950d1f3fcf56a6e0c83ce29036c74c07b94efb975d4ecc40a51cf93570a7c",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/failure.json": "86041a594dff542d1621e6dcbd239a46268f375bab86b990777bcbcebc02ffa7",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/intent.json": "03e799b6a2f7709b3cf272d8145e55ba1b4410247791a9138e2c8f7ef3f4309a",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/prerequisites.json": "eac857a5298d620d0e8926e9bf03d3f2314cd964e98caf14aabd511fbf6d28ab",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/service-started.json": "11d54929de1d34410809aaa1f493066b6fecf8ab964eed87062d75e971c28c34",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/service.log": "0d91cc5e2c0a41f4baec37c983ae0b1dee5dea8d77b556f807e7eaf7abba2874",
+    ".runtime/stage2/no-cutoff-recovery-runtime.json": "87f508cb0f15ffc7a63ee536f304a43a7019395b1fd1aa69338c766cb00e2aba"
+}
+REJECTED_DIRECTORIES = (
+    '.runtime/stage2/native-no-cutoff-recovery-qualification-ac4181d246ca4db382b7bcb93bf42ac3',
+    '.runtime/stage2/no-cutoff-recovery-image-docker-config',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection')
+REJECTED_IMAGES = {
+    "sha256:780a545c444b5b1d8f8afa7252f27e1201e1c62d840a043dd9f15bbc822aa23b": "f5acb7af91cbb80cc0ea4fdd2710be44a31b0f8bdd3971d93c7fd74796b3007e",
+    "sha256:6211ce5a6c2845135104f36fd2940588a1b256224c9a89fc267f4967bb8054b0": "654173da9ed4c6419a24034ff1a2fc55b0b9bccce8419d42b328d7fd07bedc2a",
+    "sha256:69a331f7aef9f7c33ede8371fc7109ef0d83fe4f946f05f2a4aad97e65a51cc4": "92cd6776f6f4f1f7187a4503f436d521d11beb65c703050e781ba61f6a08b086"
+}
 OPERATOR_STATES = {
+    '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r3': {
+        'intent.json': '075a03a25d33f5d1b0e8c1546a6dd2f3c988d8c1999638ca0ffaad78ea7c5625',
+        'result.json': REJECTED_RECORDS['installation-result.json']},
+    '.runtime/netcup/custom-no-cutoff-recovery-qualify-20260930-r2': {
+        'intent.json': '3fd944337a09c01cb2fba5273ff3f96bf068440c00e7984897dc0db452ec49ed',
+        'receiver.json': '46e31a8130d18f5e426a230f4e11facece29e1b8f03a6aeeeb54db6e38fd3dc0',
+        'failure.json': '06c8ad879d483040e269a121c040dc1d0e65881787126fc87d577983bdec32f5'},
     '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r2': {
         'intent.json': '466c4814d29b689b0139462e34537f2cc89e6f920c927f6c6cbb8f9587740b8f',
         'result.json': RECORDS['installation-result.json']},
@@ -104,8 +146,8 @@ def _directories(path, private=False):
     return tuple(answer)
 
 
-def _read(name, expected):
-    p = RETIRED / _relative(name); parents = _directories(p.parent)
+def _read_at(base, name, expected):
+    p = base / _relative(name); parents = _directories(p.parent)
     with os.fdopen(os.open(p, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as stream:
         before = os.fstat(stream.fileno()); _acl(p)
         if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or before.st_uid != OWNER
@@ -118,6 +160,10 @@ def _read(name, expected):
             or _identity(after) != _identity(p.lstat()) or _directories(p.parent) != parents):
         _fail()
     return raw, _identity(after)
+
+
+def _read(name, expected):
+    return _read_at(RETIRED, name, expected)
 
 
 def _command(args):
@@ -197,23 +243,24 @@ def baseline():
     return states
 
 
-def retained():
+def _retained_tree(base, record_hashes, source_count, source_hash, extra_files, extra_directories):
     """Reread original installed sources and exact unused tree, without credentials.
 
     Retired runtime payloads are inventoried/identity-checked, not read: they
     supply no current library or paid admission proof. The new root has its own
     full actual library comparison. No old archive or credential is opened.
     """
-    root = _directories(RETIRED, True)
-    _directories(RETIRED / '.runtime/stage2', True)
-    records = {n: _read(n, h) for n, h in RECORDS.items()}
+    root = _directories(base, True)
+    _directories(base / '.runtime/stage2', True)
+    records = {n: _read_at(base, n, h) for n, h in record_hashes.items()}
     inventory = _loads(records['installation-files.json'][0])
     if set(inventory) != {'files', 'runtime'} or type(inventory['files']) is not dict: _fail()
     sources = inventory['files']
-    if len(sources) != 321 or _sha(json.dumps(sources, sort_keys=True, allow_nan=False).encode()) != SOURCE_MAP: _fail()
-    identities = {n: _read(n, h)[1] for n, h in sources.items()}
-    expected = set(sources) | set(RECORDS) | {'.runtime/stage2/' + n for n in ('matrix.lock', 'scored.lock', 'gateway.lock')}
-    links = {}; directories = {''}
+    if len(sources) != source_count or _sha(json.dumps(sources, sort_keys=True, allow_nan=False).encode()) != source_hash: _fail()
+    if set(sources) & set(extra_files): _fail()
+    identities = {n: _read_at(base, n, h)[1] for n, h in {**sources, **extra_files}.items()}
+    expected = set(sources) | set(record_hashes) | set(extra_files) | {'.runtime/stage2/' + n for n in ('matrix.lock', 'scored.lock', 'gateway.lock')}
+    links = {}; directories = {''} | set(extra_directories)
     if type(inventory['runtime']) is not list: _fail()
     for tree in inventory['runtime']:
         if type(tree) is not dict or set(tree) != {'files', 'links', 'directories'}: _fail()
@@ -226,11 +273,11 @@ def retained():
     for name in expected:
         directories.update(p.as_posix() for p in Path(name).parents if p.as_posix() != '.')
     actual = {}; actual_directories = {}
-    for current, children, names in os.walk(RETIRED, followlinks=False):
-        current = Path(current); relative = current.relative_to(RETIRED).as_posix()
+    for current, children, names in os.walk(base, followlinks=False):
+        current = Path(current); relative = current.relative_to(base).as_posix()
         actual_directories['' if relative == '.' else relative] = _directories(current)
         for name in list(children) + names:
-            p = current / name; key = p.relative_to(RETIRED).as_posix(); s = p.lstat(); _acl(p)
+            p = current / name; key = p.relative_to(base).as_posix(); s = p.lstat(); _acl(p)
             if stat.S_ISDIR(s.st_mode): continue
             if key in links:
                 if (not stat.S_ISLNK(s.st_mode) or os.readlink(p) != links[key]
@@ -243,24 +290,93 @@ def retained():
         children[:] = [n for n in children if not (current / n).is_symlink()]
     if set(actual) != expected or set(actual_directories) != directories: _fail()
     for name in ('matrix.lock', 'scored.lock', 'gateway.lock'):
-        raw, identity = _read('.runtime/stage2/' + name, _sha(b''))
+        raw, identity = _read_at(base, '.runtime/stage2/' + name, _sha(b''))
         if raw or actual['.runtime/stage2/' + name] != identity: _fail()
     if any(actual[n] != identity for n, identity in identities.items()): _fail()
     for name, record in records.items():
-        if _read(name, RECORDS[name]) != record: _fail()
+        if _read_at(base, name, record_hashes[name]) != record: _fail()
     for name, identity in actual.items():
-        if _identity((RETIRED / name).lstat()) != identity: _fail()
+        if _identity((base / name).lstat()) != identity: _fail()
     for name, identity in actual_directories.items():
-        if _directories(RETIRED / name) != identity: _fail()
-    if _directories(RETIRED, True) != root: _fail()
+        if _directories(base / name) != identity: _fail()
+    if _directories(base, True) != root: _fail()
     return dict(files=actual, directories=actual_directories)
+
+
+def retained():
+    return _retained_tree(RETIRED, RECORDS, 321, SOURCE_MAP, {}, ())
+
+def _rejected_manager():
+    names = ('LoadState', 'ActiveState', 'SubState', 'MainPID', 'InvocationID',
+        'Result', 'ExecMainCode', 'ExecMainStatus', 'ExecMainPID', 'NRestarts',
+        'Restart', 'Type', 'RemainAfterExit', 'WorkingDirectory')
+    raw = _command(['systemctl', 'show', REJECTED_UNIT, '--property=' + ','.join(names)])
+    if any('=' not in line for line in raw.splitlines()): _fail()
+    value = _pairs(line.split('=', 1) for line in raw.splitlines())
+    expected = dict(LoadState='loaded', ActiveState='failed', SubState='failed', MainPID='0',
+        InvocationID=REJECTED_INVOCATION, Result='exit-code', ExecMainCode='1',
+        ExecMainStatus='1', ExecMainPID='1226555', NRestarts='0', Restart='no',
+        Type='exec', RemainAfterExit='yes', WorkingDirectory=str(REJECTED))
+    if value != expected: _fail()
+    return value
+
+
+def _rejected_processes():
+    """Read procfs only; no signal, wait loop, cleanup or resumed service."""
+    for path in PROC.iterdir():
+        if not path.name.isdigit() or int(path.name) == os.getpid(): continue
+        try:
+            groups = (path / 'cgroup').read_text()
+            if not groups.splitlines() or any(not re.fullmatch(r'[0-9]+:[^:\n]*:/[^\n]*', n) for n in groups.splitlines()): _fail()
+            if any(REJECTED_UNIT in line.split(':')[-1].split('/') for line in groups.splitlines()): _fail()
+            for key in ('cwd', 'exe'):
+                try: target = os.readlink(path / key).removesuffix(' (deleted)')
+                except FileNotFoundError: continue
+                if target == str(REJECTED) or target.startswith(str(REJECTED) + '/'): _fail()
+        except FileNotFoundError: continue
+        except OSError: _fail()
+
+
+def _rejected_images():
+    config = REJECTED / '.runtime/stage2/no-cutoff-recovery-image-docker-config'
+    identity = _directories(config, True)
+    if any(config.iterdir()): _fail()
+    for reference, expected in REJECTED_IMAGES.items():
+        raw = _command(['/usr/bin/docker', '--config', str(config),
+            '--host=unix:///var/run/docker.sock', 'image', 'inspect', reference])
+        values = json.loads(raw, object_pairs_hook=_pairs)
+        if type(values) is not list or len(values) != 1: _fail()
+        value = values[0]
+        if (type(value) is not dict or value.get('Id') != reference
+                or value.get('Os') != 'linux' or value.get('Architecture') != 'amd64'): _fail()
+        selected = {k: value[k] for k in ('Id', 'Os', 'Architecture', 'RootFS', 'Config')}
+        if _sha(json.dumps(selected, sort_keys=True, allow_nan=False).encode()) != expected: _fail()
+    if _directories(config, True) != identity or any(config.iterdir()): _fail()
+    return dict(REJECTED_IMAGES)
+
+
+def rejected():
+    """Preserve the actual failed qualifier and image; never grant admission."""
+    before = _rejected_manager()
+    _rejected_processes()
+    images = _rejected_images()
+    _rejected_processes()
+    if _rejected_manager() != before: _fail()
+    # Actual source, failure records, inventory and identities are read AFTER
+    # the last manager/process/image observation. Runtime payloads, including
+    # the credential, remain identity-only just as in the first retired tree.
+    tree = _retained_tree(REJECTED, REJECTED_RECORDS, 324, REJECTED_SOURCE_MAP,
+        REJECTED_FILES, REJECTED_DIRECTORIES)
+    return dict(manager=before, images=images, retained_identity=tree,
+        paid_attempts_started=0, qualification_passed=False)
 
 
 def inspect():
     before = baseline()
     first = retained()
-    if baseline() != before or retained() != first: _fail()
+    failed = rejected()
+    if baseline() != before or retained() != first or rejected() != failed: _fail()
     return dict(kind='recovery_execution_location_amendment_not_admission',
         execution_root=str(ROOT), retained_unstarted_root=str(RETIRED),
         original_plan_unchanged=True, retained_installation_attempts_started=0,
-        retained_identity=first, paid_launch_ready=False)
+        retained_identity=first, retained_failed_qualification=failed, paid_launch_ready=False)

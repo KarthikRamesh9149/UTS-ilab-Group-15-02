@@ -1,5 +1,34 @@
 # Matched baseline repeats after custom final89
 
+## Corrected Linux image comparison, 30 September UTC
+
+The separate image amendment accepts only the observed Linux/amd64
+`ArgsEscaped: true` to absent-field transition. A further read-only native
+presence check confirmed that the new field is absent, not null. All other
+image configuration/layers and installed sources stay strict; full raw image
+metadata remains bound on subsequent reads.
+
+The failed r2 image, exact failed service invocation, complete protected tree
+and private operator state remain pinned and untouched. The corrected location
+is exclusively `/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r3`;
+39 existing ancestor locks precede installation and the live chain has 40.
+New failure records retain a fixed safe stage, never raw diagnostics.
+No original preparation, agent, tools, model, official deadline or recovery
+plan/key is changed.
+
+All 806 final local recovery tests passed in 352.951 seconds, with no skips,
+errors or failures, 316 before/discovery/after source bindings and 215 final
+loaded modules. Source-map SHA256 is
+`a2526e83098ed3bffe3f02221e8d5d9cf84fc53195c2c633c2ddd2e062955a95`.
+The first 127-test focused run had
+126 passes and one outdated expected operator-directory suffix; that fixture
+was corrected. All 36 affected baseline-reader tests and immutable-evidence
+checks passed; all 12 repository tests also passed. These are local checks,
+not native qualification. The corrected
+root is not installed; actual fresh absence/protection checks and all native
+qualification gates remain. Recovery is 0/3 and both baseline repeats are
+unstarted. The earlier recovery estimate is at risk; no finish is guaranteed.
+
 ## Native qualification failure, 30 September 02:51 UTC
 
 The corrected 01fba1e installation succeeded at 01:46:59 UTC in the separate

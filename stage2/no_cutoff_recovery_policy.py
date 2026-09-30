@@ -121,6 +121,7 @@ REQUIRED_SOURCE_FILES = frozenset({
     'protocols/custom_setup_recovery_execution_20260930.md',
     'no_cutoff_recovery_revision.py', 'test_no_cutoff_recovery_revision.py',
     'protocols/custom_setup_recovery_location_20260930.md',
+    'protocols/custom_setup_recovery_image_20260930.md',
     'fixtures/lifecycle/task.toml', 'fixtures/lifecycle/instruction.md',
     'fixtures/lifecycle/environment/Dockerfile', 'fixtures/lifecycle/tests/test.sh',
     # Explicit current installed-image closure; unchanged inherited files.

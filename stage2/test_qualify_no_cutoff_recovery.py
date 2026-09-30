@@ -110,6 +110,7 @@ class QualifierTests(unittest.IsolatedAsyncioTestCase):
             await qualifier.qualify(active)
         self.assertEqual(self.calls,list(policy.PROBE_MODES[:3]))
         self.assertTrue((self.rt/qualifier.FAILURE).is_file())
+        self.assertEqual(json.loads((self.rt/qualifier.FAILURE).read_bytes())['stage'], 'native_case_prepare_nonzero')
         self.assertFalse((self.rt/policy.QUALIFICATION_FILE).exists())
         self.assertTrue(list(self.rt.glob('native-no-cutoff-recovery-tools-*/evidence.json')))
 

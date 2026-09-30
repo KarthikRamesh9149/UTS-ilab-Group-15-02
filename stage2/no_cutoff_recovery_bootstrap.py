@@ -15,7 +15,7 @@ import stat
 import subprocess
 import sys
 
-ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r2')
+ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r3')
 ORIGINAL = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
 QUALIFICATION = '.runtime/stage2/no-cutoff-recovery-original-qualification.json'
 QUALIFICATION_SHA = '008f2998d0df7646ba351c76b5a343354e25f4d99fdf66f05dee39e6ea19d110'
