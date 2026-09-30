@@ -201,7 +201,7 @@ class FailedOperatorTests(LocalFiles, unittest.TestCase):
 
     def test_second_operator_destination_is_distinct_and_failed_hashes_are_fixed(self):
         self.assertNotEqual(install.STATE,install.FAILED_STATE)
-        self.assertTrue(install.STATE.endswith('20260930-r4'))
+        self.assertTrue(install.STATE.endswith('20260930-r5'))
 
     def test_mac_acl_reader_observes_fixed_command_and_exact_environment(self):
         with patch.object(install.platform,'system',return_value='Darwin'),patch.object(install.subprocess,'run',

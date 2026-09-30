@@ -79,6 +79,7 @@ POLICY = dict(schema_version=1, experiment=EXPERIMENT,
 # This is a prospective component inventory, not a retroactive qualification.
 # Add the real host/service/producer sources before their future native freeze.
 REQUIRED_SOURCE_FILES = frozenset({
+    'protocols/custom_setup_recovery_regression_20260930.md',
     'no_cutoff_recovery_plan.py', 'test_no_cutoff_recovery_plan.py',
     'protocols/custom_setup_recovery_20260929.md', 'matched_repeat_schedule.py',
     'no_cutoff_recovery_setup.py', 'test_no_cutoff_recovery_setup.py',

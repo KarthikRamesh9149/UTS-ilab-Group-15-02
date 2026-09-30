@@ -14,7 +14,7 @@ import stat
 import subprocess
 import sys
 
-ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r3')
+ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r4')
 RETIRED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260929')
 REJECTED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r2')
 BASELINE = Path('/opt/uts-capstone-corrected-20260923')
@@ -72,7 +72,54 @@ REJECTED_IMAGES = {
     "sha256:6211ce5a6c2845135104f36fd2940588a1b256224c9a89fc267f4967bb8054b0": "654173da9ed4c6419a24034ff1a2fc55b0b9bccce8419d42b328d7fd07bedc2a",
     "sha256:69a331f7aef9f7c33ede8371fc7109ef0d83fe4f946f05f2a4aad97e65a51cc4": "92cd6776f6f4f1f7187a4503f436d521d11beb65c703050e781ba61f6a08b086"
 }
+REGRESSION_REJECTED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r3')
+REGRESSION_UNIT = 'uts-recovery-qualify-7f1c3287f20e1ee133e07336ac901ee0.service'
+REGRESSION_INVOCATION = 'e9ea53fbea8c470e816a4cb122d7ff54'
+REGRESSION_RECORDS = {
+    "installation-files.json": "dbda9115d11a0159e7400281f3e7e58d6a7df385c95c33046591773f66cdde1f",
+    "installation-intent.json": "94449e62ecdffe5368c2b87a3b01a8a0aa4d8b03f25d896b8181277be65569d2",
+    "installation-result.json": "bc5f8998bd80567513d7efdb8107f42aa40fe86db2588888f43114a95f9ecaba",
+    "source-commit.txt": "9adc2f15272d55c64acf7145a8414711de2a1dc35b3c281ec2def12c9d8115c5"
+}
+REGRESSION_SOURCE_MAP = '94c4a4f83a3dae6b821c89b1a55cf550e799c73f2400877ba5d7570f094299dc'
+REGRESSION_FILES = {
+    ".runtime/stage2/native-no-cutoff-recovery-qualification-91369a09519f4f428aa19ec0bd6d1467/regression.txt": "e06fe0acb2c1e77c66e9250991844a7db1fcc003425ac607891284f43b84e821",
+    ".runtime/stage2/no-cutoff-recovery-credit-policy.json": "15460104bd6794a8b2af7d7761cc61a7a7541c79204abb715a9796d7908c8161",
+    ".runtime/stage2/no-cutoff-recovery-image-build.json": "23667fe601677c4e69afc30a37dd8afa491d29dc7bdf6f8257fbdc261a02ac83",
+    ".runtime/stage2/no-cutoff-recovery-images.json": "03917f4f39438f10de4e9370711f3882a343216da6804ede710fa00b66172eae",
+    ".runtime/stage2/no-cutoff-recovery-plan.json": "0ea9ef5f27558c441bb10dc1f5278dde15f262877011930464f5c408c284220a",
+    ".runtime/stage2/no-cutoff-recovery-predecessor.json": "6ff1c2275bb6cc4c58ce6218b4b6e01216a1734179925fc24a6e294dc4e10018",
+    ".runtime/stage2/no-cutoff-recovery-qualification-failure.json": "44cd8ec9708a1ab6549afe070cd38d1d63f1b4b3fb60632597dfd588d4cb7b07",
+    ".runtime/stage2/no-cutoff-recovery-qualification-intent.json": "191f60a27e9a7540486f40468b6d3a74f4beea4a50cd598e4b63cb1fdaad5ecd",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/accepted.json": "f780dc4e2f1c33d2f1a9f18bb8c1b337fd5c4428d757dcb93acb475263378cf7",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/failure.json": "edd9ab2d315b9438776332897acebe6b6576360ad39228111257caadf11743a2",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/intent.json": "03089b917d207fd3da24e0faa42ddda3917a891c2ebe0d93ab9e2adcc4dd8d92",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/prerequisites.json": "4e2b335989ec7a43c68aae09026ec01aa4f9ab7e6b2bb1ad2c207a68d9d87864",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/service-started.json": "a257eda8346f64d14062cba3f376153daabb07dcd7682cc43057749b632c70ed",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection/service.log": "61a1958d533899d2f5c5b32e2cd99ba5c372d64355b77c0dd2fd715f6ca929fc",
+    ".runtime/stage2/no-cutoff-recovery-runtime.json": "6450b6e5afd96a2b7f4637e3082e4b6406f99e128e388d0d9028013419e332b9",
+    ".venv/lib/python3.12/site-packages/__pycache__/_virtualenv.cpython-312.pyc": "2e272e87f5fa35db8a72f9dd3b2e1d6622b4a06840b0efcdcf3f9bd20a969733"
+}
+REGRESSION_DIRECTORIES = tuple([
+    ".runtime/stage2/native-no-cutoff-recovery-qualification-91369a09519f4f428aa19ec0bd6d1467",
+    ".runtime/stage2/native-no-cutoff-recovery-qualification-91369a09519f4f428aa19ec0bd6d1467/test-tmp",
+    ".runtime/stage2/no-cutoff-recovery-image-docker-config",
+    ".runtime/stage2/no-cutoff-recovery-qualify-connection",
+    ".venv/lib/python3.12/site-packages/__pycache__"
+])
+REGRESSION_IMAGES = {
+    "sha256:69a331f7aef9f7c33ede8371fc7109ef0d83fe4f946f05f2a4aad97e65a51cc4": "92cd6776f6f4f1f7187a4503f436d521d11beb65c703050e781ba61f6a08b086",
+    "sha256:780a545c444b5b1d8f8afa7252f27e1201e1c62d840a043dd9f15bbc822aa23b": "f5acb7af91cbb80cc0ea4fdd2710be44a31b0f8bdd3971d93c7fd74796b3007e",
+    "sha256:d9650b626cae3e27cdf2b5bd95649cb4da8f8c0a6d11127cba65b9663be91eb7": "bd802a2587197b3823c7d239a556c0e3853458fc4e837dbeeb0b45c92a1cb7ef"
+}
 OPERATOR_STATES = {
+    '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r4': {
+        'intent.json': '6204671db54e7ec44bbf47ac577c8b9376f88d3fd729abd6e6aa259b70944b69',
+        'result.json': REGRESSION_RECORDS['installation-result.json']},
+    '.runtime/netcup/custom-no-cutoff-recovery-qualify-20260930-r3': {
+        'intent.json': '8259644c2e7a65de6b2c5bb429242be3a02d303a7f51aa393d07cf661c55e211',
+        'receiver.json': '3684b9685d36b7f08150ab2c8da9f027fa8114d1f1dbc8023dabd3a65644a1c0',
+        'failure.json': 'fe3a1310d7dfa22319b9e365b5e434ed41bccc895597b59521d16f51829044e8'},
     '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r3': {
         'intent.json': '075a03a25d33f5d1b0e8c1546a6dd2f3c988d8c1999638ca0ffaad78ea7c5625',
         'result.json': REJECTED_RECORDS['installation-result.json']},
@@ -306,42 +353,49 @@ def _retained_tree(base, record_hashes, source_count, source_hash, extra_files, 
 def retained():
     return _retained_tree(RETIRED, RECORDS, 321, SOURCE_MAP, {}, ())
 
-def _rejected_manager():
+def _rejected_manager(base=None, unit=None, invocation=None, pid='1226555'):
+    base = REJECTED if base is None else base
+    unit = REJECTED_UNIT if unit is None else unit
+    invocation = REJECTED_INVOCATION if invocation is None else invocation
     names = ('LoadState', 'ActiveState', 'SubState', 'MainPID', 'InvocationID',
         'Result', 'ExecMainCode', 'ExecMainStatus', 'ExecMainPID', 'NRestarts',
         'Restart', 'Type', 'RemainAfterExit', 'WorkingDirectory')
-    raw = _command(['systemctl', 'show', REJECTED_UNIT, '--property=' + ','.join(names)])
+    raw = _command(['systemctl', 'show', unit, '--property=' + ','.join(names)])
     if any('=' not in line for line in raw.splitlines()): _fail()
     value = _pairs(line.split('=', 1) for line in raw.splitlines())
     expected = dict(LoadState='loaded', ActiveState='failed', SubState='failed', MainPID='0',
-        InvocationID=REJECTED_INVOCATION, Result='exit-code', ExecMainCode='1',
-        ExecMainStatus='1', ExecMainPID='1226555', NRestarts='0', Restart='no',
-        Type='exec', RemainAfterExit='yes', WorkingDirectory=str(REJECTED))
+        InvocationID=invocation, Result='exit-code', ExecMainCode='1',
+        ExecMainStatus='1', ExecMainPID=pid, NRestarts='0', Restart='no',
+        Type='exec', RemainAfterExit='yes', WorkingDirectory=str(base))
     if value != expected: _fail()
     return value
 
 
-def _rejected_processes():
+def _rejected_processes(base=None, unit=None):
     """Read procfs only; no signal, wait loop, cleanup or resumed service."""
+    base = REJECTED if base is None else base
+    unit = REJECTED_UNIT if unit is None else unit
     for path in PROC.iterdir():
         if not path.name.isdigit() or int(path.name) == os.getpid(): continue
         try:
             groups = (path / 'cgroup').read_text()
             if not groups.splitlines() or any(not re.fullmatch(r'[0-9]+:[^:\n]*:/[^\n]*', n) for n in groups.splitlines()): _fail()
-            if any(REJECTED_UNIT in line.split(':')[-1].split('/') for line in groups.splitlines()): _fail()
+            if any(unit in line.split(':')[-1].split('/') for line in groups.splitlines()): _fail()
             for key in ('cwd', 'exe'):
                 try: target = os.readlink(path / key).removesuffix(' (deleted)')
                 except FileNotFoundError: continue
-                if target == str(REJECTED) or target.startswith(str(REJECTED) + '/'): _fail()
+                if target == str(base) or target.startswith(str(base) + '/'): _fail()
         except FileNotFoundError: continue
         except OSError: _fail()
 
 
-def _rejected_images():
-    config = REJECTED / '.runtime/stage2/no-cutoff-recovery-image-docker-config'
+def _rejected_images(base=None, images=None):
+    base = REJECTED if base is None else base
+    images = REJECTED_IMAGES if images is None else images
+    config = base / '.runtime/stage2/no-cutoff-recovery-image-docker-config'
     identity = _directories(config, True)
     if any(config.iterdir()): _fail()
-    for reference, expected in REJECTED_IMAGES.items():
+    for reference, expected in images.items():
         raw = _command(['/usr/bin/docker', '--config', str(config),
             '--host=unix:///var/run/docker.sock', 'image', 'inspect', reference])
         values = json.loads(raw, object_pairs_hook=_pairs)
@@ -352,7 +406,7 @@ def _rejected_images():
         selected = {k: value[k] for k in ('Id', 'Os', 'Architecture', 'RootFS', 'Config')}
         if _sha(json.dumps(selected, sort_keys=True, allow_nan=False).encode()) != expected: _fail()
     if _directories(config, True) != identity or any(config.iterdir()): _fail()
-    return dict(REJECTED_IMAGES)
+    return dict(images)
 
 
 def rejected():
@@ -371,12 +425,29 @@ def rejected():
         paid_attempts_started=0, qualification_passed=False)
 
 
+def regression_rejected():
+    """Read the fixed failed Linux regression tree; never rerun or repair it."""
+    args = (REGRESSION_REJECTED, REGRESSION_UNIT, REGRESSION_INVOCATION, '1247160')
+    before = _rejected_manager(*args)
+    _rejected_processes(*args[:2])
+    images = _rejected_images(REGRESSION_REJECTED, REGRESSION_IMAGES)
+    _rejected_processes(*args[:2])
+    if _rejected_manager(*args) != before: _fail()
+    tree = _retained_tree(REGRESSION_REJECTED, REGRESSION_RECORDS, 325,
+        REGRESSION_SOURCE_MAP, REGRESSION_FILES, REGRESSION_DIRECTORIES)
+    return dict(manager=before, images=images, retained_identity=tree,
+        paid_attempts_started=0, qualification_passed=False)
+
+
 def inspect():
     before = baseline()
     first = retained()
     failed = rejected()
-    if baseline() != before or retained() != first or rejected() != failed: _fail()
+    regressions = regression_rejected()
+    if (baseline() != before or retained() != first or rejected() != failed
+            or regression_rejected() != regressions): _fail()
     return dict(kind='recovery_execution_location_amendment_not_admission',
         execution_root=str(ROOT), retained_unstarted_root=str(RETIRED),
         original_plan_unchanged=True, retained_installation_attempts_started=0,
-        retained_identity=first, retained_failed_qualification=failed, paid_launch_ready=False)
+        retained_identity=first, retained_failed_qualification=failed,
+        retained_failed_regressions=regressions, paid_launch_ready=False)

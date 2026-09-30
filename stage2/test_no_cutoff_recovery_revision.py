@@ -208,6 +208,7 @@ class RetainedTests(LocalFiles, unittest.TestCase):
             return real()
         with patch.object(revision, 'baseline', return_value={'actual_synthetic': True}), \
                 patch.object(revision, 'rejected', return_value={'retained_failure': True}), \
+                patch.object(revision, 'regression_rejected', return_value={'retained_regression_failure': True}), \
                 patch.object(revision, 'retained', side_effect=replace), self.assertRaises(ValueError):
             revision.inspect()
 
@@ -250,6 +251,7 @@ class ContractTests(unittest.TestCase):
     def test_saved_or_partial_proof_has_no_inspection_shortcut(self):
         with patch.object(revision, 'baseline', return_value={}) as live, \
                 patch.object(revision, 'rejected', return_value={'retained_failure': True}), \
+                patch.object(revision, 'regression_rejected', return_value={'retained_regression_failure': True}), \
                 patch.object(revision, 'retained', side_effect=[{'identity': 1}, {'identity': 2}]), \
                 self.assertRaises(ValueError):
             revision.inspect()
@@ -367,7 +369,73 @@ class RejectedTests(unittest.TestCase):
     def test_complete_inspection_rejects_late_failed_evidence_replacement(self):
         with patch.object(revision, 'baseline', return_value={}), \
                 patch.object(revision, 'retained', return_value={}), \
+                patch.object(revision, 'regression_rejected', return_value={}), \
                 patch.object(revision, 'rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
+            with self.assertRaises(ValueError): revision.inspect()
+
+
+class RegressionFailureTests(unittest.TestCase):
+    def setUp(self):
+        fixture = RejectedTests('runTest')
+        self.addCleanup(fixture.doCleanups); fixture.setUp()
+        self.root = fixture.root
+        path = self.root / 'installation-files.json'
+        inventory = json.loads(path.read_bytes())
+        save(self.root, 'stage2/last_source.py', b'last source')
+        inventory['files']['stage2/last_source.py'] = revision._sha(b'last source')
+        raw = json.dumps(inventory).encode(); save(self.root, 'installation-files.json', raw)
+        records = dict(revision.REJECTED_RECORDS, **{'installation-files.json': revision._sha(raw)})
+        for name, value in dict(REGRESSION_REJECTED=self.root, REGRESSION_RECORDS=records,
+                REGRESSION_SOURCE_MAP=revision._sha(json.dumps(inventory['files'], sort_keys=True, allow_nan=False).encode()),
+                REGRESSION_FILES=revision.REJECTED_FILES, REGRESSION_DIRECTORIES=revision.REJECTED_DIRECTORIES).items():
+            self.enterContext(patch.object(revision, name, value))
+        self.manager = dict(fixture.manager, InvocationID=revision.REGRESSION_INVOCATION,
+            ExecMainPID='1247160', WorkingDirectory=str(self.root))
+
+    def tree(self):
+        return revision._retained_tree(self.root, revision.REGRESSION_RECORDS, 325,
+            revision.REGRESSION_SOURCE_MAP, revision.REGRESSION_FILES, revision.REGRESSION_DIRECTORIES)
+
+    def test_actual_failed_tree_bytes_and_empty_directories_are_required(self):
+        first = self.tree(); self.assertEqual(self.tree(), first)
+        save(self.root, '.runtime/stage2/no-cutoff-recovery-qualification.json', b'{}')
+        with self.assertRaises(ValueError): self.tree()
+
+    def test_missing_or_replaced_failure_never_counts_as_qualification(self):
+        first = self.tree(); path = self.root / '.runtime/stage2/retained-failure.json'
+        raw = path.read_bytes(); path.unlink()
+        with self.assertRaises((OSError, ValueError)): self.tree()
+        save(self.root, '.runtime/stage2/retained-failure.json', raw)
+        self.assertNotEqual(self.tree(), first)
+
+    def test_exact_r3_manager_identity_is_independently_checked(self):
+        args = (self.root, revision.REGRESSION_UNIT, revision.REGRESSION_INVOCATION, '1247160')
+        with patch.object(revision, '_command', return_value='\n'.join(k+'='+v for k,v in self.manager.items())) as command:
+            self.assertEqual(revision._rejected_manager(*args), self.manager)
+            self.assertEqual(command.call_args.args[0][2], revision.REGRESSION_UNIT)
+        for key, value in (('InvocationID', revision.REJECTED_INVOCATION), ('ExecMainPID', '1226555'),
+                ('MainPID', '9'), ('ExecMainStatus', '0')):
+            state = dict(self.manager, **{key: value})
+            with patch.object(revision, '_command', return_value='\n'.join(k+'='+v for k,v in state.items())):
+                with self.assertRaises(ValueError): revision._rejected_manager(*args)
+
+    def test_fixed_reader_rereads_actual_tree_after_last_native_observation(self):
+        order = []
+        with patch.object(revision, '_rejected_manager', side_effect=lambda *a: order.append(('manager', a)) or self.manager), \
+                patch.object(revision, '_rejected_processes', side_effect=lambda *a: order.append(('process', a))), \
+                patch.object(revision, '_rejected_images', side_effect=lambda *a: order.append(('images', a)) or {}), \
+                patch.object(revision, '_retained_tree', wraps=revision._retained_tree) as tree:
+            result = revision.regression_rejected()
+        self.assertFalse(result['qualification_passed']); self.assertEqual(result['paid_attempts_started'], 0)
+        self.assertEqual([n for n, _ in order], ['manager', 'process', 'images', 'process', 'manager'])
+        self.assertTrue(all(args[0] == self.root for _, args in order))
+        self.assertEqual(tree.call_args.args[2], 325)
+
+    def test_late_r3_identity_drift_refuses_complete_revision_inspection(self):
+        with patch.object(revision, 'baseline', return_value={}), \
+                patch.object(revision, 'retained', return_value={}), \
+                patch.object(revision, 'rejected', return_value={}), \
+                patch.object(revision, 'regression_rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
             with self.assertRaises(ValueError): revision.inspect()
 
 

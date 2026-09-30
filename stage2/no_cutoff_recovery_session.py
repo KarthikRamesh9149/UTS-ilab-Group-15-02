@@ -81,7 +81,7 @@ def _lock_paths(root):
     paths.extend(base / handoff.phase.RT / n for base in (C3_ROOT, NC_ROOT, handoff.report.ROOT)
         for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
     paths.extend(base / handoff.phase.RT / n
-        for base in (handoff.revision.RETIRED, handoff.revision.REJECTED)
+        for base in (handoff.revision.RETIRED, handoff.revision.REJECTED, handoff.revision.REGRESSION_REJECTED)
         for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
     if len(set(paths)) != len(paths): raise ValueError('Distinct complete recovery lock chain required')
     return tuple(paths)

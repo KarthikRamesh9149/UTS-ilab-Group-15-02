@@ -177,8 +177,61 @@ class LibraryProducerTests(Patching):
         self.assertNotEqual(value['TIKTOKEN_CACHE_DIR'], libraries.environment(libraries.ORIGINAL)['TIKTOKEN_CACHE_DIR'])
 
     def test_fixed_native_entry_refuses_local_or_arbitrary_roots(self):
-        for root in (Path(__file__).resolve().parents[1], Path('/arbitrary'), libraries.RECOVERY):
-            with self.subTest(root=root), self.assertRaises(ValueError): libraries.inspect(root, {'x': '1' * 64})
+        # This suite also runs in the genuine Linux recovery interpreter. An
+        # invalid binding is NOT an invalid execution context there: inspect
+        # installs an irreversible audit hook before reading that binding.
+        # Explicitly supply an unqualified context for this negative test.
+        prefix, environment = sys.pycache_prefix, libraries._ENVIRONMENT
+        with patch.object(libraries.platform, 'system', return_value='Darwin'), \
+                patch.object(libraries.sys, 'addaudithook') as install:
+            for root in (Path(__file__).resolve().parents[1], Path('/arbitrary'), libraries.RECOVERY):
+                with self.subTest(root=root), self.assertRaises(ValueError):
+                    libraries.inspect(root, {'x': '1' * 64})
+            install.assert_not_called()
+        self.assertEqual(sys.pycache_prefix, prefix)
+        self.assertIs(libraries._ENVIRONMENT, environment)
+
+    def test_arbitrary_root_refuses_before_effect_guard_even_on_linux(self):
+        prefix, environment = sys.pycache_prefix, libraries._ENVIRONMENT
+        with patch.object(libraries.platform, 'system', return_value='Linux'), \
+                patch.object(libraries.sys, 'addaudithook') as install:
+            with self.assertRaises(ValueError):
+                libraries.inspect(Path('/arbitrary'), {'x': '1' * 64})
+            install.assert_not_called()
+        self.assertEqual(sys.pycache_prefix, prefix)
+        self.assertIs(libraries._ENVIRONMENT, environment)
+
+    def test_negative_entry_fixture_does_not_poison_linux_child(self):
+        root = Path(__file__).resolve().parents[1]
+        program = '''import sys, os, unittest, tempfile
+from pathlib import Path
+from unittest.mock import patch
+root=Path.cwd(); sys.path.insert(0,str(root/'stage2'))
+import test_no_cutoff_recovery_runtime as tests
+import no_cutoff_recovery_libraries as p
+before=(sys.pycache_prefix,p._ENVIRONMENT)
+suite=unittest.TestSuite(tests.LibraryProducerTests(name) for name in (
+    'test_fixed_native_entry_refuses_local_or_arbitrary_roots',
+    'test_arbitrary_root_refuses_before_effect_guard_even_on_linux'))
+with patch.object(p.platform,'system',return_value='Linux'), \\
+        patch.object(p.platform,'machine',return_value='x86_64'), \\
+        patch.object(p.os,'getuid',return_value=0), \\
+        patch.object(p,'RECOVERY',root), \\
+        patch.object(sys,'prefix',str(root/'.venv')), \\
+        patch.object(sys,'executable',str(root/'.venv/bin/python')):
+    result=unittest.TextTestRunner(stream=sys.stderr).run(suite)
+if not result.wasSuccessful() or result.testsRun != 2: raise SystemExit(1)
+if sys.pycache_prefix != before[0] or p._ENVIRONMENT is not before[1]: raise SystemExit(2)
+with tempfile.TemporaryDirectory() as directory:
+    path=Path(directory)/'still-writable'; path.write_bytes(b'fixture')
+    if path.read_bytes() != b'fixture': raise SystemExit(3)
+print('negative-context-isolation-passed')
+'''
+        environment = libraries.environment(root)
+        if 'TMPDIR' in os.environ: environment['TMPDIR'] = os.environ['TMPDIR']
+        result = subprocess.run([sys.executable, '-I', '-B', '-'], input=program, cwd=root,
+            env=environment, text=True, capture_output=True, timeout=90, check=True)
+        self.assertEqual(result.stdout.strip(), 'negative-context-isolation-passed')
 
     def test_loaded_project_and_library_origins_must_match_actual_inventory(self):
         root = self.temporary(); site = root / '.venv/lib/python3.12/site-packages'

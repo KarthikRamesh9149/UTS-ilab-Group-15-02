@@ -393,10 +393,10 @@ class ContractTests(unittest.TestCase):
         paths.extend(handoff.report.ROOT / handoff.phase.RT / n
             for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
         paths.extend(base / handoff.phase.RT / n
-            for base in (handoff.revision.RETIRED, handoff.revision.REJECTED)
+            for base in (handoff.revision.RETIRED, handoff.revision.REJECTED, handoff.revision.REGRESSION_REJECTED)
             for n in ('matrix.lock', 'scored.lock', 'gateway.lock'))
         self.assertEqual(session._lock_paths(handoff.ROOT), tuple(paths))
-        self.assertEqual(len(paths), 40)
+        self.assertEqual(len(paths), 43)
         self.assertEqual(sum(p.parent == handoff.ROOT / handoff.phase.RT for p in paths), 1)
 
     def test_full_system_ancestry_is_included(self):
@@ -404,7 +404,14 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(session._lock_parents(path), tuple(reversed(path.parents)))
 
     def test_actual_context_refuses_local_interpreter_without_effects(self):
-        with self.assertRaises(ValueError): session._context()
+        # This test also runs in the genuine native qualification interpreter.
+        # Make the rejected interpreter explicit instead of assuming a Mac.
+        with patch.object(handoff, '_context', return_value=handoff.ROOT), \
+                patch.object(session.sys, 'executable', '/unqualified/python'), \
+                patch.object(runtime.libraries, 'protected') as protected, \
+                self.assertRaises(ValueError):
+            session._context()
+        protected.assert_not_called()
 
     def test_import_credential_free_child_has_no_external_effects(self):
         root = Path(__file__).resolve().parents[1]

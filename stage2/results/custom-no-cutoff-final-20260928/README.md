@@ -1,5 +1,49 @@
 # Measured C0-NC final89
 
+## Native regression refusal and test correction, 30 September UTC
+
+The r3 installation at `7596aaed36f1a41b0d382d732a44ce392ada569b` succeeded.
+Its real fresh audit/archive handoff completed, and actual image build plus
+installed-image verification passed at 04:10:11 UTC. Native regressions then
+ran 806 tests in 267.840 seconds with 238 errors. Qualification failed before
+all six lifecycle cases and before any paid attempt.
+
+Safe inspection found a test that assumed a non-native interpreter. On Linux
+it entered the actual library inspector, installed its permanent audit hook,
+then failed on a deliberately invalid source binding. Later tests were refused
+by that leaked guard. Negative tests now explicitly use an unqualified context
+and assert unchanged guard/environment/cache state; an isolated child reproduces
+the otherwise valid Linux context. No benchmark agent or preparation behaviour
+is changed.
+
+At 04:41:33 UTC the exact service was failed/exit1 with MainPID0; service,
+relay and regression processes were absent. Only the verified owned Mac SSH
+client was closed; its parent ended 04:41:56 UTC. No native signal was sent.
+Read-only 04:51:15 inventory pinned the complete failed tree, image, log and
+private operator state. All prior roots/evidence remain untouched.
+
+The [test-isolation amendment](../../protocols/custom_setup_recovery_regression_20260930.md)
+requires a new exclusive r4 native root, all 42 existing locks and a 43-lock
+live session. The Mac installation state ends r5; operation states end r4.
+Actual new-root absence, installation and qualification are still pending.
+The 155 targeted local checks passed after correcting one test's expected
+operator-directory suffix. All 813 final local recovery regressions passed
+in 383.345 seconds with zero skips/errors/failures, 317 sources checked before
+imports/discovery/after execution and 215 final loaded project origins. Source-map
+SHA256 is `49568f9477f079b393b0828442645f417e5601a03b6cdabbee42dfbbab4eb18a`.
+All 12 repository tests passed; archived 35 reporter/test files and original
+211 sources (except the prior permitted local scored hook) remain unchanged.
+These checks are not native qualification or study outcomes.
+
+Recovery remains **0/3 started**; both baseline repeats are unstarted.
+Original Custom C0-NC remains **89/89 complete: 50 passed, 36 verified failures,
+3 missing verifier outcomes**, with no active benchmark task. The earlier
+recovery completion window is no longer reliable. Baseline runtime alone is
+roughly 51 hours, excluding remaining qualification/integration/audits/backups;
+the earlier whole-project target is conditional, not a guarantee.
+
+Older pending-install and source-count statements below are historical.
+
 ## Corrected Linux image comparison, 30 September UTC
 
 The separate image amendment accepts only the observed Linux/amd64
