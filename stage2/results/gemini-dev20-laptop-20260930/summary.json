@@ -1,0 +1,37 @@
+{
+  "experiment": "gemini-dev20-laptop-20260930",
+  "model": "google/gemini-3.7-flash",
+  "harness_version": "stage2-c0-nc-gemini-0.1.0",
+  "scope": "new Gemini development experiment; not DeepSeek or final89",
+  "planned_tasks": 20,
+  "started_tasks": 20,
+  "verified_tasks": 18,
+  "passes": 13,
+  "verifier_failures": 4,
+  "infrastructure_failures": 3,
+  "budget_stops": 0,
+  "unstarted_tasks": [],
+  "stop_reason": "twenty_attempts_complete",
+  "budget": {
+    "cap_usd": "20",
+    "known_spending_usd": "11.229632850",
+    "unresolved_reserved_usd": "1.10",
+    "unresolved_requests": 1,
+    "physical_requests": 1215,
+    "initial_credit": {
+      "available_usd": "20.09737404"
+    },
+    "final_credit": {
+      "available_usd": "8.885266065"
+    },
+    "account_usage_delta_usd": "11.212107975",
+    "account_delta_may_include_other_key_users": true
+  },
+  "langfuse": {
+    "status": "local_metadata_retained_credentials_unavailable"
+  },
+  "registration_sha256": "c222aa855f1443c9b51f0166971524b2a339f4345544cfbff3ac3db52e0cbcfa",
+  "updated_utc": "2026-09-30T08:29:43.747806+00:00",
+  "delivery_projection": "Account lifetime usage and key limit omitted; original evidence retained privately.",
+  "registration_sha256_scope": "Original private registration, before delivery projection; not the projected public file."
+}

@@ -1,0 +1,25 @@
+{
+  "original_public_file_sha256": {
+    "cleanup-audit.json": "e0acc2f4d5ed1c9753627a77b23790b4c4f8d2338f36348e7bd77ef24be9f33b",
+    "continuation-1.json": "1acde36a4b3731abf1bb072bd96d0a12c126224d09ac44dbab1f21bcb17750e8",
+    "continuation-2.json": "0edc14e5b7b386648b1d3601b71fd2975ec7f61265c519eec2331877754810ea",
+    "laptop.json": "e9b95deac51892e71e1b3fec5337e200762fae1cf3bd9fb78333159d8433ae61",
+    "qualification-continuation-1.json": "ec76c130e2cc55b8ae7e65a519e5d1b621b3bdb8968070a622f79cfa5a021f6c",
+    "qualification-continuation-2.json": "4c922615d75dc9765922cd4b3826c154447d5d231d65fd567c91fd1ff105d984",
+    "qualification.json": "fd316df03653f458e3bfa1e20a7a4eb8ec1c0429703f63b038a01e78d2ca3591",
+    "registration.json": "c25d94fffc733c0fa47e24eceff69527131d3626d388a9113233a0da97464f98",
+    "request-metadata.json": "8550b8951a7e5d449b45f3d3ebd36852ffc63e4f25335d1e48794dd52dca3452",
+    "stop-before-continuation-2.json": "785982d34cc8e45e4707a1df3d1a1f4da52825993ada75646bbc8e982a212765",
+    "summary.json": "73ba400455c479707d89027e8436a9dde05136156df088ac2cf0b4cf9d022e18",
+    "tasks.json": "f4200c616138f5b1fae6e2603cffb7cc82b0977d90b9ce7e679e9da1906e805f"
+  },
+  "private_registration_canonical_sha256": "c222aa855f1443c9b51f0166971524b2a339f4345544cfbff3ac3db52e0cbcfa",
+  "omissions": [
+    "account lifetime usage",
+    "key lifetime limit",
+    "generation identifiers"
+  ],
+  "cost_projection": "Per-trial delivered costs reflect the final preserved ledger, including any late receipt settlement.",
+  "original_evidence_retained_privately": true,
+  "raw_exchanges_published": false
+}

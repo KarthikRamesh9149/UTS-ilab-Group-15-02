@@ -1,0 +1,12 @@
+{
+  "cpu": "Intel Core i7-10750H",
+  "physical_cores": 6,
+  "logical_processors": 12,
+  "gpu": "NVIDIA GeForce RTX 2060",
+  "gpu_used": false,
+  "inference": "remote OpenRouter; GPU is not used for model inference",
+  "docker_cpus": 12,
+  "docker_memory_bytes": 8239165440,
+  "image_prewarm_workers": 2,
+  "scored_task_concurrency": 1
+}

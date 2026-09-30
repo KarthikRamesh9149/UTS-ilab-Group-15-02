@@ -1,0 +1,9 @@
+{
+  "completed_response_cost_from_usage_usd": "11.229632850",
+  "known_ledger_cost_usd": "11.229632850",
+  "equal": true,
+  "input_usd_per_token": ".00000075",
+  "cached_input_usd_per_token": ".000000075",
+  "output_usd_per_token": ".00000375",
+  "unresolved_request_excluded": true
+}

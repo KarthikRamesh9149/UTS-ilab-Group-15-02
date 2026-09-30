@@ -1,0 +1,19 @@
+{
+  "responses": 1214,
+  "prompt_tokens": 57848867,
+  "completion_tokens": 371020,
+  "cached_tokens": 49701248,
+  "cache_write_tokens": 0,
+  "models": [
+    "google/gemini-3.7-flash"
+  ],
+  "providers": [
+    "Google AI Studio"
+  ],
+  "median_gateway_seconds": 3.174034812,
+  "http_status_counts": {
+    "200": 1214,
+    "None": 1
+  },
+  "scope": "Response usage metadata; cumulative repeated prompt tokens, not unique content."
+}

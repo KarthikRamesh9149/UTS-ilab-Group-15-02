@@ -1,0 +1,13 @@
+{
+  "physical_requests": 1215,
+  "request_payloads_checked": 1215,
+  "all_payloads_match_frozen_settings": true,
+  "observed_response_models": [
+    "google/gemini-3.7-flash"
+  ],
+  "observed_response_providers": [
+    "Google AI Studio"
+  ],
+  "expected_catalog_snapshot": "google/gemini-3.7-flash-20260813",
+  "scope": "Curated audit of preserved request and response metadata; no raw content published."
+}

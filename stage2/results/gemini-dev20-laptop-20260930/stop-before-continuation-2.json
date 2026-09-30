@@ -1,0 +1,36 @@
+{
+  "experiment": "gemini-dev20-laptop-20260930",
+  "model": "google/gemini-3.7-flash",
+  "harness_version": "stage2-c0-nc-gemini-0.1.0",
+  "scope": "new Gemini development experiment; not DeepSeek or final89",
+  "planned_tasks": 20,
+  "started_tasks": 12,
+  "verified_tasks": 10,
+  "passes": 7,
+  "verifier_failures": 2,
+  "infrastructure_failures": 3,
+  "budget_stops": 0,
+  "unstarted_tasks": [
+    "modernize-scientific-stack",
+    "distribution-search",
+    "merge-diff-arc-agi-task",
+    "sqlite-db-truncate",
+    "prove-plus-comm",
+    "db-wal-recovery",
+    "qemu-startup",
+    "nginx-request-logging"
+  ],
+  "stop_reason": "provider_transport_failure",
+  "budget": {
+    "cap_usd": "20",
+    "known_spending_usd": "8.661728400",
+    "unresolved_reserved_usd": "1.10",
+    "unresolved_requests": 1,
+    "physical_requests": 911
+  },
+  "langfuse": {
+    "status": "local_metadata_retained_credentials_unavailable"
+  },
+  "registration_sha256": "c222aa855f1443c9b51f0166971524b2a339f4345544cfbff3ac3db52e0cbcfa",
+  "updated_utc": "2026-09-30T07:36:11.170616+00:00"
+}
