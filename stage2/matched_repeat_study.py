@@ -41,6 +41,7 @@ def _private(root, name):
 
 def _qualified(active):
     live = session._live(active)
+    session.require_execution(active)
     verified = session.verify_qualification(active)
     root = live['root']
     records, files = session._qualification_inputs(root)

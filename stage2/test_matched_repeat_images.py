@@ -145,7 +145,7 @@ class ImageTests(unittest.TestCase):
         for value in ({}, session._Session()):
             with self.assertRaises(ValueError): images.build(value)
         async def checks():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 saved = session.describe(active)
                 with self.assertRaises(ValueError): images.build(saved)
                 async def child(): return images.build(active)
@@ -155,19 +155,20 @@ class ImageTests(unittest.TestCase):
 
     def test_process_and_thread_change_are_refused(self):
         async def checks():
-            with self.q.open() as active:
-                with patch.object(session.os, 'getpid', return_value=-1), self.assertRaisesRegex(ValueError, 'processes'):
-                    images.build(active)
-                with patch.object(session.threading, 'get_ident', return_value=-1), self.assertRaisesRegex(ValueError, 'threads'):
-                    images.build(active)
+            for target, attribute, label in ((session.os, 'getpid', 'processes'),
+                    (session.threading, 'get_ident', 'threads')):
+                with self.q.invalidated() as active:
+                    with patch.object(target, attribute, return_value=-1), self.assertRaisesRegex(ValueError, label):
+                        images.build(active)
         asyncio.run(checks()); self.docker.assert_not_called()
 
     def test_sync_and_non_main_thread_service_invocation_are_refused(self):
-        with self.q.open() as active:
-            with self.assertRaisesRegex(ValueError, 'async task'): images.build(active)
+        with self.q.invalidated() as active:
+            with patch.object(session, '_task', return_value=None), self.assertRaisesRegex(ValueError, 'async tasks'):
+                images.build(active)
         async def check():
-            with self.q.open() as active, patch.object(threading, 'main_thread', return_value=object()):
-                with self.assertRaisesRegex(ValueError, 'main thread'): images.build(active)
+            with self.q.invalidated() as active, patch.object(threading, 'main_thread', return_value=object()):
+                with self.assertRaisesRegex(ValueError, 'threads'): images.build(active)
         asyncio.run(check()); self.docker.assert_not_called()
 
     def test_active_ancestor_or_stop_prevents_any_image_command(self):
@@ -226,6 +227,51 @@ class ImageTests(unittest.TestCase):
         self.gateway['Config']['Env'].append('CHANGED=1')
         self.failure('configuration')
 
+    def test_linux_legacy_flag_omission_keeps_actual_raw_metadata_bound(self):
+        self.native['Config']['ArgsEscaped'] = True
+        result = asyncio.run(self.build())
+        self.assertEqual(result['observations']['parent_metadata_sha256'], policy.fingerprint(self.native))
+        self.assertEqual(result['observations']['gateway_metadata_sha256'], policy.fingerprint(self.gateway))
+        self.assertNotIn('ArgsEscaped', self.gateway['Config'])
+        async def verify():
+            with self.q.open() as active:
+                return images.verify(active)
+        self.assertEqual(asyncio.run(verify()), result)
+
+    def test_compatibility_does_not_accept_null_numeric_or_other_config_drift(self):
+        self.native['Config']['ArgsEscaped'] = True
+        self.assertTrue(images._same_linux_config(self.native, self.gateway))
+        for value in (False, None, 0, 1, 'true', [], {}):
+            changed = deepcopy(self.gateway); changed['Config']['ArgsEscaped'] = value
+            with self.subTest(value=value):
+                self.assertFalse(images._same_linux_config(self.native, changed))
+        for key, value in (('Cmd', ['unexpected']), ('Env', ['CHANGED=1']),
+                ('User', 'other'), ('WorkingDir', '/other'), ('Entrypoint', ['sh']),
+                ('OnBuild', ['RUN unexpected']), ('Volumes', {'/data': {}})):
+            changed = deepcopy(self.gateway); changed['Config'][key] = value
+            with self.subTest(key=key):
+                self.assertFalse(images._same_linux_config(self.native, changed))
+        for key, value in (('Os', 'windows'), ('Architecture', 'arm64')):
+            changed = deepcopy(self.gateway); changed[key] = value
+            with self.subTest(key=key):
+                self.assertFalse(images._same_linux_config(self.native, changed))
+
+    def test_false_or_numeric_parent_does_not_get_omission_exception(self):
+        for value in (False, None, 0, 1, 'true'):
+            self.native['Config']['ArgsEscaped'] = value
+            with self.subTest(value=value):
+                self.assertFalse(images._same_linux_config(self.native, self.gateway))
+
+    def test_raw_legacy_flag_change_after_build_still_refuses_verification(self):
+        self.native['Config']['ArgsEscaped'] = True
+        asyncio.run(self.build())
+        self.gateway['Config']['ArgsEscaped'] = True
+        async def verify():
+            with self.q.invalidated() as active:
+                with self.assertRaises(ValueError): images.verify(active)
+        asyncio.run(verify())
+        self.assertEqual(len(self.contexts), 1)
+
     def test_unexpected_image_identity_or_architecture_is_refused(self):
         self.guard['Architecture'] = 'arm64'; self.failure('native Linux')
         self.assertEqual(self.contexts, [])
@@ -233,6 +279,8 @@ class ImageTests(unittest.TestCase):
     def test_installed_source_mismatch_is_refused(self):
         self.report = dict(installed={}, loaded={}, import_only=True, live_api_calls=0)
         self.failure('installed source')
+        self.assertEqual(json.loads((self.rt / images.FAILURE).read_bytes())['stage'],
+            'verify_built_gateway_image')
 
     def test_unchanged_base_helpers_are_observed_not_copied(self):
         result = asyncio.run(self.build())
@@ -282,6 +330,7 @@ class ImageTests(unittest.TestCase):
         text = (self.rt / images.FAILURE).read_text()
         self.assertNotIn('PRIVATE_DIAGNOSTIC', text)
         self.assertEqual(json.loads(text)['exception_type'], 'RuntimeError')
+        self.assertEqual(json.loads(text)['stage'], 'prepare_fixed_image_context')
         self.assertIsNone(json.loads(text)['observed_gateway_image'])
         self.assertEqual(self.docker.call_count, 1)
         with self.assertRaises(ValueError): asyncio.run(self.build())
@@ -290,7 +339,7 @@ class ImageTests(unittest.TestCase):
     def test_failed_build_invalidates_its_session(self):
         self.docker.side_effect = RuntimeError('Failed')
         async def check():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaises(RuntimeError): images.build(active)
                 with self.assertRaises(ValueError): session.describe(active)
         asyncio.run(check())
@@ -312,7 +361,7 @@ class ImageTests(unittest.TestCase):
     def test_verification_rereads_actual_private_evidence_and_images(self):
         asyncio.run(self.build()); self.gateway['Config']['WorkingDir'] = '/changed'
         async def check():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaises(ValueError): images.verify(active)
                 with self.assertRaises(ValueError): session.describe(active)
         asyncio.run(check()); self.assertEqual(len(self.contexts), 1)
@@ -320,7 +369,7 @@ class ImageTests(unittest.TestCase):
     def test_symlinked_or_public_build_record_cannot_be_verified(self):
         asyncio.run(self.build()); path = self.rt / images.RESULT; raw = path.read_bytes()
         async def check():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaises(ValueError): images.verify(active)
         path.chmod(0o644); asyncio.run(check()); path.chmod(0o600)
         path.unlink(); other = self.rt / 'synthetic-copy.json'; other.write_bytes(raw); other.chmod(0o600)

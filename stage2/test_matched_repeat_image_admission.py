@@ -19,12 +19,17 @@ import test_matched_repeat_images as fixtures
 from test_matched_repeat_policy import qualification
 
 REAL_BINDING = images.qualification_binding
+REAL_EXECUTION = session.require_execution
 
 
 class ImageAdmissionTests(unittest.TestCase):
     def setUp(self):
         self.f = fixtures.ImageTests('runTest'); self.f.setUp(); self.addCleanup(self.f.doCleanups)
         self.q = self.f.q; self.root = self.f.root; self.rt = self.f.rt
+        # These pre-existing image/admission fixtures mock native prerequisites.
+        # The separate composite/session suites retain real witness coverage.
+        self.enterContext(patch.object(session, 'require_execution', side_effect=lambda active:
+            self.q.under_lock('native-completed-recovery-witness', {'paid_launch_ready': False})))
         # Restore the actual binding/verifier over the older mocked session
         # fixture. Only native prerequisites and the Docker daemon stay mocked.
         self.enterContext(patch.object(images, 'qualification_binding', REAL_BINDING))
@@ -38,7 +43,7 @@ class ImageAdmissionTests(unittest.TestCase):
             self.assertFalse((self.rt / policy.QUALIFICATION_FILE).exists())
             self.assertFalse((self.rt / policy.REGISTRATION_FILE).exists())
             # Test-only rehearsal records. Real production qualification must
-            # execute the isolated native producers, which are not implemented.
+            # execute the isolated native producers; these are not native proof.
             self.proof = qualification(self.q.f.original, self.q.f.final,
                 self.q.f.predecessor, self.q.f.manifest, 'terminus-2')
             self.proof.update(deepcopy(self.bound), sources=deepcopy(self.q.actual),
@@ -54,7 +59,7 @@ class ImageAdmissionTests(unittest.TestCase):
 
     def refuse(self, expression=''):
         async def work():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaisesRegex((ValueError, OSError, RuntimeError), expression):
                     session.verify_qualification(active)
                 with self.assertRaises(ValueError): session.describe(active)
@@ -89,6 +94,16 @@ class ImageAdmissionTests(unittest.TestCase):
         self.assertEqual(sum(c[0] == 'run' for c in self.f.commands), 2)
         self.assertFalse(any(c[0] == 'build' for c in self.f.commands))
         self.q.process.assert_not_called()
+
+    def test_legacy_inspection_fixture_cannot_register_without_real_recovery_witness(self):
+        asyncio.run(self.prepare())
+        async def work():
+            with patch.object(session, 'require_execution', REAL_EXECUTION), self.q.invalidated() as active:
+                with self.assertRaisesRegex(ValueError, 'Actual live recovery successor witness'):
+                    study.register(active)
+        asyncio.run(work())
+        self.assertFalse((self.rt / policy.REGISTRATION_FILE).exists())
+        self.assertEqual(self.f.commands, [])
 
     def test_every_admission_rechecks_images_without_another_handoff_or_build(self):
         asyncio.run(self.prepare())
@@ -226,7 +241,7 @@ class ImageAdmissionTests(unittest.TestCase):
     def test_change_after_verifier_returns_is_caught_before_binding_is_returned(self):
         asyncio.run(self.prepare()); real = images.verify
         async def work():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 def changed(handle):
                     result = real(handle)
                     self.q.private(images.RESULT, dict(result, completed_utc='changed'))
@@ -239,7 +254,7 @@ class ImageAdmissionTests(unittest.TestCase):
     def test_final_session_recheck_cannot_hide_a_changed_image_file(self):
         asyncio.run(self.prepare()); real = images.qualification_binding
         async def work():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 def changed(handle):
                     value = real(handle)
                     path = self.rt / images.RESULT; path.write_bytes(path.read_bytes() + b' ')
@@ -252,7 +267,7 @@ class ImageAdmissionTests(unittest.TestCase):
     def test_raw_change_after_verifier_returns_cannot_be_rebound_as_producer_bytes(self):
         asyncio.run(self.prepare()); real = images.verify
         async def work():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 def changed(handle):
                     result = real(handle)
                     path = self.rt / images.RESULT; path.write_bytes(path.read_bytes() + b' ')
@@ -321,7 +336,7 @@ class ImageAdmissionTests(unittest.TestCase):
     def test_saved_closed_or_child_task_session_cannot_reverify_image_binding(self):
         asyncio.run(self.prepare())
         async def work():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 saved = session.describe(active)
                 with self.assertRaises(ValueError): images.qualification_binding(saved)
                 async def child():
@@ -333,11 +348,12 @@ class ImageAdmissionTests(unittest.TestCase):
 
     def test_main_thread_and_async_task_remain_required_for_qualification_reverification(self):
         asyncio.run(self.prepare())
-        with self.q.open() as active:
-            with self.assertRaisesRegex(ValueError, 'async task'): session.verify_qualification(active)
+        with self.q.invalidated() as active:
+            with patch.object(session, '_task', return_value=None), self.assertRaisesRegex(ValueError, 'async tasks'):
+                session.verify_qualification(active)
         async def work():
-            with self.q.open() as active, patch.object(threading, 'main_thread', return_value=object()):
-                with self.assertRaisesRegex(ValueError, 'main thread'): session.verify_qualification(active)
+            with self.q.invalidated() as active, patch.object(threading, 'main_thread', return_value=object()):
+                with self.assertRaisesRegex(ValueError, 'threads'): session.verify_qualification(active)
         asyncio.run(work()); self.assertEqual(self.f.commands, [])
 
     def test_active_or_stopped_ancestor_prevents_reverification(self):

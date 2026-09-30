@@ -22,6 +22,10 @@ class StudyFixture(unittest.TestCase):
         self.q = fixtures.SessionTests('runTest')
         self.q.setUp(); self.addCleanup(self.q.doCleanups)
         self.root = self.q.root; self.rt = self.root / '.runtime/stage2'
+        # These historical admission fixtures mock native observations. The
+        # separate composite/execution-session suites exercise the real witness.
+        self.enterContext(patch.object(session, 'require_execution', side_effect=lambda active:
+            self.q.under_lock('native-completed-recovery-witness', {'paid_launch_ready': False})))
         self.q.host['task_inventory'] = {cell['task_id']: dict(agent_timeout_seconds=180.,
             image_id='sha256:' + '9' * 64) for cell in self.q.f.block['cells']}
         self.q.proof_files()
@@ -83,7 +87,7 @@ class RegistrationTests(StudyFixture):
         self.q.process.assert_not_called()
 
     def test_changed_producer_prevents_registration_even_with_passed_flags(self):
-        with self.q.open() as active:
+        with self.q.invalidated() as active:
             path = self.root / next(iter(self.q.f.proof['evidence_files']))
             path.write_bytes(b'Changed native producer fixture')
             with self.assertRaises(ValueError): study.register(active)
@@ -120,7 +124,8 @@ class RegistrationTests(StudyFixture):
 
     def test_historical_transition_and_persistent_stop_refused(self):
         for name in ('accounting-runtime-transition-v1.json', 'operator-stop-request.json', 'provider-stop.json'):
-            with self.subTest(name=name), self.q.open() as active:
+            with self.subTest(name=name), (self.q.open() if name == 'accounting-runtime-transition-v1.json'
+                    else self.q.invalidated()) as active:
                 path = self.rt / name; path.symlink_to(self.rt / 'absent')
                 with self.assertRaises(ValueError): study.register(active)
                 path.unlink()
@@ -288,7 +293,7 @@ class AdmissionTests(StudyFixture):
 
     def test_source_producer_or_registration_mutation_after_open_refuses_admission(self):
         for target in ('source', 'producer', 'registration'):
-            with self.subTest(target=target), self.q.open() as active:
+            with self.subTest(target=target), (self.q.open() if target == 'registration' else self.q.invalidated()) as active:
                 study.register(active)
                 with study.dispatch_permit(active) as permit:
                     factory = study.agent_factory(permit)
@@ -314,7 +319,7 @@ class AdmissionTests(StudyFixture):
         for name in ('stage2/matched_repeat_study.py', '.runtime/stage2/' + policy.QUALIFIER_RESULT_FILE, trace):
             path = self.root / name; raw = path.read_bytes()
             try:
-                with self.subTest(name=name), self.q.open() as active:
+                with self.subTest(name=name), (self.q.invalidated() if name.startswith('stage2/') else self.q.open()) as active:
                     study.register(active)
                     with study.dispatch_permit(active) as permit:
                         factory = study.agent_factory(permit)
@@ -330,7 +335,7 @@ class AdmissionTests(StudyFixture):
                 path.write_bytes(raw)  # Restore only this temporary negative fixture.
 
     def test_nested_saved_constructed_cross_process_and_thread_permits_refused(self):
-        with self.q.open() as active:
+        with self.q.invalidated() as active:
             study.register(active)
             with study.dispatch_permit(active) as permit:
                 with self.assertRaises(ValueError):
@@ -349,13 +354,13 @@ class AdmissionTests(StudyFixture):
 
     def test_child_async_task_cannot_inherit_dispatch_authority(self):
         async def parent():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 study.register(active)
                 with study.dispatch_permit(active) as permit:
                     async def child():
                         with self.assertRaisesRegex(ValueError, 'async tasks'): study.agent_factory(permit)
                     await asyncio.create_task(child())
-                    study.agent_factory(permit)
+                    with self.assertRaisesRegex(ValueError, 'active locked'): study.agent_factory(permit)
         asyncio.run(parent())
 
 

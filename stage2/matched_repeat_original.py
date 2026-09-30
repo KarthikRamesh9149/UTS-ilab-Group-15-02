@@ -7,6 +7,7 @@ actual audit. Neither entry verifies an off-server archive, historical library
 bytes, task execution of a repeat, or permission to dispatch a paid trial.
 """
 from contextlib import ExitStack
+import ast
 import csv
 import io
 import json
@@ -18,12 +19,8 @@ import export_corrected as exporter
 import matched_repeat_baseline as baseline
 import matched_repeat_policy as policy
 import matched_repeat_runtime as runtime
-from matched_repeat_baseline_probe import check_files, digest, regular, relative_name
-from run_no_cutoff_final import lock_all as inherited_locks
-from run_credit_only import hold
-from run_deadline_custom import ANCESTORS, BASELINE, DIAGNOSTIC, STOPPED_CUSTOM, PREVIOUS, PRIOR_REHEARSAL
-from direct_final_evidence import CURRENT as C3_ROOT
-from no_cutoff_final_evidence import CURRENT as NC_ROOT
+import matched_repeat_locks as locks
+from matched_repeat_baseline_probe import check_files, digest, regular, relative_name, environment
 
 SNAPSHOT = '.runtime/netcup/corrected-final-20260925/snapshot.json'
 SNAPSHOT_SHA256 = '960a119ad8a6dc009884eb2b559712e0e48f0a16711ddf9d1c57399ee0aac244'
@@ -33,8 +30,13 @@ COLLECTOR_SHA256 = '5edd29a48758d8434b1c24b94e17d888532b9e43eb1c1ff032de797a064c
 KIND = 'fresh_original_corrected_result_audit_not_repeat_admission'
 LIMITATIONS = dict(historical_installed_bytes_attested=False,
     off_server_backup_verified=False, repeat_execution_qualified=False,
+    additional_collector_imports='current-byte-bindings-not-additions-to-original-qualification',
     support_files='current-audit-input-bindings-not-retrospective-byte-attestation')
-LOCK_ANCESTORS = (*ANCESTORS, BASELINE, DIAGNOSTIC, STOPPED_CUSTOM, PREVIOUS, PRIOR_REHEARSAL, C3_ROOT, NC_ROOT)
+# These unchanged helpers are reached by the original collector's imports but
+# absent from its historical 84-source proof. Bind their actual current bytes
+# explicitly; do not expand or rewrite that old proof or its archived snapshot.
+CURRENT_COLLECTOR_IMPORTS = ('calibrate_tokenizer.py', 'extended_token_calibration.py',
+    'final_schedule.py', 'setup_probe.py')
 
 
 def _hash_audit(data):
@@ -86,6 +88,10 @@ def _anchors(root, original, final, harness):
             {k: '' if v is None else str(v) for k, v in row.items()} for row in ordered]):
         raise ValueError('Preserve all 178 original outcomes and unknown costs exactly')
     files = {'stage2/' + name: sha for name, sha in original['sources'].items()}
+    current_imports = {'stage2/' + name: current[name] for name in CURRENT_COLLECTOR_IMPORTS}
+    if any(name in files and files[name] != sha for name, sha in current_imports.items()):
+        raise ValueError('Current collector helper differs from an original bound source')
+    files.update(current_imports)
     files.update({'.runtime/stage2/' + name: data[key] for name, key in (
         ('corrected-qualification.json', 'qualification_sha256'),
         ('corrected-matrix.json', 'registration_sha256'), ('provider-check.json', 'provider_check_sha256'))})
@@ -101,7 +107,8 @@ def _anchors(root, original, final, harness):
         if '/' in name:
             raise ValueError('Original trial identity must be a single path component')
         files['.runtime/stage2/scored-trials/' + name + '/result.json'] = row['result_sha256']
-    return dict(data=data, copied=copied, original=files, sources=current)
+    return dict(data=data, copied=copied, original=files, sources=current,
+        current_collector_imports=current_imports)
 
 
 def _directory(root, name):
@@ -142,19 +149,16 @@ def _support_files(root, data):
 
 
 def lock_all(stack, root, harness):
-    """Extend, never replace, the complete final-study ancestor lock chain."""
+    """Use the same existing full-chain order as the later live session."""
     policy._harness(harness)
     if Path(root) != runtime.DEPLOYMENTS[harness]:
         raise ValueError('Only a distinct matched-repeat lock root is allowed')
-    extras = [baseline.FINAL_ROOT]
-    if harness == 'openhands':
-        extras.append(runtime.DEPLOYMENTS['terminus-2'])
-    for base in (*LOCK_ANCESTORS, Path(root), *extras):
-        _directory(base, '.runtime/stage2')
-    inherited_locks(stack, root)  # Includes corrected, C3 r2 and measured C0-NC.
-    for base in extras:
-        for name in ('matrix.lock', 'scored.lock', 'gateway.lock'):
-            hold(stack, base / '.runtime/stage2', name)
+    return locks.acquire(stack, root, harness)
+
+
+def _native_environment():
+    return dict(environment(baseline.ORIGINAL_ROOT),
+        DOCKER_HOST='unix:///var/run/docker.sock', DOCKER_CONFIG='/dev/null')
 
 
 def _native_program(files):
@@ -165,10 +169,14 @@ def _native_program(files):
     # This stdlib guard executes before the unchanged collector's first project
     # import. -I/-B and an absent cache prefix prevent reading old project pyc.
     guard = '''
-import hashlib, os, sys, subprocess
+import hashlib, importlib, os, sys, subprocess
 from pathlib import Path
 _original_root = Path(ROOT)
 _original_files = BINDINGS
+_original_environment = ENVIRONMENT
+_original_importing = False
+_original_violation = False
+_original_socket_refusals = 0
 if ((_original_root / '.venv').is_symlink() or Path(sys.prefix).resolve() != _original_root / '.venv'
  or not sys.flags.isolated or not sys.dont_write_bytecode):
  raise ValueError('Use the original isolated interpreter')
@@ -176,7 +184,50 @@ _unused_cache = _original_root / '.runtime/unused-original-audit-bytecode'
 if _unused_cache.exists() or _unused_cache.is_symlink():
  raise ValueError('Original audit cache prefix must not exist')
 sys.pycache_prefix = str(_unused_cache)
+def _original_environment_check():
+ if (_original_violation or dict(os.environ) != _original_environment
+  or _unused_cache.exists() or _unused_cache.is_symlink()):
+  raise ValueError('Exact credential-free original audit environment required')
+def _original_event(event, args):
+ global _original_violation, _original_socket_refusals
+ if event == 'socket.__new__' and _original_importing:
+  _original_socket_refusals += 1
+  raise RuntimeError('Original audit import capability probe denied before creation')
+ refused = event.startswith(('socket.', 'os.exec', 'os.spawn', 'os.posix_spawn')) or event in {
+  'os.system','os.fork','os.forkpty','os.remove','os.rename','os.rmdir','os.mkdir',
+  'os.link','os.symlink','os.truncate','os.chmod','os.chown','os.utime','shutil.copyfile','os.unsetenv'}
+ if event == 'open':
+  path, mode, flags = args
+  name = Path(os.fsdecode(path)).name if isinstance(path,(str,bytes,os.PathLike)) else ''
+  refused |= (name == '.env' or name.startswith('.env.') or name in {'.jwt_secret','id_ed25519','id_rsa'}
+   or isinstance(mode,str) and any(c in mode for c in 'wax+')
+   or bool(flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC|os.O_APPEND)))
+ if event == 'os.putenv':
+  key, value = (os.fsdecode(v) for v in args)
+  refused |= _original_environment.get(key) != value
+ if event == 'subprocess.Popen':
+  argv, child_environment = args[1], args[3]
+  allowed = [['docker','ps','-q','--filter','name=uts-scored-']]
+  for _, unit in ANCESTORS:
+   allowed.append(['systemctl','show',unit,'--property=ActiveState,SubState,MainPID,ExecMainStatus'])
+   allowed.append(['systemctl','show',unit,'--property=ActiveState','--property=SubState',
+    '--property=MainPID','--property=ExecMainStatus'])
+  refused |= (_original_importing or not isinstance(argv,(list,tuple)) or list(argv) not in allowed
+   or child_environment is not None and child_environment != _original_environment)
+ if refused:
+  _original_violation = True
+  raise ValueError('Read-only original collector effect or credential access refused')
+def _original_loaded():
+ base = _original_root / 'stage2'
+ for name, module in list(sys.modules.items()):
+  path = getattr(module,'__file__',None)
+  key = 'stage2/' + name + '.py'
+  if path and Path(path).parent == base and key not in _original_files:
+   raise ValueError('Original collector loaded an unbound project module')
+  if key in _original_files and (path is None or Path(path) != base / (name + '.py')):
+   raise ValueError('Original collector module loaded from another tree')
 def _original_check():
+ _original_environment_check()
  for base, service in ANCESTORS:
   base = Path(base)
   if base.is_symlink() or not base.is_dir() or base.resolve() != base:
@@ -200,13 +251,34 @@ def _original_check():
   with p.open('rb') as stream:
    if hashlib.file_digest(stream,'sha256').hexdigest() != expected:
     raise ValueError('Original audit input changed')
+_original_environment_check()
+sys.addaudithook(_original_event)
+_original_check()
+sys.path.insert(0,str(_original_root / 'stage2'))
+_original_importing = True
+try:
+ for name in PRELOAD:
+  importlib.import_module(name)
+finally:
+ _original_importing = False
+_original_environment_check()
+_original_loaded()
 _original_check()
 '''
     ancestors = [(str(baseline.ORIGINAL_ROOT), 'uts-stage2-corrected-20260923.service'),
         (str(baseline.FINAL_ROOT), 'uts-stage2-custom-no-cutoff-final-20260928.service')]
     guard = guard.replace('Path(ROOT)', 'Path(' + repr(str(baseline.ORIGINAL_ROOT)) + ')')
     guard = guard.replace('= BINDINGS', '= ' + repr(files)).replace('in ANCESTORS:', 'in ' + repr(ancestors) + ':')
-    return guard + exporter.COLLECT + '\n_original_check()\n'
+    guard = guard.replace('= ENVIRONMENT', '= ' + repr(_native_environment()))
+    imports = set()
+    for node in ast.parse(exporter.COLLECT).body:
+        if isinstance(node, ast.Import):
+            imports.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.add(node.module)
+    preload = sorted(name for name in imports if 'stage2/' + name + '.py' in files)
+    guard = guard.replace('in PRELOAD:', 'in ' + repr(preload) + ':')
+    return guard + exporter.COLLECT + '\n_original_loaded()\n_original_check()\n'
 
 
 def _native_audit(files):
@@ -214,8 +286,7 @@ def _native_audit(files):
     try:
         value = subprocess.run([str(root / '.venv/bin/python'), '-I', '-B', '-'],
             input=_native_program(files), cwd=root, capture_output=True, text=True, timeout=300,
-            env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8',
-                'LITELLM_LOCAL_MODEL_COST_MAP': 'True', 'DO_NOT_TRACK': '1'})
+            env=_native_environment())
     except (OSError, subprocess.TimeoutExpired):
         raise ValueError('Original completed audit could not complete') from None
     if value.returncode:
@@ -233,6 +304,12 @@ def _check(root, anchors, support):
     if _support_files(baseline.ORIGINAL_ROOT, anchors['data']) != support:
         raise ValueError('Original supporting evidence changed during or after the audit')
     baseline.inactive_ancestors()
+    # No native observation follows the final actual evidence reread.
+    check_files(root, anchors['copied'])
+    check_files(baseline.ORIGINAL_ROOT, anchors['original'])
+    if _support_files(baseline.ORIGINAL_ROOT, anchors['data']) != support:
+        raise ValueError('Original supporting evidence changed after the final service check')
+    runtime.loaded_sources(root, anchors['sources'])
 
 
 def _record(harness, anchors, support):
@@ -241,6 +318,7 @@ def _record(harness, anchors, support):
         custom_final_qualification_sha256=policy.CUSTOM_FINAL_QUALIFICATION_SHA256,
         audit_sha256=_hash_audit(anchors['data']), snapshot_file_sha256=SNAPSHOT_SHA256,
         current_sources_sha256=policy.fingerprint(anchors['sources']),
+        current_collector_import_files=anchors['current_collector_imports'],
         original_files=anchors['original'], support_files=support, copied_files=anchors['copied'],
         limitations=dict(LIMITATIONS), paid_launch_ready=False)
 
@@ -252,16 +330,24 @@ def authenticate(root, original, final, harness):
     runtime.loaded_sources(root, anchors['sources'])
     baseline.inactive_ancestors()  # No collector or lock acquisition while final is active.
     with ExitStack() as stack:
-        lock_all(stack, root, harness)
+        lease = lock_all(stack, root, harness)
         check_files(baseline.ORIGINAL_ROOT, anchors['original'])
         support = _support_files(baseline.ORIGINAL_ROOT, anchors['data'])
+        copied_identities = locks.file_identities(root, anchors['copied'])
+        native_files = dict(anchors['original'], **support)
+        native_identities = locks.file_identities(baseline.ORIGINAL_ROOT, native_files)
         _check(root, anchors, support)
-        fresh = _native_audit(dict(anchors['original'], **support))
+        lease.recheck()
+        fresh = _native_audit(native_files)
         exporter.validate_snapshot(fresh, [r['task_id'] for r in anchors['data']['rows']
             if r['harness'] == 'terminus-2'])
         if _hash_audit(fresh) != _hash_audit(anchors['data']):
             raise ValueError('Fresh original audit differs from all 178 retained outcomes')
         _check(root, anchors, support)
+        lease.recheck()
+        if (locks.file_identities(root, anchors['copied']) != copied_identities
+                or locks.file_identities(baseline.ORIGINAL_ROOT, native_files) != native_identities):
+            raise ValueError('Original audit source or evidence identity changed')
         return _record(harness, anchors, support)
 
 

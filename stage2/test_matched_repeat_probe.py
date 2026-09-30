@@ -239,7 +239,7 @@ class ProbeTests(unittest.TestCase):
 
     def test_different_async_task_cannot_consume_live_session(self):
         async def run():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaisesRegex(ValueError, 'cross processes'):
                     await asyncio.create_task(probe.probe(active, 'tools'))
         asyncio.run(run()); self.assertFalse(self.environments)
@@ -351,19 +351,30 @@ class ProbeTests(unittest.TestCase):
         with self.assertRaises(ValueError): asyncio.run(self.original_run_trial(**args, matched_repeat=policy.EXPERIMENT))
 
     def test_live_handle_refuses_thread_pid_and_serialized_metadata(self):
+        self.refuse_owner_transfer('thread')
+
+    def test_process_failure_latches_before_any_native_scored_execution(self):
+        self.refuse_owner_transfer('process')
+
+    def refuse_owner_transfer(self, kind):
         original = scored_trial.run_trial
         async def check(**kwargs):
             permit = kwargs['matched_repeat_fixture']; errors = []
             def other_thread():
                 try: probe._live(permit)
                 except ValueError as exc: errors.append(type(exc).__name__)
-            thread = threading.Thread(target=other_thread); thread.start(); thread.join()
-            self.assertEqual(errors, ['ValueError'])
-            with patch.object(session.os, 'getpid', return_value=os.getpid() + 1):
-                with self.assertRaises(ValueError): probe._live(permit)
+            if kind == 'thread':
+                thread = threading.Thread(target=other_thread); thread.start(); thread.join()
+                self.assertEqual(errors, ['ValueError'])
+            else:
+                with patch.object(session.os, 'getpid', return_value=os.getpid() + 1):
+                    with self.assertRaisesRegex(ValueError, 'cross processes'): probe._live(permit)
             with self.assertRaises(TypeError): pickle.dumps(permit)
+            with self.assertRaisesRegex(ValueError, 'active locked'): probe._live(permit)
             return await original(**kwargs)
-        with patch.object(scored_trial, 'run_trial', check): asyncio.run(self.execute())
+        with patch.object(scored_trial, 'run_trial', check), self.assertRaisesRegex(ValueError, 'active locked'):
+            asyncio.run(self.execute())
+        self.assertFalse(self.environments)
 
     def test_scored_lifecycle_cannot_move_to_a_child_task(self):
         async def moved(**kwargs): return await asyncio.create_task(self.original_run_trial(**kwargs))

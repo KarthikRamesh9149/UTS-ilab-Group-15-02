@@ -1,5 +1,64 @@
 # Measured C0-NC final89
 
+## R6 native regressions passed; qualification active, 30 September 10:11 UTC
+
+The corrected R6 revision `fbefc033cd04c7981e7374f68c9d5b20186d461a`
+is committed and pushed. Actual native absence/protection preflight passed at
+08:20:52 UTC. ONE exclusive installation completed at 08:30:27, with 327 source
+and input files, 14,567 current runtime files and three precreated locks.
+The actual isolated installed-import check passed at 08:35:23: 319 bindings
+and 126 loaded project modules. Earlier failed roots remain unchanged.
+
+ONE qualification connection began at 08:36:13 UTC. Its required fresh original
+audit returned, but the Mac connection ended uncertain at 10:01:12 without
+acknowledgement. A later read-only, exact-source native metadata observation at
+10:11:00 verified the actual accepted handoff and the SAME still-running unit:
+`uts-recovery-qualify-96bdbe5e1efff50fd701ad3e37bf8b71.service`, invocation
+`5fe35f8a87f34899b98d955d528435c3`, PID1311802/start-ticks93694380.
+The relay process had ended. Native image verification completed09:18:54;
+the actual retained regression report has **834 tests, zero errors/failures/skips**.
+All six lifecycle-case intents, qualification proof/completion and failure records
+were absent at that observation. The service remains active, NOT qualified yet.
+No qualification was repeated or native process signalled. This read-only metadata
+is not paid admission; the standard status reader's refusal remains to diagnose.
+
+A separate PDF commit changed HEAD while the Mac connection was pending; the
+acknowledgement failure's cause is not established by that fact. Later fetched
+README/PDF commits were incorporated by advancing only the branch/index to the
+verified descendant, preserving all58 relevant working-tree files byte-for-byte,
+including the unrelated dirty README and local PDF. No original/recovery source
+or evidence was replaced. The installed operation revision remains `fbefc033`.
+
+The separate first-Terminus installer, completed-recovery handoff, detached
+qualification/run service and ONE-backup/export path are implemented locally.
+The final baseline gate passed all **1,400 tests**, with zero errors, failures
+or skips, in 1,433.910 seconds. All 395 source bindings matched before imports,
+after discovery and after execution; 249 loaded project modules were bound.
+Final source-map SHA256:
+`4111456a36e4c46e7b730b72577e1dc1c613f2424d23ac8c85a5bdbc2929c9dc`.
+All 12 repository tests and the 56-file syntax/whitespace checks also passed.
+These are local tests with mocked native facts, not server qualification or
+benchmark results. No baseline root or paid attempt has been created.
+
+Earlier 1,390-test candidate errors came from five outdated synthetic admission
+fixtures; a separate real payload-builder test found an installer module-reference
+error. Both were corrected and all 37 affected tests passed. A prior 1,400-test
+candidate also passed; two extra terminal blank lines were then removed from
+the new phase reader without changing its AST, followed by the complete final
+gate above. OpenHands' completed-Terminus successor integration remains
+unfinished and fails closed. All 318 installed recovery source bytes remain
+unchanged. No new operator handoff may overlap a pending native operation;
+its committed operator revision must stay fixed until that handoff resolves.
+
+Recovery remains **0/3 started**; both baseline repeats remain **0/89 started**.
+Original C0-NC is **89/89 complete: 50 passed, 36 verified zero-score failures,
+3 setup-only missing verifier outcomes**, with no active benchmark task.
+The execution order remains recovery qualification/run/audit/ONE-backup/export,
+then Terminus-2, its audit/ONE-backup, then OpenHands. No reliable completion
+deadline is claimed while these native gates remain unresolved.
+
+Older candidate, pending-install and source-count paragraphs below are history.
+
 ## R5 qualification failed; corrected R6 candidate, 30 September UTC
 
 R5 at `07661d7fcbecfb6a01d6b123780f0d1888f34800` installed successfully

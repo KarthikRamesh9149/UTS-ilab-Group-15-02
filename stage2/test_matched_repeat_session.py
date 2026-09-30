@@ -1,6 +1,6 @@
 """Real private files/locks and mocked native readers; never paid evidence."""
 import asyncio
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 import hashlib
 import json
@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import pickle
 import threading
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import matched_repeat_session as session
@@ -21,7 +22,15 @@ class SessionTests(TreeTests):
     def setUp(self):
         super().setUp()
         self.root = self.root.resolve()
-        self.events = []; self.locked = False; self.witness = object()
+        self.events = []; self.locked = False; self.witness = None
+        self.synthetic_task = object(); real_task = session._task
+        self.task = lambda: real_task() or self.synthetic_task
+        self.enterContext(patch.object(session, '_task', side_effect=self.task))
+        self.enterContext(patch.object(session.handoff, '_task', side_effect=self.task))
+        self.enterContext(patch.object(session.sys, 'executable', str(self.root / '.venv/bin/python')))
+        self.enterContext(patch.object(session.locks.os, 'listxattr', return_value=[], create=True))
+        self.enterContext(patch.object(session.locks, '_parents', side_effect=lambda path:
+            tuple(p for p in reversed(path.parents) if p == self.root or p.is_relative_to(self.root))))
         self.enterContext(patch.object(session.platform, 'system', return_value='Linux'))
         self.enterContext(patch.object(session, '__file__', str(self.root / 'stage2/matched_repeat_session.py')))
         self.enterContext(patch.dict(session.runtime.DEPLOYMENTS, {'terminus-2': self.root}))
@@ -50,7 +59,7 @@ class SessionTests(TreeTests):
             host_environment=deepcopy(self.f.final['host_environment']))
         self.auth = self.enterContext(patch.object(session.handoff, 'authenticate', side_effect=self.authenticate))
         self.old_auth = self.enterContext(patch.object(session.original_audit, 'authenticate', side_effect=self.original_auth))
-        self.lock = self.enterContext(patch.object(session.original_audit, 'lock_all', side_effect=self.locks))
+        self.lock = self.enterContext(patch.object(session.locks, 'acquire', side_effect=self.locks))
         self.pred_check = self.enterContext(patch.object(session.handoff, 'recheck', side_effect=self.predecessor_check))
         self.old_check = self.enterContext(patch.object(session.original_audit, 'recheck',
             side_effect=lambda *args: self.under_lock('original-recheck', self.old)))
@@ -83,6 +92,10 @@ class SessionTests(TreeTests):
         self.assertFalse(self.locked); self.events.append('handoff-authenticate')
         self.assertEqual((root, harness, stream), (self.root, 'terminus-2', self.stream))
         self.assertEqual(original, self.f.original); self.assertEqual(final, self.f.final)
+        self.witness = session.handoff._Witness()
+        session.handoff._WITNESSES[self.witness] = dict(pid=os.getpid(),
+            thread=threading.get_ident(), task=self.task(), fixture_only=True)
+        self.addCleanup(session._invalidate_witness, self.witness)
         return self.witness
 
     def original_auth(self, *args):
@@ -102,9 +115,11 @@ class SessionTests(TreeTests):
                 hold(stack, folder, lock)
         self.locked = True
         stack.callback(self.before_release)
+        return SimpleNamespace(recheck=lambda: self.assertTrue(self.locked))
 
     def before_release(self):
         self.assertFalse(any(state['root'] == self.root for state in session._SESSIONS.values()))
+        self.assertNotIn(self.witness, session.handoff._WITNESSES)
         self.events.append('invalidate-before-unlock')
 
     def unlocked(self):
@@ -120,6 +135,16 @@ class SessionTests(TreeTests):
 
     def open(self, harness='terminus-2', stream=None):
         return session.open_session(self.root, harness, self.stream if stream is None else stream)
+
+    @contextmanager
+    def invalidated(self):
+        """A caught invalidation still has to refuse the real normal-exit gate."""
+        body_completed = False
+        with self.assertRaises(ValueError):
+            with self.open() as active:
+                yield active
+                body_completed = True
+        self.assertTrue(body_completed, 'The body must check its own expected refusal')
 
     def proof_files(self, *, include_images=True):
         proof = self.f.proof
@@ -271,7 +296,7 @@ class SessionTests(TreeTests):
     def test_source_or_private_input_change_permanently_invalidates_session(self):
         for path in (self.root / 'stage2/matched_repeat_session.py', self.f.runtime / policy.FINAL_FILE):
             raw = path.read_bytes()
-            with self.subTest(path=path), self.open() as active:
+            with self.subTest(path=path), self.invalidated() as active:
                 path.write_bytes(raw + b' ')
                 with self.assertRaises(ValueError): session.recheck(active)
                 path.write_bytes(raw)
@@ -294,7 +319,7 @@ class SessionTests(TreeTests):
 
     def test_changed_libraries_or_host_fail_closed_during_recheck(self):
         for record in (self.library, self.host):
-            with self.subTest(kind=record['kind']), self.open() as active:
+            with self.subTest(kind=record['kind']), self.invalidated() as active:
                 record['changed_after_open'] = True
                 with self.assertRaisesRegex(ValueError, 'observation changed'): session.recheck(active)
                 record.pop('changed_after_open')
@@ -303,7 +328,7 @@ class SessionTests(TreeTests):
     def test_result_or_supporting_evidence_recheck_failure_invalidates_session(self):
         for reader in (self.pred_check, self.old_check):
             previous = reader.side_effect
-            with self.subTest(reader=reader), self.open() as active:
+            with self.subTest(reader=reader), self.invalidated() as active:
                 reader.side_effect = ValueError('Actual result or supporting inventory drift')
                 with self.assertRaisesRegex(ValueError, 'inventory drift'): session.recheck(active)
                 reader.side_effect = previous
@@ -315,7 +340,7 @@ class SessionTests(TreeTests):
             value = previous(*args)
             (self.root / 'stage2/matched_repeat_handoff.py').write_bytes(b'Mutated during long inspection')
             return value
-        with self.open() as active:
+        with self.invalidated() as active:
             self.host_read.side_effect = changed
             with self.assertRaises(ValueError): session.recheck(active)
 
@@ -328,7 +353,7 @@ class SessionTests(TreeTests):
                 with self.subTest(invalid=type(invalid)), self.assertRaises(ValueError): session.recheck(invalid)
 
     def test_pickle_deepcopy_closed_session_and_process_reuse_refused(self):
-        with self.open() as active:
+        with self.invalidated() as active:
             for copy in (pickle.dumps, deepcopy):
                 with self.assertRaises(TypeError): copy(active)
             with patch.object(session.os, 'getpid', return_value=-1):
@@ -337,23 +362,23 @@ class SessionTests(TreeTests):
 
     def test_session_cannot_cross_thread_or_allow_overlapping_authentication(self):
         errors = []
-        with self.open() as active:
+        with self.invalidated() as active:
             def other():
                 for operation in (lambda: session.describe(active), lambda: self.open().__enter__()):
                     try: operation()
                     except ValueError as error: errors.append(str(error))
             worker = threading.Thread(target=other); worker.start(); worker.join(timeout=5)
             self.assertFalse(worker.is_alive()); self.assertEqual(len(errors), 2)
-            session.recheck(active)
+            with self.assertRaisesRegex(ValueError, "active locked"): session.recheck(active)
             self.auth.assert_called_once()
 
     def test_async_child_cannot_reuse_parent_session_even_with_inherited_context(self):
         async def work():
-            with self.open() as active:
+            with self.invalidated() as active:
                 async def child():
                     with self.assertRaisesRegex(ValueError, 'async tasks'): session.describe(active)
                 await asyncio.create_task(child())
-                session.recheck(active)
+                with self.assertRaisesRegex(ValueError, "active locked"): session.recheck(active)
         asyncio.run(work())
 
     def test_nested_session_fails_before_another_handoff(self):
@@ -404,7 +429,7 @@ class SessionTests(TreeTests):
 
     def test_missing_qualification_does_not_create_or_substitute_a_proof(self):
         path = self.f.runtime / policy.QUALIFICATION_FILE; path.unlink()
-        with self.open() as active:
+        with self.invalidated() as active:
             with self.assertRaises((OSError, ValueError)): session.verify_qualification(active)
             with self.assertRaises(ValueError): session.describe(active)
         self.assertFalse(path.exists())
@@ -414,13 +439,13 @@ class SessionTests(TreeTests):
         for key in ('baseline_behaviour_authentication_sha256', 'runtime_identity_sha256', 'harness'):
             proof = deepcopy(original); proof[key] = 'openhands' if key == 'harness' else '9' * 64
             self.private(policy.QUALIFICATION_FILE, proof)
-            with self.subTest(key=key), self.open() as active:
+            with self.subTest(key=key), self.invalidated() as active:
                 with self.assertRaisesRegex(ValueError, 'actual live'): session.verify_qualification(active)
             self.private(policy.QUALIFICATION_FILE, original)
         for name, value in ((policy.PREDECESSOR_FILE, dict(self.f.predecessor, checks=True)),
                 (policy.RUNTIME_FILE, dict(self.host, checks=True))):
             path = self.f.runtime / name; raw = path.read_bytes(); self.private(name, value)
-            with self.subTest(name=name), self.open() as active:
+            with self.subTest(name=name), self.invalidated() as active:
                 with self.assertRaisesRegex(ValueError, 'actual live'): session.verify_qualification(active)
             path.write_bytes(raw)
 
@@ -428,17 +453,17 @@ class SessionTests(TreeTests):
         for name in (policy.POLICY_FILE, policy.MANIFEST_FILE, policy.PREDECESSOR_FILE, policy.RUNTIME_FILE):
             path = self.f.runtime / name; raw = path.read_bytes()
             self.private(name, {'checks': True})
-            with self.subTest(name=name), self.open() as active:
+            with self.subTest(name=name), self.invalidated() as active:
                 with self.assertRaises(ValueError): session.verify_qualification(active)
             path.write_bytes(raw); path.chmod(0o644)
-            with self.subTest(name=name, permissions=True), self.open() as active:
+            with self.subTest(name=name, permissions=True), self.invalidated() as active:
                 with self.assertRaises(ValueError): session.verify_qualification(active)
             path.chmod(0o600)
 
     def test_every_actual_producer_file_must_still_match(self):
         for name in self.f.proof['evidence_files']:
             path = self.root / name; raw = path.read_bytes(); path.write_bytes(raw + b' ')
-            with self.subTest(name=name), self.open() as active:
+            with self.subTest(name=name), self.invalidated() as active:
                 with self.assertRaisesRegex(ValueError, 'producer bytes'): session.verify_qualification(active)
             path.write_bytes(raw)
 
@@ -448,12 +473,12 @@ class SessionTests(TreeTests):
         raw = json.dumps(value).encode(); (self.root / name).write_bytes(raw)
         proof = deepcopy(self.f.proof); proof['evidence_files'][name] = hashlib.sha256(raw).hexdigest()
         self.private(policy.QUALIFICATION_FILE, proof)
-        with self.open() as active:
+        with self.invalidated() as active:
             with self.assertRaisesRegex(ValueError, 'Actual repeat result'): session.verify_qualification(active)
 
     def test_actual_image_and_qualified_source_must_remain_available(self):
         self.images.side_effect = lambda refs: {}
-        with self.open() as active:
+        with self.invalidated() as active:
             with self.assertRaisesRegex(ValueError, 'pinned repeat'): session.verify_qualification(active)
 
     def test_private_proof_mutation_during_verification_refused_and_not_revivable(self):
@@ -462,7 +487,7 @@ class SessionTests(TreeTests):
             value = actual(*args)
             path = self.f.runtime / policy.QUALIFICATION_FILE; path.write_bytes(path.read_bytes() + b' ')
             return value
-        with self.open() as active, patch.object(session.runtime, 'verify_current', side_effect=changed):
+        with self.invalidated() as active, patch.object(session.runtime, 'verify_current', side_effect=changed):
             with self.assertRaises(ValueError): session.verify_qualification(active)
             with self.assertRaises(ValueError): session.describe(active)
 
@@ -475,9 +500,82 @@ class SessionTests(TreeTests):
                 name = next(iter(self.f.proof['evidence_files']))
                 (self.root / name).write_bytes(b'Mutated producer after verification')
             return previous(*args)
-        with self.open() as active:
+        with self.invalidated() as active:
             self.lib_check.side_effect = changed
             with self.assertRaises(ValueError): session.verify_qualification(active)
+
+    def test_normal_exit_rereads_actual_prerequisites_before_both_handles_die(self):
+        with self.open() as active:
+            witness = self.witness; before = self.lib_check.call_count
+            self.assertIn(witness, session.handoff._WITNESSES)
+        self.assertEqual(self.lib_check.call_count, before + 1)
+        self.assertNotIn(witness, session.handoff._WITNESSES)
+        with self.assertRaises(ValueError): session.describe(active)
+        self.assertEqual(self.events[-2:], ['invalidate-before-unlock', 'unlocked'])
+
+    def test_normal_exit_cannot_hide_changed_source_without_explicit_recheck(self):
+        with self.assertRaises(ValueError):
+            with self.open() as active:
+                (self.root / 'stage2/matched_repeat_session.py').write_bytes(b'late drift')
+        self.assertNotIn(self.witness, session.handoff._WITNESSES)
+        with self.assertRaises(ValueError): session.describe(active)
+
+    def test_same_byte_input_replacement_latches_invalidation(self):
+        for name in ('stage2/matched_repeat_session.py', '.runtime/stage2/' + policy.FINAL_FILE):
+            path = self.root / name; raw = path.read_bytes(); mode = path.stat().st_mode & 0o777
+            with self.subTest(name=name), self.invalidated() as active:
+                path.rename(path.with_name(path.name + '.retained'))
+                path.write_bytes(raw); path.chmod(mode)
+                with self.assertRaisesRegex(ValueError, 'identity changed'): session.recheck(active)
+                self.assertNotIn(self.witness, session.handoff._WITNESSES)
+                with self.assertRaises(ValueError): session.describe(active)
+
+    def test_original_audit_failure_revokes_the_earlier_live_handoff(self):
+        self.old_auth.side_effect = ValueError('Actual original audit refused')
+        with self.assertRaisesRegex(ValueError, 'original audit'):
+            with self.open(): self.fail('Must not open')
+        self.assertNotIn(self.witness, session.handoff._WITNESSES)
+        self.lock.assert_not_called()
+
+    def test_partial_outer_entry_revokes_witness_before_descriptor_close(self):
+        def partially_locked(stack, root, harness):
+            self.locks(stack, root, harness)
+            raise ValueError('Partial acquisition refused')
+        self.lock.side_effect = partially_locked
+        with self.assertRaisesRegex(ValueError, 'Partial acquisition'):
+            with self.open(): self.fail('Must not open')
+        self.assertEqual(self.events[-2:], ['invalidate-before-unlock', 'unlocked'])
+
+    def test_revoked_handoff_or_lost_lease_invalidates_session_too(self):
+        for kind in ('handoff', 'lock'):
+            with self.subTest(kind=kind), self.invalidated() as active:
+                if kind == 'handoff': session._invalidate_witness(self.witness)
+                else:
+                    def lost(): raise ValueError('Held lock was lost')
+                    session._SESSIONS[active]['locks'].recheck = lost
+                with self.assertRaises(ValueError): session.describe(active)
+                self.assertNotIn(active, session._SESSIONS)
+                self.assertNotIn(self.witness, session.handoff._WITNESSES)
+                self.assertTrue(self.locked)
+
+    def test_no_async_owner_or_wrong_interpreter_refuses_before_handoff(self):
+        for target, name, value in ((session, '_task', lambda: None),
+                (session.sys, 'executable', '/wrong/python')):
+            with self.subTest(name=name), patch.object(target, name, value):
+                with self.assertRaises(ValueError):
+                    with self.open(): self.fail('Must refuse wrong service context')
+        self.auth.assert_not_called()
+
+    def test_actual_local_task_cancellation_revokes_before_unlock(self):
+        async def work():
+            with self.open() as active:
+                self.assertIs(session._SESSIONS[active]['task'], asyncio.current_task())
+                asyncio.current_task().cancel()
+                await asyncio.sleep(0)
+        with self.assertRaises(asyncio.CancelledError): asyncio.run(work())
+        self.assertNotIn(self.witness, session.handoff._WITNESSES)
+        self.assertFalse(session._SESSIONS)
+        self.assertEqual(self.events[-2:], ['invalidate-before-unlock', 'unlocked'])
 
 
 if __name__ == '__main__':

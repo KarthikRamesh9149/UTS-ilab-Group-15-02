@@ -175,7 +175,7 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.run_trial.await_count, 1)
 
     async def test_changed_qualified_producer_refused_before_intent_or_native_work(self):
-        with self.q.open() as active:
+        with self.q.invalidated() as active:
             path = self.root / next(iter(self.q.f.proof['evidence_files']))
             path.write_bytes(b'changed test producer')
             with self.assertRaises(ValueError): await self.dispatch(active)
@@ -207,7 +207,7 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
     async def test_source_mutation_during_task_halts_after_retaining_original_result(self):
         async def after(index): (self.root / 'stage2/run_matched_repeat.py').write_bytes(b'changed fixture source')
         self.after = after
-        with self.q.open() as active:
+        with self.q.invalidated() as active:
             with self.assertRaises(ValueError): await self.dispatch(active)
         self.assertEqual(self.run_trial.await_count, 1)
         self.assertTrue((self.rt / 'scored-trials' / self.ids[0] / 'result.json').is_file())
@@ -236,7 +236,7 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
             self.q.private('operator-stop-request.json', {'automatic_resume': False, 'source': 'test-operator'})
             os.kill(os.getpid(), signal.SIGUSR1)
         self.after = after
-        with self.q.open() as active: result = await self.dispatch(active)
+        with self.q.invalidated() as active: result = await self.dispatch(active)
         self.assertEqual((result['status'], result['completed']), ('stopped', 1))
         self.assertEqual(self.run_trial.await_count, 1)
         self.assertEqual(signal.getsignal(signal.SIGUSR1), previous)
@@ -247,7 +247,7 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
         async def after(index):
             if index == 88: os.kill(os.getpid(), signal.SIGUSR1)
         self.after = after
-        with self.q.open() as active: result = await self.dispatch(active)
+        with self.q.invalidated() as active: result = await self.dispatch(active)
         self.assertEqual((result['status'], result['completed']), ('stopped', 89))
         self.assertEqual(self.read('operator-stop-request.json'), dict(source='SIGUSR1', automatic_resume=False))
         self.assertFalse(result['completed_audit_verified'])
@@ -255,7 +255,7 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
     async def test_root_provider_stop_retains_failure_but_never_advances(self):
         async def after(index): self.q.private('provider-stop.json', {'reason': 'synthetic-authentication-stop'})
         self.after = after; self.rewards[0] = None
-        with self.q.open() as active: result = await self.dispatch(active)
+        with self.q.invalidated() as active: result = await self.dispatch(active)
         self.assertEqual((result['status'], result['completed'], result['missing_verifier_results']), ('stopped', 1, 1))
         self.assertEqual(self.run_trial.await_count, 1)
 
@@ -273,7 +273,7 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
     async def test_unsafe_stop_marker_fails_closed_instead_of_claiming_safe_stop(self):
         async def after(index): (self.rt / 'provider-stop.json').symlink_to(self.rt / 'absent')
         self.after = after
-        with self.q.open() as active:
+        with self.q.invalidated() as active:
             with self.assertRaises(ValueError): await self.dispatch(active)
         self.assertFalse((self.rt / runner.RESULT).exists()); self.assertTrue((self.rt / runner.FAILURE).exists())
 
@@ -290,17 +290,19 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
         Cooldown(self.rt, self.clock).update(200., 3)
         async def sleep(seconds):
             self.q.private('operator-stop-request.json', {'automatic_resume': False})
-        with patch.object(runner.asyncio, 'sleep', side_effect=sleep), self.q.open() as active:
+        with patch.object(runner.asyncio, 'sleep', side_effect=sleep), self.q.invalidated() as active:
             result = await self.dispatch(active)
         self.assertEqual((result['status'], result['completed']), ('stopped', 0))
         self.run_trial.assert_not_awaited()
 
     async def test_cross_process_child_task_and_thread_handles_never_launch(self):
-        with self.q.open() as active:
+        with self.q.invalidated() as active:
             with patch.object(session.os, 'getpid', return_value=os.getpid() + 1):
                 with self.assertRaises(ValueError): await self.dispatch(active)
+        with self.q.invalidated() as active:
             with self.assertRaisesRegex(ValueError, 'async tasks'):
                 await asyncio.create_task(runner.run(active))
+        with self.q.invalidated() as active:
             with self.assertRaises(ValueError): await asyncio.to_thread(lambda: asyncio.run(runner.run(active)))
         self.run_trial.assert_not_awaited(); self.assertFalse((self.rt / runner.INTENT).exists())
 
@@ -326,7 +328,7 @@ class RunnerTests(unittest.IsolatedAsyncioTestCase):
             self.q.private('operator-stop-request.json', {'automatic_resume': False})
             self.docker.return_value = 'unexpected-retained-owned-resource'
         self.after = after
-        with self.q.open() as active:
+        with self.q.invalidated() as active:
             with self.assertRaisesRegex(ValueError, 'owned scored resources'): await self.dispatch(active)
         self.assertEqual(self.run_trial.await_count, 1)
         self.assertFalse((self.rt / runner.RESULT).exists())

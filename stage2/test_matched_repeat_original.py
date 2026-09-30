@@ -30,6 +30,8 @@ class AuditTests(TreeTests):
             raw = ((b'Original ' + name.encode()) if name in policy.INHERITED_BASELINE_DELTAS
                 else (self.root / 'stage2' / name).read_bytes())
             self.old['sources'][name] = self.put(self.native, 'stage2/' + name, raw)
+        for name in reader.CURRENT_COLLECTOR_IMPORTS:
+            self.put(self.native, 'stage2/' + name, (self.root / 'stage2' / name).read_bytes())
         self.old.update(gateway_image='sha256:' + 'a' * 64, guard_image='sha256:' + 'b' * 64,
             evidence_folder='qualification-fixture', evidence_sha256={})
         for name in ('offline.json', 'image.json', 'synthetic.json'):
@@ -77,14 +79,22 @@ class AuditTests(TreeTests):
                 (reader, 'COLLECTOR_SHA256', self.actual['export_corrected.py']),
                 (reader, '__file__', str(self.root / 'stage2/matched_repeat_original.py')),
                 (reader.exporter, '__file__', str(self.root / 'stage2/export_corrected.py')),
-                (reader.exporter, 'OUTPUT', self.root / reader.PUBLIC), (reader, 'LOCK_ANCESTORS', (self.native,))):
+                (reader.exporter, 'OUTPUT', self.root / reader.PUBLIC)):
             self.enterContext(patch.object(module, name, value))
         self.enterContext(patch.dict(reader.runtime.DEPLOYMENTS, {'terminus-2': self.root}))
         self.enterContext(patch.object(reader.platform, 'system', return_value='Linux'))
         self.loaded = self.enterContext(patch.object(reader.runtime, 'loaded_sources'))
         self.inactive = self.enterContext(patch.object(reader.baseline, 'inactive_ancestors'))
-        self.inherited = self.enterContext(patch.object(reader, 'inherited_locks', side_effect=lambda stack, root:
-            hold(stack, root / '.runtime/stage2', 'matrix.lock')))
+        self.enterContext(patch.object(reader.locks.os, 'listxattr', return_value=[], create=True))
+        self.enterContext(patch.object(reader.locks, '_parents', side_effect=lambda path:
+            tuple(p for p in reversed(path.parents) if p == self.root or p.is_relative_to(self.root))))
+        self.lock_paths = tuple(base / '.runtime/stage2' / name
+            for base in (self.native, self.final_root, self.root) for name in reader.locks.NAMES)
+        for path in self.lock_paths:
+            path.parent.chmod(0o700); path.write_bytes(b''); path.chmod(0o600)
+        self.lock_order = self.enterContext(patch.object(reader.locks, 'paths', return_value=self.lock_paths))
+        self.acquire = reader.locks.acquire
+        self.inherited = self.enterContext(patch.object(reader.locks, 'acquire', wraps=self.acquire))
         self.audit = self.enterContext(patch.object(reader, '_native_audit', side_effect=lambda files: deepcopy(self.data)))
         self.process = self.enterContext(patch('subprocess.run', side_effect=AssertionError('No native calls in local tests')))
 
@@ -110,6 +120,8 @@ class AuditTests(TreeTests):
         self.assertFalse(value['paid_launch_ready'])
         self.assertFalse(value['limitations']['off_server_backup_verified'])
         self.assertFalse(value['limitations']['historical_installed_bytes_attested'])
+        self.assertEqual(set(value['current_collector_import_files']),
+            {'stage2/' + name for name in reader.CURRENT_COLLECTOR_IMPORTS})
         self.audit.assert_called_once()
         self.assertNotIn('not-returned', json.dumps(value))
         self.assertNotIn('rows', value)
@@ -128,9 +140,11 @@ class AuditTests(TreeTests):
         self.inherited.assert_not_called(); self.audit.assert_not_called()
 
     def test_drift_during_lock_acquisition_refused_before_collector(self):
-        def drift(stack, root):
+        def drift(stack, root, harness):
+            lease = self.acquire(stack, root, harness)
             name = next(iter(self.old['sources']))
             self.put(self.native, 'stage2/' + name, b'changed')
+            return lease
         self.inherited.side_effect = drift
         with self.assertRaises(ValueError): self.authenticate()
         self.audit.assert_not_called()
@@ -141,6 +155,18 @@ class AuditTests(TreeTests):
                 '.runtime/stage2/qualification-fixture/synthetic.json',
                 next(n for n in bound if n.endswith('/result.json'))):
             path = self.native / name; raw = path.read_bytes(); path.write_bytes(b'changed')
+            with self.subTest(name=name), self.assertRaises(ValueError): self.authenticate()
+            path.write_bytes(raw)
+        self.audit.assert_not_called()
+
+    def test_current_extra_imports_are_reread_without_expanding_original_proof(self):
+        names = set(self.old['sources'])
+        self.authenticate()
+        self.assertEqual(set(self.old['sources']), names)
+        self.audit.reset_mock()
+        for name in reader.CURRENT_COLLECTOR_IMPORTS:
+            path = self.native / 'stage2' / name; raw = path.read_bytes()
+            path.write_bytes(b'Current helper changed')
             with self.subTest(name=name), self.assertRaises(ValueError): self.authenticate()
             path.write_bytes(raw)
         self.audit.assert_not_called()
@@ -207,6 +233,18 @@ class AuditTests(TreeTests):
             with self.subTest(filename=filename), self.assertRaises(ValueError): self.authenticate()
             (self.native / (base + filename)).unlink()
 
+    def test_final_manager_observation_cannot_hide_late_support_changes(self):
+        anchors = self.anchors()
+        support = reader._support_files(self.native, self.data)
+        name = next(iter(support)); calls = []
+        def mutate_on_final_observation():
+            calls.append(1)
+            if len(calls) == 2:
+                self.put(self.native, name, b'Late changed bytes')
+        self.inactive.side_effect = mutate_on_final_observation
+        with self.assertRaisesRegex(ValueError, 'final service check'):
+            reader._check(self.root, anchors, support)
+
     def test_support_inventory_covers_trace_requests_errors_retries_and_lifecycle(self):
         row = self.data['rows'][0]; base = '.runtime/stage2/scored-attempts/' + row['trial_id'] + '/'
         names = [base + suffix for suffix in ('0001.transport-error.json', '0001.retry.json')]
@@ -244,6 +282,9 @@ class AuditTests(TreeTests):
 
     def test_lock_extension_includes_final_and_completed_terminus_for_openhands(self):
         successor = self.root / 'openhands'; (successor / '.runtime/stage2').mkdir(parents=True)
+        own = successor / '.runtime/stage2/matrix.lock'
+        own.parent.chmod(0o700); own.write_bytes(b''); own.chmod(0o600)
+        self.lock_order.return_value = (*self.lock_paths, own)
         with patch.dict(reader.runtime.DEPLOYMENTS, {'openhands': successor}), ExitStack() as stack:
             reader.lock_all(stack, successor, 'openhands')
             for base in (self.root, self.final_root):
@@ -253,12 +294,31 @@ class AuditTests(TreeTests):
 
     def test_missing_or_symlinked_ancestor_cannot_create_replacement_lock_tree(self):
         before = sorted(self.root.rglob('*'))
-        with patch.object(reader, 'LOCK_ANCESTORS', (self.root / 'missing',)), ExitStack() as stack:
-            with self.assertRaises(ValueError): reader.lock_all(stack, self.root, 'terminus-2')
+        self.lock_order.return_value = (self.root / 'missing/.runtime/stage2/matrix.lock',)
+        with ExitStack() as stack:
+            with self.assertRaises((ValueError, FileNotFoundError)): reader.lock_all(stack, self.root, 'terminus-2')
         self.assertEqual(before, sorted(self.root.rglob('*')))
         alias = self.root / 'alias'; alias.symlink_to(self.native)
-        with patch.object(reader, 'LOCK_ANCESTORS', (alias,)), ExitStack() as stack:
+        self.lock_order.return_value = (alias / '.runtime/stage2/matrix.lock',)
+        with ExitStack() as stack:
             with self.assertRaises(ValueError): reader.lock_all(stack, self.root, 'terminus-2')
+
+    def test_replaced_held_lock_after_collector_prevents_success(self):
+        def changed(files):
+            path = self.lock_paths[0]; path.unlink(); path.write_bytes(b''); path.chmod(0o600)
+            return deepcopy(self.data)
+        self.audit.side_effect = changed
+        with self.assertRaisesRegex(ValueError, 'lock was replaced'): self.authenticate()
+
+    def test_same_byte_original_result_replacement_after_collector_refuses(self):
+        name = self.data['rows'][0]['trial_id']
+        path = self.native / '.runtime/stage2/scored-trials' / name / 'result.json'
+        raw = path.read_bytes()
+        def changed(files):
+            path.unlink(); path.write_bytes(raw); path.chmod(0o600)
+            return deepcopy(self.data)
+        self.audit.side_effect = changed
+        with self.assertRaisesRegex(ValueError, 'identity changed'): self.authenticate()
 
     def test_wrong_host_or_deployment_context_refused(self):
         with patch.object(reader.platform, 'system', return_value='Darwin'), self.assertRaises(ValueError): self.authenticate()
@@ -278,6 +338,10 @@ class NativeProgramTests(unittest.TestCase):
         self.enterContext(patch.object(sys, 'flags', NS(isolated=True)))
         self.enterContext(patch.object(sys, 'dont_write_bytecode', True))
         self.enterContext(patch.object(sys, 'pycache_prefix', None))
+        self.enterContext(patch.object(sys, 'path', list(sys.path)))
+        self.hooks = []
+        self.enterContext(patch.object(sys, 'addaudithook', side_effect=self.hooks.append))
+        self.enterContext(patch.dict(os.environ, reader._native_environment(), clear=True))
         self.state = self.enterContext(patch('subprocess.check_output',
             return_value='ActiveState=inactive\nSubState=dead\nMainPID=0\nExecMainStatus=0\n'))
         self.enterContext(patch.object(reader.exporter, 'COLLECT', 'collector_was_called = True\n'))
@@ -289,7 +353,8 @@ class NativeProgramTests(unittest.TestCase):
 
     def test_guard_runs_before_collector_and_rechecks_after(self):
         self.assertTrue(self.execute()['collector_was_called'])
-        self.assertEqual(self.state.call_count, 4)
+        self.assertEqual(self.state.call_count, 6)
+        self.assertEqual(len(self.hooks), 1)
         self.assertFalse((self.root / '.runtime/unused-original-audit-bytecode').exists())
 
     def test_active_service_prevents_any_collector_project_import(self):
@@ -335,8 +400,111 @@ class NativeProgramTests(unittest.TestCase):
         (self.root / '.venv').symlink_to(target)
         with self.assertRaisesRegex(ValueError, 'original isolated interpreter'): self.execute()
 
+    def test_unexpected_environment_is_not_cleared_or_accepted(self):
+        ns = {}
+        with patch.dict(os.environ, {'UNEXPECTED_VALUE': 'private'}), self.assertRaisesRegex(ValueError, 'environment'):
+            self.execute(ns)
+        self.assertNotIn('collector_was_called', ns)
+        self.state.assert_not_called()
+
+    def test_credential_read_refusal_latches_even_if_library_catches_it(self):
+        ns = self.execute()
+        for filename in ('.env', '.env.production', '.jwt_secret', 'id_ed25519', 'id_rsa'):
+            with self.subTest(filename=filename), self.assertRaisesRegex(ValueError, 'credential'):
+                ns['_original_event']('open', (str(self.root / filename), 'r', os.O_RDONLY))
+        self.assertTrue(ns['_original_violation'])
+        with self.assertRaisesRegex(ValueError, 'environment'): ns['_original_check']()
+
+    def test_import_socket_probe_is_denied_before_creation_without_latching(self):
+        ns = self.execute(); ns['_original_importing'] = True
+        with self.assertRaises(RuntimeError): ns['_original_event']('socket.__new__', ())
+        self.assertEqual(ns['_original_socket_refusals'], 1)
+        self.assertFalse(ns['_original_violation'])
+        ns['_original_importing'] = False
+        ns['_original_environment_check']()
+        with self.assertRaises(ValueError): ns['_original_event']('socket.__new__', ())
+        self.assertTrue(ns['_original_violation'])
+
+    def test_environment_mutation_and_write_network_process_refusals_latch(self):
+        cases = (('os.putenv', (b'UNEXPECTED', b'not-retained')),
+            ('os.unsetenv', (b'LANG',)),
+            ('open', (str(self.root / 'new-output'), 'w', os.O_WRONLY | os.O_CREAT)),
+            ('socket.connect', (None, ('192.0.2.1', 1))),
+            ('subprocess.Popen', ('docker', ['docker', 'run', 'unapproved'], None, None)))
+        for event, args in cases:
+            ns = self.execute()
+            with self.subTest(event=event), self.assertRaises(ValueError): ns['_original_event'](event, args)
+            self.assertTrue(ns['_original_violation'])
+            with self.assertRaises(ValueError): ns['_original_environment_check']()
+
+    def test_read_only_collector_commands_are_forbidden_during_import(self):
+        ns = self.execute()
+        args = ('docker', ['docker', 'ps', '-q', '--filter', 'name=uts-scored-'], None, None)
+        ns['_original_event']('subprocess.Popen', args)
+        ns['_original_importing'] = True
+        with self.assertRaises(ValueError): ns['_original_event']('subprocess.Popen', args)
+        self.assertTrue(ns['_original_violation'])
+
+    def test_loaded_project_source_must_belong_to_exact_original_bindings(self):
+        ns = self.execute()
+        for name, path in (('original', self.root / 'elsewhere/original.py'),
+                ('unbound', self.root / 'stage2/unbound.py')):
+            with patch.dict(sys.modules, {name: NS(__file__=str(path))}), self.subTest(name=name):
+                with self.assertRaisesRegex(ValueError, 'collector'): ns['_original_loaded']()
+
 
 class NativeProcessTests(unittest.TestCase):
+    def isolated_fixture(self, module_source):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            (root / '.venv').mkdir()
+            digest = AuditTests.put(root, 'stage2/original.py', module_source)
+            with (patch.object(reader.baseline, 'ORIGINAL_ROOT', root),
+                    patch.object(reader.baseline, 'FINAL_ROOT', root),
+                    patch.object(reader.exporter, 'COLLECT', 'import original\nprint("synthetic-complete")\n')):
+                environment = reader._native_environment()
+                # This Mac runtime adds its own CoreFoundation encoding at
+                # startup. Bind that actual local fixture value explicitly;
+                # the production Linux environment remains exact and unchanged.
+                if sys.platform == 'darwin' and '__CF_USER_TEXT_ENCODING' in os.environ:
+                    environment['__CF_USER_TEXT_ENCODING'] = os.environ['__CF_USER_TEXT_ENCODING']
+                with patch.object(reader, '_native_environment', return_value=environment):
+                    program = reader._native_program({'stage2/original.py': digest})
+            # Only the historical host/interpreter identity observations are
+            # synthetic. Imports and the audit hook execute in a real isolated
+            # credential-free child; no native collector or daemon is called.
+            prefix = ('import sys,subprocess\nsys.prefix=' + repr(str(root / '.venv')) + '\n'
+                'subprocess.check_output=lambda *a,**k: '
+                + repr('ActiveState=inactive\nSubState=dead\nMainPID=0\nExecMainStatus=0\n') + '\n')
+            process = subprocess.run([sys.executable, '-I', '-B', '-'], input=prefix + program,
+                text=True, capture_output=True, env=environment, cwd=root, timeout=30)
+            self.assertFalse((root / 'blocked-output').exists())
+            return process
+
+    def test_actual_isolated_child_imports_bound_source_without_effects(self):
+        process = self.isolated_fixture(b'import json\nvalue=json.loads("{}")\n')
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertEqual(process.stdout, 'synthetic-complete\n')
+
+    def test_actual_child_caught_credential_read_still_prevents_collector(self):
+        source = b'try:\n open(".env","r")\nexcept ValueError:\n pass\n'
+        process = self.isolated_fixture(source)
+        self.assertNotEqual(process.returncode, 0)
+        self.assertNotIn('synthetic-complete', process.stdout)
+
+    def test_actual_child_caught_socket_probe_creates_no_socket(self):
+        source = (b'import socket\ntry:\n socket.socket()\n'
+            b'except RuntimeError:\n pass\nelse:\n raise AssertionError("Socket unexpectedly created")\n')
+        process = self.isolated_fixture(source)
+        self.assertEqual(process.returncode, 0, process.stderr)
+
+    def test_actual_child_caught_write_still_prevents_collector(self):
+        source = b'try:\n open("blocked-output","w")\nexcept ValueError:\n pass\n'
+        process = self.isolated_fixture(source)
+        self.assertNotEqual(process.returncode, 0)
+        self.assertNotIn('synthetic-complete', process.stdout)
+
     def test_original_interpreter_stdin_credential_free_environment_and_metadata_only(self):
         with (patch('subprocess.run', return_value=NS(returncode=0, stdout='{"rows": []}')) as run,
                 patch.dict(os.environ, {'OPENROUTER_API_KEY': 'not-forwarded'})):
@@ -346,7 +514,11 @@ class NativeProcessTests(unittest.TestCase):
         self.assertEqual(args[0], [str(reader.baseline.ORIGINAL_ROOT / '.venv/bin/python'), '-I', '-B', '-'])
         self.assertEqual(kw['cwd'], reader.baseline.ORIGINAL_ROOT)
         self.assertNotIn('OPENROUTER_API_KEY', kw['env'])
-        self.assertEqual(set(kw['env']), {'PATH', 'LANG', 'LITELLM_LOCAL_MODEL_COST_MAP', 'DO_NOT_TRACK'})
+        self.assertEqual(kw['env'], reader._native_environment())
+        self.assertEqual(kw['env']['PYTHON_DOTENV_DISABLED'], '1')
+        self.assertEqual(kw['env']['LITELLM_MODE'], 'PRODUCTION')
+        self.assertEqual(kw['env']['DOCKER_HOST'], 'unix:///var/run/docker.sock')
+        self.assertEqual(kw['env']['DOCKER_CONFIG'], '/dev/null')
         self.assertIn(reader.exporter.COLLECT, kw['input'])
 
     def test_process_failures_and_malformed_metadata_are_sanitised(self):

@@ -16,6 +16,7 @@ import hashlib
 import os
 from pathlib import Path
 import platform
+import sys
 import threading
 import weakref
 
@@ -24,6 +25,7 @@ import matched_repeat_amended_handoff as handoff
 import matched_repeat_original as original_audit
 import matched_repeat_policy as policy
 import matched_repeat_runtime as runtime
+import matched_repeat_locks as locks
 import matched_repeat_stream as wire
 from matched_repeat_baseline_probe import check_files, regular
 
@@ -55,8 +57,12 @@ def _context(root, harness):
     root = Path(root)
     if (platform.system() != 'Linux' or root != runtime.DEPLOYMENTS[harness]
             or not root.is_dir() or root.is_symlink() or root.resolve() != root
-            or Path(__file__).resolve() != root / 'stage2/matched_repeat_session.py'):
+            or Path(__file__).absolute() != root / 'stage2/matched_repeat_session.py'
+            or Path(sys.executable).absolute() != root / '.venv/bin/python'
+            or threading.current_thread() is not threading.main_thread()):
         raise ValueError('Use this separate native repeat deployment for the locked session')
+    locks.directories(root, private=True)
+    locks.directories(root / '.runtime/stage2', private=True)
     return root
 
 
@@ -81,14 +87,42 @@ def _inputs(root):
     return original, final, files
 
 
+def _invalidate_witness(witness):
+    # The archived handoff module is immutable. Its current owning session
+    # revokes the real in-memory entry without changing that old reader.
+    if type(witness) is handoff._Witness:
+        handoff._WITNESSES.pop(witness, None)
+
+
+def invalidate(session):
+    """Revoke both handles now; the owning context keeps locks until exit."""
+    if type(session) is _Session:
+        state = _SESSIONS.pop(session, None)
+        if state is not None:
+            _invalidate_witness(state['witness'])
+            if state.get('recovery_witness') is not None:
+                import matched_repeat_recovery_handoff as recovery
+                recovery.invalidate(state['recovery_witness'])
+
+
 def _live(session):
     if not isinstance(session, _Session) or session not in _SESSIONS:
         raise ValueError('An active locked native session is required, not saved metadata')
     state = _SESSIONS[session]
-    if (state['pid'] != os.getpid() or state['thread'] != threading.get_ident()
-            or state['task'] is not _task()):
-        raise ValueError('Locked sessions cannot cross processes, threads or async tasks')
-    return state
+    try:
+        if (state['pid'] != os.getpid() or state['thread'] != threading.get_ident()
+                or state['task'] is None or state['task'] is not _task()
+                or threading.current_thread() is not threading.main_thread()):
+            raise ValueError('Locked sessions cannot cross processes, threads or async tasks')
+        handoff._live(state['witness'])
+        if state.get('recovery_witness') is not None:
+            import matched_repeat_recovery_handoff as recovery
+            recovery._live(state['recovery_witness'])
+        state['locks'].recheck()
+        return state
+    except BaseException:
+        invalidate(session)
+        raise
 
 
 def _coherent(state, predecessor, original, library, host):
@@ -113,10 +147,13 @@ def _coherent(state, predecessor, original, library, host):
 def describe(session):
     """Deep-copied metadata only; there is no inverse or saved-session route."""
     state = _live(session)
-    return deepcopy(dict(kind=KIND, experiment=policy.EXPERIMENT, harness=state['harness'],
+    result = dict(kind=KIND, experiment=policy.EXPERIMENT, harness=state['harness'],
         inputs=state['files'], predecessor=state['predecessor'], original_audit=state['original_record'],
         baseline=state['library'], runtime=state['host'], limitations=LIMITATIONS,
-        paid_launch_ready=False))
+        paid_launch_ready=False)
+    if state.get('recovery_witness') is not None:
+        result['completed_recovery'] = state['recovery_record']
+    return deepcopy(result)
 
 
 def recheck(session):
@@ -132,6 +169,8 @@ def recheck(session):
         original, final, files = _inputs(root)
         if files != state['files']:
             raise ValueError('Locked session source or input bytes changed')
+        if locks.file_identities(root, files) != state['identities']:
+            raise ValueError('Locked session source or private file identity changed')
         predecessor = handoff.recheck(root, original, final, harness, state['witness'])
         original_record = original_audit.recheck(root, original, final, harness, state['original_record'])
         library = baseline.recheck(root, original, final, harness, state['library'])
@@ -146,54 +185,120 @@ def recheck(session):
         handoff._no_stop(root)
         original_audit.recheck(root, original, final, harness, state['original_record'])
         handoff.recheck(root, original, final, harness, state['witness'])
+        if state.get('recovery_witness') is not None:
+            import matched_repeat_recovery_handoff as recovery
+            if recovery.recheck(state['recovery_witness']) != state['recovery_record']:
+                raise ValueError('Actual completed recovery changed under baseline locks')
         check_files(root, state['files'])
+        if locks.file_identities(root, files) != state['identities']:
+            raise ValueError('Late baseline source or private file identity change')
+        runtime.loaded_sources(root, host['sources'])
         return describe(session)
     except BaseException:
-        _SESSIONS.pop(session, None)
+        invalidate(session)
         raise
 
 
 @contextmanager
-def open_session(root, harness, stream):
-    """Fresh live handoff and original audit, then all inherited outer locks.
+def _opened(root, harness, stream, recovery_witness=None):
+    """Internal owning entry; public callers never supply a witness or flag."""
+    if not _GATE.locked():
+        raise ValueError('Actual owning prerequisite entry required')
+    session = witness = None
+    try:
+        root = _context(root, harness)
+        if _task() is None:
+            raise ValueError('An actual owning async task is required for a baseline session')
+        handoff._no_stop(root); wire.pipe_only(stream)
+        original, final, files = _inputs(root)
+        identities = locks.file_identities(root, files)
+        witness = handoff.authenticate(root, original, final, harness, stream)
+        if recovery_witness is not None:
+            import matched_repeat_recovery_handoff as recovery
+            recovered = recovery.recheck(recovery_witness)
+            if recovered['operator_commit'] != handoff._live(witness)['header']['operator']['operator_commit']:
+                raise ValueError('Both actual composite captures must use the same committed revision')
+        original_record = original_audit.authenticate(root, original, final, harness)
+        with ExitStack() as stack:
+            try:
+                lease = locks.acquire(stack, root, harness)
+                handoff._no_stop(root); check_files(root, files)
+                if locks.file_identities(root, files) != identities:
+                    raise ValueError('Baseline input identity changed during authentication or locking')
+                predecessor = handoff.recheck(root, original, final, harness, witness)
+                original_record = original_audit.recheck(root, original, final, harness, original_record)
+                library = baseline.inspect(root, original, final, harness)
+                host = runtime.inspect(root, original, final, harness)
+                state = dict(pid=os.getpid(), thread=threading.get_ident(), task=_task(), root=root,
+                    harness=harness, original=deepcopy(original), final=deepcopy(final), files=deepcopy(files),
+                    witness=witness, predecessor=deepcopy(predecessor), original_record=deepcopy(original_record),
+                    library=deepcopy(library), host=deepcopy(host), locks=lease, identities=identities)
+                _coherent(state, predecessor, original_record, library, host)
+                if recovery_witness is not None:
+                    state.update(recovery_witness=recovery_witness,
+                        recovery_record=recovery.recheck(recovery_witness))
+                session = _Session(); _SESSIONS[session] = state
+                recheck(session)
+                yield session
+                # A caught earlier failure cannot turn context exit into success.
+                recheck(session)
+            finally:
+                # Also covers partial acquisition and pre-session entry failures.
+                invalidate(session); _invalidate_witness(witness)
+                if recovery_witness is not None:
+                    recovery.invalidate(recovery_witness)
+    finally:
+        invalidate(session); _invalidate_witness(witness)
 
-    No witness or record parameter is accepted. A future service must call this
-    in the process that consumes the preparation/dispatch scope, not hand a
-    serialised projection to a different process. The outer locks stay held
-    through the caller's context and are released on every exception path.
+
+@contextmanager
+def open_session(root, harness, stream):
+    """Legacy inspection scope, not the new recovery-bound execution entry."""
+    if not _GATE.acquire(blocking=False):
+        raise ValueError('Overlapping or nested native prerequisite sessions are refused')
+    try:
+        with _opened(root, harness, stream) as active:
+            yield active
+    finally:
+        _GATE.release()
+
+
+@contextmanager
+def open_execution_session(root, harness, stream):
+    """Both real committed archives, original audit, then all ancestor locks.
+
+    The recovery subframe is consumed here before the unchanged original
+    reader. Its EOF is withheld until the actual final composite commitment.
+    No saved record, witness, factory or caller callback is accepted.
     """
     if not _GATE.acquire(blocking=False):
         raise ValueError('Overlapping or nested native prerequisite sessions are refused')
-    session = None
+    witness = recovery = None
     try:
+        import matched_repeat_recovery_handoff as recovery
         root = _context(root, harness)
-        handoff._no_stop(root); wire.pipe_only(stream)
-        original, final, files = _inputs(root)
-        witness = handoff.authenticate(root, original, final, harness, stream)
-        original_record = original_audit.authenticate(root, original, final, harness)
-        with ExitStack() as stack:
-            original_audit.lock_all(stack, root, harness)
-            handoff._no_stop(root); check_files(root, files)
-            predecessor = handoff.recheck(root, original, final, harness, witness)
-            original_record = original_audit.recheck(root, original, final, harness, original_record)
-            library = baseline.inspect(root, original, final, harness)
-            host = runtime.inspect(root, original, final, harness)
-            state = dict(pid=os.getpid(), thread=threading.get_ident(), task=_task(), root=root,
-                harness=harness, original=deepcopy(original), final=deepcopy(final), files=deepcopy(files),
-                witness=witness, predecessor=deepcopy(predecessor), original_record=deepcopy(original_record),
-                library=deepcopy(library), host=deepcopy(host))
-            _coherent(state, predecessor, original_record, library, host)
-            session = _Session(); _SESSIONS[session] = state
-            try:
-                recheck(session)
-                yield session
-            finally:
-                # Invalidate before ExitStack releases any ancestor lock.
-                _SESSIONS.pop(session, None)
+        witness, original_stream = recovery.authenticate(root, harness, stream)
+        with _opened(root, harness, original_stream, witness) as active:
+            yield active
     finally:
-        if session is not None:
-            _SESSIONS.pop(session, None)
+        if recovery is not None:
+            recovery.invalidate(witness)
         _GATE.release()
+
+
+def require_execution(active):
+    """Actual same-session recovery witness, never a saved prerequisite flag."""
+    state = _live(active)
+    try:
+        import matched_repeat_recovery_handoff as recovery
+        witness = state.get('recovery_witness')
+        record = recovery.recheck(witness)
+        if record != state.get('recovery_record'):
+            raise ValueError('Exact live completed-recovery execution scope required')
+        return deepcopy(record)
+    except BaseException:
+        invalidate(active)
+        raise
 
 
 def _qualification_inputs(root):
@@ -258,5 +363,5 @@ def verify_qualification(session):
             qualification_operation_files=operation_files,
             image_evidence_files=images['image_evidence_files'], paid_launch_ready=False)
     except BaseException:
-        _SESSIONS.pop(session, None)
+        invalidate(session)
         raise

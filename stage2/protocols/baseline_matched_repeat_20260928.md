@@ -1,5 +1,145 @@
 # Matched baseline repeats after custom final89
 
+## First baseline execution path locally verified, 30 September 09:59 UTC
+
+The separate Terminus route now has its actual composite recovery/original
+handoff, same-task locked session, fixed detached qualification/run service,
+pinned Mac connection, exclusive installer, completed89 audit and ONE private
+backup/allowlisted export path. This revision publishes the locally verified
+source only; no baseline installation, qualification or paid attempt has occurred.
+See [the reporting and execution amendment](baseline_matched_repeat_reporting_20260930.md).
+
+Current lock order has 52 Terminus and 55 OpenHands locks. Its first49 match
+the frozen recovery r6 chain exactly; all existing locks are required and the
+installer precreates only the new root's three locks. All r1-r5 failures and
+the archived35 reporting sources remain unchanged. OpenHands still refuses
+execution until its additional completed-Terminus reader/route is implemented.
+
+The initial 1390-test candidate passed1385 and retained five fixture errors,
+with no skipped tests or assertion failures. Those fixtures omitted the new
+completed-recovery prerequisite; their explicit mock and a real-gate negative
+regression were verified. An independently added Mac installer test also
+found and now covers an incorrect original-reader module reference. No failed
+candidate is counted as a passed final gate or native qualification.
+
+After those corrections, all37 affected tests passed. The final combined gate
+passed all1400 tests, zero skips/errors/failures, in1433.910 seconds. All395
+source bindings were checked before imports, after discovery and after execution;
+249 loaded project modules were bound. Source-map SHA256 is
+4111456a36e4c46e7b730b72577e1dc1c613f2424d23ac8c85a5bdbc2929c9dc.
+All12 repository tests and syntax/whitespace checks for all56 candidate files
+passed. These use local synthetic files/transports and mocked native facts;
+they do not claim server compatibility, qualification or benchmark outcomes.
+The archived35 and installed recovery318 remain unchanged.
+
+Recovery r6 at fbefc033cd04c7981e7374f68c9d5b20186d461a was exclusively
+installed at08:30:27 UTC; actual installed imports passed08:35:23. Its ONE
+qualification connection began08:36:13 and ended uncertain10:01:12. Actual
+read-only native metadata10:11:00 verified accepted handoff, image completion,
+all834 native regression tests with zero errors/failures/skips and the same
+still-running service. Six lifecycle-case intents and qualification result
+remain absent; this is not qualification success or paid admission. The
+standard status reader refusal is still being diagnosed without native writes.
+No repeated qualification, native signal or new paid task is implied.
+Recovery0/3 and both baseline89 blocks remain unstarted. Prior checkpoints
+below are historical where superseded.
+
+## Prospective locked-session integration, 30 September UTC
+
+The baseline original-result audit and its later live session now use the same
+precreated, protected lock chain: 49 locks for Terminus-2 and 52 for OpenHands.
+The first 46 retain recovery r5's exact acquisition order, followed by recovery's
+scored/gateway locks and the relevant baseline locks. No reader creates,
+repairs or replaces a lock. An actual competing file description must still
+conflict; lost, closed, replaced, unsafe or missing locks refuse admission.
+
+Both session and original-evidence witness are invalidated before any unlock,
+including partial entry, cancellation and ownership failure. A caught failure
+cannot revive either handle or pass the normal-exit recheck. Same-byte source
+or private-input replacement is also refused. The original-178 audit rereads
+its actual source/evidence identities and held locks after its collector.
+The archived handoff/reporting sources remain unchanged.
+
+All 97 focused local lock/session/original-reader checks passed. A wider draft
+263-test run initially exposed outdated negative-test expectations for strict
+session exit; its next candidate had one error and one failure, both corrected
+in test fixtures. All three affected probe tests then passed. These are local
+synthetic checks, not native qualification, and final wider verification is
+still required. No native baseline root, service or attempt has been started.
+
+The next full 1138-test candidate completed 1137 tests successfully but exposed
+one archived session-test fixture still mocking the old lock entry. Its failed
+pipe producer also emitted BrokenPipeError after the consumer refused. The
+35 archived reporter/test files remain byte-identical. A separately bound
+current test module inherits and runs every archived handoff test body, adding
+real precreated protected leases and explicit local ancestry/ACL fixtures only
+for that session test. The current regression selection names this adapter
+instead of the obsolete standalone fixture module; no test is dropped or
+marked skipped and no production protection is relaxed. The affected 14 local
+checks passed. New full current verification remains required.
+
+The one recovery r3 qualification is terminal: read-only native observation
+at 04:37:11 UTC found its retained `native_regressions`/`ValueError` failure,
+failed service with MainPID 0, and no relay process. Its image build passed,
+but no regression summary, rehearsal or paid recovery result exists. Retain
+this failure and inspect it without automatic repetition. Recovery remains
+0/3 and both baseline repeats remain unstarted. The earlier recovery finish
+window is no longer reliable; the failed qualification is not a task outcome.
+
+## Prospective baseline image compatibility, 30 September UTC
+
+The current, not-yet-installed baseline image verifier now permits the same
+narrow Linux/amd64 legacy-builder transition observed during recovery: an
+exact boolean `ArgsEscaped: true` in the parent may become an absent field in
+the new image. It does not accept null, numeric/other types, false-to-absent,
+Windows/other architectures or any other configuration/layer difference.
+Both raw metadata fingerprints remain unchanged by the comparison and are
+reread; later drift still refuses verification. The original baseline images,
+agents, tools, model, million-turn guards and official limits are untouched.
+No native baseline build, qualification or attempt is implied.
+
+Prospective image failures now retain a fixed stage label for context, build,
+verification or prerequisite reread. No arbitrary output or exception message
+is added. The one-shot/no-rebuild rule and retained failure state remain.
+
+The prospective original-178 audit child now receives the exact
+credential-free, dotenv-disabled environment and original tokenizer-cache
+path, plus the local Docker daemon and empty client configuration. Bound
+project imports are preloaded under a write/network/process guard. A caught
+socket-construction probe is denied before creation and counted; credential
+reads, environment mutation and other denied effects latch refusal even if
+caught. Collector subprocesses are limited to its exact read-only manager
+and container-list commands. This audit hook is defence in depth, not an OS
+sandbox. Actual loaded origins and evidence are reread after collection.
+
+The parent retains its real trusted manager/journal/procfs completion checks;
+an unloaded unit's default fields are never completion proof. Final actual
+source/private/support reads now follow the last manager observation. Four
+unchanged collector-import helpers absent from the original 84-file proof
+are explicitly current-bound: `calibrate_tokenizer.py`,
+`extended_token_calibration.py`, `final_schedule.py` and `setup_probe.py`.
+Their local bytes match the original committed implementation `60f1a98`.
+The original 84-file qualification, collector, snapshot, results and archive
+remain unchanged; this is not retrospective installed-byte attestation.
+
+All 66 image/admission checks and 42 original-reader checks passed locally.
+Four original-reader tests use a real isolated child with synthetic host
+observations, not a native collector. Two first-draft positive child cases
+refused the Mac runtime's extra CoreFoundation environment key; the fixture
+now explicitly binds that actual local key, leaving production Linux's exact
+environment unchanged. All 1,114 broader regressions then passed in
+436.728 seconds, with zero skips/errors/failures, 300 source bindings checked
+before/discovery/after and 194 final loaded project modules. All 12 repository
+tests passed. These remain local checks, not native admission or benchmark
+outcomes. No original or frozen recovery source was changed.
+
+Recovery installation into the separate `20260930-r3` root completed at
+03:30:36 UTC and its actual read-only installed import check passed at
+03:35:53 UTC. Its one new qualification operation started at 03:36:26 UTC;
+that is not qualification success or paid launch. Recovery remains 0/3 and
+both baseline repeats remain unstarted. Earlier installation-pending text
+below is historical.
+
 ## Corrected Linux image comparison, 30 September UTC
 
 The separate image amendment accepts only the observed Linux/amd64

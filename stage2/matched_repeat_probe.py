@@ -548,7 +548,7 @@ async def probe(active, mode):
         if not failure_path.exists() and not failure_path.is_symlink():
             durable_json(failure_path, dict(kind='retained_synthetic_rehearsal_failure', error_type=type(exc).__name__,
                 runtime_path=str(target.relative_to(root)), automatic_resume=False, paid_launch_ready=False))
-        session._SESSIONS.pop(active, None)
+        session.invalidate(active)
         raise
     finally:
         if permit is not None:

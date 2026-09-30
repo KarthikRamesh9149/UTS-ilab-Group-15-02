@@ -364,6 +364,7 @@ def verify_completion(active, proof):
 async def qualify(active):
     """Build and qualify once inside the service's original live async scope."""
     state = session._live(active)
+    session.require_execution(active)
     if threading.current_thread() is not threading.main_thread() or session._task() is None:
         raise ValueError('Qualification stays on the service main thread and owning async task')
     session.recheck(active); probe._environment()
@@ -451,7 +452,7 @@ async def qualify(active):
         no_failure(root)
         return result
     except BaseException as exc:
-        session._SESSIONS.pop(active, None)
+        session.invalidate(active)
         if not (rt / FAILURE).exists() and not (rt / FAILURE).is_symlink():
             durable_json(rt / FAILURE, dict(kind='retained_native_repeat_qualification_failure',
                 exception_type=type(exc).__name__, failed_utc=_utc(), automatic_resume=False, paid_launch_ready=False))

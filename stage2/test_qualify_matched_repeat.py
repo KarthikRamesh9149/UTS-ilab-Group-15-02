@@ -35,6 +35,10 @@ class QualifierTests(unittest.TestCase):
     def setUp(self):
         self.p = p = fixtures.ProbeTests('runTest'); p.setUp(); self.addCleanup(p.doCleanups)
         self.q = p.q; self.root = p.root; self.rt = p.rt.resolve(); self.steps = []
+        # Native recovery authentication is mocked, like the other native
+        # prerequisite readers here; its real lifetime has separate coverage.
+        self.enterContext(patch.object(session, 'require_execution', side_effect=lambda active:
+            self.q.under_lock('native-completed-recovery-witness', {'paid_launch_ready': False})))
         # Remove only fabricated setup records in this fresh TemporaryDirectory.
         # The production qualifier never removes earlier evidence or retries it.
         for path in self.rt.glob('native-matched-repeat-*-qualification-*'):
@@ -77,8 +81,8 @@ class QualifierTests(unittest.TestCase):
 
     def refuse(self, expression=''):
         async def work():
-            with self.q.open() as active:
-                with self.assertRaisesRegex((ValueError, OSError, RuntimeError, AssertionError), expression):
+            with self.assertRaisesRegex((ValueError, OSError, RuntimeError, AssertionError), expression):
+                with self.q.open() as active:
                     await qualifier.qualify(active)
         asyncio.run(work())
 
@@ -123,20 +127,20 @@ class QualifierTests(unittest.TestCase):
             with self.assertRaises(ValueError): asyncio.run(qualifier.qualify(value))
         with self.q.open() as active: pass
         with self.assertRaises(ValueError): asyncio.run(qualifier.qualify(active))
-        with self.q.open() as active:
+        with self.q.invalidated() as active:
             with self.assertRaises(ValueError): asyncio.run(qualifier.qualify(active))
         self.builder.assert_not_called()
 
     def test_child_async_task_cannot_consume_parent_session(self):
         async def work():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaisesRegex(ValueError, 'async tasks'):
                     await asyncio.create_task(qualifier.qualify(active))
         asyncio.run(work()); self.builder.assert_not_called()
 
     def test_thread_and_process_identity_are_not_transferable(self):
         async def work():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 errors = []
                 def child():
                     try: asyncio.run(qualifier.qualify(active))
@@ -258,7 +262,7 @@ class QualifierTests(unittest.TestCase):
         self.assertTrue((self.rt / policy.QUALIFICATION_FILE).exists())
         self.assertTrue((self.rt / qualifier.RESULT).exists()); self.assert_failure()
         async def check():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaisesRegex(ValueError, 'Retained native qualification failure'):
                     REAL_VERIFY(active)
         asyncio.run(check())
@@ -271,14 +275,14 @@ class QualifierTests(unittest.TestCase):
     def test_missing_completion_is_not_paid_qualification(self):
         asyncio.run(self.execute()); (self.rt / qualifier.RESULT).unlink()
         async def check():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaises((OSError, ValueError)): REAL_VERIFY(active)
         asyncio.run(check())
 
     def test_completion_files_privacy_symlinks_and_duplicate_fields(self):
         asyncio.run(self.execute()); path = self.rt / qualifier.RESULT; raw = path.read_bytes()
         async def check():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaises((ValueError, OSError)): REAL_VERIFY(active)
         path.chmod(0o644); asyncio.run(check()); path.chmod(0o600)
         path.write_bytes(b'{"status":1,"status":2}'); asyncio.run(check())
@@ -290,7 +294,7 @@ class QualifierTests(unittest.TestCase):
         name = next(n for n in result['producer_files'] if '/traces/' in n)
         path = self.root / name; path.write_bytes(path.read_bytes() + b' ')
         async def check():
-            with self.q.open() as active:
+            with self.q.invalidated() as active:
                 with self.assertRaisesRegex(ValueError, 'supporting producer bytes'): REAL_VERIFY(active)
         asyncio.run(check())
 
@@ -369,7 +373,7 @@ class QualifierTests(unittest.TestCase):
             path = self.rt / qualifier.RESULT; path.write_bytes(path.read_bytes() + b' ')
             return files
         async def work():
-            with self.q.open() as active, patch.object(qualifier, 'verify_completion', side_effect=change):
+            with self.q.invalidated() as active, patch.object(qualifier, 'verify_completion', side_effect=change):
                 with self.assertRaisesRegex(ValueError, 'input changed'): REAL_VERIFY(active)
         asyncio.run(work())
 
