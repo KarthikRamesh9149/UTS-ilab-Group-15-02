@@ -5,7 +5,29 @@ completed reporting route is implemented and locally verified.
 **0/3 recovery attempts started.**
 No native recovery qualification, registration or paid admission has occurred.
 
-## Current execution candidate, native gates pending
+## Installation refusal and narrow correction, 30 September UTC
+
+The first installation returned ValueError at 00:13:04 UTC. Its historical
+traceback was not retained. Independent read-only native checks at 00:17:10
+and 00:21:37 found the recovery root absent and reproduced a current refusal
+on the original empty mode-0666 `.venv/.lock`; the other 13,524 environment
+files passed metadata checks. No original environment file was changed.
+The [explicit correction](../../protocols/custom_setup_recovery_execution_20260930.md)
+copies this exact empty installer lock as a private new file, retaining its
+source identity/bytes and nonblocking lock checks. It preserves the pinned
+first failure and uses a separate r2 operator state, still requiring fresh
+native-root absence. Qualification and all three paid attempts remain pending.
+
+The corrected candidate passed 17 focused installer tests and all 766 recovery
+regressions, with zero skips/errors/failures, 312 bound sources and 213 final
+loaded modules. The source-map SHA256 is
+`c12080040534fceafb68b759f8c8f7f345d8c86000f4ad8adfc7e0c49469bd29`.
+All 12 repository tests passed. Nine tests cover the new narrow compatibility
+and retained failure. The initial focused command omitted the Mac user temporary
+directory and refused wrong-group fixtures; the corrected test environment
+passed without weakening a production check. These are local checks only.
+
+## Earlier execution candidate, native gates pending
 
 The [execution integration](../../protocols/custom_setup_recovery_execution_20260930.md)
 passes the real observer into the unchanged preparation/lifecycle and durably
@@ -29,10 +51,10 @@ tests with zero skips/errors/failures and 213 final loaded project modules.
 All 12 repository tests passed. The 98 new tests are synthetic/local; actual
 native image, manager, runtime and lifecycle compatibility remain unexercised.
 
-These native paths have not been invoked. Local synthetic tests do not establish
+At that earlier publication the native paths had not been invoked. Local synthetic tests do not establish
 Linux/systemd/Docker compatibility or produce benchmark outcomes. Final committed
 source checks and genuine native qualification remain mandatory before launch.
-The latest native operation was only the existing read-only original inspector
+The last benchmark-status observation remains the existing read-only original inspector
 at 21:40:58 UTC on 29 September: 89/89, 50 passed, 36 verified failures, 3 missing,
 no active/partial task, all 211 sources matching. Both baseline repeats remain
 unstarted. No original archive, qualification, result or schedule was recreated.

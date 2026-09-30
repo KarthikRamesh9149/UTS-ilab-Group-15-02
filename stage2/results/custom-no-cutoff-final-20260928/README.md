@@ -1,6 +1,17 @@
 # Measured C0-NC final89
 
-Latest recovery update, 30 September Sydney: the separate
+Recovery installation update, 30 September UTC: the first installer refused
+at 00:13:04 before native-root creation. Read-only diagnosis confirmed absence
+and identified one empty virtual-environment installer lock with mode 0666.
+The separate correction copies only that lock privately, preserves the first
+failure and never edits original evidence or permissions. Recovery remains
+0/3; both baseline repeats are unstarted. Original audited outcomes and the
+ONE verified archive remain unchanged.
+All 766 recovery checks passed after the correction, with zero skips/errors/
+failures and 312 source bindings, plus 17 focused and 12 repository checks.
+The wider historical gates below were not rerun for this installer-only change.
+
+Earlier recovery update, 30 September Sydney: the separate
 [execution candidate](../../protocols/custom_setup_recovery_execution_20260930.md)
 now includes scored observation/admission, real producer qualification,
 sequential dispatch, fixed service operations, exclusive installation and

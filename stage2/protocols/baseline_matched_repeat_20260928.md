@@ -1,5 +1,17 @@
 # Matched baseline repeats after custom final89
 
+Recovery installation update, 30 September UTC: the first installer refused
+before creating a recovery root. Read-only observations confirmed its absence
+and isolated one empty mode-0666 environment installer lock. The explicit
+recovery-only correction privately copies that exact lock, preserves the first
+failed operator state and keeps original bytes/permissions unchanged. It does
+not launch or alter either baseline. Recovery remains 0/3; both repeats are
+unstarted, with genuine qualification and recovery audit/backup/export still
+required before the unchanged Terminus-2 then OpenHands sequence.
+After this installer-only correction, all 766 recovery checks passed against
+312 source bindings with zero skips/errors/failures, plus 17 focused and 12
+repository checks. The wider gates below predate the correction.
+
 Recovery execution candidate, 30 September Sydney: the separate
 [execution integration](custom_setup_recovery_execution_20260930.md) now has
 scoped admission/durable setup evidence, source-bound images, isolated native

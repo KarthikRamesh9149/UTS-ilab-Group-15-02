@@ -1,6 +1,25 @@
 # Stage 2 execution status
 
-## Latest: complete recovery execution candidate, native gates pending
+## Latest: narrow installation correction, 30 September UTC
+
+The first recovery installation refused at 00:13:04 UTC before native-root
+creation. Read-only checks at 00:17:10 and 00:21:37 confirmed root absence and
+identified one empty mode-0666 virtual-environment installer lock; all other
+13,524 environment files passed the metadata check. The corrected installer
+copies only that exact empty lock privately, without changing the original.
+It preserves and pins the failed operator state and uses a separate r2 operator
+directory. The [explicit correction](protocols/custom_setup_recovery_execution_20260930.md)
+does not relax library/source/result checks or authorise replay. All 17 focused
+installer tests and all 766 recovery regressions passed with zero skips,
+errors or failures. The latter checked 312 source bindings and 213 final loaded
+modules; source-map SHA256 is
+`c12080040534fceafb68b759f8c8f7f345d8c86000f4ad8adfc7e0c49469bd29`.
+All 12 repository tests passed. These are local/synthetic checks, not native
+qualification. The earlier wider gates below predate this narrow correction.
+Recovery remains 0/3 and both baseline repeats unstarted. No native
+qualification, paid task or new archive occurred during diagnosis.
+
+## Earlier complete recovery execution candidate, native gates pending
 
 The [separate execution integration](protocols/custom_setup_recovery_execution_20260930.md)
 now includes scoped scored admission, durable setup observations, source-bound

@@ -1,5 +1,6 @@
 """Real exclusive local copies/locks; native manager and interpreter mocked."""
 import base64
+import fcntl
 from copy import deepcopy
 import hashlib
 import json
@@ -106,6 +107,100 @@ class InstallTests(LocalFiles, unittest.TestCase):
         path.symlink_to('cache.retained')
         with self.assertRaises(ValueError): install._install(self.value)
         self.assertFalse(self.target.exists())
+
+    def lock_file(self):
+        path=self.old/'.venv/.lock'; save(self.old,'.venv/.lock',b''); path.chmod(0o666)
+        return path
+
+    def test_observed_empty_installer_lock_copied_private_original_unchanged(self):
+        path=self.lock_file(); before=files.libraries.identity(path.lstat())
+        install._install(self.value)
+        copied=self.target/'.venv/.lock'
+        self.assertEqual(copied.read_bytes(),b''); self.assertEqual(copied.stat().st_mode&0o777,0o600)
+        self.assertEqual(files.libraries.identity(path.lstat()),before)
+        self.assertEqual(path.stat().st_mode&0o777,0o666)
+
+    def test_installer_lock_exception_does_not_include_payload_or_other_paths(self):
+        for name,raw in (('.venv/.lock',b'not empty'),('.venv/other-lock',b''),
+                ('.venv/lib/python3.12/site-packages/unsafe.py',b'')):
+            with self.subTest(name=name):
+                save(self.old,name,raw); path=self.old/name; path.chmod(0o666)
+                try:
+                    with self.assertRaises(ValueError): install._install(self.value)
+                    self.assertFalse(self.target.exists())
+                finally: path.unlink()
+
+    def test_held_empty_installer_lock_refuses_without_native_target(self):
+        path=self.lock_file()
+        with path.open('rb') as handle:
+            fcntl.flock(handle,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            with self.assertRaises(BlockingIOError): install._install(self.value)
+        self.assertFalse(self.target.exists())
+
+    def test_installer_lock_symlink_hardlink_acl_and_unobserved_modes_refuse(self):
+        path=self.lock_file()
+        for mode in (0o600,0o664,0o777,0o4666):
+            path.chmod(mode)
+            with self.assertRaises(ValueError): install._input_read(self.old,'.venv/.lock',files.libraries)
+        path.chmod(0o666)
+        alias=path.with_name('.lock-alias'); os.link(path,alias)
+        with self.assertRaises(ValueError): install._input_read(self.old,'.venv/.lock',files.libraries)
+        alias.unlink()
+        with patch.object(files.libraries.os,'listxattr',return_value=['system.posix_acl_access']):
+            with self.assertRaises(ValueError): install._input_read(self.old,'.venv/.lock',files.libraries)
+        path.rename(alias); path.symlink_to(alias.name)
+        with self.assertRaises((ValueError,OSError)): install._input_read(self.old,'.venv/.lock',files.libraries)
+
+    def test_installer_lock_same_byte_identity_replacement_refuses(self):
+        path=self.lock_file(); original=hashlib.file_digest
+        def replace(stream,*args):
+            answer=original(stream,*args)
+            path.rename(path.with_name('.retained-lock')); self.lock_file()
+            return answer
+        with patch.object(hashlib,'file_digest',side_effect=replace):
+            with self.assertRaises(ValueError): install._input_read(self.old,'.venv/.lock',files.libraries)
+
+    def test_installer_lock_change_after_inventory_preserves_partial_target(self):
+        path=self.lock_file(); original=install._copy; changed=False
+        def copy(name,*args):
+            nonlocal changed
+            answer=original(name,*args)
+            if not changed: path.write_bytes(b'changed'); changed=True
+            return answer
+        with patch.object(install,'_copy',side_effect=copy),self.assertRaises(ValueError): install._install(self.value)
+        self.assertTrue((self.target/'installation-failure.json').is_file())
+        self.assertFalse((self.target/'installation-result.json').exists())
+
+
+class FailedOperatorTests(LocalFiles, unittest.TestCase):
+    def setUp(self):
+        import no_cutoff_recovery_predecessor as operator
+        self.operator=operator
+        temp=tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)
+        self.protect(Path(temp.name).resolve())
+        self.enterContext(patch.object(operator.launch,'REPO',self.root))
+        self.folder=self.root/install.FAILED_STATE
+        for name in ('intent.json','failure.json'): save(self.root,install.FAILED_STATE+'/'+name,b'{}')
+        self.enterContext(patch.object(install,'FAILED_FILES',dict.fromkeys(('intent.json','failure.json'),install._sha(b'{}'))))
+
+    def test_exact_failed_state_reread_detects_same_bytes_replacement(self):
+        before=install._failed_installation(); path=self.folder/'intent.json'
+        path.rename(path.with_suffix('.retained')); path.write_bytes(b'{}'); path.chmod(0o600)
+        with self.assertRaises(ValueError): install._failed_installation()
+        path.with_suffix('.retained').unlink()
+        self.assertNotEqual(install._failed_installation(),before)
+
+    def test_failed_state_wrong_bytes_permissions_and_extra_result_refuse(self):
+        path=self.folder/'failure.json'; path.write_bytes(b'{ }')
+        with self.assertRaises(ValueError): install._failed_installation()
+        path.write_bytes(b'{}'); path.chmod(0o644)
+        with self.assertRaises(ValueError): install._failed_installation()
+        path.chmod(0o600); save(self.root,install.FAILED_STATE+'/result.json',b'{}')
+        with self.assertRaises(ValueError): install._failed_installation()
+
+    def test_second_operator_destination_is_distinct_and_failed_hashes_are_fixed(self):
+        self.assertNotEqual(install.STATE,install.FAILED_STATE)
+        self.assertTrue(install.STATE.endswith('20260930-r2'))
 
 
 class PayloadTests(unittest.TestCase):

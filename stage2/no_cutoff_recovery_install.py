@@ -30,7 +30,11 @@ QUALIFICATION = '.runtime/stage2/no-cutoff-recovery-original-qualification.json'
 ORIGINAL_QUALIFICATION = '.runtime/stage2/no-cutoff-final-qualification.json'
 QUALIFICATION_SHA = '008f2998d0df7646ba351c76b5a343354e25f4d99fdf66f05dee39e6ea19d110'
 MANIFEST = '.runtime/stage2/no-cutoff-recovery-manifest.json'
-STATE = '.runtime/netcup/custom-no-cutoff-recovery-installation-20260929'
+STATE = '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r2'
+FAILED_STATE = '.runtime/netcup/custom-no-cutoff-recovery-installation-20260929'
+FAILED_FILES = {
+    'intent.json': '5849ac36f8f936854160b430ab7db10d66adb4335698a8e9405ead1136db3ea1',
+    'failure.json': '89013158fcfad5270da415f382df26fb4cb18349f0a94e17505bcdd416d09390'}
 KIND = 'exclusive_recovery_installation_not_qualification'
 WINDOW = 64 * 1024 * 1024
 EARLY = ('uts-capstone', 'uts-capstone-baseline-repeat-20260921', 'uts-capstone-credit-only-20260922',
@@ -205,6 +209,29 @@ def _locked(bootstrap):
         for fd in reversed(handles): os.close(fd)
 
 
+def _input_read(base, name, libraries, expected=None):
+    """Keep the observed empty installer lock distinct from installed libraries."""
+    if Path(base) != ORIGINAL or name != '.venv/.lock':
+        return libraries.read(base, name, expected)
+    path = ORIGINAL / name
+    protection = libraries.protected(ORIGINAL, name)
+    with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as stream:
+        before = os.fstat(stream.fileno())
+        if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1
+                or before.st_uid != os.getuid() or before.st_gid != os.getgid()
+                or stat.S_IMODE(before.st_mode) != 0o666 or before.st_size != 0):
+            raise ValueError('Exact observed empty original installer lock required')
+        fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+        after = os.fstat(stream.fileno())
+        if (digest != _sha(b'') or expected is not None and digest != expected
+                or libraries.identity(before) != libraries.identity(after)
+                or libraries.identity(after) != libraries.identity(path.lstat())
+                or protection != libraries.protected(ORIGINAL, name)):
+            raise ValueError('Original installer lock bytes or identity changed')
+    return digest
+
+
 def _tree(base, relative, libraries, *, python_links=False):
     """Hash actual current files; inspect no task payload or secret text."""
     folder = base / _parts(relative)
@@ -235,8 +262,11 @@ def _tree(base, relative, libraries, *, python_links=False):
             path = current/name
             if path.is_symlink() or name.endswith(('.pyc','.pyo')): continue
             relative_name = path.relative_to(base).as_posix()
-            digest = libraries.read(base,relative_name)
-            files[relative_name] = dict(sha256=digest,identity=libraries.identity(path.lstat()),mode=stat.S_IMODE(path.stat().st_mode))
+            before = libraries.identity(path.lstat())
+            digest = _input_read(base,relative_name,libraries)
+            mode = 0o600 if base == ORIGINAL and relative_name == '.venv/.lock' else stat.S_IMODE(path.stat().st_mode)
+            if libraries.identity(path.lstat()) != before: raise ValueError('Installation input replaced during inventory')
+            files[relative_name] = dict(sha256=digest,identity=before,mode=mode)
     if not directories: raise ValueError('Actual installation tree missing')
     return dict(files=files,links=links,directories=sorted(directories))
 
@@ -266,19 +296,20 @@ def _write(name,raw,bootstrap,mode=0o600):
 
 
 def _copy(name,expected,bootstrap,libraries):
-    libraries.read(ORIGINAL,name,expected['sha256'])
+    _input_read(ORIGINAL,name,libraries,expected['sha256'])
     source=ORIGINAL/name; target=ROOT/name
     if libraries.identity(source.lstat()) != expected['identity']: raise ValueError('Original copy identity replaced')
     _mkdir(target.parent,bootstrap)
     with os.fdopen(os.open(source,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK),'rb') as inp:
         if libraries.identity(os.fstat(inp.fileno())) != expected['identity']: raise ValueError('Original copy replaced')
+        if name == '.venv/.lock': fcntl.flock(inp,fcntl.LOCK_EX|fcntl.LOCK_NB)
         with os.fdopen(os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,expected['mode']),'wb') as out:
             while chunk:=inp.read(1024*1024): out.write(chunk)
             out.flush(); os.fsync(out.fileno())
             identity = libraries.identity(os.fstat(out.fileno()))
         if libraries.identity(os.fstat(inp.fileno())) != expected['identity']: raise ValueError('Original copy changed')
     _sync(target.parent); libraries.read(ROOT,name,expected['sha256'])
-    libraries.read(ORIGINAL,name,expected['sha256'])
+    _input_read(ORIGINAL,name,libraries,expected['sha256'])
     if libraries.identity(source.lstat()) != expected['identity']: raise ValueError('Original copy replaced')
     if libraries.identity(target.lstat()) != identity: raise ValueError('New copy replaced')
     return identity
@@ -408,6 +439,34 @@ def _entry(digest):
     print(json.dumps(result,sort_keys=True,allow_nan=False),flush=True)
 
 
+def _failed_installation():
+    """Retain the exact failed first operator operation; never resume that state."""
+    import no_cutoff_recovery_connection as connection
+    import no_cutoff_recovery_predecessor as operator
+    launch = operator.launch; receiver = operator.receiver
+    folder = launch.REPO / FAILED_STATE
+    parents = receiver._parents(); directory = receiver._directory_id(folder)
+    for path in (launch.REPO, launch.REPO/'.runtime', folder.parent, folder): connection.boot.acl(path)
+    if stat.S_IMODE(folder.lstat().st_mode) != 0o700 or folder.lstat().st_gid != os.getgid():
+        raise ValueError('Private retained failed installation required')
+    if {p.name for p in folder.iterdir()} != set(FAILED_FILES):
+        raise ValueError('Exact failed installation inventory required')
+    identities = {}
+    for name, digest in FAILED_FILES.items():
+        path = folder / name; before = connection.boot.identity(path.lstat())
+        connection.boot.acl(path)
+        if stat.S_IMODE(path.lstat().st_mode) != 0o600 or path.lstat().st_gid != os.getgid():
+            raise ValueError('Private retained failed installation file required')
+        launch._raw(FAILED_STATE + '/' + name, digest)
+        if connection.boot.identity(path.lstat()) != before:
+            raise ValueError('Failed installation evidence replaced during read')
+        identities[name] = before
+    if (receiver._parents() != parents or receiver._directory_id(folder) != directory
+            or {p.name for p in folder.iterdir()} != set(FAILED_FILES)):
+        raise ValueError('Retained failed installation changed')
+    return parents, directory, identities
+
+
 def prepare(commit):
     from no_cutoff_recovery_connection import prepare as connection_prepare, _local_identities
     from no_cutoff_recovery_session import _lock_paths
@@ -426,7 +485,7 @@ def prepare(commit):
     hashes.update({QUALIFICATION:_sha(decoded[QUALIFICATION]),MANIFEST:_sha(decoded[MANIFEST])})
     payload=dict(kind=KIND,commit=commit,files={n:base64.b64encode(raw).decode() for n,raw in decoded.items()},
         hashes=hashes,native=value['bindings']['native'],reporter=value['bindings']['reporting'])
-    _payload(payload); operator._current(value)
+    _payload(payload); operator._current(value); _failed_installation()
     return value,payload,_local_identities(value)
 
 
@@ -435,6 +494,7 @@ def deploy(commit):
     import no_cutoff_recovery_connection as connection
     import no_cutoff_recovery_predecessor as operator
     value,payload,identities=prepare(commit); launch=operator.launch
+    failed = _failed_installation()
     root=launch.REPO; state=root/STATE
     if state.exists() or state.is_symlink(): raise ValueError('Existing installation state requires inspection')
     # Reuse the actual independently checked pinned SSH prefix. Never append a
@@ -454,7 +514,8 @@ def deploy(commit):
     try:
         operator._current(value)
         operator.receiver._state(state,state_identity)
-        if connection._local_identities(value)!=identities or operator.receiver._parents()!=parents:
+        if (connection._local_identities(value)!=identities or operator.receiver._parents()!=parents
+                or _failed_installation()!=failed):
             raise ValueError('Local committed installer inputs replaced')
         result=subprocess.run(args,input=raw,capture_output=True,timeout=1800,
             env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'})
@@ -464,7 +525,8 @@ def deploy(commit):
                 or observed.get('paid_launch_ready') is not False or observed.get('recovery_execution_qualified') is not False):
             raise ValueError('Exact non-admitting installation result required')
         operator._current(value)
-        if connection._local_identities(value)!=identities: raise ValueError('Local inputs replaced during installation')
+        if connection._local_identities(value)!=identities or _failed_installation()!=failed:
+            raise ValueError('Local inputs or retained failed installation replaced')
         operator.receiver._state(state,state_identity)
         if (intent!=(launch._raw(STATE+'/intent.json'),connection.boot.identity((state/'intent.json').lstat()))
                 or {p.name for p in state.iterdir()}!={'intent.json'}):

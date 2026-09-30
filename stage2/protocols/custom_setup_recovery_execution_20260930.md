@@ -13,7 +13,8 @@ The recovery-only scored scope, durable observation, image builder, isolated
 fake provider, six-case host producer, qualification reader/producer, sequential
 dispatcher, fixed detached service operations, exclusive installer and separate
 completed audit/archive/export are local implementation.
-They have not been installed, natively qualified or used for paid execution.
+The first installation refused before creating the native recovery root; no
+native qualification or paid execution has occurred.
 Local synthetic tests are not benchmark results or native qualification.
 The complete candidate must pass its final source-bound local checks and be
 committed before exclusive installation. Actual native regressions and all six
@@ -140,6 +141,39 @@ locks, and copies the actual protected Python environment, dataset and tokenizer
 bytes. Credentials move only between fixed private native paths. Original roots
 are never patched. Every existing or partial destination is terminal; no reuse,
 chmod repair, deletion or automatic retry exists.
+
+### Observed installer-lock compatibility, 30 September UTC
+
+The one installation from `1bd907a1856acd98be5ac675722b0bd9e0ff6489`
+returned `ValueError` at 00:13:04 UTC. Its exact historical traceback was not
+retained. Read-only native observations at 00:17:10 and 00:21:37 established
+that the proposed recovery root and all installation markers were absent.
+The latter checked metadata for 13,525 virtual-environment files: only the
+empty `.venv/.lock` had mode 0666; all other files, including all installed
+libraries, passed that metadata check. The file was regular, root:root,
+single-link, zero bytes and ACL-free behind the original private root.
+The current refusal was reproduced in the unchanged library reader's mode
+check. This is current diagnostic evidence, not a retrospective traceback.
+
+The installer now treats only that exact original empty installer lock as a
+separate runtime-copy input. It requires the observed mode, empty hash, actual
+protected ancestry, owner/group, single link, no ACL, unchanged file identity
+and bytes, and a nonblocking exclusive lock. The new copy alone is mode 0600.
+The original file and all original permissions remain unchanged. No library,
+source, credential, result or other lock receives this exception. The unchanged
+runtime/library reader still performs all of its original checks. Final full
+runtime rereads and exact new-tree inventory remain mandatory.
+
+The terminal first Mac state retains only `intent.json` SHA256
+`5849ac36f8f936854160b430ab7db10d66adb4335698a8e9405ead1136db3ea1`
+and `failure.json` SHA256
+`89013158fcfad5270da415f382df26fb4cb18349f0a94e17505bcdd416d09390`.
+The corrected operation binds and rereads those exact private files, their
+identities and inventory. It uses the separate operator directory
+`.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r2`, never
+resumes the first state, and still requires fresh actual native-root absence
+immediately before exclusive creation. A partial native root would refuse.
+No original task attempt was consumed by the installation failure.
 
 The completed reporter opens a genuine fresh original handoff session, then
 requires actual successful qualification and paid service invocations, exactly
