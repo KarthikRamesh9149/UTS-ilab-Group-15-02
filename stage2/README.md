@@ -1,5 +1,30 @@
 # Stage 2 execution status
 
+## Native qualification failure, 30 September 02:51 UTC
+
+The corrected 01fba1e installation succeeded at 01:46:59 UTC in the separate
+`20260930-r2` root. Its one real qualification handoff authenticated the original
+audit/archive and retained acceptance. Qualification reached image construction,
+then failed with ValueError at 02:16:54 UTC, before native regressions, rehearsals
+or paid tasks. The failed image, operation and all earlier states remain intact.
+
+Read-only inspection at 02:51:29 verified that the new Linux/amd64 image retains
+all 14 parent layers plus one copy layer and the exact intended entrypoint.
+Only `Config.ArgsEscaped` differs from the expected configuration. This is a
+reproduced current compatibility refusal, not a retained historical traceback.
+The native service and relay have ended. The stale, verified owned Mac SSH client
+alone was closed at 02:48 UTC; no native process was signalled. No automatic retry,
+image rebuild, archive recreation or paid launch occurred. Recovery is 0/3;
+both baseline repeats remain unstarted. Earlier pending-install statements below
+are historical. The original 89 results and ONE verified archive are unchanged.
+
+Separately, current baseline inspection now uses a fixed dotenv-disabled,
+credential-free constructor environment and real trusted original-baseline
+completion evidence. The original factories and million-turn guards are
+unchanged. All 156 affected local checks and 1,098 existing baseline regressions
+passed with zero skips/errors/failures and source/origin rereads. These local
+checks are not native qualification, producer completion or benchmark outcomes.
+
 ## Current filename compatibility correction, 30 September 01:39 UTC
 
 Read-only native preflight found the corrected root absent and rejected only

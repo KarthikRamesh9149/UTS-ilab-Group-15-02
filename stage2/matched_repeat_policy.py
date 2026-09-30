@@ -54,6 +54,7 @@ REQUIRED_SOURCE_FILES = frozenset({'matched_repeat_schedule.py', 'test_matched_r
     'matched_repeat_predecessor.py', 'test_matched_repeat_predecessor.py',
     'matched_repeat_runtime.py', 'test_matched_repeat_runtime.py',
     'matched_repeat_baseline.py', 'matched_repeat_baseline_probe.py', 'test_matched_repeat_baseline.py',
+    'no_cutoff_recovery_revision.py',
     'matched_repeat_original.py', 'test_matched_repeat_original.py', 'export_corrected.py',
     'matched_repeat_stream.py', 'test_matched_repeat_stream.py',
     'matched_repeat_handoff.py', 'test_matched_repeat_handoff.py',

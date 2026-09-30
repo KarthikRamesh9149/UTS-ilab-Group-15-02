@@ -17,6 +17,18 @@ import sys
 import sysconfig
 from types import SimpleNamespace
 
+_VIOLATION = False
+_SOCKET_CONSTRUCTOR_REFUSALS = 0
+_ENVIRONMENT = None
+
+
+def environment(root):
+    """Fixed credential-free constructor environment, before any imports."""
+    return dict(PATH='/usr/bin:/bin', LANG='C.UTF-8',
+        LITELLM_LOCAL_MODEL_COST_MAP='True', DO_NOT_TRACK='1',
+        LITELLM_MODE='PRODUCTION', PYTHON_DOTENV_DISABLED='1',
+        TIKTOKEN_CACHE_DIR=str(Path(root) / '.venv/lib/python3.12/site-packages/litellm/litellm_core_utils/tokenizers'))
+
 
 def digest(path):
     with path.open('rb') as stream:
@@ -64,16 +76,30 @@ def check_files(root, bindings):
 
 def no_effects(event, args):
     """Defence in depth for this probe, not an OS sandbox or paid admission."""
-    if (event.startswith(('socket.', 'subprocess.', 'os.exec', 'os.spawn', 'os.posix_spawn'))
+    global _VIOLATION, _SOCKET_CONSTRUCTOR_REFUSALS
+    if event == 'socket.__new__':
+        # Some libraries catch a denied capability probe during import. Refuse
+        # before constructing a socket and retain only its count. Every other
+        # prohibited effect remains a latched failure even when caught.
+        _SOCKET_CONSTRUCTOR_REFUSALS += 1
+        raise RuntimeError('Installed-baseline inspection refuses socket construction')
+    refused = (event.startswith(('socket.', 'subprocess.', 'os.exec', 'os.spawn', 'os.posix_spawn'))
             or event in {'os.system', 'os.fork', 'os.forkpty', 'os.remove', 'os.rename',
                 'os.rmdir', 'os.mkdir', 'os.link', 'os.symlink', 'os.truncate',
-                'os.chmod', 'os.chown', 'os.utime', 'shutil.copyfile'}):
-        raise RuntimeError('Installed-baseline inspection forbids external effects')
+                'os.chmod', 'os.chown', 'os.utime', 'shutil.copyfile', 'os.unsetenv'})
     if event == 'open':
-        _, mode, flags = args
-        if ((isinstance(mode, str) and any(c in mode for c in 'wax+'))
-                or flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND)):
-            raise RuntimeError('Installed-baseline inspection forbids writes')
+        path, mode, flags = args
+        name = Path(os.fsdecode(path)).name if isinstance(path, (str, bytes, os.PathLike)) else ''
+        refused = (name == '.env' or name.startswith('.env.')
+            or name in {'.jwt_secret', 'id_ed25519', 'id_rsa'}
+            or isinstance(mode, str) and any(c in mode for c in 'wax+')
+            or bool(flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND)))
+    if event == 'os.putenv':
+        key, value = (os.fsdecode(v) for v in args)
+        refused = _ENVIRONMENT is None or _ENVIRONMENT.get(key) != value
+    if refused:
+        _VIOLATION = True
+        raise RuntimeError('Installed-baseline inspection forbids effects or credential reads')
 
 
 def installed_tree(site):
@@ -168,12 +194,16 @@ def controls(root):
 
 def inspect(root, bindings):
     """Called in a fresh isolated interpreter, never in a scored process."""
+    global _ENVIRONMENT
     root = Path(root)
     if (platform.system() != 'Linux' or platform.machine() not in ('x86_64', 'amd64')
             or root.is_symlink() or not root.is_absolute()
             or (root / '.venv').is_symlink() or Path(sys.prefix).resolve() != root / '.venv'
             or not sys.flags.isolated or not sys.dont_write_bytecode):
         raise ValueError('Own isolated native deployment interpreter required')
+    _ENVIRONMENT = environment(root)
+    if _VIOLATION or dict(os.environ) != _ENVIRONMENT:
+        raise ValueError('Exact credential-free baseline inspection environment required')
     check_files(root, bindings)
     site = Path(sysconfig.get_path('purelib'))
     if (site != Path(sysconfig.get_path('platlib')) or not site.is_relative_to(root / '.venv')
@@ -203,12 +233,16 @@ def inspect(root, bindings):
         elif path.name in {PurePosixPath(name).name for name in bindings if name.startswith('stage2/')}:
             if path.is_symlink() or path.resolve() != root / 'stage2' / path.name:
                 raise ValueError('Loaded baseline project source is from another deployment')
-    if installed_tree(site) != before or versions(site,
-            regular(root, 'stage2/custom-requirements.lock').read_text()) != packages:
+    if (installed_tree(site) != before or versions(site,
+            regular(root, 'stage2/custom-requirements.lock').read_text()) != packages
+            or _VIOLATION or dict(os.environ) != _ENVIRONMENT
+            or sys.pycache_prefix != str(cache) or cache.exists() or cache.is_symlink()
+            or not sys.dont_write_bytecode):
         raise ValueError('Installed baseline bytes changed during inspection')
     check_files(root, bindings)
     return dict(kind='current_installed_baseline_constructor_observation', root=str(root),
         python=platform.python_version(), site_relative=site.relative_to(root).as_posix(),
         versions=packages, library_files=before, controls=observed, inputs=bindings,
         historical_installed_bytes_attested=False, baseline_execution_qualified=False,
+        denied_socket_constructions=_SOCKET_CONSTRUCTOR_REFUSALS,
         live_api_calls=0, paid_launch_ready=False)

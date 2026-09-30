@@ -21,6 +21,9 @@ class ProbeFileTests(unittest.TestCase):
     def setUp(self):
         tmp = tempfile.TemporaryDirectory(); self.addCleanup(tmp.cleanup)
         self.root = Path(tmp.name).resolve()
+        self.enterContext(patch.object(probe, '_VIOLATION', False))
+        self.enterContext(patch.object(probe, '_SOCKET_CONSTRUCTOR_REFUSALS', 0))
+        self.enterContext(patch.object(probe, '_ENVIRONMENT', None))
 
     def write(self, name, raw=b'Fixture bytes'):
         path = self.root / name; path.parent.mkdir(parents=True, exist_ok=True)
@@ -100,6 +103,31 @@ class ProbeFileTests(unittest.TestCase):
         self.write('stage2/a.py')
         with self.assertRaises(ValueError): probe.inspect(self.root, {'stage2/a.py': '1' * 64})
 
+    def test_caught_credential_and_environment_denials_remain_latched(self):
+        for event, args in (
+                ('open', ('/private/.env', 'r', os.O_RDONLY)),
+                ('open', ('/private/id_ed25519', 'r', os.O_RDONLY)),
+                ('os.putenv', (b'PROVIDER_API_KEY', b'synthetic')),
+                ('os.unsetenv', (b'PATH',))):
+            with self.subTest(event=event), patch.object(probe, '_VIOLATION', False):
+                with self.assertRaises(RuntimeError): probe.no_effects(event, args)
+                self.assertTrue(probe._VIOLATION)
+
+    def test_socket_creation_is_denied_before_creation_without_clearing_other_refusals(self):
+        with self.assertRaises(RuntimeError): probe.no_effects('socket.__new__', ())
+        self.assertEqual(probe._SOCKET_CONSTRUCTOR_REFUSALS, 1)
+        self.assertFalse(probe._VIOLATION)
+        with self.assertRaises(RuntimeError): probe.no_effects('socket.connect', ())
+        with self.assertRaises(RuntimeError): probe.no_effects('socket.__new__', ())
+        self.assertTrue(probe._VIOLATION)
+
+    def test_only_identical_environment_assignment_is_allowed(self):
+        with patch.object(probe, '_ENVIRONMENT', {'PATH': '/usr/bin:/bin'}):
+            probe.no_effects('os.putenv', (b'PATH', b'/usr/bin:/bin'))
+            self.assertFalse(probe._VIOLATION)
+            with self.assertRaises(RuntimeError): probe.no_effects('os.putenv', (b'PATH', b'/other'))
+            self.assertTrue(probe._VIOLATION)
+
 
 class NativeProbeTests(unittest.TestCase):
     """Exercise the actual probe flow with only the native context mocked."""
@@ -119,6 +147,7 @@ class NativeProbeTests(unittest.TestCase):
         self.enterContext(patch.object(sys, 'dont_write_bytecode', True))
         self.enterContext(patch.object(sys, 'path', list(sys.path)))
         self.enterContext(patch.object(sys, 'pycache_prefix', None))
+        self.enterContext(patch.dict(os.environ, probe.environment(self.root), clear=True))
         self.enterContext(patch.object(probe.sysconfig, 'get_path', return_value=str(self.site)))
         self.versions = self.enterContext(patch.object(probe, 'versions', return_value={'harbor': '0.22.0'}))
         self.controls = self.enterContext(patch.object(probe, 'controls', return_value={'fixture': True}))
@@ -171,11 +200,34 @@ class NativeProbeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'library directory'): self.read()
         self.controls.assert_not_called()
 
+    def test_unexpected_environment_is_refused_before_construction(self):
+        os.environ['PROVIDER_API_KEY'] = 'synthetic'
+        with self.assertRaisesRegex(ValueError, 'environment'): self.read()
+        self.controls.assert_not_called()
+
+    def test_caught_credential_read_during_constructor_cannot_pass(self):
+        def denied(root):
+            try: probe.no_effects('open', (str(root / '.env'), 'r', os.O_RDONLY))
+            except RuntimeError: pass
+            return {'fixture': True}
+        self.controls.side_effect = denied
+        with self.assertRaisesRegex(ValueError, 'changed'): self.read()
+
+    def test_constructor_cannot_change_environment_or_bytecode_prefix(self):
+        for change in ('environment', 'prefix'):
+            def drift(root):
+                if change == 'environment': os.environ['UNEXPECTED'] = 'yes'
+                else: sys.pycache_prefix = str(root / 'different-cache')
+                return {'fixture': True}
+            self.controls.side_effect = drift
+            with self.subTest(change=change), patch.dict(os.environ, probe.environment(self.root), clear=True):
+                with self.assertRaisesRegex(ValueError, 'changed'): self.read()
+
 
 def observation(root, inputs):
     return dict(kind='current_installed_baseline_constructor_observation', root=str(root),
         inputs=inputs, historical_installed_bytes_attested=False, baseline_execution_qualified=False,
-        live_api_calls=0, paid_launch_ready=False, python='3.12.13',
+        live_api_calls=0, paid_launch_ready=False, denied_socket_constructions=0, python='3.12.13',
         site_relative='.venv/lib/python3.12/site-packages', versions={'harbor': '0.22.0'},
         library_files={'harbor/agent.py': 'a' * 64}, controls=dict(model_protocol_sha256=policy.MODEL_SHA256,
             terminus=dict(max_turns=1000000), openhands=dict(version='0.62.0', python_version='3.12',
@@ -270,8 +322,8 @@ class ProcessTests(unittest.TestCase):
         args, opts = process.call_args
         self.assertEqual(args[0], ['/fixture/.venv/bin/python', '-I', '-B', '-'])
         self.assertEqual(opts['cwd'], root); self.assertTrue(opts['check'])
-        self.assertEqual(opts['env'], {'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8',
-            'LITELLM_LOCAL_MODEL_COST_MAP': 'True', 'DO_NOT_TRACK': '1'})
+        self.assertEqual(opts['env'], probe.environment(root))
+        self.assertEqual(opts['env']['PYTHON_DOTENV_DISABLED'], '1')
         self.assertIn('inspect(', opts['input'])
         self.assertNotIn('collect', opts['input'])
 
@@ -286,12 +338,17 @@ class ProcessTests(unittest.TestCase):
     def test_real_local_constructors_under_effect_guard_without_setup_or_provider_access(self):
         # This deliberately tests local constructors, not native inspection.
         stage = Path(__file__).resolve().parent; repo = stage.parent
-        program = ('import sys\nsys.path.insert(0, ' + repr(str(stage)) + ')\n'
-            'from matched_repeat_baseline_probe import controls, no_effects\n'
-            'sys.addaudithook(no_effects)\nimport json\n'
-            'print(json.dumps(controls(' + repr(str(repo)) + '), sort_keys=True))\n')
+        program = ('import sys,os\nsys.path.insert(0, ' + repr(str(stage)) + ')\n'
+            'import matched_repeat_baseline_probe as p\n'
+            'p._ENVIRONMENT=dict(os.environ)\n'
+            'sys.addaudithook(p.no_effects)\nimport json\n'
+            'value=p.controls(' + repr(str(repo)) + ')\n'
+            'assert not p._VIOLATION and dict(os.environ)==p._ENVIRONMENT\n'
+            'print(json.dumps(value, sort_keys=True))\n')
+        env = probe.environment(repo)
+        env['TIKTOKEN_CACHE_DIR'] = str(Path(sys.prefix) / 'lib/python3.12/site-packages/litellm/litellm_core_utils/tokenizers')
         result = subprocess.run([sys.executable, '-I', '-B', '-'], input=program, check=True,
-            capture_output=True, text=True, env={'PATH': '/usr/bin:/bin', 'LITELLM_LOCAL_MODEL_COST_MAP': 'True'}, timeout=60)
+            capture_output=True, text=True, env=env, timeout=60)
         got = json.loads(result.stdout)
         self.assertEqual(got['terminus']['max_turns'], 1000000)
         self.assertTrue(got['terminus']['summarize']); self.assertEqual(got['terminus']['summarization_free_tokens'], 8000)
@@ -309,31 +366,34 @@ class AncestorTests(unittest.TestCase):
         self.root = Path(tmp.name)
         self.enterContext(patch.object(baseline, 'ORIGINAL_ROOT', self.root / 'original'))
         self.enterContext(patch.object(baseline, 'FINAL_ROOT', self.root / 'final'))
-        self.state = 'LoadState=loaded\nActiveState=inactive\nSubState=dead\nMainPID=0\nExecMainStatus=0\n'
+        self.enterContext(patch.object(baseline.original_completion, 'BASELINE', self.root / 'original'))
+        self.original = self.enterContext(patch.object(baseline.original_completion, 'baseline'))
         self.final = self.enterContext(patch.object(baseline.final_guard, 'service'))
 
     def test_only_readonly_service_queries_and_no_collector(self):
-        with patch.object(baseline.subprocess, 'run', return_value=NS(stdout=self.state)) as run:
+        with patch.object(baseline.subprocess, 'run', side_effect=AssertionError('No substitute service query')):
             baseline.inactive_ancestors()
-        self.assertEqual(run.call_count, 1); self.final.assert_called_once_with()
-        self.assertTrue(all(call.args[0][:2] == ['systemctl', 'show'] for call in run.call_args_list))
+        self.original.assert_called_once_with(); self.final.assert_called_once_with()
 
-    def test_active_failed_unloaded_or_persistent_stopped_ancestors_refused(self):
-        for state in (self.state.replace('inactive', 'active'), self.state.replace('MainPID=0', 'MainPID=1'),
-                self.state.replace('ExecMainStatus=0', 'ExecMainStatus=1'), self.state.replace('loaded', 'not-found')):
-            with patch.object(baseline.subprocess, 'run', return_value=NS(stdout=state)):
-                with self.subTest(state=state), self.assertRaises(ValueError): baseline.inactive_ancestors()
+    def test_actual_completion_reader_failure_or_persistent_stop_is_refused(self):
+        self.original.side_effect = ValueError('Actual original manager/procfs evidence refused')
+        with self.assertRaises(ValueError): baseline.inactive_ancestors()
+        self.final.assert_not_called()
+        self.original.side_effect = None
         for name in ('operator-stop-request.json', 'provider-stop.json'):
             path = self.root / 'final/.runtime/stage2' / name; path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text('{}')
-            with patch.object(baseline.subprocess, 'run', return_value=NS(stdout=self.state)):
-                with self.assertRaises(ValueError): baseline.inactive_ancestors()
+            with self.assertRaises(ValueError): baseline.inactive_ancestors()
             path.unlink()
 
     def test_final_requires_actual_success_guard_even_if_original_is_inactive(self):
         self.final.side_effect = ValueError('No retained invocation evidence')
-        with patch.object(baseline.subprocess, 'run', return_value=NS(stdout=self.state)), self.assertRaises(ValueError):
-            baseline.inactive_ancestors()
+        with self.assertRaises(ValueError): baseline.inactive_ancestors()
+
+    def test_other_original_root_cannot_use_completion_compatibility(self):
+        with patch.object(baseline.original_completion, 'BASELINE', self.root / 'other'):
+            with self.assertRaises(ValueError): baseline.inactive_ancestors()
+        self.original.assert_not_called()
 
 
 if __name__ == '__main__': unittest.main()

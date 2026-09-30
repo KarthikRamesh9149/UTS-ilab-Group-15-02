@@ -12,7 +12,8 @@ import subprocess
 import matched_repeat_policy as policy
 import matched_repeat_runtime as runtime
 import no_cutoff_final_guard as final_guard
-from matched_repeat_baseline_probe import check_files, digest, regular, relative_name
+import no_cutoff_recovery_revision as original_completion
+from matched_repeat_baseline_probe import check_files, digest, regular, relative_name, environment
 
 ORIGINAL_ROOT = Path('/opt/uts-capstone-corrected-20260923')
 FINAL_ROOT = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
@@ -33,11 +34,13 @@ def inactive_ancestors():
         if root == FINAL_ROOT:
             final_guard.service()
         else:
-            state = subprocess.run(['systemctl', 'show', service, '--property=LoadState,ActiveState,SubState,MainPID,ExecMainStatus'],
-                check=True, capture_output=True, text=True).stdout
-            state = dict(line.split('=', 1) for line in state.splitlines() if '=' in line)
-            if state != dict(LoadState='loaded', ActiveState='inactive', SubState='dead', MainPID='0', ExecMainStatus='0'):
-                raise ValueError('Completed inactive original and custom-final services required')
+            # Reuse only the unchanged, stdlib-only original-service reader.
+            # Its real PID1 journal, invocation, procfs and cgroup observations
+            # are required even when systemd has unloaded the completed unit.
+            # This is not recovery qualification or a saved completion flag.
+            if root != original_completion.BASELINE or service != original_completion.SERVICE:
+                raise ValueError('Exact original baseline completion reader required')
+            original_completion.baseline()
         for name in ('operator-stop-request.json', 'provider-stop.json'):
             path = root / '.runtime/stage2' / name
             if path.exists() or path.is_symlink():
@@ -51,8 +54,7 @@ def _read(root, bindings, producer):
         '), sort_keys=True, allow_nan=False))\n')
     value = subprocess.run([str(root / '.venv/bin/python'), '-I', '-B', '-'],
         input=program, cwd=root, check=True, capture_output=True, text=True,
-        env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8',
-            'LITELLM_LOCAL_MODEL_COST_MAP': 'True', 'DO_NOT_TRACK': '1'}, timeout=300)
+        env=environment(root), timeout=300)
     record = json.loads(value.stdout)
     expected = dict(kind='current_installed_baseline_constructor_observation', root=str(root),
         inputs=bindings, historical_installed_bytes_attested=False,
@@ -67,6 +69,8 @@ def _read(root, bindings, producer):
         relative_name(name); policy._hash(sha)
     if not isinstance(record.get('versions'), dict) or not record['versions']:
         raise ValueError('Installed library versions missing')
+    if type(record.get('denied_socket_constructions')) is not int or record['denied_socket_constructions'] < 0:
+        raise ValueError('Actual denied capability-probe count required')
     return record
 
 
