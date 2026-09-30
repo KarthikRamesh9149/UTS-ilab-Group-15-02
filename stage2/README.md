@@ -1,5 +1,46 @@
 # Stage 2 execution status
 
+## R5 qualification failed; corrected R6 candidate, 30 September UTC
+
+R5 at `07661d7fcbecfb6a01d6b123780f0d1888f34800` installed successfully
+and passed its installed import check. Its actual audit/archive handoff was
+accepted and image verification passed, but native qualification stopped at
+07:22:43 UTC: **826 tests, 824 passed, two errors, no failures or skips**.
+All six lifecycle cases and all paid recovery attempts remained unstarted.
+
+Both errors came from a test mock assuming Path arguments while Linux resolves
+a real interpreter symlink with str arguments. The local correction preserves
+all production identity checks. Real chained-symlink and actual pipe/socket
+acknowledgement tests pass. The missing r5 Mac acknowledgement has no confirmed
+cause; it is not misreported as an unaccepted native handoff. No native signal
+or restart occurred. Read-only 08:00:17 inventory verified the complete failed
+r5 tree, exact exited invocation, process absence and retained image identities.
+
+The separately bound R6 candidate preserves all r1-r5 evidence. It requires
+a fresh actual absence check, exclusive installation, 48 existing locks and
+a 49-lock live session, followed by genuine native qualification. No R6 native
+installation or qualification is claimed at this local-candidate checkpoint.
+See the [test-isolation amendment](protocols/custom_setup_recovery_regression_20260930.md).
+
+Recovery is **0/3 started**; Terminus-2 and OpenHands repeats are **0/89 each**.
+Original C0-NC remains **89/89: 50 passed, 36 verified zero-score failures,
+3 setup-only missing verifier outcomes**, no active benchmark task.
+Baseline launch integration is still unfinished. Earlier finish-time targets
+are not reliable: approximately 51 hours is the historical baseline-pair
+runtime alone, excluding remaining integration, qualification, audits/backups.
+Keep the VPS and requested hourly reports active. No skipped gates, reduced
+official allowances, concurrent paid dispatch or invented completion time.
+
+The final corrected local gate passed **all 834 tests**, with zero skips,
+errors or failures in 422.629 seconds. All 318 sources were checked before
+imports, after discovery and after execution; 215 loaded project origins
+matched. Source-map SHA256:
+`bc6adb1cdd6792c1617946de5c876972016884d6a3ceb4851c7a39deae23175d`.
+The 75 connection/service checks and 103 revision/session/installer checks
+also passed. These use synthetic native observations, not native qualification.
+
+Older current-location/readiness paragraphs below are retained history.
+
 ## Recovery handoff ordering correction, 30 September UTC
 
 The r4 installation succeeded at 05:17:51 UTC and its actual import check passed

@@ -294,7 +294,12 @@ class MetadataTests(unittest.TestCase):
         status = 'Uid:\t0 0 0 0\nGid:\t0 0 0 0\n'
         statline = '123 (fixture process) ' + ' '.join(['S'] + ['0'] * 18 + ['456'])
         def read(path, *args, **kwargs): return status if path.name == 'status' else statline
-        def link(path): return str(service.ROOT) if path.name == 'cwd' else str((service.ROOT / '.venv/bin/python').resolve())
+        executable = str((service.ROOT / '.venv/bin/python').resolve())
+        actual_readlink = os.readlink
+        def link(path, *args, **kwargs):
+            if Path(path) == Path('/proc/123/cwd'): return str(service.ROOT)
+            if Path(path) == Path('/proc/123/exe'): return executable
+            return actual_readlink(path, *args, **kwargs)
         with patch.object(Path, 'read_text', read), patch('os.readlink', side_effect=link):
             self.assertEqual(service.process_identity(123), PEER)
             with patch('os.readlink', return_value='/wrong'), self.assertRaises(ValueError): service.process_identity(123)
@@ -305,9 +310,27 @@ class MetadataTests(unittest.TestCase):
         values = iter(['123 (fixture) ' + ' '.join(['S'] + ['0'] * 18 + [ticks]) for ticks in ('456', '457')])
         def read(path, *args, **kwargs):
             return 'Uid:\t0 0 0 0\nGid:\t0 0 0 0\n' if path.name == 'status' else next(values)
-        def link(path): return str(service.ROOT) if path.name == 'cwd' else str((service.ROOT / '.venv/bin/python').resolve())
+        executable = str((service.ROOT / '.venv/bin/python').resolve())
+        actual_readlink = os.readlink
+        def link(path, *args, **kwargs):
+            if Path(path) == Path('/proc/123/cwd'): return str(service.ROOT)
+            if Path(path) == Path('/proc/123/exe'): return executable
+            return actual_readlink(path, *args, **kwargs)
         with patch.object(Path, 'read_text', read), patch('os.readlink', side_effect=link), self.assertRaises(ValueError):
             service.process_identity(123)
+
+    def test_proc_fixtures_preserve_real_interpreter_symlink_resolution(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder).resolve()
+            binary = root / '.venv/bin'
+            binary.mkdir(parents=True)
+            # Realpath supplies str paths to os.readlink on Linux. Only the
+            # synthetic procfs entries may be mocked; real symlinks still run.
+            (binary / 'python-target').symlink_to(Path(sys.executable).resolve())
+            (binary / 'python').symlink_to('python-target')
+            with patch.object(service, 'ROOT', root):
+                self.test_proc_owner_executable_cwd_and_start_ticks_are_checked_twice()
+                self.test_process_identity_cannot_be_recycled_between_proc_reads()
 
 
 class OperatorTests(LocalTree):
@@ -575,39 +598,54 @@ class TransportTests(LocalTree):
         self.enterContext(patch.object(boot, 'directories', side_effect=directories))
         self.enterContext(patch.object(service, 'RUN_BASE', self.run))
 
-    def flow(self, *, packet=None, disconnect=False, wrong_peer=False):
+    def flow(self, *, packet=None, disconnect=False, wrong_peer=False, operation=service.OPERATION):
         read, write = os.pipe(); response_read, response_write = os.pipe()
         incoming = os.fdopen(read, 'rb', buffering=0); outgoing = os.fdopen(write, 'wb', buffering=0)
         responses = os.fdopen(response_read, 'rb', buffering=0); acknowledgement = os.fdopen(response_write, 'wb', buffering=0)
         self.addCleanup(outgoing.close); self.addCleanup(responses.close)
-        started = threading.Event(); errors = []; observed = []
+        started = threading.Event(); acknowledged = threading.Event(); errors = []; observed = []
+        async def consume(active):
+            import no_cutoff_recovery_files as evidence
+            session.recheck(active)
+            # A real relay/pipe acknowledgement must arrive while the native
+            # body is still running, not merely after the socket is closed.
+            if not disconnect: self.assertTrue(acknowledged.wait(5), 'Acknowledgement blocked behind operation')
+            path = self.root / service.operation_state(operation)
+            self.assertTrue((path / 'accepted.json').is_file())
+            self.assertFalse((path / 'result.json').exists())
+            terminal = policy.QUALIFIER_RESULT_FILE if operation == 'qualify-recovery' else 'no-cutoff-recovery-dispatch-result.json'
+            evidence.save(self.root / '.runtime/stage2' / terminal, {'actual_local_producer_not_native': True})
         def start(*args, **kwargs): started.set(); return NS(returncode=0)
         def relay():
-            try: service.relay(NONCE, self.files, self.commit, self.identities)
+            try: service.relay(NONCE, self.files, self.commit, self.identities, operation)
             except BaseException as error: errors.append(error)
             finally: incoming.close(); acknowledgement.close()
         def operator():
             try:
-                ready = connection.reply(connection.read_reply(responses), NONCE, self.files, self.commit)
+                ready = connection.reply(connection.read_reply(responses), NONCE, self.files, self.commit, operation=operation)
                 if packet is None: sent = handoff.send(outgoing)
                 else: outgoing.write(packet)
                 outgoing.close()
                 if disconnect: responses.close()
                 elif packet is None:
                     result = connection.reply(connection.read_reply(responses), NONCE, self.files, self.commit,
-                        sent=sent, peer=ready['native_process'])
-                    observed.append(result)
+                        sent=sent, peer=ready['native_process'], operation=operation)
+                    observed.append(result); acknowledged.set()
                 else: connection.read_reply(responses)
             except BaseException as error: errors.append(error)
             finally: outgoing.close()
         with patch.object(service, 'sys', NS(stdin=NS(buffer=incoming), stdout=NS(buffer=acknowledgement))), \
                 patch.object(service.subprocess, 'run', side_effect=start), patch.object(service, 'TIMEOUT', 10):
+            if operation != service.OPERATION:
+                self.enterContext(patch.object(service, '_execution_start', return_value='b2' * 16))
+                target = 'qualify_no_cutoff_recovery.qualify' if operation == 'qualify-recovery' else 'run_no_cutoff_recovery.run'
+                self.enterContext(patch(target, side_effect=consume))
             if wrong_peer: self.enterContext(patch.object(service, '_peer', return_value=dict(PEER, start_ticks=999)))
             threads = [threading.Thread(target=relay), threading.Thread(target=operator)]
             for thread in threads: thread.start()
             try:
                 self.assertTrue(started.wait(10))
-                try: service.serve(NONCE, self.files, self.commit, self.identities, PEER)
+                try: service.serve(NONCE, self.files, self.commit, self.identities, PEER, operation)
                 except BaseException as error: errors.append(error)
             finally:
                 for thread in threads: thread.join(15)
@@ -621,6 +659,21 @@ class TransportTests(LocalTree):
         self.assertFalse(session._SESSIONS); self.assertFalse(handoff._WITNESSES)
         self.f.e.collect.assert_called_once(); self.f.native_audit.assert_called_once()
         self.assertFalse(any(self.run.iterdir()))
+
+    def test_real_qualification_acknowledgement_precedes_native_operation_completion(self):
+        errors, observed = self.flow(operation='qualify-recovery')
+        self.assertEqual(errors, []); self.assertEqual(len(observed), 1)
+        self.assertEqual(observed[0]['kind'], 'recovery_handoff_committed_operation_accepted_not_completed')
+        self.assertTrue((self.root / service.operation_state('qualify-recovery') / 'result.json').is_file())
+        self.assertFalse(session._SESSIONS); self.assertFalse(handoff._WITNESSES)
+
+    def test_real_execution_continues_after_lost_acknowledgement(self):
+        errors, observed = self.flow(operation='run-recovery', disconnect=True)
+        self.assertEqual(observed, [])
+        self.assertTrue(all(isinstance(error, BrokenPipeError) for error in errors))
+        path = self.root / service.operation_state('run-recovery')
+        self.assertTrue((path / 'result.json').is_file()); self.assertFalse((path / 'failure.json').exists())
+        self.assertFalse(session._SESSIONS); self.assertFalse(handoff._WITNESSES)
 
     def test_incomplete_transfer_retains_native_failure_without_success_or_replay(self):
         errors, observed = self.flow(packet=self.f.packet(committed=False))

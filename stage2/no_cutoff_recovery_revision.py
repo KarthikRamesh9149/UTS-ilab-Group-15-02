@@ -14,7 +14,7 @@ import stat
 import subprocess
 import sys
 
-ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r5')
+ROOT = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r6')
 RETIRED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260929')
 REJECTED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r2')
 BASELINE = Path('/opt/uts-capstone-corrected-20260923')
@@ -128,7 +128,52 @@ CONNECTION_FILES = {
     '.runtime/stage2/no-cutoff-recovery-qualify-connection/service-started.json': 'f60b0a9b657d0d972fd60fa54fe9b47576d7010e2b9ca27c1a999d402a432b43',
     '.runtime/stage2/no-cutoff-recovery-qualify-connection/service.log': '3f767f4ee721f508fb2c9f7d5be320b4a48cff70b6b5c332d42259fe09ca22c6'}
 CONNECTION_DIRECTORIES = ('.runtime/stage2/no-cutoff-recovery-qualify-connection',)
+SYMLINK_REJECTED = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r5')
+SYMLINK_UNIT = 'uts-recovery-qualify-aa6e9b58cac893f63450d7fac8dbd0f9.service'
+SYMLINK_INVOCATION = '590b186ef537475bb697bfd2489d5d14'
+SYMLINK_RECORDS = {
+    'installation-files.json': 'd5af09c5f59e779ac3e459ec7abc07ded7031ba7794eaf0714f0783cd52d1b01',
+    'installation-intent.json': '5530b6d3789f339e6e91d3ae23b92f1dea2860543bf9fba2261f11d27b8b2cb7',
+    'installation-result.json': '85ec9f9b172a280174c4879b4cb2ecd7a6b1b006deadfc886e0a1919c9977011',
+    'source-commit.txt': 'cbdd404fce56d56724a75970d6cd340a16255082ae377a68996586b1747cee6d'}
+SYMLINK_SOURCE_MAP = '681aaa459251d15f773fe891141ce91c7104d1f0c412dd92c361f3f12d238ec6'
+SYMLINK_FILES = {
+    '.runtime/stage2/native-no-cutoff-recovery-qualification-501d6d1bdb84402bb84b19183cdd52a3/regression.json': 'd8c91530dc3159890b4e842aaa962731c2ccf35f6ad0c1c5d161d595798894b3',
+    '.runtime/stage2/native-no-cutoff-recovery-qualification-501d6d1bdb84402bb84b19183cdd52a3/regression.txt': '5a6cce9806c6fc968748f5e2dd1811ef63e5d62a385344efd98e38ab92607fa3',
+    '.runtime/stage2/no-cutoff-recovery-credit-policy.json': '15460104bd6794a8b2af7d7761cc61a7a7541c79204abb715a9796d7908c8161',
+    '.runtime/stage2/no-cutoff-recovery-image-build.json': '0d7c9ad2c22a68c9d6ca628f0b31845aa1c8a5dd8aea52f5f6f5df406225c452',
+    '.runtime/stage2/no-cutoff-recovery-images.json': '4e0e7bdca9a638674e83c21e3d421edc44ce592750b39d9a6941e4c7eb7d50f3',
+    '.runtime/stage2/no-cutoff-recovery-plan.json': '0ea9ef5f27558c441bb10dc1f5278dde15f262877011930464f5c408c284220a',
+    '.runtime/stage2/no-cutoff-recovery-predecessor.json': '6ff1c2275bb6cc4c58ce6218b4b6e01216a1734179925fc24a6e294dc4e10018',
+    '.runtime/stage2/no-cutoff-recovery-qualification-failure.json': 'e7331fa0d1f51c7443d86cec225d8da85f2f689633a5a9439c265ce697ee0905',
+    '.runtime/stage2/no-cutoff-recovery-qualification-intent.json': '61ab3d0338dfd9db32ee2048e6287fe24cd63061e3051316429039e0e3a32f57',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/accepted.json': '93ae6cb97b6bf8b55642983771bcc7822fcb4dbf10ba2f0e4d3be4049ea10945',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/failure-diagnostic.json': '02c3ee80165672f354d01f0cb7199bf1fa679c9ec2632c535eb1cb4f994792be',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/failure.json': 'c1308804e6619c96788e6566c08e4b22decdddfed940c1c0dab7633e28ea27b9',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/intent.json': '43943f772e48f0e18c4bb80d6a57d85f6b9a824afd017d93fde0b10114132e16',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/prerequisites.json': 'b716f6c2f1b0697aedebd9a51da87589e248d31cb6b304da4a38e5ba420aa5ea',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/service-started.json': 'd48589fcd8dd5125f4e185438084c59d2398d02882f0b0dfc3c0df2767d5f13c',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection/service.log': '3e631b2a321f833d6542ec97eb40f864e6fdefb2bcc916dc7df206962013ef8a',
+    '.runtime/stage2/no-cutoff-recovery-runtime.json': '5dbc02749f3981ce8e818d03dce6ac0266b2fd0533e0c46dff923867557133cb',
+    '.venv/lib/python3.12/site-packages/__pycache__/_virtualenv.cpython-312.pyc': '3f68b14148270d67768a841218471dca39c8e8135cafd052b1e5792682a0a9ee'}
+SYMLINK_DIRECTORIES = (
+    '.runtime/stage2/native-no-cutoff-recovery-qualification-501d6d1bdb84402bb84b19183cdd52a3',
+    '.runtime/stage2/native-no-cutoff-recovery-qualification-501d6d1bdb84402bb84b19183cdd52a3/test-tmp',
+    '.runtime/stage2/no-cutoff-recovery-image-docker-config',
+    '.runtime/stage2/no-cutoff-recovery-qualify-connection',
+    '.venv/lib/python3.12/site-packages/__pycache__')
+SYMLINK_IMAGES = {
+    'sha256:69a331f7aef9f7c33ede8371fc7109ef0d83fe4f946f05f2a4aad97e65a51cc4': '92cd6776f6f4f1f7187a4503f436d521d11beb65c703050e781ba61f6a08b086',
+    'sha256:780a545c444b5b1d8f8afa7252f27e1201e1c62d840a043dd9f15bbc822aa23b': 'f5acb7af91cbb80cc0ea4fdd2710be44a31b0f8bdd3971d93c7fd74796b3007e',
+    'sha256:c5f20262cd394e6328b35b83820e77a31d7fc8cefacf57b88af93c2fd1615bfb': '70ff3fef82029087770528557c4ab1fe4eee8328711fbb7bf2b341a55c3d2815'}
 OPERATOR_STATES = {
+    '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r6': {
+        'intent.json': '129120fa24218c5234d0eecf9d4928033947cf95cbd5a29081c2be0d7d1ae83d',
+        'result.json': SYMLINK_RECORDS['installation-result.json']},
+    '.runtime/netcup/custom-no-cutoff-recovery-qualify-20260930-r5': {
+        'failure.json': '5f1db1fce33cfda0a56f4a1f600455ee5c87700a546d3e115f7d330f28d7ccfe',
+        'intent.json': '3994909f59d1bd0e619e273d4e003e988195c4e162e0f111b7c6d6898ed60a81',
+        'receiver.json': '94f43b759ff1120131a6e054b5f0a1c052769208cd9c09cd30265879a4fcad9a'},
     '.runtime/netcup/custom-no-cutoff-recovery-installation-20260930-r5': {
         'intent.json': '85fd2e7e14484848ba493392f0acb13c57a0fea69a73ec31ae50b89be20a5d16',
         'result.json': CONNECTION_RECORDS['installation-result.json']},
@@ -474,16 +519,33 @@ def connection_rejected():
         qualification_passed=False, handoff_accepted=False)
 
 
+def symlink_rejected():
+    """Preserve r5's actual failed tests, accepted handoff and installed images."""
+    args = (SYMLINK_REJECTED, SYMLINK_UNIT, SYMLINK_INVOCATION, '1283430')
+    before = _rejected_manager(*args)
+    _rejected_processes(*args[:2])
+    images = _rejected_images(SYMLINK_REJECTED, SYMLINK_IMAGES)
+    _rejected_processes(*args[:2])
+    if _rejected_manager(*args) != before: _fail()
+    tree = _retained_tree(SYMLINK_REJECTED, SYMLINK_RECORDS, 327,
+        SYMLINK_SOURCE_MAP, SYMLINK_FILES, SYMLINK_DIRECTORIES)
+    return dict(manager=before, images=images, retained_identity=tree,
+        paid_attempts_started=0, qualification_passed=False, handoff_accepted=True)
+
+
 def inspect():
     before = baseline()
     first = retained()
     failed = rejected()
     regressions = regression_rejected()
     connection = connection_rejected()
+    symlink = symlink_rejected()
     if (baseline() != before or retained() != first or rejected() != failed
-            or regression_rejected() != regressions or connection_rejected() != connection): _fail()
+            or regression_rejected() != regressions or connection_rejected() != connection
+            or symlink_rejected() != symlink): _fail()
     return dict(kind='recovery_execution_location_amendment_not_admission',
         execution_root=str(ROOT), retained_unstarted_root=str(RETIRED),
         original_plan_unchanged=True, retained_installation_attempts_started=0,
         retained_identity=first, retained_failed_qualification=failed,
-        retained_failed_regressions=regressions, retained_failed_connection=connection, paid_launch_ready=False)
+        retained_failed_regressions=regressions, retained_failed_connection=connection,
+        retained_failed_symlink_tests=symlink, paid_launch_ready=False)

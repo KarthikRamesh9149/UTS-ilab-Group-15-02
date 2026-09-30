@@ -17,7 +17,7 @@ import sysconfig
 from types import SimpleNamespace
 
 ORIGINAL = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
-RECOVERY = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r5')
+RECOVERY = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r6')
 KIND = 'current_C0_NC_library_constructor_observation_not_admission'
 _VIOLATION = False
 _SOCKET_CONSTRUCTOR_REFUSALS = 0

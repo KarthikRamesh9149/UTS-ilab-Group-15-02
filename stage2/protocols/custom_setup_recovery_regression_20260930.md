@@ -1,5 +1,63 @@
 # Linux qualification test isolation correction
 
+## R5 Linux symlink fixture correction and new R6 location
+
+The r5 installation at `07661d7fcbecfb6a01d6b123780f0d1888f34800`
+succeeded at 06:06:31 UTC on 30 September 2026. The actual installed import
+check passed at 06:09:45. Its one qualification accepted the real original
+audit/SAME-archive handoff and completed image build/verification. The actual
+native regression child ran 826 tests in 866.962 seconds: 824 passed, two
+errors, no failures or skips. Qualification failed at 07:22:43 UTC before
+all six lifecycle cases, registration or paid work. This is not qualification
+success or a benchmark outcome.
+
+The two errors are AttributeError in the process-identity test fixtures.
+Their global os.readlink mock assumed a Path argument. Linux realpath passes
+str while resolving the genuine virtualenv interpreter symlink, so the mock
+failed before the intended assertions. A local real-symlink reproduction
+produced the same two error classes. This was not a recursion error.
+The corrected mock intercepts only the exact synthetic procfs cwd/exe entries
+and delegates every other path to the original os.readlink. The expected
+executable is resolved before mocking. A real chained-symlink regression
+executes both original test bodies. Production process/ownership/executable/
+cwd/start-tick checks and all benchmark behaviour are unchanged.
+
+Actual local pipe/socket tests also exercise qualification acknowledgement
+before a still-running operation completes and paid-operation-body cleanup
+after client acknowledgement loss, using synthetic bodies and real handoff/
+session transport. They do not establish why r5's Mac acknowledgement was
+missing. The native handoff was accepted; the Mac connection instead timed
+out and retained failure at 07:34:41 UTC. Its exact acknowledgement-loss cause
+remains unknown. No native process was signalled or restarted.
+
+Read-only complete inventory at 08:00:17 UTC verified the exact failed unit
+`uts-recovery-qualify-aa6e9b58cac893f63450d7fac8dbd0f9.service`,
+invocation `590b186ef537475bb697bfd2489d5d14`, exit1/MainPID0, absent
+service/relay/root processes, 327 installed source/input bindings, all 14923
+retained file identities, 3148 directories and three image identities.
+The source/input-map digest is
+`681aaa459251d15f773fe891141ce91c7104d1f0c412dd92c361f3f12d238ec6`.
+The native regression summary/log, accepted/failure records, original
+installation and exact private Mac states are pinned in the revision reader.
+The observed virtualenv bytecode file is retained, not deleted or presented
+as historical installed-library proof. Credentials/runtime payloads were
+identity-only in this inventory; no archive, collector or provider was called.
+
+Only the new prospective
+`/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r6` can receive this
+corrected committed candidate. The installer must prove actual absence and
+all 48 existing ancestor locks before exclusive creation. The live session
+holds 49 locks. Mac installation state ends r7 and operation states end r6.
+Every r1-r5 failure/root/image/operation is preserved. No saved local pass,
+accepted handoff or previous image build grants new qualification/admission.
+All native regressions, six actual isolated lifecycle cases and actual
+producer/source/image/host rereads remain required before the same three
+fresh separately reported attempts. Recovery remains 0/3 and both baseline
+repeats remain unstarted.
+
+The following r3/r4 checkpoint is retained history, superseded above where
+it describes the current location or readiness.
+
 This changes test isolation and the exclusive prospective execution location,
 not the three approved recovery attempts or benchmark behaviour.
 

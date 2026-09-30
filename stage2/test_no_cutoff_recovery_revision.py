@@ -210,6 +210,7 @@ class RetainedTests(LocalFiles, unittest.TestCase):
                 patch.object(revision, 'rejected', return_value={'retained_failure': True}), \
                 patch.object(revision, 'regression_rejected', return_value={'retained_regression_failure': True}), \
                 patch.object(revision, 'connection_rejected', return_value={'retained_connection_failure': True}), \
+                patch.object(revision, 'symlink_rejected', return_value={'retained_symlink_failure': True}), \
                 patch.object(revision, 'retained', side_effect=replace), self.assertRaises(ValueError):
             revision.inspect()
 
@@ -254,6 +255,7 @@ class ContractTests(unittest.TestCase):
                 patch.object(revision, 'rejected', return_value={'retained_failure': True}), \
                 patch.object(revision, 'regression_rejected', return_value={'retained_regression_failure': True}), \
                 patch.object(revision, 'connection_rejected', return_value={'retained_connection_failure': True}), \
+                patch.object(revision, 'symlink_rejected', return_value={'retained_symlink_failure': True}), \
                 patch.object(revision, 'retained', side_effect=[{'identity': 1}, {'identity': 2}]), \
                 self.assertRaises(ValueError):
             revision.inspect()
@@ -373,6 +375,7 @@ class RejectedTests(unittest.TestCase):
                 patch.object(revision, 'retained', return_value={}), \
                 patch.object(revision, 'regression_rejected', return_value={}), \
                 patch.object(revision, 'connection_rejected', return_value={}), \
+                patch.object(revision, 'symlink_rejected', return_value={}), \
                 patch.object(revision, 'rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
             with self.assertRaises(ValueError): revision.inspect()
 
@@ -439,6 +442,7 @@ class RegressionFailureTests(unittest.TestCase):
                 patch.object(revision, 'retained', return_value={}), \
                 patch.object(revision, 'rejected', return_value={}), \
                 patch.object(revision, 'connection_rejected', return_value={}), \
+                patch.object(revision, 'symlink_rejected', return_value={}), \
                 patch.object(revision, 'regression_rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
             with self.assertRaises(ValueError): revision.inspect()
 
@@ -500,7 +504,69 @@ class ConnectionFailureTests(unittest.TestCase):
     def test_late_connection_identity_drift_refuses_complete_inspection(self):
         with patch.object(revision, 'baseline', return_value={}), patch.object(revision, 'retained', return_value={}), \
                 patch.object(revision, 'rejected', return_value={}), patch.object(revision, 'regression_rejected', return_value={}), \
+                patch.object(revision, 'symlink_rejected', return_value={}), \
                 patch.object(revision, 'connection_rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
+            with self.assertRaises(ValueError): revision.inspect()
+
+
+class SymlinkFailureTests(unittest.TestCase):
+    def setUp(self):
+        fixture = ConnectionFailureTests('runTest'); self.addCleanup(fixture.doCleanups); fixture.setUp()
+        self.root = fixture.root
+        inventory = json.loads((self.root / 'installation-files.json').read_bytes())
+        save(self.root, 'stage2/symlink_source.py', b'symlink source')
+        inventory['files']['stage2/symlink_source.py'] = revision._sha(b'symlink source')
+        raw = json.dumps(inventory).encode(); save(self.root, 'installation-files.json', raw)
+        records = dict(revision.CONNECTION_RECORDS, **{'installation-files.json': revision._sha(raw)})
+        for name, value in dict(SYMLINK_REJECTED=self.root, SYMLINK_RECORDS=records,
+                SYMLINK_SOURCE_MAP=revision._sha(json.dumps(inventory['files'], sort_keys=True, allow_nan=False).encode()),
+                SYMLINK_FILES=revision.CONNECTION_FILES, SYMLINK_DIRECTORIES=revision.CONNECTION_DIRECTORIES).items():
+            self.enterContext(patch.object(revision, name, value))
+        self.manager = dict(fixture.manager, InvocationID=revision.SYMLINK_INVOCATION,
+            ExecMainPID='1283430', WorkingDirectory=str(self.root))
+
+    def tree(self):
+        return revision._retained_tree(self.root, revision.SYMLINK_RECORDS, 327,
+            revision.SYMLINK_SOURCE_MAP, revision.SYMLINK_FILES, revision.SYMLINK_DIRECTORIES)
+
+    def test_actual_r5_inventory_and_absence_are_preserved(self):
+        first = self.tree(); self.assertEqual(self.tree(), first)
+        save(self.root, '.runtime/stage2/no-cutoff-recovery-qualification.json', b'{}')
+        with self.assertRaises(ValueError): self.tree()
+
+    def test_r5_same_byte_evidence_replacement_changes_identity(self):
+        first = self.tree(); path = self.root / '.runtime/stage2/retained-failure.json'
+        raw = path.read_bytes(); path.unlink()
+        with self.assertRaises((OSError, ValueError)): self.tree()
+        save(self.root, '.runtime/stage2/retained-failure.json', raw)
+        self.assertNotEqual(self.tree(), first)
+
+    def test_exact_r5_failed_manager_is_not_success_or_r4(self):
+        args = (self.root, revision.SYMLINK_UNIT, revision.SYMLINK_INVOCATION, '1283430')
+        with patch.object(revision, '_command', return_value='\n'.join(k+'='+v for k,v in self.manager.items())):
+            self.assertEqual(revision._rejected_manager(*args), self.manager)
+        for key, value in (('InvocationID', revision.CONNECTION_INVOCATION), ('ExecMainPID', '1271584'),
+                ('MainPID', '9'), ('ExecMainStatus', '0'), ('LoadState', 'not-found')):
+            state = dict(self.manager, **{key: value})
+            with patch.object(revision, '_command', return_value='\n'.join(k+'='+v for k,v in state.items())):
+                with self.assertRaises(ValueError): revision._rejected_manager(*args)
+
+    def test_r5_final_tree_reread_follows_actual_manager_process_and_image_reads(self):
+        order = []; tree = revision._retained_tree
+        with patch.object(revision, '_rejected_manager', side_effect=lambda *a: order.append('manager') or self.manager), \
+                patch.object(revision, '_rejected_processes', side_effect=lambda *a: order.append('process')), \
+                patch.object(revision, '_rejected_images', side_effect=lambda *a: order.append('images') or {}), \
+                patch.object(revision, '_retained_tree', side_effect=lambda *a: order.append('tree') or tree(*a)):
+            value = revision.symlink_rejected()
+        self.assertEqual(order, ['manager', 'process', 'images', 'process', 'manager', 'tree'])
+        self.assertTrue(value['handoff_accepted']); self.assertFalse(value['qualification_passed'])
+        self.assertEqual(value['paid_attempts_started'], 0)
+
+    def test_late_r5_identity_drift_refuses_inspection(self):
+        with patch.object(revision, 'baseline', return_value={}), patch.object(revision, 'retained', return_value={}), \
+                patch.object(revision, 'rejected', return_value={}), patch.object(revision, 'regression_rejected', return_value={}), \
+                patch.object(revision, 'connection_rejected', return_value={}), \
+                patch.object(revision, 'symlink_rejected', side_effect=[{'identity': 1}, {'identity': 2}]):
             with self.assertRaises(ValueError): revision.inspect()
 
 
