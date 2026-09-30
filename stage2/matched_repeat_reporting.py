@@ -19,6 +19,8 @@ import subprocess
 import sys
 import time
 
+import mac_operator_files as mac
+import matched_repeat_mac_archive as mac_archive
 import matched_repeat_archive as archive
 import matched_repeat_execution_bootstrap as boot
 import matched_repeat_execution_connection as connection
@@ -157,14 +159,20 @@ def _manifest(value):
 
 
 def _private_bytes(path, raw):
-    parent = boot.directories(path.parent, private=True)
-    with os.fdopen(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600), 'wb') as handle:
-        archive.framing._write(handle, raw); handle.flush(); os.fsync(handle.fileno())
-        identity = boot.identity(os.fstat(handle.fileno()))
-    service._sync(path.parent)
-    if boot.raw(path.parent, path.name) != (raw, identity) or boot.directories(path.parent, private=True) != parent:
-        raise ValueError('Exclusive private receiver bytes changed')
-    return identity
+    return mac.write_bytes(path, raw)
+
+
+def _parents():
+    return mac.directories(handoff.original.launch.REPO/'.runtime/netcup', private=True)
+
+
+def _directory_id(path):
+    return mac.directories(path, private=True)
+
+
+def _state(path, identity):
+    if (_parents(), _directory_id(path)) != identity:
+        raise ValueError('Actual protected Mac reporting ancestry changed')
 
 
 def _receive(process, mode, value, *, path=None):
@@ -193,7 +201,7 @@ def _receive(process, mode, value, *, path=None):
                 payload = receiver._read(process.stdout, count, deadline)
                 archive.framing._write(handle, payload); sha.update(payload); size += count
             handle.flush(); os.fsync(handle.fileno())
-            written['evidence.tar.gz'] = boot.identity(os.fstat(handle.fileno()))
+            written['evidence.tar.gz'] = mac.identity(os.fstat(handle.fileno()))
         receiver._sync(path)
         receipt, _ = receiver._metadata(process.stdout, deadline)
         if receipt.get('sha256') != sha.hexdigest() or receipt.get('compressed_bytes') != size:
@@ -202,7 +210,7 @@ def _receive(process, mode, value, *, path=None):
         raise ValueError('Missing post-session native reporting commitment')
     if process.wait(timeout=30) != 0 or process.stdout.read(1):
         raise ValueError('Uncertain reporting SSH exit; retain evidence without retry')
-    if mode == 'backup' and any(boot.identity((path / n).lstat()) != identity for n, identity in written.items()):
+    if mode == 'backup' and any(mac.identity((path / n).lstat()) != identity for n, identity in written.items()):
         raise ValueError('Received baseline evidence replaced before verification')
     return (data, inventory, receipt, written) if mode == 'backup' else data
 
@@ -229,43 +237,43 @@ def _capture(commit, mode, *, path=None):
 def backup(commit):
     """ONE exclusive off-server baseline archive, never another original copy."""
     value, _ = connection.prepare(commit, HARNESS); identities = connection._identities(value['bindings'])
-    receiver = handoff.original.receiver; parents = receiver._parents()
+    receiver = handoff.original.receiver; parents = _parents()
     path = handoff.original.launch.REPO / BACKUP
     if path.exists() or path.is_symlink(): raise ValueError('Baseline backup already exists or is partial; do not repeat')
     path.mkdir(mode=0o700); receiver._sync(path.parent)
-    state = (parents, receiver._directory_id(path))
-    evidence.save(path / 'intent.json', dict(kind='one_shot_off_server_baseline_backup', commit=commit,
+    state = (parents, _directory_id(path))
+    mac.save(path / 'intent.json', dict(kind='one_shot_off_server_baseline_backup', commit=commit,
         started_utc=datetime.now(timezone.utc).isoformat(), automatic_resume=False, paid_launch_ready=False))
-    intent = boot.raw(path, 'intent.json')
+    intent = mac.raw(path, 'intent.json')
     try:
         (data, inventory, receipt, written), capture, captured_ids = _capture(commit, 'backup', path=path)
-        verified = archive.verify(path / 'evidence.tar.gz', data, inventory, receipt, _manifest(value), value['sources'])
-        receiver._state(path, state); _current(value, identities); _current(capture, captured_ids)
-        if (boot.raw(path, 'intent.json') != intent
+        verified = mac_archive.verify(path / 'evidence.tar.gz', data, inventory, receipt, _manifest(value), value['sources'])
+        _state(path, state); _current(value, identities); _current(capture, captured_ids)
+        if (mac.raw(path, 'intent.json') != intent
                 or {p.name for p in path.iterdir()} != {'intent.json', 'snapshot.json', 'inventory.json', 'evidence.tar.gz'}
-                or boot.loads(boot.raw(path, 'snapshot.json')[0]) != data
-                or boot.loads(boot.raw(path, 'inventory.json')[0]) != inventory
-                or any(boot.identity((path / n).lstat()) != identity for n, identity in written.items())):
+                or boot.loads(mac.raw(path, 'snapshot.json')[0]) != data
+                or boot.loads(mac.raw(path, 'inventory.json')[0]) != inventory
+                or any(mac.identity((path / n).lstat()) != identity for n, identity in written.items())):
             raise ValueError('Baseline receiver evidence changed before durable completion')
-        evidence.save(path / 'backup.json', dict(kind='verified_off_server_baseline_backup', receipt=receipt,
+        mac.save(path / 'backup.json', dict(kind='verified_off_server_baseline_backup', receipt=receipt,
             verified=verified, snapshot_sha256=policy.fingerprint(data), inventory_sha256=policy.fingerprint(inventory),
             automatic_resume=False, paid_launch_ready=False))
-        receiver._state(path, state)
+        _state(path, state)
         return dict(kind='baseline_backup_verified', completed=89, harness=HARNESS, archive_sha256=receipt['sha256'],
             compressed_bytes=receipt['compressed_bytes'], full_runtime_restore_exercised=False, paid_launch_ready=False)
     except BaseException:
-        receiver._state(path, state)
-        evidence.save(path / 'failure.json', dict(status='failed_or_uncertain_preserve_baseline_backup',
+        _state(path, state)
+        mac.save(path / 'failure.json', dict(status='failed_or_uncertain_preserve_baseline_backup',
             automatic_resume=False, paid_launch_ready=False))
         raise
 
 
 def _read_backup(value):
     receiver = handoff.original.receiver; path = handoff.original.launch.REPO / BACKUP
-    state = (receiver._parents(), receiver._directory_id(path))
+    state = (_parents(), _directory_id(path))
     if {p.name for p in path.iterdir()} != {'intent.json', 'snapshot.json', 'inventory.json', 'evidence.tar.gz', 'backup.json'}:
         raise ValueError('Exactly one completed retained baseline backup required')
-    records = {n: boot.raw(path, n) for n in ('intent.json', 'snapshot.json', 'inventory.json', 'backup.json')}
+    records = {n: mac.raw(path, n) for n in ('intent.json', 'snapshot.json', 'inventory.json', 'backup.json')}
     data = boot.loads(records['snapshot.json'][0]); inventory = boot.loads(records['inventory.json'][0])
     if data.get('harness') != HARNESS: raise ValueError('Exact first baseline backup required')
     saved = boot.loads(records['backup.json'][0])
@@ -282,10 +290,10 @@ def _read_backup(value):
         raise ValueError('Actual completed baseline backup record required')
     archive.same(saved['snapshot_sha256'], policy.fingerprint(data))
     archive.same(saved['inventory_sha256'], policy.fingerprint(inventory))
-    verified = archive.verify(path / 'evidence.tar.gz', data, inventory, saved['receipt'],
+    verified = mac_archive.verify(path / 'evidence.tar.gz', data, inventory, saved['receipt'],
         _manifest(value), value['sources'])
-    archive.same(verified, saved['verified']); receiver._state(path, state)
-    if any(boot.raw(path, n) != record for n, record in records.items()): raise ValueError('Retained backup metadata replaced')
+    archive.same(verified, saved['verified']); _state(path, state)
+    if any(mac.raw(path, n) != record for n, record in records.items()): raise ValueError('Retained backup metadata replaced')
     return data, saved
 
 
@@ -293,26 +301,26 @@ def export(commit):
     """Fresh actual native audit + SAME baseline archive before exclusive export."""
     value, _ = connection.prepare(commit, HARNESS); identities = connection._identities(value['bindings'])
     root = handoff.original.launch.REPO; path = root / EXPORT; receiver = handoff.original.receiver
-    parents = receiver._parents(); public = root / PUBLIC
+    parents = _parents(); public = root / PUBLIC
     if path.exists() or path.is_symlink(): raise ValueError('Existing/partial baseline export cannot be repeated')
-    public_identity = boot.directories(public)
+    public_identity = mac.directories(public)
     if any((public / n).exists() or (public / n).is_symlink() for n in OUTPUTS):
         raise ValueError('Baseline public outcomes are immutable')
     path.mkdir(mode=0o700); receiver._sync(path.parent)
-    state = (parents, receiver._directory_id(path))
-    evidence.save(path / 'intent.json', dict(kind='one_shot_separate_baseline_export', commit=commit,
+    state = (parents, _directory_id(path))
+    mac.save(path / 'intent.json', dict(kind='one_shot_separate_baseline_export', commit=commit,
         started_utc=datetime.now(timezone.utc).isoformat(), automatic_resume=False))
-    intent = boot.raw(path, 'intent.json')
+    intent = mac.raw(path, 'intent.json')
     try:
         fresh, capture, captured_ids = _capture(commit, 'audit')
         saved, backup_record = _read_backup(value); _equal_audit(saved, fresh)
         retained = root / BACKUP
-        backup_files = {n: boot.raw(retained, n) for n in ('intent.json', 'snapshot.json', 'inventory.json', 'backup.json')}
-        backup_archive_id = boot.identity((retained / 'evidence.tar.gz').lstat())
-        backup_directory_id = receiver._directory_id(retained)
+        backup_files = {n: mac.raw(retained, n) for n in ('intent.json', 'snapshot.json', 'inventory.json', 'backup.json')}
+        backup_archive_id = mac.identity((retained / 'evidence.tar.gz').lstat())
+        backup_directory_id = _directory_id(retained)
         outputs = public_projection.projection(saved, _manifest(value), value['sources'], backup_record['verified'])
-        _current(value, identities); _current(capture, captured_ids); receiver._state(path, state)
-        if boot.directories(public) != public_identity or boot.raw(path, 'intent.json') != intent:
+        _current(value, identities); _current(capture, captured_ids); _state(path, state)
+        if mac.directories(public) != public_identity or mac.raw(path, 'intent.json') != intent:
             raise ValueError('Baseline export directories or intent changed')
         for name, raw in outputs.items():
             fd = os.open(public / name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644)
@@ -321,19 +329,19 @@ def export(commit):
         receiver._sync(public)
         bound = {PUBLIC + '/' + n: hashlib.sha256(raw).hexdigest() for n, raw in outputs.items()}
         for name, digest in bound.items(): handoff.original.launch._raw(name, digest)
-        _current(value, identities); _current(capture, captured_ids); receiver._state(path, state)
-        if (receiver._directory_id(retained) != backup_directory_id
+        _current(value, identities); _current(capture, captured_ids); _state(path, state)
+        if (_directory_id(retained) != backup_directory_id
                 or {p.name for p in retained.iterdir()} != set(backup_files) | {'evidence.tar.gz'}
-                or any(boot.raw(retained, n) != previous for n, previous in backup_files.items())
-                or boot.identity((retained / 'evidence.tar.gz').lstat()) != backup_archive_id
-                or boot.directories(public) != public_identity or boot.raw(path, 'intent.json') != intent):
+                or any(mac.raw(retained, n) != previous for n, previous in backup_files.items())
+                or mac.identity((retained / 'evidence.tar.gz').lstat()) != backup_archive_id
+                or mac.directories(public) != public_identity or mac.raw(path, 'intent.json') != intent):
             raise ValueError('Retained baseline evidence changed during public export')
-        evidence.save(path / 'result.json', dict(kind='separate_baseline_allowlisted_export_complete',
+        mac.save(path / 'result.json', dict(kind='separate_baseline_allowlisted_export_complete',
             files=bound, snapshot_sha256=policy.fingerprint(saved), archive_sha256=backup_record['receipt']['sha256'],
             automatic_resume=False, paid_launch_ready=False))
-        receiver._state(path, state)
+        _state(path, state)
         return dict(experiment=policy.EXPERIMENT, files=bound, aggregate=saved['aggregate'], paid_launch_ready=False)
     except BaseException:
-        receiver._state(path, state)
-        evidence.save(path / 'failure.json', dict(status='failed_or_uncertain_preserve_export', automatic_resume=False))
+        _state(path, state)
+        mac.save(path / 'failure.json', dict(status='failed_or_uncertain_preserve_export', automatic_resume=False))
         raise

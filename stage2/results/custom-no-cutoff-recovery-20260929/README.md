@@ -1,5 +1,22 @@
 # Separate C0-NC setup recovery
 
+## Current recovery state, 30 September 12:18 UTC
+
+Recovery is still **0/3 paid attempts**. The SAME R6 qualifier has passed its
+834 native regressions and the first tools case. The second synthetic trial
+retained a verified result, cleanup flags and producer record; its final case
+evidence is absent.
+Four later cases and full qualification completion remain outstanding.
+There is no paid outcome to publish and no recovery archive exists yet.
+
+The [separate Mac reporting amendment](../../protocols/custom_recovery_mac_reporting_20260930.md)
+corrects a real Darwin-only backup-reader incompatibility without changing the
+318 running R6 sources. The broader 1,453-test gate passed; after one EOF-only
+blank-line cleanup with identical AST, all 103 affected tests passed again.
+Committed actual-child preparation follows publication. Later backup/export must
+use the new explicit Mac writer, once, after genuine completion. No original
+result, archive, source, permission or ACL was changed.
+
 ## Baseline final local tests passed; recovery rehearsal active, 30 September 11:08 UTC
 
 The real Mac source-only launch preflight passes at

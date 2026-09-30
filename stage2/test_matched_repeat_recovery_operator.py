@@ -19,7 +19,17 @@ from test_no_cutoff_recovery_runtime import save
 
 
 class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
-    setUp=ReportingTests.setUp
+    def setUp(self):
+        factory=tempfile.TemporaryDirectory
+        with patch.object(tempfile,'TemporaryDirectory',side_effect=lambda:factory(
+                prefix='.uts-recovery-reader-',dir=Path.home())):
+            ReportingTests.setUp(self)
+        if sys.platform != 'darwin':
+            # Native Linux receiver tests need synthetic Mac-side evidence.
+            # Only that OS boundary is emulated here; the separate real Mac
+            # suite exercises actual ls/ACL/ancestry and Linux refusal.
+            self.enterContext(patch.object(operator.mac,'_darwin'))
+            self.enterContext(patch.object(operator.mac,'_acl',side_effect=operator.recovery.boot.acl))
     produce=ReportingTests.produce
     collect=ReportingTests.collect
     packed=ReportingTests.packed
@@ -48,6 +58,7 @@ class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         self.enterContext(patch.object(operator,'REPO',self.root))
         self.enterContext(patch.object(recovery.handoff.launch,'REPO',self.root))
         self.enterContext(patch.object(recovery,'_manifest',return_value=self.f.manifest))
+        self.enterContext(patch.object(operator.mac_recovery,'_manifest',return_value=self.f.manifest))
         self.enterContext(patch.object(operator.original.launch,'_git',side_effect=lambda action,ref:
             (self.root/ref.split(':',1)[1]).read_bytes()))
         return data,backup

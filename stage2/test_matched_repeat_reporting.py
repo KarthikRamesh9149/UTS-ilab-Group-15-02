@@ -9,6 +9,7 @@ from pathlib import Path
 import struct
 import sys
 import threading
+import tempfile
 from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import patch
@@ -25,7 +26,15 @@ from test_no_cutoff_recovery_runtime import save
 
 class ReportingTests(fixture.ArchiveTests):
     def setUp(self):
-        super().setUp()
+        factory=tempfile.TemporaryDirectory
+        with patch.object(tempfile,'TemporaryDirectory',side_effect=lambda:factory(
+                prefix='.uts-baseline-report-',dir=Path.home())):
+            super().setUp()
+        if sys.platform != 'darwin':
+            # Synthetic sender side of the Linux transport fixtures only;
+            # actual Darwin protection is tested separately on the Mac.
+            self.enterContext(patch.object(reporting.mac,'_darwin'))
+            self.enterContext(patch.object(reporting.mac,'_acl',side_effect=files.bootstrap.acl))
         self.enterContext(patch.object(boot, 'directories', side_effect=files.bootstrap.directories))
         self.enterContext(patch.object(reporting, 'ROOT', self.root))
         self.live['witness'] = object()

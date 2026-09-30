@@ -1,5 +1,20 @@
 # Separate Terminus-2 repeat
 
+## Current Mac reporting amendment, 30 September UTC
+
+The [new Darwin reporting controls](../../../protocols/custom_recovery_mac_reporting_20260930.md)
+fix an actual Mac backup-reader incompatibility before any baseline deployment.
+The current baseline union is 405 sources. The broader 1,453-test local gate
+passed; after one EOF-only blank-line cleanup with identical AST, all 103
+affected tests passed again. Committed actual-child preparation follows
+publication. Exact candidate maps and timings are in the stage2 status record.
+The older test totals below refer to their earlier candidates.
+
+Terminus remains **0/89**, after recovery's actual completion/audit/ONE backup/
+export. No added cost, model, request or retry cap is introduced. Official
+limits and original baseline controls remain unchanged. This is not native
+qualification or a completed baseline launch.
+
 The approved repeat has not started. No new score is reported here.
 
 Exactly 89 fresh tasks follow the fixed schedule, after the three separate

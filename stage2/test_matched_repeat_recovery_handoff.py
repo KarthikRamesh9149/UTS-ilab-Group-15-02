@@ -24,7 +24,12 @@ from test_no_cutoff_recovery_runtime import save
 
 
 class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase):
-    setUp = operator_tests.RecoveryOperatorTests.setUp
+    def setUp(self):
+        operator_tests.RecoveryOperatorTests.setUp(self)
+        # The receiver side is a Linux fixture, independently of the actual
+        # Mac sender-side ACL checks exercised by the retained reader.
+        self.enterContext(patch.object(handoff.bootstrap, 'directories',
+            side_effect=handoff.operator.recovery.boot.directories))
     produce = operator_tests.RecoveryOperatorTests.produce
     collect = operator_tests.RecoveryOperatorTests.collect
     packed = operator_tests.RecoveryOperatorTests.packed

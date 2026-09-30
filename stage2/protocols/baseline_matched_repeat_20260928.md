@@ -1,5 +1,24 @@
 # Matched baseline repeats after custom final89
 
+## Current Darwin reporting amendment, 30 September UTC
+
+The [separate Mac amendment](custom_recovery_mac_reporting_20260930.md) corrects
+actual Darwin backup/archive checks without changing frozen R6 or original
+reporter35. Baseline's current source union is 405; all 103 targeted checks passed.
+The broader 1,453-test local gate passed with zero skips/errors/failures.
+After one EOF-only blank-line cleanup with identical AST, all 103 affected
+tests passed again on final bytes. Exact candidate maps and timings are in the
+stage2 status record; the broader run is not claimed for the later byte candidate.
+Committed actual-child preparation follows publication. The earlier 1,410-test
+result below predates this amendment.
+No baseline installation, qualification or paid attempt has occurred.
+
+At 12:18:35 UTC the same recovery qualifier remained active: 834 native tests
+and the first tools case passed; the second synthetic trial retained a verified
+result, but its final case evidence and the other four cases were not complete.
+Recovery remains 0/3 paid, both baseline repeats 0/89. The fixed order and all
+official/inherited controls remain. OpenHands successor work is still unfinished.
+
 ## Baseline final local tests passed; recovery rehearsal active, 30 September 11:08 UTC
 
 The real Mac source-only launch preflight passes at

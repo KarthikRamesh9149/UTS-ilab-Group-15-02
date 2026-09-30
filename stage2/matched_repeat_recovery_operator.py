@@ -16,6 +16,8 @@ import subprocess
 import matched_repeat_amended_predecessor as original
 import matched_repeat_execution_bootstrap as bootstrap
 import no_cutoff_recovery_reporting as recovery
+import no_cutoff_recovery_mac_reporting as mac_recovery
+import mac_operator_files as mac
 
 KIND = 'actual_recovery_capture_for_baseline_not_admission'
 REPO = original.launch.REPO
@@ -122,14 +124,14 @@ print(json.dumps(fresh,sort_keys=True,allow_nan=False))
 
 
 def _retained(bindings, sources):
-    data, backup = recovery._read_backup({'current_sources':sources})  # Actual SAME archive read.
+    data, backup = mac_recovery._read_backup({'current_sources':sources})  # Actual SAME archive read.
     root = REPO; state = root/recovery.EXPORT
-    directory = recovery.boot.directories(state,private=True)
+    directory = mac.directories(state,private=True)
     if {p.name for p in state.iterdir()} != {'intent.json','result.json'}:
         raise ValueError('Actual completed immutable recovery export required')
-    records = {recovery.BACKUP+'/'+n:recovery.boot.raw(root/recovery.BACKUP,n)
+    records = {recovery.BACKUP+'/'+n:mac.raw(root/recovery.BACKUP,n)
         for n in ('intent.json','snapshot.json','inventory.json','backup.json')}
-    records.update({recovery.EXPORT+'/'+n:recovery.boot.raw(state,n) for n in ('intent.json','result.json')})
+    records.update({recovery.EXPORT+'/'+n:mac.raw(state,n) for n in ('intent.json','result.json')})
     intent = recovery.boot.loads(records[recovery.EXPORT+'/intent.json'][0])
     if (set(intent) != {'kind','commit','started_utc','automatic_resume'}
             or intent['kind'] != 'one_shot_separate_recovery_export' or intent['automatic_resume'] is not False
@@ -148,7 +150,7 @@ def _retained(bindings, sources):
         kind='separate_recovery_allowlisted_export_complete',files=public,
         snapshot_sha256=recovery.policy.fingerprint(data),archive_sha256=backup['receipt']['sha256'],
         automatic_resume=False,paid_launch_ready=False))
-    if recovery.boot.directories(state,private=True) != directory:
+    if mac.directories(state,private=True) != directory:
         raise ValueError('Recovery export identity changed')
     return dict(data=data,backup=backup,records=records,export_directory=directory,
         archive_identity=recovery.boot.identity((root/recovery.BACKUP/'evidence.tar.gz').lstat()))

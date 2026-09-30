@@ -1,0 +1,203 @@
+"""Actual isolated Darwin child tests; native audit/provider remain synthetic."""
+import ast
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+import no_cutoff_recovery_mac_bridge as bridge
+
+STAGE = Path(__file__).resolve().parent
+
+
+class CommitTests(unittest.TestCase):
+    def test_commit_is_withheld_until_explicit_final_check(self):
+        output=io.BytesIO(); marker=b'commit\n'; value=bridge._CommitTail(output,marker)
+        payload=b'payload'*40; footer=marker+b'h'*32+b'a'*32
+        value.write(payload+footer); value.flush()
+        self.assertEqual(output.getvalue(),payload)
+        value.commit((b'a'*32).hex())
+        self.assertEqual(output.getvalue(),payload+footer)
+        with self.assertRaises(ValueError):value.commit((b'a'*32).hex())
+        with self.assertRaises(ValueError):value.write(b'next')
+
+    def test_bad_or_missing_commit_never_flushes_tail(self):
+        for payload in (b'',b'wrong'+b'x'*64,b'commit\n'+b'x'*64):
+            output=io.BytesIO(); value=bridge._CommitTail(output,b'commit\n'); value.write(payload)
+            before=output.getvalue()
+            with self.assertRaises(ValueError):value.commit('0'*64)
+            self.assertEqual(output.getvalue(),before)
+
+    def test_partial_real_pipe_writes_preserve_exact_bytes(self):
+        class Short:
+            def __init__(self): self.value=bytearray()
+            def write(self,value): self.value.extend(value[:3]); return min(3,len(value))
+            def flush(self): pass
+        output=Short(); value=bridge._CommitTail(output,b'X')
+        expected=b'head'*100+b'X'+b'h'*32+b'a'*32
+        for offset in range(0,len(expected),7):value.write(expected[offset:offset+7])
+        value.commit((b'a'*32).hex())
+        self.assertEqual(bytes(output.value),expected)
+
+    def test_program_is_fixed_extracted_bound_code(self):
+        raw=(STAGE/'no_cutoff_recovery_mac_bridge.py').read_bytes()
+        import mac_operator_files as mac
+        value={'commit':'a'*40,'bound':{'no_cutoff_recovery_mac_bridge.py':hashlib.sha256(raw).hexdigest()}}
+        with patch.object(mac,'raw',return_value=(raw,())):
+            code=bridge._program(value,'prepare'); ast.parse(code)
+            self.assertIn('connection.handoff.send(output)',code)
+            self.assertIn('output.commit(sent[',code)
+            self.assertIn('connection.operator.loaded(root,native)',code)
+            with self.assertRaises(ValueError):bridge._program(value,'callback')
+
+
+class ChildTests(unittest.TestCase):
+    def setUp(self):
+        temp=tempfile.TemporaryDirectory(prefix='.uts-report-child-',dir=Path.home() if sys.platform=='darwin' else None)
+        self.addCleanup(temp.cleanup); self.root=Path(temp.name).resolve(); self.root.chmod(0o700)
+        self.stage=self.root/'stage2'; self.stage.mkdir(mode=0o700)
+        self.python=self.root/'.tools/stage2-custom/bin/python'; self.python.parent.mkdir(parents=True,mode=0o700)
+        self.python.symlink_to(Path(sys.executable).resolve())
+        self.environment=bridge._environment()
+        self.environment['TIKTOKEN_CACHE_DIR']=str(self.root/'.tools/stage2-custom/lib/python3.12/site-packages/litellm/litellm_core_utils/tokenizers')
+
+    def fixture(self,effect='',delay=False):
+        self.native_names={'no_cutoff_recovery_connection.py','no_cutoff_recovery_policy.py'}
+        for name in bridge.EXTRAS:
+            path=self.stage/name; path.parent.mkdir(parents=True,exist_ok=True)
+            path.write_bytes((STAGE/name).read_bytes() if name in ('mac_operator_files.py','no_cutoff_recovery_mac_bridge.py') else b'# synthetic bound fixture\n')
+            path.chmod(0o600)
+        (self.stage/'no_cutoff_recovery_policy.py').write_text('REQUIRED_SOURCE_FILES = frozenset('+repr(self.native_names)+')\n')
+        connection = '''import hashlib,os,sys,time
+from pathlib import Path
+from types import SimpleNamespace as NS
+'''+effect+'''
+root=Path.cwd()
+def identity(s):
+ return (s.st_dev,s.st_ino,s.st_mode,s.st_uid,s.st_gid,s.st_nlink,s.st_size,s.st_mtime_ns,s.st_ctime_ns)
+def mapping():
+ return {'stage2/'+n:hashlib.sha256((root/'stage2'/n).read_bytes()).hexdigest() for n in NATIVE}
+def loaded(root,native):
+ for label,module in tuple(sys.modules.items()):
+  filename=getattr(module,'__file__',None)
+  if filename and Path(filename).is_relative_to(root/'stage2') and Path(filename).name not in native:
+   raise ValueError('Unbound synthetic import')
+def prepare(commit):
+ local=mapping()
+ return {'bindings':{'local':local},'recovery_local':local,'publication':{}},local
+def ids(value):
+ return {n:identity((root/n).stat()) for n in value['bindings']['local']}
+def merge(a,b):
+ for n,h in b.items():
+  if n in a and a[n]!=h:raise ValueError('Conflict')
+  a[n]=h
+def send(output):
+ output.write(b'synthetic-payload'*40)
+ output.flush()
+ time.sleep(DELAY)
+ output.write(b'COMMIT\\n'+b'h'*32+b'a'*32)
+ return {'archive_sha256':(b'a'*32).hex()}
+operator=NS(loaded=loaded,_current=lambda value:None)
+handoff=NS(report=NS(_merge=merge),send=send,wire=NS(COMMIT=b'COMMIT\\n'))
+_local_identities=ids
+'''.replace('NATIVE',repr(self.native_names)).replace('DELAY','0.3' if delay else '0')
+        (self.stage/'no_cutoff_recovery_connection.py').write_text(connection)
+        final=self.root/bridge.FINAL; final.parent.mkdir(parents=True,mode=0o700)
+        # Every private leaf in the real metadata path is actually protected.
+        for path in final.parents:
+            if path==self.root:break
+            path.chmod(0o700)
+        self.final_raw=b'{"sources":{}}'; final.write_bytes(self.final_raw); final.chmod(0o600)
+        env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','GIT_CONFIG_NOSYSTEM':'1'}
+        commands=[['init','-q'],['config','user.name','Synthetic Test'],['config','user.email','test@example.invalid'],
+            ['add','stage2'],['commit','-qm','Synthetic source-bound child fixture']]
+        for command in commands:subprocess.run(['git','-C',str(self.root),*command],env=env,check=True,capture_output=True)
+        self.commit=subprocess.check_output(['git','-C',str(self.root),'rev-parse','HEAD'],env=env).decode().strip()
+        subprocess.run(['git','-C',str(self.root),'update-ref','refs/remotes/origin/main',self.commit],env=env,check=True)
+        self.bound={n:hashlib.sha256((self.stage/n).read_bytes()).hexdigest() for n in self.native_names|set(bridge.EXTRAS)}
+        native={n:self.bound[n] for n in sorted(self.native_names)}
+        frozen=hashlib.sha256(json.dumps(native,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        raw=(STAGE/'no_cutoff_recovery_mac_bridge.py').read_text(); tree=ast.parse(raw)
+        pieces=[ast.get_source_segment(raw,n) for n in tree.body if isinstance(n,(ast.ClassDef,ast.FunctionDef)) and n.name in ('_CommitTail','_child')]
+        constants=dict(ROOT_LITERAL=str(self.root),EXPECTED_ENV=self.environment,FINAL_LITERAL=bridge.FINAL,
+            FINAL_SHA_LITERAL=hashlib.sha256(self.final_raw).hexdigest(),FROZEN_MAP_LITERAL=frozen)
+        self.program='\n'.join(k+'='+repr(v) for k,v in constants.items())+'\n'+'\n\n'.join(pieces)
+
+    def run_child(self,mode='prepare',env=None):
+        code=self.program+'\n_child('+','.join(map(repr,(mode,self.commit,self.bound)))+')'
+        return subprocess.run([str(self.python),'-I','-B','-c',code],cwd=self.root,
+            env=env or self.environment,capture_output=True,timeout=30)
+
+    def test_actual_isolated_child_checks_preimport_sources_and_origins(self):
+        self.fixture(); result=self.run_child()
+        if sys.platform!='darwin':
+            self.assertNotEqual(result.returncode,0);return
+        self.assertEqual(result.returncode,0,result.stderr.decode())
+        record=json.loads(result.stdout)
+        self.assertFalse(record['native_operation']); self.assertFalse(record['archive_read'])
+        self.assertEqual(record['commit'],self.commit);self.assertEqual(set(record['current_sources']),self.native_names)
+        self.assertFalse((self.root/'.runtime/absent-mac-recovery-reporting-bytecode').exists())
+
+    def test_actual_complete_sender_pipe_footer(self):
+        self.fixture(); result=self.run_child('send')
+        if sys.platform!='darwin':self.assertNotEqual(result.returncode,0);return
+        self.assertEqual(result.returncode,0,result.stderr.decode())
+        self.assertEqual(result.stdout,b'synthetic-payload'*40+b'COMMIT\n'+b'h'*32+b'a'*32)
+
+    def test_preimport_drift_refused(self):
+        self.fixture(); (self.stage/'no_cutoff_recovery_policy.py').write_bytes(b'raise AssertionError("should never import")')
+        result=self.run_child();self.assertNotEqual(result.returncode,0);self.assertFalse(result.stdout)
+
+    def test_wrong_environment_refused(self):
+        self.fixture(); result=self.run_child(env={**self.environment,'PROVIDER_API_KEY':'synthetic-forbidden'})
+        self.assertNotEqual(result.returncode,0);self.assertFalse(result.stdout)
+
+    def test_caught_socket_probe_is_denied_before_construction(self):
+        self.fixture('import socket\ntry: socket.socket()\nexcept RuntimeError: pass\n')
+        result=self.run_child()
+        if sys.platform!='darwin':self.assertNotEqual(result.returncode,0);return
+        self.assertEqual(result.returncode,0,result.stderr.decode())
+
+    def test_caught_credential_read_remains_failure(self):
+        self.fixture("try: open('.env','rb')\nexcept PermissionError: pass\n")
+        result=self.run_child();self.assertNotEqual(result.returncode,0);self.assertFalse(result.stdout)
+
+    def test_caught_file_write_remains_failure(self):
+        self.fixture("try: open('must-not-exist','w')\nexcept PermissionError: pass\n")
+        result=self.run_child();self.assertNotEqual(result.returncode,0)
+        self.assertFalse((self.root/'must-not-exist').exists())
+
+    def test_caught_process_creation_remains_failure(self):
+        self.fixture("import subprocess\ntry: subprocess.run(['/usr/bin/true'])\nexcept PermissionError: pass\n")
+        result=self.run_child();self.assertNotEqual(result.returncode,0);self.assertFalse(result.stdout)
+
+    def test_caught_environment_mutation_remains_failure(self):
+        self.fixture("try: os.environ['FORBIDDEN']='x'\nexcept PermissionError: pass\n")
+        result=self.run_child();self.assertNotEqual(result.returncode,0);self.assertFalse(result.stdout)
+
+    def test_late_same_byte_source_replacement_withholds_commitment(self):
+        self.fixture(delay=True)
+        code=self.program+'\n_child('+','.join(map(repr,('send',self.commit,self.bound)))+')'
+        process=subprocess.Popen([str(self.python),'-I','-B','-c',code],cwd=self.root,
+            env=self.environment,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        try:
+            first=process.stdout.read(1)
+            if sys.platform=='darwin':
+                self.assertEqual(first,b's')
+                path=self.stage/'no_cutoff_recovery_policy.py'; raw=path.read_bytes()
+                path.rename(self.stage/'retained-original-policy');path.write_bytes(raw)
+            output,error=process.communicate(timeout=30)
+            self.assertNotEqual(process.returncode,0)
+            self.assertNotIn(b'COMMIT\n'+b'h'*32+b'a'*32,first+output)
+        finally:
+            if process.poll() is None:process.kill();process.wait(timeout=10)
+            process.stdout.close();process.stderr.close()
+
+
+if __name__=='__main__':unittest.main()

@@ -1,5 +1,51 @@
 # Stage 2 execution status
 
+## Darwin reporting correction and live qualification, 30 September UTC
+
+A real Mac-only preflight found that the recovery and baseline backup readers
+called Linux-only ACL checks. No real backup or export was attempted. The
+separate Darwin amendment reads actual Mac ACLs and protected file identities,
+uses the unchanged strict archive format and retains exclusive one-backup/no-replay
+behaviour. Its real original-audit/archive sender runs in a separately source-bound
+isolated Mac child, so the running recovery's 318 sources and loaded-origin
+checks remain unchanged. Use `no_cutoff_recovery_mac_reporting.backup/export`
+for the later Mac operation, not the legacy Linux-IO writer.
+
+The Mac amendment binds 326 current operator sources; the not-yet-installed
+baseline union binds 405. All 103 targeted local tests passed, including actual
+Darwin file/ACL checks, isolated synthetic committed-child tests and synthetic
+three/89-result archives. The broader 1,453-test local gate passed with zero
+skips/errors/failures in 1,254.556 seconds, checking 405 bindings before/discovery/
+after and 258 final loaded modules. Its exact source-map SHA256 was
+`2288ac6f64b5896b88b52a147667248e9362728473e2179edd17acedbfa6b7a8`.
+Afterward, one terminal blank line was removed from the new Mac archive reader;
+its AST and every other bound byte were verified unchanged. All 103 affected
+tests passed again on the final bytes in 160.657 seconds, with 503 Python source
+bindings checked before/after. The broader run is not relabelled as this later
+byte candidate. Final 405-source-map SHA256:
+`0468d2b2b3cc437c636478d75966e67cb3f41c1c7378915b35e7ec0d068b71b8`.
+The real Mac private parent, two public folders and four fresh destination
+absences also passed read-only checks. Committed real-child preparation follows
+publication; no actual backup, archive read or native reporting was invoked.
+See the [Mac reporting amendment](protocols/custom_recovery_mac_reporting_20260930.md)
+for the actual protection and evidence boundaries. No native admission or
+benchmark outcome follows from these tests.
+
+Actual read-only metadata at 12:18:35 UTC verified the SAME R6 qualification
+unit and invocation, all 319 source/private bindings and no failure record.
+All 834 native regressions and the first `tools` case passed. The second
+`prepare_not_applicable` trial started at 11:53:23 and retained a `verified`
+result with recorded cleanup and a retained producer record; its final case
+evidence is still absent.
+The other four case intents and qualification completion remain absent.
+No paid recovery task has started. The service was not signalled or restarted.
+
+Original C0-NC remains 89/89: 50 passed, 36 verified zeros, 3 setup-only missing.
+Recovery is 0/3 paid; both baseline repeats are 0/89. First-Terminus native
+compatibility and OpenHands successor integration remain unfinished. No added
+financial/model/request/retry cap is introduced; official limits and inherited
+baseline controls remain. Keep the fixed sequential order and VPS active.
+
 ## Baseline final local tests passed; recovery rehearsal active, 30 September 11:08 UTC
 
 The real Mac source-only launch preflight passes at

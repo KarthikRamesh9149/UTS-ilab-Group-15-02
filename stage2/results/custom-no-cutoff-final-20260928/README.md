@@ -1,5 +1,17 @@
 # Measured C0-NC final89
 
+## Original evidence unchanged, 30 September UTC
+
+Original C0-NC remains **89/89: 50 passes, 36 verified zeros, 3 setup-only missing
+verifier outcomes**. Its completed audit, ONE private backup and public export
+remain intact. Recovery is separate and still 0/3 paid; both baseline repeats
+are 0/89. Synthetic qualification cases are not benchmark outcomes.
+
+The [Mac recovery-reporting amendment](../../protocols/custom_recovery_mac_reporting_20260930.md)
+changes only new operator controls and the not-yet-installed baseline route.
+All 35 original reporter files and all 318 running R6 sources remain unchanged.
+It does not recreate this original archive or change its historical bindings.
+
 ## Baseline final local tests passed; recovery rehearsal active, 30 September 11:08 UTC
 
 The real Mac source-only launch preflight passes at
