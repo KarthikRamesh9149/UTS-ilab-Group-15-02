@@ -1,5 +1,21 @@
 # Matched baseline repeats after custom final89
 
+## Current OpenHands successor candidate, 30 September UTC
+
+The [new completed-Terminus successor protocol](baseline_openhands_successor_20260930.md)
+connects OpenHands to the actual completed Terminus audit/SAME retained archive,
+in addition to the genuine recovery/original handoffs. The prospective baseline
+union is now 413 sources. The final 1,490-test local gate passed with zero
+skips/errors/failures and before/discovery/after source checks. All 153 focused
+checks also passed serially on the final bytes. This supersedes older OpenHands-not-implemented
+statements below, but does not claim native compatibility or qualification.
+
+Both baselines remain 0/89. The fixed order is unchanged: actual recovery3
+completion/audit/ONE backup/export, Terminus89 and its audit/ONE backup/export,
+then OpenHands89. Neither current source-only preparation nor saved receipts
+can start a task. Original controls, official resources/deadlines, unknown-cost
+handling and the no-added-cost/model/request/retry-cap policy remain unchanged.
+
 ## Current Darwin reporting amendment, 30 September UTC
 
 The [separate Mac amendment](custom_recovery_mac_reporting_20260930.md) corrects

@@ -1,5 +1,23 @@
 # Separate Terminus-2 repeat
 
+## Both baseline routes now have a local implementation
+
+The [OpenHands completed-Terminus successor route](../../../protocols/baseline_openhands_successor_20260930.md)
+adds its distinct installer, real three-predecessor session and ONE-backup/
+export path before either baseline is frozen. Current union: 413 sources.
+All 124 initial affected local tests passed. The broader 1,489-test run reported
+tests OK but failed its final cache guard. The stale OpenHands negative fixture
+was corrected and an isolated-child regression added. The final 1,490-test gate
+passed with zero skips/errors/failures, 413 before/discovery/after source bindings
+and 265 loaded project modules. All 153 focused checks passed serially afterward.
+Neither baseline has been installed or qualified. Native compatibility remains
+unexercised, and Terminus is still **0/89**.
+
+The recovery qualifier is still the current server operation, not a paid task.
+Recovery3 must actually finish, be audited, backed up once and exported before
+the first Terminus installation can be admitted. The older source/test counts
+below describe their earlier candidates, not this successor candidate.
+
 ## Current Mac reporting amendment, 30 September UTC
 
 The [new Darwin reporting controls](../../../protocols/custom_recovery_mac_reporting_20260930.md)

@@ -217,6 +217,10 @@ async def execute(harness, nonce, files, commit, identities, incoming, connectio
             prerequisites_sha256=hashlib.sha256(prerequisites).hexdigest(),
             operator_document_sha256=prior['operator_document_sha256'], archive_sha256=prior['streamed_backup']['sha256'],
             recovery_document_sha256=recovered['recovery_document_sha256'], recovery_archive_sha256=recovered['archive_sha256'])
+        if harness == 'openhands':
+            earlier = record['completed_terminus']
+            accepted.update(terminus_document_sha256=earlier['terminus_document_sha256'],
+                terminus_archive_sha256=earlier['archive_sha256'])
         save(path / 'accepted.json', accepted)
         for n in ('prerequisites.json', 'accepted.json'): retained[n] = evidence.read(root, relative + '/' + n)
         _reply(connection, accepted)

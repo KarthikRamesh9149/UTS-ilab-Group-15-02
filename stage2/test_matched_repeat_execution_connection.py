@@ -132,9 +132,11 @@ class OperatorTests(unittest.TestCase):
             connection.command('terminus-2',NONCE,self.files,COMMIT,'qualify-repeat')
 
     def test_openhands_cannot_use_a_terminus_only_handoff(self):
+        self.prepare.side_effect = ValueError('Actual completed-Terminus reader refused')
         with self.assertRaisesRegex(ValueError, 'completed-Terminus'):
             connection.run_native(COMMIT,'openhands')
-        self.prepare.assert_not_called(); self.popen.assert_not_called()
+        self.prepare.assert_called_once_with(COMMIT, 'openhands'); self.popen.assert_not_called()
+        self.send.assert_not_called()
 
     def test_no_generic_stop_restart_inspection_or_caller_command_exists(self):
         for operation in ('stop','restart','inspect-prerequisites','shell'):

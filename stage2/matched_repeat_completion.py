@@ -153,11 +153,26 @@ def _read(root, harness, files, operation):
             or recovered.get('paid_launch_ready') is not False):
         raise ValueError('Actual completed recovery was not bound into the baseline operation')
     for name in ('recovery_document_sha256', 'archive_sha256'): policy._hash(recovered.get(name))
-    same(records['accepted.json'], dict(expected,
+    accepted = dict(expected,
         kind='baseline_handoff_committed_operation_accepted_not_completed', native_process=process,
         prerequisites_sha256=hashlib.sha256(retained[relative + '/prerequisites.json'][0]).hexdigest(),
         operator_document_sha256=prior['operator_document_sha256'], archive_sha256=prior['streamed_backup']['sha256'],
-        recovery_document_sha256=recovered['recovery_document_sha256'], recovery_archive_sha256=recovered['archive_sha256']))
+        recovery_document_sha256=recovered['recovery_document_sha256'], recovery_archive_sha256=recovered['archive_sha256'])
+    if harness == 'openhands':
+        earlier = prerequisites.get('completed_terminus')
+        fields = {'kind','harness','operator_commit','terminus_document_sha256','archive_sha256',
+            'sources_sha256','block','paid_launch_ready','full_runtime_restore_exercised'}
+        if (type(earlier) is not dict or set(earlier) != fields
+                or earlier['kind'] != 'live_completed_terminus_for_openhands_not_admission'
+                or earlier['harness'] != harness or earlier['operator_commit'] != expected['operator_commit']
+                or earlier['paid_launch_ready'] is not False or earlier['full_runtime_restore_exercised'] is not False):
+            raise ValueError('Actual completed Terminus must be bound into every OpenHands operation')
+        same(earlier['sources_sha256'], policy.fingerprint({n[7:]:h for n,h in files.items() if n.startswith('stage2/')}))
+        same(earlier['block'], prior['predecessors']['blocks'][1])
+        for name in ('terminus_document_sha256','archive_sha256'): policy._hash(earlier[name])
+        accepted.update(terminus_document_sha256=earlier['terminus_document_sha256'],
+            terminus_archive_sha256=earlier['archive_sha256'])
+    same(records['accepted.json'], accepted)
     terminal = policy.QUALIFIER_RESULT_FILE
     if operation == 'run-repeat':
         from run_matched_repeat import RESULT

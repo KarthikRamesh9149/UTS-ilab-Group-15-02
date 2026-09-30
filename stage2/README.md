@@ -1,5 +1,52 @@
 # Stage 2 execution status
 
+## OpenHands successor local gate passed, 30 September 14:14 UTC
+
+The separate OpenHands route is now implemented locally: actual completed
+Terminus evidence plus the existing recovery/original handoffs, the real
+OpenHands session, fixed installer, detached qualification/run service and
+ONE-backup/separate-export path. See the
+[successor protocol](protocols/baseline_openhands_successor_20260930.md).
+No baseline was installed, qualified or started.
+
+The final broader gate passed all **1,490 tests**, with zero skips/errors/failures,
+in 1,409.776 seconds (1,410.445 including guards). All 413 source bindings were
+checked before discovery, after discovery and after execution, with 265 final
+loaded project modules. Source-map SHA256:
+`82fcb2d4b6fa559f27297d7cbd22654a2ee8e738f0e209aa8c8d5315ac0b3f7f`.
+An earlier 124 affected tests passed in 127.071 seconds on the pre-isolation-fix
+candidate. All 153 focused checks then passed serially on the final bytes in
+222.155 seconds, with the same 413 bindings and 203 loaded project modules.
+An initial broader run reported all 1,489 tests OK, but its final cache-isolation
+guard failed, so that gate did not pass. A one-test reproduction found an old
+negative reporting fixture calling the now-supported OpenHands entry in the
+test process. The test now checks both supported context refusals in isolated,
+credential-free children and verifies that the parent stays unchanged. No
+production guard was weakened. The successful final gate checked cache isolation
+after every test as well as final source bytes. An overlapping 153-test focused
+run had one Darwin ACL/identity refusal; its exact changed path was not retained,
+so it is not counted as passed. The same test passed in both the broader run and
+the complete serial focused rerun. No file-protection requirement was relaxed.
+The tests use actual synthetic archives/private files/local pipes/locks and
+mocked native manager, host and Docker observations. Darwin-specific tests
+exercise real Mac IO locally; Linux refusal checks are not Darwin verification.
+Direct review and new tests cover changed evidence, cancellation, lifetime
+boundaries and lost acknowledgement without replay. No local test is native
+qualification or a benchmark result.
+
+Read-only metadata at 14:14:34 UTC verified the SAME active R6 qualification
+unit, process and 319 source/private bindings. The first THREE cases passed:
+`tools`, `prepare_not_applicable` and `prepare_nonzero`, with zero live API calls.
+The nonzero case retained its expected setup-failure result and cleanup flags.
+The fourth `prepare_exception` runtime exists, but its result and final evidence
+are absent. The remaining cases and genuine completed qualification are required.
+This is not a paid failure or a benchmark outcome.
+Original C0-NC remains 89/89: 50 passed, 36 verified zeros, 3 setup-only missing.
+Recovery is 0/3 paid; each baseline repeat is 0/89. Native qualification and
+official deadlines are unchanged. All 318 frozen R6 sources and archived35
+were freshly verified unchanged; original211 retains only its previous local
+scored-runner orchestration difference. The older checkpoints below are historical.
+
 ## Darwin reporting correction and live qualification, 30 September UTC
 
 A real Mac-only preflight found that the recovery and baseline backup readers

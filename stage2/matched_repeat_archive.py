@@ -96,7 +96,19 @@ def _open(root, name, trials):
 
 
 def inventory(data):
-    root = _root(data); trials = frozenset(r['trial_id'] for r in data['rows'])
+    return _inventory(_root(data), data)
+
+
+def _inventory(root, data):
+    """Shared read-only inventory; only fixed native callers choose a root.
+
+    The OpenHands successor reader uses the fixed completed Terminus root.
+    This helper creates no archive, proof, session or admission authority.
+    """
+    if root != runtime.DEPLOYMENTS.get(data.get('harness')):
+        raise ValueError('Exact completed baseline root and harness required')
+    files.bootstrap.directories(root, private=True)
+    trials = frozenset(r['trial_id'] for r in data['rows'])
     bound = dict(data['supporting_files']); directories = set(data['directory_entries']); trees = {}; excluded = []
     if any(original_logs.applies(n, trials) for n in bound):
         raise ValueError('Required evidence cannot use extra-log permission compatibility')

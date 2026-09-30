@@ -207,6 +207,53 @@ def recovery_finished():
     return value
 
 
+def terminus_finished(files):
+    """Actual first-repeat service reads in its OWN isolated interpreter.
+
+    This is completion metadata, not its fresh completed audit/SAME archive
+    handoff. It runs before successor locks; no collector or writer is called.
+    """
+    root = root_for('terminus-2')
+    before = {n: raw(root, n, h) for n, h in files.items()}
+    commit_raw, commit_id = raw(root, 'source-commit.txt')
+    commit = commit_raw.decode('ascii').strip()
+    if not re.fullmatch('[a-f0-9]{40}', commit):
+        raise ValueError('Actual installed Terminus source revision required')
+    module = before['stage2/matched_repeat_execution_bootstrap.py'][0]
+    results = {}
+    for operation in ('qualify-repeat', 'run-repeat'):
+        program = ('import base64,sys,types\n'
+            + 'b=types.ModuleType("matched_repeat_execution_bootstrap")\n'
+            + 'b.__file__=' + repr(str(root/'stage2/matched_repeat_execution_bootstrap.py')) + '\n'
+            + 'sys.modules[b.__name__]=b\n'
+            + 'exec(compile(base64.b64decode(' + repr(base64.b64encode(module).decode())
+            + '),b.__file__,"exec"),b.__dict__)\n'
+            + 'b.main(' + ','.join(map(repr, ('terminus-2', '0'*32, files, commit,
+                'status', None, operation))) + ')\n')
+        observed = subprocess.run([str(root/'.venv/bin/python'), '-I', '-B', '-c', program],
+            cwd=root, env=environment('terminus-2'), stdin=subprocess.DEVNULL,
+            capture_output=True, timeout=300)
+        if observed.returncode or len(observed.stdout) > 16384:
+            raise ValueError('Actual completed Terminus service reader refused')
+        value = loads(observed.stdout); counts = value.get('counts', {})
+        if (value.get('kind') != 'read_only_baseline_operation_status_not_admission'
+                or value.get('operation') != operation
+                or value.get('status') != 'service_exited_successfully_not_completed_study_audit'
+                or value.get('paid_launch_ready') is not False or value.get('automatic_resume') is not False
+                or counts.get('study') != 'baseline-matched-repeat-20260928'
+                or counts.get('harness') != 'terminus-2'
+                or any(type(counts.get(n)) is not int or counts[n] != 89 for n in ('intended','started','completed'))
+                or counts.get('active_tasks') != []
+                or any(type(counts.get(n)) is not int or counts[n] < 0 for n in ('passed','failed','missing_verifier'))
+                or sum(counts[n] for n in ('passed','failed','missing_verifier')) != 89):
+            raise ValueError('All89 actual retained Terminus outcomes and successful services required')
+        results[operation] = value
+    if (any(raw(root, n, files[n]) != observed for n, observed in before.items())
+            or raw(root, 'source-commit.txt') != (commit_raw, commit_id)):
+        raise ValueError('Actual completed Terminus sources/private identities changed')
+    return results
+
+
 def ancestors(harness, files):
     root = context(harness)
     # Current stdlib reader retains all failed roots and actual original-manager
@@ -217,8 +264,11 @@ def ancestors(harness, files):
     if revision['ROOT'] != RECOVERY: raise ValueError('Exact frozen recovery location required')
     revision['inspect']()
     completed = recovery_finished()
-    for base in (root,RECOVERY,Path('/opt/uts-capstone-custom-no-cutoff-final-20260928'),
-            Path('/opt/uts-capstone-corrected-20260923')):
+    if harness == 'openhands': terminus_finished(files)
+    bases = [root,RECOVERY,Path('/opt/uts-capstone-custom-no-cutoff-final-20260928'),
+        Path('/opt/uts-capstone-corrected-20260923')]
+    if harness == 'openhands': bases.append(root_for('terminus-2'))
+    for base in bases:
         for name in ('operator-stop-request.json','provider-stop.json'):
             path = base/'.runtime/stage2'/name
             if path.exists() or path.is_symlink():
@@ -281,7 +331,7 @@ def main(harness,nonce,files,commit,role,relay_process=None,operation='qualify-r
 def reporting(harness, files, commit, mode):
     """Fixed completed reporting transport, never a paid service shortcut."""
     global IMPORTING, ACTIVE_HARNESS
-    if (harness != 'terminus-2' or mode not in ('audit', 'backup')
+    if (harness not in ROOTS or mode not in ('audit', 'backup')
             or type(commit) is not str or not re.fullmatch('[a-f0-9]{40}', commit)
             or ACTIVE_HARNESS is not None):
         raise ValueError('One fixed committed first-baseline reporting entry required')
@@ -292,7 +342,10 @@ def reporting(harness, files, commit, mode):
     sys.addaudithook(no_effects); IMPORTING = True
     try:
         import asyncio
-        import matched_repeat_reporting as reporter
+        if harness == 'openhands':
+            import matched_repeat_openhands_reporting as reporter
+        else:
+            import matched_repeat_reporting as reporter
     finally: IMPORTING = False
     if VIOLATION: raise ValueError('Latched baseline reporting import refusal')
     ancestors(harness, files); check(harness, files, identities)

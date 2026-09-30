@@ -23,8 +23,7 @@ REPO = handoff.operator.REPO
 
 
 def _first(harness):
-    if harness != 'terminus-2':
-        raise ValueError('OpenHands requires its additional completed-Terminus execution handoff')
+    policy._harness(harness)
 
 
 def state_name(harness, operation):
@@ -47,6 +46,9 @@ def _current(value):
     if _identities(value['bindings']) != value['identities']:
         raise ValueError('Committed baseline operator source/private identity changed')
     handoff.operator._current(value['recovery'])
+    if value.get('harness') == 'openhands':
+        import matched_repeat_terminus_predecessor as terminus
+        terminus.current(value['terminus'])
     handoff.operator._loaded(value['bindings'])
 
 
@@ -58,6 +60,9 @@ def prepare(commit, harness):
     # saved admission. send() independently performs both real fresh captures.
     value['recovery'] = dict(bindings=bindings, sources=sources,
         retained=handoff.operator._retained(bindings, sources))
+    if harness == 'openhands':
+        import matched_repeat_terminus_predecessor as terminus
+        value['terminus'] = terminus.prepare(commit)
     _current(value)
     return value, files
 
@@ -66,11 +71,14 @@ def _source_inputs(commit, harness):
     _first(harness)
     if Path(__file__).absolute() != REPO / 'stage2/matched_repeat_execution_connection.py':
         raise ValueError('Fixed Mac baseline execution connection required')
-    bindings, anchors = handoff.operator.original._prepare(commit, harness)
+    # This immutable reader supplies the ORIGINAL custom-final dependency,
+    # not the new harness's execution identity. OpenHands additionally needs
+    # the actual completed-Terminus reader in prepare/send and its live scope.
+    bindings, anchors = handoff.operator.original._prepare(commit, 'terminus-2')
     names = set(anchors['proof']['sources']) | policy.REQUIRED_SOURCE_FILES
     files = {'stage2/' + n: bindings['local']['stage2/' + n] for n in names}
     files.update({boot.BASELINE_INPUT: boot.BASELINE_SHA, boot.FINAL_INPUT: boot.FINAL_SHA})
-    value = dict(bindings=bindings, identities=_identities(bindings),
+    value = dict(bindings=bindings, identities=_identities(bindings), harness=harness,
         sources={n[7:]: h for n, h in files.items() if n.startswith('stage2/')})
     handoff.operator._loaded(bindings)
     return value, files
@@ -110,8 +118,19 @@ def reply(value, harness, nonce, files, commit, operation, *, sent=None, peer=No
             recovery_document_sha256=sent['recovery_document_sha256'],
             recovery_archive_sha256=sent['recovery_archive_sha256'])
         policy._hash(expected['prerequisites_sha256'])
+        if harness == 'openhands':
+            for key in ('terminus_document_sha256', 'terminus_archive_sha256'):
+                expected[key] = sent[key]; policy._hash(expected[key])
     completion.same(value, expected)
     return value
+
+
+def send(harness, destination):
+    _first(harness)
+    if harness == 'openhands':
+        import matched_repeat_terminus_handoff as terminus
+        return terminus.send(destination)
+    return handoff.send(destination)
 
 
 def _operate(commit, harness, operation):
@@ -140,7 +159,7 @@ def _operate(commit, harness, operation):
             stderr=subprocess.DEVNULL, bufsize=0, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
         ready = reply(read_reply(process.stdout), harness, nonce, files, commit, operation)
         receiver = save('receiver.json', ready); _current(value)
-        sent = handoff.send(process.stdin)  # ALWAYS actual recovery and original audits/SAME archives.
+        sent = send(harness, process.stdin)  # Actual fresh captures of EVERY required predecessor.
         process.stdin.close()
         accepted = reply(read_reply(process.stdout), harness, nonce, files, commit, operation,
             sent=sent, peer=ready['native_process'])

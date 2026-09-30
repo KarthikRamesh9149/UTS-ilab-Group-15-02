@@ -14,6 +14,7 @@ import struct
 import matched_repeat_stream as wire
 
 END=b'UTS-BASELINE-COMPOSITE-COMMIT-V1\n'
+SUCCESSOR_END=b'UTS-OPENHANDS-THREE-PREDECESSORS-COMMIT-V1\n'
 
 
 def _hash(value):
@@ -22,13 +23,14 @@ def _hash(value):
     return bytes.fromhex(value)
 
 
-def finish(stream,recovery_sha256,original):
+def finish(stream,recovery_sha256,original,*,terminus_sha256=None):
     wire.pipe_only(stream)
     if (type(original) is not dict or set(original)!={'kind','operator_document_sha256','archive_sha256','paid_launch_ready'}
             or original['kind']!='amended_off_server_predecessor_bytes_sent_not_admission'
             or original['paid_launch_ready'] is not False):
         raise ValueError('Exact original sender completion required')
-    wire._write(stream,END+_hash(recovery_sha256)+_hash(original['operator_document_sha256'])+_hash(original['archive_sha256']))
+    prefix=END if terminus_sha256 is None else SUCCESSOR_END+_hash(terminus_sha256)
+    wire._write(stream,prefix+_hash(recovery_sha256)+_hash(original['operator_document_sha256'])+_hash(original['archive_sha256']))
     stream.flush()
 
 
@@ -61,7 +63,7 @@ class _OriginalFrame:
         return b''
 
 
-def original_frame(stream,recovery_sha256):
+def original_frame(stream,recovery_sha256,*,terminus_sha256=None):
     """Read the actual post-audit original header before any ancestor checks."""
     wire.pipe_only(stream);_hash(recovery_sha256)
     before=os.fstat(stream.fileno());identity=(before.st_dev,before.st_ino,before.st_mode)
@@ -78,7 +80,8 @@ def original_frame(stream,recovery_sha256):
     count=receipt.get('compressed_bytes')
     if type(count) is not int or count<=0:raise ValueError('Exact original compressed frame length required')
     document_sha=hashlib.sha256(json.dumps(header['operator'],sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
-    footer=END+_hash(recovery_sha256)+_hash(document_sha)+_hash(receipt.get('sha256'))
+    prefix_end=END if terminus_sha256 is None else SUCCESSOR_END+_hash(terminus_sha256)
+    footer=prefix_end+_hash(recovery_sha256)+_hash(document_sha)+_hash(receipt.get('sha256'))
     after=os.fstat(stream.fileno())
     if (after.st_dev,after.st_ino,after.st_mode)!=identity:raise ValueError('Original frame descriptor replaced')
     return _OriginalFrame(stream,prefix+raw,count+len(wire.COMMIT)+64,footer)

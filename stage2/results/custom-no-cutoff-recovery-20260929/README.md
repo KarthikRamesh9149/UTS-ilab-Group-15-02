@@ -1,5 +1,26 @@
 # Separate C0-NC setup recovery
 
+## Current qualification observation, 30 September 14:14 UTC
+
+Recovery remains **0/3 paid**. The SAME R6 unit/process was verified active at
+14:14:34 UTC, with all 319 source/private bindings and final identities checked.
+The `tools`, `prepare_not_applicable` and `prepare_nonzero` cases passed, each
+with zero live API calls. The nonzero synthetic case retained the expected
+setup-failure result with cleanup flags. The fourth `prepare_exception` runtime
+exists, but its result/final evidence are absent. Three cases remain unverified.
+No paid task, completed qualification or recovery archive is claimed.
+
+The OpenHands successor path is now implemented locally while this qualifier
+continues. All 124 initial affected checks passed. The first 1,489-test run
+reported tests OK but failed its final cache-isolation guard; a stale negative
+fixture was corrected without changing production checks. The final 1,490-test
+gate passed with zero skips/errors/failures and all 413 sources unchanged.
+All 153 focused checks also passed serially on those final bytes.
+This work changed none of the 318 running recovery files. Both baselines
+remain 0/89 and must wait for actual completed predecessors. Later recovery
+backup/export must use `no_cutoff_recovery_mac_reporting`, once, after genuine
+3/3 completion. The earlier dated checkpoints below remain historical.
+
 ## Current recovery state, 30 September 12:18 UTC
 
 Recovery is still **0/3 paid attempts**. The SAME R6 qualifier has passed its

@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import struct
+import subprocess
 import sys
 import threading
 import tempfile
@@ -174,8 +175,47 @@ class ReadinessTests(unittest.TestCase):
                 source = reporting._program(files, self.commit, mode); ast.parse(source)
                 self.assertIn("b.reporting('terminus-2',", source)
                 self.assertIn('sys.modules[b.__name__]=b', source)
-        for harness in ('openhands', 'custom', None):
+        before = sys.pycache_prefix, boot.ACTIVE_HARNESS
+        for harness in ('custom', None):
             with self.assertRaises(ValueError): boot.reporting(harness, files, self.commit, 'audit')
+        self.assertEqual((sys.pycache_prefix, boot.ACTIVE_HARNESS), before)
+
+    def test_supported_reporting_context_refusals_are_isolated_from_test_process(self):
+        # Both harnesses now have real entries. Even a refused entry sets its
+        # single-use bootstrap/cache state; exercise that only in owned children.
+        before = sys.pycache_prefix, boot.ACTIVE_HARNESS, os.getcwd(), dict(os.environ)
+        code = """
+import os,sys
+sys.path.insert(0,STAGE)
+import matched_repeat_execution_bootstrap as b
+sys.prefix='/synthetic-refused-baseline-interpreter'
+def guard(event,args):
+ if event=='open':
+  path=args[0]
+  if isinstance(path,(str,bytes,os.PathLike)) and os.path.basename(os.fsdecode(path)) in ('.env','evidence.tar.gz'):
+   raise AssertionError('Credential/archive read refused')
+  mode=args[1] if len(args)>1 else None
+  flags=args[2] if len(args)>2 else 0
+  if isinstance(mode,str) and any(c in mode for c in 'wax+') or isinstance(flags,int) and flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC):
+   raise AssertionError('Write refused')
+ if event.startswith(('socket.','subprocess.','os.exec','os.spawn','os.posix_spawn')) or event in ('os.chdir','os.putenv','os.unsetenv','os.mkdir','os.remove','os.rename','os.rmdir'):
+  raise AssertionError('Native effect refused')
+sys.addaudithook(guard)
+try:b.reporting(HARNESS_TOKEN,{},'a'*40,'audit')
+except ValueError as error:
+ assert str(error)=='Own isolated credential-free baseline interpreter required'
+else:raise AssertionError('Wrong interpreter admitted')
+assert b.ACTIVE_HARNESS==HARNESS_TOKEN
+assert sys.pycache_prefix==str(b.root_for(HARNESS_TOKEN)/'.absent-baseline-execution-bytecode')
+print('reporting-context-refused-in-owned-child')
+""".replace('STAGE', repr(str(Path(boot.__file__).parent)))
+        for harness in ('terminus-2', 'openhands'):
+            result = subprocess.run([sys.executable, '-I', '-B', '-c', code.replace('HARNESS_TOKEN', repr(harness))],
+                capture_output=True, text=True, timeout=20,
+                env={'PATH':'/usr/bin:/bin', 'LANG':'C.UTF-8', 'PYTHON_DOTENV_DISABLED':'1'})
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout.strip(), 'reporting-context-refused-in-owned-child')
+        self.assertEqual((sys.pycache_prefix, boot.ACTIVE_HARNESS, os.getcwd(), dict(os.environ)), before)
 
 
 if __name__ == '__main__': unittest.main()

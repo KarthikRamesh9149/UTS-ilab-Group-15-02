@@ -1,5 +1,16 @@
 # Measured C0-NC final89
 
+## Successor implementation does not replace original evidence
+
+The [separate OpenHands successor route](../../protocols/baseline_openhands_successor_20260930.md)
+is implemented locally and has passed the final 1,490-test local gate with
+413 source bindings and zero skips/errors/failures. Actual native qualification
+remains a separate requirement. The original
+**89/89, 50 passed, 36 verified zeros and 3 setup-only missing** are unchanged.
+Recovery is still 0/3 paid and each baseline repeat is 0/89. No new benchmark
+score, original archive copy, replacement outcome or merged denominator exists.
+All archived35 reporter bytes and frozen318 recovery sources were rechecked unchanged.
+
 ## Original evidence unchanged, 30 September UTC
 
 Original C0-NC remains **89/89: 50 passes, 36 verified zeros, 3 setup-only missing

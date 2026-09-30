@@ -67,8 +67,8 @@ def send(destination):
 
 
 def _context(root,harness):
-    if harness!='terminus-2':
-        raise ValueError('OpenHands additionally requires its actual completed-Terminus handoff')
+    operator.recovery.policy._hash(bootstrap.RECOVERY_SOURCES_SHA)
+    bootstrap.root_for(harness)
     root=Path(root)
     if (root!=runtime.DEPLOYMENTS[harness] or bootstrap.context(harness)!=root
             or Path(__file__).absolute()!=root/'stage2/matched_repeat_recovery_handoff.py'
@@ -228,6 +228,14 @@ def recheck(witness):
 
 
 def authenticate(root,harness,stream):
+    if harness != 'terminus-2':
+        raise ValueError('OpenHands must consume the real outer completed-Terminus handoff')
+    return _authenticate(root,harness,stream)
+
+
+def _authenticate(root,harness,stream,*,terminus_sha256=None):
+    if (harness == 'openhands') != (terminus_sha256 is not None):
+        raise ValueError('Exact separate completed-Terminus composite frame required')
     root=_context(root,harness);wire.pipe_only(stream)
     files,identities=_inputs(root,harness)
     header,digest=wire.read_header(stream)
@@ -238,7 +246,9 @@ def authenticate(root,harness,stream):
     operator.recovery.policy._same(verified,backup['verified'])
     if wire._exact(stream,len(wire.COMMIT)+64)!=wire.COMMIT+digest+bytes.fromhex(backup['receipt']['sha256']):
         raise ValueError('Missing final recovery archive sender commitment')
-    original_stream=composite.original_frame(stream,operator.recovery.policy.fingerprint(document))
+    digest_document=operator.recovery.policy.fingerprint(document)
+    original_stream=(composite.original_frame(stream,digest_document) if terminus_sha256 is None else
+        composite.original_frame(stream,digest_document,terminus_sha256=terminus_sha256))
     native=_actual(document,data,inventory,backup)
     bootstrap.check(harness,files,identities)
     record=dict(kind=KIND,harness=harness,operator_commit=document['operator_commit'],
