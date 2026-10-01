@@ -1,5 +1,23 @@
 # Separate Terminus-2 repeat
 
+## Recovery reporting attempt failed; repeats remain unstarted, 2 October 2026 Sydney
+
+This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and
+no active task. Recovery is 3/3 completed with three failed results retained
+separately. The approved reporting-only backup failed before its original-audit
+sender was called. Its private attempt remains terminal; a source-bound native
+observation found no remaining receiver and no new native producer.
+
+A reproduced readiness/transport boundary defect is corrected in the separate
+Mac parser. All 283 affected local tests passed, but this is not a successful
+backup or native baseline qualification. Both native reporting payloads,
+benchmark sources and all failed attempts are unchanged. No replacement backup
+destination, installation, qualification or paid run has been started.
+The [recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records
+the exact failure, local correction and remaining genuine prerequisites.
+Earlier dated checkpoints below are history.
+
+
 ## Approved separate recovery reporting procedure, 2 October 2026 Sydney
 
 This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and no

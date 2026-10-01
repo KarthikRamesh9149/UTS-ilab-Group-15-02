@@ -1,5 +1,6 @@
 """Real protected Mac files/pipes and synthetic archives; no live SSH."""
 from copy import deepcopy
+from contextlib import contextmanager
 import gzip
 import hashlib
 import io
@@ -9,6 +10,7 @@ from pathlib import Path
 import struct
 import sys
 import threading
+import time
 from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import patch
@@ -20,6 +22,103 @@ import test_no_cutoff_recovery_mac_reporting as old
 from test_no_cutoff_recovery_runtime import save
 
 old_failed_fixture = old.failed_fixture
+
+
+class ReadinessPipeTests(unittest.TestCase):
+    """Actual byte-stream boundary; no SSH, archive or native admission."""
+    def setUp(self):
+        self.sources={n:'b'*64 for n in reporting.repair.SOURCE_NAMES}
+        self.expected=reporting.repair.ready({},'a'*40,'backup',self.sources)
+        self.line=reporting.frozen.service._line(self.expected)
+
+    @contextmanager
+    def pipe(self, raw, *, split=False, delay=0):
+        read,write=os.pipe();errors=[]
+        def send():
+            try:
+                with os.fdopen(write,'wb',buffering=0) as stream:
+                    if delay:time.sleep(delay)
+                    if split:
+                        for byte in raw:stream.write(bytes([byte]))
+                    else:old.native_archive.framing._write(stream,raw)
+            except BrokenPipeError:pass
+            except BaseException as error:errors.append(type(error).__name__)
+        thread=threading.Thread(target=send);thread.start()
+        try:
+            with os.fdopen(read,'rb',buffering=0) as stream:yield stream
+        finally:
+            thread.join(5);self.assertFalse(thread.is_alive());self.assertEqual(errors,[])
+
+    def transport(self):
+        sink=io.BytesIO();writer=wire.Writer(sink).start()
+        try:writer.write(b'actual bytes');writer.finish()
+        finally:writer.close_heartbeat()
+        return sink.getvalue()
+
+    def test_coalesced_and_split_readiness_preserve_every_transport_byte(self):
+        for split in (False,True):
+            with self.subTest(split=split),self.pipe(self.line+self.transport(),split=split) as stream:
+                reader=reporting._read_ready(stream,self.expected)
+                self.assertIs(reader.stream,stream)
+                self.assertEqual(reader.exact(12),b'actual bytes');reader.finish()
+                self.assertEqual(stream.read(),b'')
+
+    def test_malformed_changed_duplicate_oversized_and_missing_readiness_refuse(self):
+        cases=(b'',self.line[:-1],b'{bad}\n',b'{"a":1,"a":1}\n',b'{"a":NaN}\n',
+            reporting.frozen.service._line(dict(self.expected,paid_launch_ready=True)),
+            b' '*reporting.frozen.connection.REPLY_LIMIT+b'\n')
+        for raw in cases:
+            with self.subTest(bytes=len(raw)),self.pipe(raw) as stream:
+                with self.assertRaises((ValueError,EOFError)):reporting._read_ready(stream,self.expected)
+
+    def test_wrong_missing_or_duplicated_transport_preamble_refuses(self):
+        for raw in (self.line,self.line+b'X'*len(wire.MAGIC),self.line+self.line+wire.MAGIC):
+            with self.subTest(bytes=len(raw)),self.pipe(raw) as stream:
+                with self.assertRaises((ValueError,EOFError)):reporting._read_ready(stream,self.expected)
+
+    def test_quiet_readiness_retains_the_bounded_transport_wait(self):
+        self.assertEqual(reporting.TIMEOUT,4500)
+        with patch.object(reporting,'TIMEOUT',0.03),self.pipe(b'',delay=0.1) as stream:
+            with self.assertRaises(TimeoutError):reporting._read_ready(stream,self.expected)
+
+    def test_capture_refuses_bad_preamble_before_rechecks_or_original_sender(self):
+        value={'local_identities':{},'bound':self.sources}
+        with self.pipe(self.line+b'X'*len(wire.MAGIC)) as stream:
+            process=NS(stdin=io.BytesIO(),stdout=stream,poll=lambda:0)
+            with patch.object(reporting,'_prepare',return_value=(value,{})),\
+                    patch.object(reporting,'_command',return_value=['synthetic-no-execution']),\
+                    patch.object(reporting,'subprocess',NS(Popen=lambda *a,**k:process,
+                        PIPE=reporting.subprocess.PIPE,DEVNULL=reporting.subprocess.DEVNULL)),\
+                    patch.object(reporting,'_current') as current,patch.object(reporting.bridge,'send') as send:
+                with self.assertRaises(reporting._CaptureFailure) as caught:reporting._capture('a'*40,'backup')
+                self.assertEqual(caught.exception.stage,'receiver_ready')
+                current.assert_not_called();send.assert_not_called()
+
+    def test_capture_reuses_its_actual_pre_read_transport(self):
+        value={'local_identities':{},'bound':self.sources}
+        with self.pipe(self.line+self.transport()) as stream:
+            process=NS(stdin=io.BytesIO(),stdout=stream,poll=lambda:0)
+            def receive(peer,mode,actual,transport,*,path=None):
+                self.assertIs(peer,process);self.assertIs(actual,value)
+                self.assertIs(transport.stream,stream)
+                self.assertEqual(transport.exact(12),b'actual bytes');transport.finish()
+                self.assertEqual(stream.read(),b'');return 'synthetic-completion-only'
+            with patch.object(reporting,'_prepare',return_value=(value,{})),\
+                    patch.object(reporting,'_command',return_value=['synthetic-no-execution']),\
+                    patch.object(reporting,'subprocess',NS(Popen=lambda *a,**k:process,
+                        PIPE=reporting.subprocess.PIPE,DEVNULL=reporting.subprocess.DEVNULL)),\
+                    patch.object(reporting,'_current') as current,patch.object(reporting.bridge,'send') as send,\
+                    patch.object(reporting,'_receive',side_effect=receive):
+                result=reporting._capture('a'*40,'backup')
+                self.assertEqual(result,('synthetic-completion-only',value,{}))
+                send.assert_called_once_with(value,process.stdin);self.assertEqual(current.call_count,2)
+
+    def test_receiver_rejects_foreign_or_unprepared_transport(self):
+        with self.pipe(self.transport()) as stream:
+            reader=wire.Reader(stream)
+            for transport in (None,reader):
+                with self.assertRaises(ValueError):
+                    reporting._receive(NS(stdout=io.BytesIO()),'backup',{},transport)
 
 
 def failed_fixture(case, root):
@@ -63,7 +162,9 @@ class RepairMacTests(old.MacReportingTests):
     async def test_actual_pipe_receiver_keeps_exact_committed_archive(self):
         if not self.available():return
         await self.produce();data,_=self.collect();inventory,state=old.native_archive.inventory(data)
-        raw=io.BytesIO();output=wire.Writer(raw).start()
+        expected={'synthetic_readiness':True}
+        raw=io.BytesIO();raw.write(reporting.frozen.service._line(expected))
+        output=wire.Writer(raw).start()
         try:
             old.native_archive.framing._write(output,old.native_archive.MAGIC)
             old.native_archive.framing._metadata(output,dict(snapshot=data,inventory=inventory))
@@ -82,8 +183,10 @@ class RepairMacTests(old.MacReportingTests):
         thread=threading.Thread(target=send);thread.start()
         try:
             with os.fdopen(read,'rb',buffering=0) as stream,patch.object(reporting,'_manifest',return_value=self.f.manifest):
+                reader=reporting._read_ready(stream,expected)
+                reader.deadline=-1  # Synchronous original handoff is not receive idle.
                 received=reporting._receive(NS(stdout=stream,wait=lambda **kw:0),'backup',
-                    {'current_sources':self.sources},path=path)
+                    {'current_sources':self.sources},reader,path=path)
             self.assertEqual(received[:3],(data,inventory,receipt))
         finally:thread.join(10)
         self.assertFalse(thread.is_alive());self.assertEqual(errors,[])
@@ -93,14 +196,14 @@ class RepairMacTests(old.MacReportingTests):
         if not self.available():return
         await self.setup_operator();real_capture=self.real_capture
         process=NS(stdin=io.BytesIO(),stdout=io.BytesIO(),poll=lambda:0)
-        def ready(stream):
+        def ready(stream,expected):
             (self.root/reporting.R5/'failure.json').write_bytes(b'{}')
             return reporting.repair.ready(self.bound,'a'*40,'audit',reporting._reporting_sources(self.value))
         with patch.object(reporting,'_prepare',return_value=(self.value,self.bound)),\
                 patch.object(reporting,'_command',return_value=['synthetic-no-execution']),\
                 patch.object(reporting,'subprocess',NS(Popen=lambda *a,**k:process,
                     PIPE=reporting.subprocess.PIPE,DEVNULL=reporting.subprocess.DEVNULL)),\
-                patch.object(reporting.frozen.connection,'read_reply',side_effect=ready),\
+                patch.object(reporting,'_read_ready',side_effect=ready),\
                 patch.object(reporting.bridge,'send') as send:
             with self.assertRaises(reporting._CaptureFailure) as caught:real_capture('a'*40,'audit')
         self.assertEqual(caught.exception.stage,'before_sender_recheck');send.assert_not_called()

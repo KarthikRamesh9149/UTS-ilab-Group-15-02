@@ -1,5 +1,41 @@
 # Separate C0-NC setup recovery
 
+## Reporting-only attempt failed; readiness parser corrected, 2 October 2026 Sydney
+
+Recovery remains **3/3 completed, 0 passed, 3 failed, 0 missing verifier**.
+Both baseline repeats remain **0/89**, unstarted. There is no verified recovery
+backup or export, and no active benchmark.
+
+The ONE approved reporting-only backup at a58c80b began 1 October at
+15:07:42.660511 UTC and failed at 15:14:44.238926 UTC, exit 1, with the bounded
+diagnostic `capture_receiver_ready / ValueError`. Its Mac folder is terminal and
+contains only protected intent/failure records. The exact exception condition
+was not retained. No retry, replacement destination or archive repair was made.
+At 16:17:39.257584 UTC, a source-bound read-only native observation verified
+319 bindings and final identities, all relevant processes absent, the new native
+producer absent and the old native R5 failure records unchanged.
+
+A real local pipe diagnostic reproduced a current boundary defect: the old
+single-reply reader rejects the valid readiness line when the following
+transport prefix arrives in the same read. Only the separate Mac parser is
+corrected: exact bounded JSON and actual preamble, no read-ahead byte loss,
+same real stream, and the unchanged 4,500-second unresponsive receive window.
+Both native reporting payloads, frozen 318, archived 35 and all six failed
+attempts remain unchanged. This does not relabel the failed operation or grant
+another invocation. The [protocol](../../protocols/custom_recovery_reporting_repair_20261002.md)
+records its exact hashes and the required scope for any later attempt.
+
+All **283 affected local tests passed** serially in 645.647 seconds
+(649.844 including guards), zero errors, failures or skips, with 419 bindings
+before/discovery/after, 213 loaded modules and per-test cache checks. Source map:
+`d1255cfbcafbdcabc3778ebac3ee0efc1c2d6baa9a66280b25a18c63dd0d7172`.
+The seven new boundary tests passed first. Their initial contract run failed
+before implementation; it was not a passing gate or a native backup.
+Native facts in local suites are mocked. Earlier broader evidence was not rerun.
+No actual end-to-end corrected backup, export or baseline admission is claimed.
+Earlier dated publication checkpoints below are history.
+
+
 ## Approved reporting-only recovery, 2 October 2026 Sydney
 
 This checkpoint supersedes the older r5-not-invoked entries below. Recovery is

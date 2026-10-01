@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 import hashlib
 import os
 import re
+import selectors
 import shlex
 import struct
 import subprocess
@@ -169,9 +170,37 @@ def _private_bytes(path, raw):
     return boot.write_bytes(path, raw)
 
 
-def _receive(process, mode, value, *, path=None):
+def _read_ready(stream, expected):
+    """Consume exactly the JSON line, then the real outer transport preamble.
+
+    Pipe/SSH reads need not preserve writes. The frozen one-reply reader rejects
+    coalesced following bytes, whereas this channel deliberately continues.
+    No following transport byte is discarded or substituted.
+    """
+    data = bytearray(); deadline = time.monotonic() + TIMEOUT
+    with selectors.DefaultSelector() as selector:
+        selector.register(stream, selectors.EVENT_READ)
+        while not data.endswith(b'\n'):
+            if len(data) >= frozen.connection.REPLY_LIMIT:
+                raise ValueError('Reporting readiness exceeds metadata window')
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or not selector.select(remaining):
+                raise TimeoutError('Reporting readiness unresponsive')
+            raw = os.read(stream.fileno(), 1)
+            if not raw: raise EOFError('Reporting readiness incomplete')
+            data.extend(raw)
+    policy._same(boot.loads(bytes(data[:-1])), expected)
+    return wire.Reader(stream)  # Validate the exact native preamble before send.
+
+
+def _receive(process, mode, value, stream, *, path=None):
+    if (type(stream) is not wire.Reader or stream.stream is not process.stdout
+            or stream.buffer or stream.ended):
+        raise ValueError('Same actual pre-read reporting transport required')
+    # The owning task has synchronously performed its original handoff since
+    # readiness. Start this receive wait now; that local work is not peer idle.
+    stream.deadline = time.monotonic() + wire.IDLE_SECONDS
     receiver = handoff.operator.receiver
-    stream = wire.Reader(process.stdout)
     magic = archive.MAGIC if mode == 'backup' else AUDIT_MAGIC
     if stream.exact(len(magic)) != magic:
         raise ValueError('Exact recovery reporting stream required')
@@ -217,14 +246,14 @@ def _capture(commit, mode, *, path=None):
         process = subprocess.Popen(_command(files, commit, mode, _reporting_sources(value)), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL, bufsize=0, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
         stage = 'receiver_ready'
-        policy._same(frozen.connection.read_reply(process.stdout), repair.ready(files, commit, mode, _reporting_sources(value)))
+        stream = _read_ready(process.stdout, repair.ready(files, commit, mode, _reporting_sources(value)))
         stage = 'before_sender_recheck'
         _current(value, identities)
         stage = 'original_sender'
         bridge.send(value, process.stdin)  # Actual fresh original audit + SAME original archive, never a saved receipt.
         process.stdin.close()
         stage = 'stream_receive'
-        result = _receive(process, mode, value, path=path)
+        result = _receive(process, mode, value, stream, path=path)
         stage = 'final_recheck'
         _current(value, identities)
         return result, value, identities

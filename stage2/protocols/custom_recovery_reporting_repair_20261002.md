@@ -1,5 +1,47 @@
 # Separate reporting-only recovery after terminal R5
 
+## Terminal operation and readiness correction, 1 October 2026 16:18 UTC
+
+The ONE approved backup at a58c80bcdd76e316c491eaf93270634043ce9c31 began
+15:07:42.660511Z and failed 15:14:44.238926Z, exit 1, with the retained
+`capture_receiver_ready / ValueError` diagnostic. The parent is ended. The
+Mac destination below is now TERMINAL and must not be invoked, resumed,
+overwritten, deleted or recreated. It contains exactly intent.json207bytes
+SHA25666084b1099dca7dbb10a3638b473f91f160b098998f8cf894b5c273d271df560
+and failure.json193bytes
+SHA256d9fcd0cce575ceb89456d8c0f15fe9b6606c844d1bd3d70fda57e0fd3c76033d,
+both0600, owned and single-link. No archive or export exists for this attempt.
+
+One source-bound read-only native observation at16:17:39.257584Z found all
+relevant original/recovery-root processes absent and the new native producer
+absent. The old native R5 intent/result/failure were unchanged. All319 native
+bindings and final identities plus332 actual committed Mac sources and loaded
+origins were checked. No collector, archive, live handoff, write or signal ran.
+Absence is dated evidence, not future admission or permission to repeat.
+
+A real LOCAL pipe diagnostic on the unchanged committed sources reproduced a
+boundary defect: the actual574-byte readiness reply passes alone, but the
+frozen single-reply reader rejects it when the actual35-byte transport prefix
+arrives in the same read. SSH/pipes do not preserve individual writes. This is
+a demonstrated current mechanism, not the unavailable historical exception.
+
+Only the separate Mac parser is corrected. It consumes the exact bounded JSON
+line without reading ahead, validates the complete expected reply, then checks
+the actual outer preamble before the original sender. The same real reader
+continues into capture; no transport byte is discarded or reconstructed. The
+receive idle window starts when the owning task begins receiving after its
+synchronous original handoff. It remains4500seconds, not an absolute deadline
+on healthy work. Malformed/duplicate/oversized/incomplete replies, wrong peer
+bindings, wrong preamble, foreign streams and uncertain completion still refuse.
+Both independently bound native payloads, frozen318 and archived35 stay exact.
+
+This local correction does not change either fixed destination, bypass its
+terminal state, grant another invocation or establish end-to-end success.
+No replacement destination, new archive operation or baseline launch is added.
+Any separately authorised later reporting attempt needs its own explicit
+preservation/destination bindings; this failed call can never become successful.
+Earlier uninvoked/ready wording below describes the original approved design.
+
 The human explicitly approved this scope with “YES” in direct response to
 the pending separate backup-recovery question on 2 October 2026 Sydney.
 Authority is ONE new reporting-only backup and the already approved subsequent
