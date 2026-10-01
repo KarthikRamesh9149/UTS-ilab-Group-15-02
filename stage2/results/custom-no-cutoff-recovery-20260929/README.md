@@ -1,5 +1,47 @@
 # Separate C0-NC setup recovery
 
+## Approved reporting-only recovery, 2 October 2026 Sydney
+
+This checkpoint supersedes the older r5-not-invoked entries below. Recovery is
+**3/3 completed, 0 passed, 3 failed, 0 missing verifier**. Both baseline repeats
+remain **0/89**, unstarted. No successful recovery backup or export is claimed.
+
+R5 failed on both Mac and native sides. The last native read-only observation
+at 11:57:39.835750 UTC on 1 October found its receiver absent and its producer
+containing intent, result and failure. That result preceded the final-session
+checks and does not establish success. The saved partial archive contains all
+1,237 inventory files but lacks its closing eight gzip bytes. An in-memory-only
+comparison matched the native receipt after adding those bytes; nothing was
+saved, repaired or relabelled. The precise historical exceptions remain unknown.
+
+The human explicitly approved ONE separate reporting-only recovery procedure.
+The new fixed Mac/native destinations, all five failed folders, twelve JSON
+records, partial archive and three old native records are bound by the
+[reporting-recovery protocol](../../protocols/custom_recovery_reporting_repair_20261002.md).
+The new transport immediately flushes actual gzip bytes, distinguishes liveness
+from completion and retains a 4,500-second unresponsive window. A new result is
+written only after real normal session exit and final checks. Frozen 318 native
+and 35 archived reporting sources, benchmark behaviour and results are unchanged.
+
+All **276 affected local tests passed** in 620.105 seconds (624.487 with
+guards), with zero errors, failures or skips, 419 source bindings and 213 loaded
+project modules. A separate 57-test policy/bootstrap/installer check passed in
+1.626 seconds (5.828 guarded), on the same source map:
+`a05a18f9cd49ddca05fd05586069893a8aa6405cd519881dc616a906fd0936e8`.
+Afterward one trailing blank line was removed from the new Mac module; its
+AST and all line locations were verified identical. The 32 new-module tests
+then passed on the actual final bytes in 150.917 seconds (155.016 guarded),
+with zero errors, failures or skips, 419 bindings and 145 loaded modules. Final map:
+`847f66437ca6b4162649a06d821fc83a814cb89543099d1eefd7432d71344a6d`.
+The earlier 65 focused tests predate the final inspect-mode/protocol edits.
+The older broad gate was not rerun. Native observations in these local tests
+are mocked; real local protected files, pipes and synthetic archives were tested.
+
+No new backup invocation or native compatibility is claimed at this publication
+checkpoint. Actual committed preparation and read-only native entry inspection
+must pass before the ONE new backup. Genuine audit, strict off-server archive
+verification and export still precede Terminus installation and qualification.
+
 ## SSH liveness correction verified, 1 October 2026 UTC
 
 Recovery remains **3/3 completed, 0 passed, 3 failed, 0 missing verifier**,

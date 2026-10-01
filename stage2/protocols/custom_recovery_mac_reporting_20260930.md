@@ -1,5 +1,15 @@
 # Separate Darwin recovery-reporting amendment, 30 September 2026
 
+## Superseded reporting operation, 2 October 2026 Sydney
+
+R5 subsequently failed on both Mac and native sides. Its partial archive and
+all prior failure records remain immutable; this module's R5 backup entry must
+never be invoked again. The human approved the distinct reporting-only procedure
+in `custom_recovery_reporting_repair_20261002.md`. Its new Mac entry is
+`no_cutoff_recovery_mac_repair`, with separately bound inline native reporting
+code and unchanged frozen R6 modules. No benchmark or qualification is rerun.
+The preceding transport fixes remain history, not proof of backup success.
+
 This is a Mac operator compatibility correction, not new native qualification,
 paid admission, a task attempt, a score change or a replacement backup. The
 frozen R6 tree, all 318 source bytes, original reporter35 and every retained

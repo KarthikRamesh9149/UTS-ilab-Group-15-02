@@ -1,5 +1,26 @@
 # Separate Terminus-2 repeat
 
+## Approved separate recovery reporting procedure, 2 October 2026 Sydney
+
+This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and no
+active task. Recovery remains 3/3 complete with three failed results retained
+separately. R5 failed on both sides; its pre-exit native result and incomplete
+Mac archive do not satisfy this repeat's prerequisites.
+
+The human approved ONE new, separately bound reporting-only recovery operation.
+This baseline now requires its new post-session native producer, actual fresh
+audit and SAME verified archive, while preserving all five failed Mac attempts
+and the terminal native R5 producer. No original outcome, agent control or
+frozen native source changed. The new operation has not been invoked at this
+publication checkpoint; no baseline install, qualification or run is claimed.
+
+All 276 affected local tests and 57 additional policy/bootstrap/installer tests
+passed. After a verified AST-identical trailing-blank-line cleanup, all 32 new
+module tests passed on the final 419-source map. These include synthetic host
+observations, not native qualification. The [recovery status](../../custom-no-cutoff-recovery-20260929/README.md)
+records exact local evidence and the remaining genuine execution gates.
+Earlier dated checkpoints below are history, not current readiness.
+
 ## SSH transport correction verified; prerequisites still pending, 1 October UTC
 
 This repeat remains **0/89**, with0passed,0failed,0missing verifier and no active

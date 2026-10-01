@@ -90,7 +90,7 @@ def _metadata(header,harness):
     for name,value in dict(kind=TRANSFER,schema_version=1,harness=harness).items():same(header[name],value)
     document=header['operator']
     expected={'kind','operator_commit','recovery_root','recovery_sources_sha256','fresh_audit',
-        'retained','archive_sha256','paid_launch_ready'}
+        'retained','archive_sha256','preserved_failed_archives','paid_launch_ready'}
     if type(document) is not dict or set(document)!=expected:
         raise ValueError('Actual fixed recovery capture schema required')
     for name,value in dict(kind=operator.KIND,recovery_root=str(bootstrap.RECOVERY),
@@ -98,6 +98,10 @@ def _metadata(header,harness):
     if not isinstance(document['operator_commit'],str) or not bootstrap.re.fullmatch('[a-f0-9]{40}',document['operator_commit']):
         raise ValueError('Full committed composite sender revision required')
     recovery.policy._hash(document['archive_sha256'])
+    # The actual Mac reader streamed and hashed the unchanged failed partial
+    # archive. Only its pinned digest/size crosses this metadata frame; it is
+    # never substituted for the new complete archive transferred below.
+    same(document['preserved_failed_archives'],operator.mac_recovery.FAILED_ARCHIVES)
     names={operator.BACKUP+'/'+n for n in ('intent.json','snapshot.json','inventory.json','backup.json')}
     names|={folder+'/'+n for folder,files in operator.mac_recovery.FAILED_BACKUPS.items() for n in files}
     names|={recovery.EXPORT+'/'+n for n in ('intent.json','result.json')}
@@ -143,27 +147,14 @@ def _metadata(header,harness):
 def _backup_producer(document,backup):
     """Read the actual retained native producer, not its off-server receipt."""
     recovery=operator.recovery;root=bootstrap.RECOVERY
-    relative=recovery.NATIVE_BACKUP;path=root/relative
-    directory=bootstrap.directories(path,private=True)
-    if {p.name for p in path.iterdir()}!={'intent.json','result.json'}:
-        raise ValueError('Exact completed native recovery backup inventory required')
-    records={n:evidence.read(root,relative+'/'+n) for n in ('intent.json','result.json')}
-    intent=bootstrap.loads(records['intent.json'][0])
-    if set(intent)!={'kind','commit','sources_sha256','automatic_resume','started_utc','paid_launch_ready'}:
-        raise ValueError('Actual one-shot recovery backup producer intent required')
-    original.archive._utc(intent['started_utc'])
+    repair=operator.mac_recovery.repair
     mac=bootstrap.loads(document['retained'][operator.BACKUP+'/intent.json'].encode())
-    recovery.policy._same({n:v for n,v in intent.items() if n!='started_utc'},
-        dict(kind='one_shot_separate_recovery_backup',commit=mac['commit'],
-            sources_sha256=recovery.policy.fingerprint(bootstrap._recovery_files()),
-            automatic_resume=False,paid_launch_ready=False))
-    recovery.policy._same(bootstrap.loads(records['result.json'][0]),
-        dict(backup['receipt'],automatic_resume=False,paid_launch_ready=False))
-    if (bootstrap.directories(path,private=True)!=directory
-            or {p.name for p in path.iterdir()}!={'intent.json','result.json'}
-            or any(evidence.read(root,relative+'/'+n)!=value for n,value in records.items())):
-        raise ValueError('Native recovery backup producer changed while reading')
-    return dict(directory=directory,records=records)
+    own_root=Path(__file__).absolute().parent.parent
+    sources={n:hashlib.sha256(evidence.read(own_root,'stage2/'+n)[0]).hexdigest()
+        for n in repair.SOURCE_NAMES}
+    # Independently bound reporting amendment plus unchanged frozen R6 inputs.
+    # This reader requires the new post-session producer AND old R5 failure.
+    return repair.retained_native(bootstrap._recovery_files(),mac['commit'],sources,backup['receipt'])
 
 
 def _actual(document,data,inventory,backup):

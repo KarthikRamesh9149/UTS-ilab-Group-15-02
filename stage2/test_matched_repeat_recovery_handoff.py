@@ -21,6 +21,7 @@ import matched_repeat_recovery_handoff as handoff
 import test_matched_repeat_recovery_operator as operator_tests
 from test_no_cutoff_recovery_execution import LocalFiles
 from test_no_cutoff_recovery_runtime import save
+from test_no_cutoff_recovery_reporting_repair import failed_native_fixture
 
 
 class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase):
@@ -51,13 +52,20 @@ class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase
         document = dict(kind=handoff.operator.KIND, operator_commit='a' * 40,
             recovery_root=str(self.root), recovery_sources_sha256=recovery.policy.fingerprint(self.sources),
             fresh_audit=deepcopy(data), retained={n: v[0].decode() for n, v in value['records'].items()},
-            archive_sha256=backup['receipt']['sha256'], paid_launch_ready=False)
+            archive_sha256=backup['receipt']['sha256'],
+            preserved_failed_archives=deepcopy(handoff.operator.mac_recovery.FAILED_ARCHIVES),paid_launch_ready=False)
         inventory = recovery.boot.loads(document['retained'][handoff.operator.BACKUP + '/inventory.json'].encode())
-        for name, record in (('intent.json', dict(kind='one_shot_separate_recovery_backup', commit='a' * 40,
-                sources_sha256=recovery.policy.fingerprint(bound), automatic_resume=False,
-                started_utc=data['collected_utc'], paid_launch_ready=False)),
+        repair=handoff.operator.mac_recovery.repair
+        failed_native_fixture(self,self.root)
+        amendment={}
+        for name in repair.SOURCE_NAMES:
+            raw=(Path(__file__).parent/name).read_bytes();save(self.root,'stage2/'+name,raw)
+            amendment[name]=hashlib.sha256(raw).hexdigest()
+        self.enterContext(patch.object(handoff,'__file__',str(self.root/'stage2/matched_repeat_recovery_handoff.py')))
+        for name, record in (('intent.json', dict(repair.intent_fields(bound,'a'*40,amendment),
+                started_utc=data['collected_utc'])),
                 ('result.json', dict(backup['receipt'], automatic_resume=False, paid_launch_ready=False))):
-            save(self.root, recovery.NATIVE_BACKUP + '/' + name, json.dumps(record).encode())
+            save(self.root, repair.NATIVE_BACKUP + '/' + name, json.dumps(record).encode())
         archive = (self.root / handoff.operator.BACKUP / 'evidence.tar.gz').read_bytes()
         self.resources.reset_mock()  # Exclude the fixture's earlier synthetic completed audit.
         return data, backup, inventory, document, archive
@@ -119,7 +127,7 @@ class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase
         _, _, _, document, _ = await self.fixture()
         pinned = {folder+'/'+name for folder,files in handoff.operator.mac_recovery.FAILED_BACKUPS.items()
             for name in files}
-        self.assertEqual(len(pinned),8)
+        self.assertEqual(len(pinned),12)
         self.assertTrue(pinned.issubset(document['retained']))
         new = handoff.operator.BACKUP+'/snapshot.json'
         for folder in handoff.operator.mac_recovery.FAILED_BACKUPS:
@@ -180,18 +188,18 @@ class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase
     async def test_actual_producer_missing_failure_receipt_or_identity_drift_refuses(self):
         _, backup, _, document, archive = await self.fixture()
         recovery = handoff.operator.recovery
-        path = self.root / recovery.NATIVE_BACKUP / 'result.json'; raw = path.read_bytes()
+        path = self.root / handoff.operator.mac_recovery.repair.NATIVE_BACKUP / 'result.json'; raw = path.read_bytes()
         path.unlink()
         with self.assertRaises(ValueError): handoff._backup_producer(document, backup)
-        save(self.root, recovery.NATIVE_BACKUP + '/result.json', raw)
-        failure = recovery.NATIVE_BACKUP + '/failure.json'; save(self.root, failure, b'{}')
+        save(self.root, handoff.operator.mac_recovery.repair.NATIVE_BACKUP + '/result.json', raw)
+        failure = handoff.operator.mac_recovery.repair.NATIVE_BACKUP + '/failure.json'; save(self.root, failure, b'{}')
         with self.assertRaises(ValueError): handoff._backup_producer(document, backup)
         (self.root / failure).unlink()
         before = handoff._backup_producer(document, backup)
-        path.rename(path.with_suffix('.saved')); save(self.root, recovery.NATIVE_BACKUP + '/result.json', raw)
+        path.rename(path.with_suffix('.saved')); save(self.root, handoff.operator.mac_recovery.repair.NATIVE_BACKUP + '/result.json', raw)
         path.with_suffix('.saved').unlink()
         self.assertNotEqual(handoff._backup_producer(document, backup), before)
-        save(self.root, recovery.NATIVE_BACKUP + '/result.json', b'{}')
+        save(self.root, handoff.operator.mac_recovery.repair.NATIVE_BACKUP + '/result.json', b'{}')
         with self.assertRaises(ValueError): self.authenticate(document, archive)
 
     async def test_actual_result_drift_and_restoration_permanently_invalidate(self):
@@ -205,7 +213,7 @@ class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase
     async def test_same_byte_producer_replacement_and_extra_trial_file_invalidate(self):
         data, _, _, document, archive = await self.fixture()
         witness = self.authenticate(document, archive)
-        relative = handoff.operator.recovery.NATIVE_BACKUP + '/result.json'; path = self.root / relative
+        relative = handoff.operator.mac_recovery.repair.NATIVE_BACKUP + '/result.json'; path = self.root / relative
         raw = path.read_bytes(); saved = path.with_suffix('.saved'); path.rename(saved); save(self.root, relative, raw); saved.unlink()
         with self.assertRaises(ValueError): handoff.recheck(witness)
         witness = self.authenticate(document, archive)

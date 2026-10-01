@@ -1,5 +1,11 @@
 # Separate completed-Terminus successor route
 
+The approved `custom_recovery_reporting_repair_20261002.md` supersedes the
+failed R5 recovery backup dependency. All three predecessor routes use the
+new actually verified recovery archive and post-session native producer, while
+preserving all five Mac failures and the old native failure. No saved receipt,
+reconstructed gzip trailer or local test result is admission.
+
 This amendment completes the prospective OpenHands execution path locally.
 It is not native installation, qualification, paid launch or a benchmark
 outcome. The order stays recovery3, its actual audit/ONE backup/export,

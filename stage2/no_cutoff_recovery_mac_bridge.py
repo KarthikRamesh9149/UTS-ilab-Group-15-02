@@ -29,6 +29,10 @@ EXTRAS = (
     'no_cutoff_recovery_mac_reporting.py', 'test_no_cutoff_recovery_mac_reporting.py',
     'test_no_cutoff_recovery_mac_bridge.py',
     'protocols/custom_recovery_mac_reporting_20260930.md',
+    'no_cutoff_recovery_mac_repair.py', 'test_no_cutoff_recovery_mac_repair.py',
+    'no_cutoff_recovery_reporting_repair.py', 'test_no_cutoff_recovery_reporting_repair.py',
+    'no_cutoff_recovery_reporting_transport.py',
+    'protocols/custom_recovery_reporting_repair_20261002.md',
 )
 TIMEOUT = 4500  # Same original handoff window, never a task or request limit.
 FAILURE_PREFIX = b'UTS_MAC_RECOVERY_CHILD_FAILURE_V1 '

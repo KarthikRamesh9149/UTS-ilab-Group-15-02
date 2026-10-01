@@ -1,10 +1,11 @@
 # Separate baseline-repeat completion and reporting
 
-The 1 October Darwin backup-location amendment in
-`custom_recovery_mac_reporting_20260930.md` fixes the recovery dependency to
-`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r5`, preserving all FOUR failed
-attempts as eight additional pinned raw metadata records. Both successor
-senders and the exact native metadata schema use this separately bound path.
+The human-approved reporting-only recovery in
+`custom_recovery_reporting_repair_20261002.md` now fixes the dependency to
+`.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002`, preserving FIVE
+failed attempts, twelve JSON records and the exact unchanged partial R5 gzip.
+Both successor senders authenticate this preservation and the new real
+post-session native producer; the old failed native result cannot admit a run.
 The real Mac audit child and first-baseline archive sender use the Darwin
 reporter/file reader, not the legacy Linux operator readers. Local synthetic
 checks do not establish a real recovery archive or native baseline readiness.
@@ -110,7 +111,7 @@ No archived sender, reporter or handoff source is edited.
 
 The recovery-specific operator component has no saved-audit input. Its fixed
 isolated Mac child checks committed baseline/recovery sources before imports,
-then calls the real frozen recovery reporting audit, including that route's
+then calls the separate reporting-recovery entry's real frozen audit/session, including that route's
 fresh original audit and SAME original archive authentication. It checks the
 returned audit against the retained completed recovery snapshot, strictly
 reads the SAME recovery archive and requires deterministic already-committed

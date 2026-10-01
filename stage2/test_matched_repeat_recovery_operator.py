@@ -16,7 +16,7 @@ import matched_repeat_recovery_operator as operator
 from test_no_cutoff_recovery_execution import LocalFiles
 from test_no_cutoff_recovery_reporting import ReportingTests
 from test_no_cutoff_recovery_runtime import save
-from test_no_cutoff_recovery_mac_reporting import failed_fixture
+from test_no_cutoff_recovery_mac_repair import failed_fixture
 
 
 class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
@@ -47,7 +47,7 @@ class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         for name,value in (('intent.json',intent),('snapshot.json',data),('inventory.json',inventory),('backup.json',backup)):
             save(self.root,operator.BACKUP+'/'+name,json.dumps(value).encode())
         save(self.root,operator.BACKUP+'/evidence.tar.gz',path.read_bytes())
-        failed_fixture(self.root)
+        failed_fixture(self,self.root)
         public=recovery.projection(data,backup); bound={}
         for name,raw in public.items():
             relative=recovery.PUBLIC+'/'+name;save(self.root,relative,raw);bound[relative]=hashlib.sha256(raw).hexdigest()
@@ -75,7 +75,7 @@ class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         expected |= {operator.recovery.PUBLIC+'/'+name for name in operator.recovery.OUTPUTS}
         expected |= {folder+'/'+name for folder,files in operator.mac_recovery.FAILED_BACKUPS.items()
             for name in files}
-        self.assertEqual(len(expected),17)
+        self.assertEqual(len(expected),21)
         self.assertEqual(set(actual['records']),expected)
         self.assertEqual(operator._retained({'commit':'a'*40},self.sources),actual)
 
@@ -105,7 +105,7 @@ class RecoveryChildDispatchTests(unittest.TestCase):
         ast.parse(code)
         self.assertIn("reporting._capture(commit,'audit')",code)
         self.assertIn("reporting._current(captured,captured_ids)",code)
-        self.assertLess(code.index('before=current()'),code.index('import no_cutoff_recovery_mac_reporting'))
+        self.assertLess(code.index('before=current()'),code.index('import no_cutoff_recovery_mac_repair'))
         self.assertNotIn('CALLBACK',code);self.assertNotIn('OPENROUTER_API_KEY',operator._environment())
         self.assertEqual(operator._environment()['PYTHON_DOTENV_DISABLED'],'1')
         self.assertIn("reporting.bridge._loaded({'bound':mac_bound})",code)
@@ -115,7 +115,8 @@ class RecoveryChildDispatchTests(unittest.TestCase):
         bound={'commit':'a'*40,'local':{'stage2/example.py':'b'*64}}
         fresh={'collected_utc':'2026-09-30T00:00:00Z','measured':1.0,'unknown':None}
         retained=dict(data=deepcopy(fresh),backup={'receipt':{'sha256':'c'*64}},
-            records={'snapshot.json':(json.dumps(fresh).encode(),())})
+            records={'snapshot.json':(json.dumps(fresh).encode(),())},
+            failed_backup={'archives':{}})
         self.enterContext(patch.object(operator.original,'_prepare',return_value=(bound,{})))
         self.enterContext(patch.object(operator,'_sources',return_value={'example.py':'b'*64}))
         self.enterContext(patch.object(operator,'_retained',return_value=retained))
@@ -161,16 +162,16 @@ class RecoveryChildProgramTests(unittest.TestCase):
                 " assert mode=='audit'\n"
                 " return dict(synthetic_child_only=True,measured=1.0,unknown=None),{},{}\n"
                 "def _current(value,identities):pass\n").encode()
-            save(root,'stage2/no_cutoff_recovery_mac_reporting.py',source)
+            save(root,'stage2/no_cutoff_recovery_mac_repair.py',source)
             commit='a'*40
-            bound={'stage2/no_cutoff_recovery_mac_reporting.py':hashlib.sha256(source).hexdigest()}
-            if drift:save(root,'stage2/no_cutoff_recovery_mac_reporting.py',source+b'\n# drift\n')
+            bound={'stage2/no_cutoff_recovery_mac_repair.py':hashlib.sha256(source).hexdigest()}
+            if drift:save(root,'stage2/no_cutoff_recovery_mac_repair.py',source+b'\n# drift\n')
             with patch.object(operator,'REPO',root),patch.object(operator,'PYTHON',Path(sys.executable).absolute()),\
                     patch.object(operator,'CACHE',root/'.runtime/absent-cache'):
-                code=operator._program(commit,bound,{'no_cutoff_recovery_mac_reporting.py':bound[next(iter(bound))]})
+                code=operator._program(commit,bound,{'no_cutoff_recovery_mac_repair.py':bound[next(iter(bound))]})
                 git_fixture=("import subprocess\n"
                     "def synthetic_git(argv,**kwargs):\n"
-                    " if argv==['git','show',"+repr(commit+':stage2/no_cutoff_recovery_mac_reporting.py')+"]:return "+repr(source)+"\n"
+                    " if argv==['git','show',"+repr(commit+':stage2/no_cutoff_recovery_mac_repair.py')+"]:return "+repr(source)+"\n"
                     " if argv in (['git','rev-parse','HEAD'],['git','rev-parse','origin/main']):return "+repr((commit+'\n').encode())+"\n"
                     " raise AssertionError('Unexpected synthetic Git command')\n"
                     "subprocess.check_output=synthetic_git\n")

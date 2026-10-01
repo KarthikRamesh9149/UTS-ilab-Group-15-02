@@ -16,7 +16,7 @@ import subprocess
 import matched_repeat_amended_predecessor as original
 import matched_repeat_execution_bootstrap as bootstrap
 import no_cutoff_recovery_reporting as recovery
-import no_cutoff_recovery_mac_reporting as mac_recovery
+import no_cutoff_recovery_mac_repair as mac_recovery
 import mac_operator_files as mac
 
 KIND = 'actual_recovery_capture_for_baseline_not_admission'
@@ -109,7 +109,7 @@ def guard(event,args):
   violation=True;raise RuntimeError('Recovery audit child effect refused')
 sys.addaudithook(guard);sys.path.insert(0,str(root/'stage2'))
 with contextlib.redirect_stdout(io.StringIO()):
- import no_cutoff_recovery_mac_reporting as reporting
+ import no_cutoff_recovery_mac_repair as reporting
  importing=False
  if violation or current()!=before:raise ValueError('Import changed bound recovery reader')
  mac_bound={n:bound['stage2/'+n] for n in set(sources)|set(reporting.bridge.EXTRAS)}
@@ -198,5 +198,7 @@ def capture(commit):
     document = dict(kind=KIND,operator_commit=commit,recovery_root=str(bootstrap.RECOVERY),
         recovery_sources_sha256=bootstrap.RECOVERY_SOURCES_SHA,fresh_audit=fresh,
         retained={n:raw.decode('utf-8') for n,(raw,_) in retained['records'].items()},
-        archive_sha256=retained['backup']['receipt']['sha256'],paid_launch_ready=False)
+        archive_sha256=retained['backup']['receipt']['sha256'],
+        preserved_failed_archives={n:{k:v for k,v in item.items() if k!='identity'}
+            for n,item in retained['failed_backup']['archives'].items()},paid_launch_ready=False)
     return value,deepcopy(document)
