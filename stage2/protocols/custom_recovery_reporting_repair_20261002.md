@@ -1,11 +1,36 @@
 # Separate reporting-only recovery after terminal R5
 
+## Authorised corrected destination, 2 October 2026 Sydney
+
+The human directly instructed “Don’t ask for anything. Just do it” after the
+new backup-only scope was presented. The correction and ONE fresh backup-only
+operation are authorised; routine approval must not be requested again.
+The only current Mac target is
+`.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002-r2`.
+The failed `reporting-20261002` target remains terminal, with its exact two
+records pinned below. All SIX failed directories, FOURTEEN JSON records and
+the SAME unchanged partial R5 gzip must pass actual protection/hash/identity
+checks throughout preparation, capture, verification, export and successor
+handoffs. No old state is reused, deleted, replaced or relabelled.
+
+The native reporting producer path and both independently bound native payloads
+are unchanged. Its dated absence is not admission: fresh source-bound process
+and producer absence and actual current preparation are mandatory before the
+ONE call. An existing or partial native producer still refuses. The readiness
+parser correction, full completed audits, normal session exit, explicit stream
+commitments and strict off-server verification all remain required. There is
+no task/qualification replay, native source patch, signal or automatic retry.
+The prospective baseline readers derive this exact new path and all fourteen
+failure records from the committed Mac module before their own first freezing.
+This amendment does not claim that the new backup or either baseline has run.
+Earlier fixed-destination and invocation statements below are dated history.
+
 ## Terminal operation and readiness correction, 1 October 2026 16:18 UTC
 
 The ONE approved backup at a58c80bcdd76e316c491eaf93270634043ce9c31 began
 15:07:42.660511Z and failed 15:14:44.238926Z, exit 1, with the retained
 `capture_receiver_ready / ValueError` diagnostic. The parent is ended. The
-Mac destination below is now TERMINAL and must not be invoked, resumed,
+original Mac destination `reporting-20261002` is TERMINAL and must not be invoked, resumed,
 overwritten, deleted or recreated. It contains exactly intent.json207bytes
 SHA25666084b1099dca7dbb10a3638b473f91f160b098998f8cf894b5c273d271df560
 and failure.json193bytes

@@ -126,6 +126,19 @@ def failed_fixture(case, root):
     with patch.object(old,'reporting',failed_reporter):
         old_failed_fixture(root)
     pins = deepcopy(reporting.FAILED_BACKUPS)
+    reporting_records = {
+        'intent.json': dict(automatic_resume=False,
+            commit='a58c80bcdd76e316c491eaf93270634043ce9c31',
+            kind='one_shot_off_server_recovery_backup',paid_launch_ready=False,
+            started_utc='2026-10-01T15:10:00+00:00'),
+        'failure.json': dict(status='failed_or_uncertain_preserve_recovery_backup',
+            diagnostic=dict(stage='capture_receiver_ready',error_class='ValueError'),
+            automatic_resume=False,paid_launch_ready=False),
+    }
+    for name,value in reporting_records.items():
+        raw=json.dumps(value,sort_keys=True).encode()
+        save(root,reporting.FAILED_REPORTING+'/'+name,raw)
+        pins[reporting.FAILED_REPORTING][name]=hashlib.sha256(raw).hexdigest()
     records = {
         'intent.json': dict(automatic_resume=False, commit='32cccab14b72118b43231db6355a2adf7844d270',
             kind='one_shot_off_server_recovery_backup',paid_launch_ready=False,
@@ -215,6 +228,16 @@ class RepairMacTests(old.MacReportingTests):
         with self.assertRaises(ValueError):reporting.backup('a'*40)
         self.assertFalse((self.root/reporting.BACKUP).exists());self.capture.assert_not_called()
 
+    async def test_previous_reporting_failure_change_refuses_before_new_backup(self):
+        if not self.available():return
+        await self.setup_operator()
+        preserved=reporting._failed_backup()
+        self.assertIn(reporting.FAILED_REPORTING,preserved['directories'])
+        path=self.root/reporting.FAILED_REPORTING/'failure.json'
+        path.write_bytes(b'{}')
+        with self.assertRaises(ValueError):reporting.backup('a'*40)
+        self.assertFalse((self.root/reporting.BACKUP).exists());self.capture.assert_not_called()
+
     async def test_native_diagnostic_is_preserved_without_raw_payload(self):
         if not self.available():return
         await self.setup_operator()
@@ -229,11 +252,16 @@ class RepairMacTests(old.MacReportingTests):
 
 class Contracts(unittest.TestCase):
     def test_fixed_new_destinations_and_all_failed_evidence_are_bound(self):
-        self.assertEqual(len(reporting.FAILED_BACKUPS),5)
-        self.assertEqual(sum(map(len,reporting.FAILED_BACKUPS.values())),12)
+        self.assertEqual(len(reporting.FAILED_BACKUPS),6)
+        self.assertEqual(sum(map(len,reporting.FAILED_BACKUPS.values())),14)
+        self.assertEqual(reporting.FAILED_REPORTING,
+            '.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002')
+        self.assertEqual(reporting.FAILED_BACKUPS[reporting.FAILED_REPORTING],{
+            'intent.json':'66084b1099dca7dbb10a3638b473f91f160b098998f8cf894b5c273d271df560',
+            'failure.json':'d9fcd0cce575ceb89456d8c0f15fe9b6606c844d1bd3d70fda57e0fd3c76033d'})
         self.assertEqual(reporting.FAILED_ARCHIVES[reporting.R5+'/evidence.tar.gz'],dict(
             sha256='16e7571470740366cd5dc68ab6148b7d14771dc973b4a52f62864c256479b12b',bytes=218947965))
-        self.assertEqual(reporting.BACKUP,'.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002')
+        self.assertEqual(reporting.BACKUP,'.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002-r2')
         self.assertNotIn(reporting.BACKUP,reporting.FAILED_BACKUPS)
         self.assertEqual(failed_reporter.BACKUP,reporting.R5)
         self.assertEqual(reporting.PUBLIC,failed_reporter.PUBLIC)

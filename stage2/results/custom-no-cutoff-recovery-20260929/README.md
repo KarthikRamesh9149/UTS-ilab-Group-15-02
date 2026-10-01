@@ -1,5 +1,31 @@
 # Separate C0-NC setup recovery
 
+## Corrected backup destination bound and locally verified, 2 October 2026 Sydney
+
+The human's direct instruction to proceed resolves the corrected-backup scope;
+no further routine approval is required. The current fixed Mac target is
+`.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002-r2`.
+All SIX terminal Mac attempts, FOURTEEN JSON records and the unchanged partial
+R5 archive are required throughout capture, verification, export and successor
+handoffs. No failed folder is reused or relabelled. The native producer path,
+both native reporting payloads, frozen 318 and archived 35 sources are unchanged.
+
+All **284 affected local tests passed** serially in 699.747 seconds
+(703.903 including guards), with zero errors, failures or skips, 419 bindings
+before/discovery/after, 213 loaded modules and per-test cache checks. Source map:
+`6913f8f6a7a33cbeda05dffac9ad2092973425a9e967736f8b18e88559173f7c`.
+Five targeted preservation/dependency checks also passed. These use real local
+protected files, pipes and synthetic archives; native host facts are mocked.
+They are not native qualification, an actual completed audit or a verified backup.
+
+At this publication checkpoint, the new backup has **not been invoked**.
+Fresh actual committed preparation, native process/producer absence and source
+identity checks precede its ONE invocation. Genuine backup success and the
+fresh-audit/SAME-archive export still precede baseline installation.
+Recovery remains **3/3 completed, 0 passed, 3 failed, 0 missing verifier**;
+Terminus-2 and OpenHands each remain **0/89**, unstarted, with no active benchmark.
+Earlier dated checkpoints below are history.
+
 ## Reporting-only attempt failed; readiness parser corrected, 2 October 2026 Sydney
 
 Recovery remains **3/3 completed, 0 passed, 3 failed, 0 missing verifier**.

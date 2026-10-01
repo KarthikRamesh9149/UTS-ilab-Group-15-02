@@ -3,7 +3,7 @@
 The approved `custom_recovery_reporting_repair_20261002.md` supersedes the
 failed R5 recovery backup dependency. All three predecessor routes use the
 new actually verified recovery archive and post-session native producer, while
-preserving all five Mac failures and the old native failure. No saved receipt,
+preserving all six Mac failures and the old native failure. No saved receipt,
 reconstructed gzip trailer or local test result is admission.
 
 This amendment completes the prospective OpenHands execution path locally.

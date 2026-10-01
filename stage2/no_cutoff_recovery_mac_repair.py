@@ -29,7 +29,8 @@ import no_cutoff_recovery_handoff as handoff
 import no_cutoff_recovery_policy as policy
 import no_cutoff_recovery_report as report
 
-BACKUP = '.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002'
+FAILED_REPORTING = '.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002'
+BACKUP = '.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002-r2'
 FAILED_FILES = {
     'intent.json': '7a49bd3ba8d0bd215cfb80f3cf03ec801f88bd8ca91a18f57a6ed306fedd4e5d',
     'failure.json': '9cbc70820f9403c958bd5ba879b64f60d004fd2e3f11ecfb08028e2a317ee65c',
@@ -47,6 +48,10 @@ FAILED_BACKUPS = {
     '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4': {
         'intent.json': '7d19c29d036b8375d695f0f43243d2ee862dfc4699e53369d5cc683cb87ead14',
         'failure.json': 'f3e4cbc92152ed8bff3c16ac06897f0273ea7c5727495dcc3dcc2fa0e4f86943',
+    },
+    FAILED_REPORTING: {
+        'intent.json': '66084b1099dca7dbb10a3638b473f91f160b098998f8cf894b5c273d271df560',
+        'failure.json': 'd9fcd0cce575ceb89456d8c0f15fe9b6606c844d1bd3d70fda57e0fd3c76033d',
     },
 }
 
@@ -117,7 +122,7 @@ class _CaptureFailure(ValueError):
 
 
 def _failed_backup():
-    """All five terminal attempts, including the actual unchanged partial gzip."""
+    """All six terminal attempts, including the actual unchanged partial gzip."""
     root = handoff.launch.REPO; directories = {}; records = {}; archives = _failed_archives()
     for folder, files in FAILED_BACKUPS.items():
         path = root / folder

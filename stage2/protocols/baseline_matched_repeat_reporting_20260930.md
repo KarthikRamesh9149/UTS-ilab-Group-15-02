@@ -2,8 +2,8 @@
 
 The human-approved reporting-only recovery in
 `custom_recovery_reporting_repair_20261002.md` now fixes the dependency to
-`.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002`, preserving FIVE
-failed attempts, twelve JSON records and the exact unchanged partial R5 gzip.
+`.runtime/netcup/custom-no-cutoff-recovery3-reporting-20261002-r2`, preserving SIX
+failed attempts, fourteen JSON records and the exact unchanged partial R5 gzip.
 Both successor senders authenticate this preservation and the new real
 post-session native producer; the old failed native result cannot admit a run.
 The real Mac audit child and first-baseline archive sender use the Darwin

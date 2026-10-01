@@ -1,5 +1,24 @@
 # Separate OpenHands repeat
 
+## Corrected recovery dependency bound; repeat unstarted, 2 October 2026 Sydney
+
+This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and
+no active task. The human has directed automatic continuation without repeated
+routine approval. Its recovery prerequisite now uses the fixed
+`custom-no-cutoff-recovery3-reporting-20261002-r2` Mac destination, preserving
+all SIX failed folders, FOURTEEN JSON records and the unchanged partial R5 archive.
+The actual committed dependency readers derive the new destination and every
+preserved record from the Mac reporter; old failed receipts cannot admit a run.
+
+All **284 affected local tests passed**, with zero errors, failures or skips,
+419 source bindings and 213 loaded modules. The new backup has not been invoked
+at this publication checkpoint. Local tests are not native qualification or
+backup success. Genuine fresh audits, a strictly verified separate recovery
+backup and export remain required before the sequential baseline operations.
+The [recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records
+the exact evidence. Frozen native sources, results and run settings are unchanged.
+Earlier dated checkpoints below are history.
+
 ## Recovery reporting attempt failed; repeats remain unstarted, 2 October 2026 Sydney
 
 This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and
