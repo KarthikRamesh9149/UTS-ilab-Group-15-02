@@ -100,7 +100,10 @@ def command(harness, nonce, files, commit, operation, *, role='relay'):
     program = service.native_program(harness, nonce, files, commit, role=role, operation=operation)
     remote = ['/usr/bin/env', '-i', *(k + '=' + v for k, v in boot.environment(harness).items()),
         str(boot.root_for(harness) / '.venv/bin/python'), '-I', '-B', '-c', program]
-    return args[:-2] + [shlex.join(remote)]
+    # A real multi-predecessor audit can keep the receiver channel quiet for
+    # minutes. Preserve every pinned option and the 4500-second transport window
+    # while sending SSH keepalives; no task/provider/retry policy is changed.
+    return args[:-3] + ['-o', 'ServerAliveInterval=30', '-o', 'ServerAliveCountMax=150'] + args[-3:-2] + [shlex.join(remote)]
 
 
 def reply(value, harness, nonce, files, commit, operation, *, sent=None, peer=None):

@@ -19,13 +19,13 @@ import no_cutoff_recovery_mac_bridge as bridge
 import no_cutoff_recovery_reporting as frozen
 from no_cutoff_recovery_reporting import (
     BACKUP as FAILED_BACKUP, EXPORT, PUBLIC, AUDIT_MAGIC, TIMEOUT, OUTPUTS,
-    _ready, _json, _equal_audit, _command, projection,
+    _ready, _json, _equal_audit, projection,
 )
 import no_cutoff_recovery_handoff as handoff
 import no_cutoff_recovery_policy as policy
 import no_cutoff_recovery_report as report
 
-BACKUP = '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4'
+BACKUP = '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r5'
 FAILED_FILES = {
     'intent.json': '7a49bd3ba8d0bd215cfb80f3cf03ec801f88bd8ca91a18f57a6ed306fedd4e5d',
     'failure.json': '9cbc70820f9403c958bd5ba879b64f60d004fd2e3f11ecfb08028e2a317ee65c',
@@ -40,6 +40,10 @@ FAILED_BACKUPS = {
         'intent.json': '68f1518d63b2a204b14f4a5edaf33033cbd429407d60c190711e2a7ba20f63f3',
         'failure.json': 'b2d691a45c3dea8ef638bdc465b7e05553c24755fc4130dd1c3e9ec5fb3692f0',
     },
+    '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4': {
+        'intent.json': '7d19c29d036b8375d695f0f43243d2ee862dfc4699e53369d5cc683cb87ead14',
+        'failure.json': 'f3e4cbc92152ed8bff3c16ac06897f0273ea7c5727495dcc3dcc2fa0e4f86943',
+    },
 }
 
 CAPTURE_STAGES = frozenset({'prepare', 'receiver_start', 'receiver_ready',
@@ -52,6 +56,17 @@ ERROR_CLASSES = frozenset({'ValueError', 'TypeError', 'OSError', 'PermissionErro
 def _error_class(error):
     name = type(error).__name__
     return name if name in ERROR_CLASSES else 'OtherError'
+
+
+def _command(files, commit, mode):
+    """Keep a quiet handoff alive without changing its route or native code."""
+    fixed = frozen._command(files, commit, mode)
+    if TIMEOUT != 4500 or type(fixed) is not list or len(fixed) < 3 or fixed[-2] != 'root@62.83.32.126':
+        raise ValueError('Exact frozen reporting route and transport window required')
+    # The sender's fresh audit can leave this separate receiver connection idle.
+    # 30 * 150 preserves the existing 4500-second unresponsive transport window;
+    # these are SSH messages, not provider retries or benchmark time limits.
+    return fixed[:-2] + ['-o', 'ServerAliveInterval=30', '-o', 'ServerAliveCountMax=150'] + fixed[-2:]
 
 
 class _CaptureFailure(ValueError):
@@ -69,7 +84,7 @@ class _CaptureFailure(ValueError):
 
 
 def _failed_backup():
-    """All three terminal attempts, never destinations to resume or repair."""
+    """All four terminal attempts, never destinations to resume or repair."""
     root = handoff.launch.REPO; directories = {}; records = {}
     for folder, files in FAILED_BACKUPS.items():
         path = root / folder

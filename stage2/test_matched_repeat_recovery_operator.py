@@ -75,7 +75,7 @@ class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         expected |= {operator.recovery.PUBLIC+'/'+name for name in operator.recovery.OUTPUTS}
         expected |= {folder+'/'+name for folder,files in operator.mac_recovery.FAILED_BACKUPS.items()
             for name in files}
-        self.assertEqual(len(expected),15)
+        self.assertEqual(len(expected),17)
         self.assertEqual(set(actual['records']),expected)
         self.assertEqual(operator._retained({'commit':'a'*40},self.sources),actual)
 

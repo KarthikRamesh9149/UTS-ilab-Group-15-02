@@ -125,11 +125,25 @@ class OperatorTests(unittest.TestCase):
 
     def test_exact_pinned_ssh_options_are_preserved(self):
         args = connection.command('terminus-2',NONCE,self.files,COMMIT,'qualify-repeat')
-        self.assertEqual(args[:-1], connection.ssh_command(self.root)[:-2])
+        fixed=connection.ssh_command(self.root)
+        self.assertEqual(args[:-1],fixed[:-3]+['-o','ServerAliveInterval=30',
+            '-o','ServerAliveCountMax=150']+fixed[-3:-2])
         remote = shlex.split(args[-1]); ast.parse(remote[-1])
         self.assertEqual(remote[-5:-1], [str(connection.boot.root_for('terminus-2')/'.venv/bin/python'),'-I','-B','-c'])
         with patch.object(connection,'ssh_command',return_value=['ssh','changed']), self.assertRaises(ValueError):
             connection.command('terminus-2',NONCE,self.files,COMMIT,'qualify-repeat')
+
+    def test_both_baselines_keep_the_same_transport_window_and_commands(self):
+        self.assertEqual(30*150,connection.read_reply.__globals__['TIMEOUT'])
+        fixed=connection.ssh_command(self.root)
+        for harness in ('terminus-2','openhands'):
+            for operation in ('qualify-repeat','run-repeat'):
+                for role in ('relay','status'):
+                    actual=connection.command(harness,NONCE,self.files,COMMIT,operation,role=role)
+                    self.assertEqual(actual[:-1],fixed[:-3]+['-o','ServerAliveInterval=30',
+                        '-o','ServerAliveCountMax=150']+fixed[-3:-2])
+                    self.assertIn(str(connection.boot.root_for(harness)/'.venv/bin/python'),actual[-1])
+        self.assertEqual(connection.ssh_command(self.root),fixed)
 
     def test_openhands_cannot_use_a_terminus_only_handoff(self):
         self.prepare.side_effect = ValueError('Actual completed-Terminus reader refused')

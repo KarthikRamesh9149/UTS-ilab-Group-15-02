@@ -345,7 +345,9 @@ class OpenHandsReportingTests(unittest.TestCase):
                 patch.object(reporting.handoff.original.receiver,'_parents'),patch.object(connection,'REPO',f.root),\
                 patch.dict(boot.ROOTS,{'openhands':f.root}):
             command=reporting._command(files,'a'*40,'audit')
-        self.assertEqual(command[:-1],connection.ssh_command(f.root)[:-2])
+        fixed=connection.ssh_command(f.root)
+        self.assertEqual(command[:-1],fixed[:-3]+['-o','ServerAliveInterval=30',
+            '-o','ServerAliveCountMax=150']+fixed[-3:-2])
         self.assertIn(str(f.root/'.venv/bin/python'),command[-1])
         value={'bindings':{}};identities={};read,write=os.pipe()
         ready=reporting.service._line(reporting._ready(files,'a'*40,'audit'))

@@ -119,7 +119,7 @@ class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase
         _, _, _, document, _ = await self.fixture()
         pinned = {folder+'/'+name for folder,files in handoff.operator.mac_recovery.FAILED_BACKUPS.items()
             for name in files}
-        self.assertEqual(len(pinned),6)
+        self.assertEqual(len(pinned),8)
         self.assertTrue(pinned.issubset(document['retained']))
         new = handoff.operator.BACKUP+'/snapshot.json'
         for folder in handoff.operator.mac_recovery.FAILED_BACKUPS:

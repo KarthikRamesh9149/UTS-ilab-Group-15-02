@@ -5,6 +5,61 @@ paid admission, a task attempt, a score change or a replacement backup. The
 frozen R6 tree, all 318 source bytes, original reporter35 and every retained
 failed root remain unchanged. No permissions or ACLs are changed.
 
+## Idle transport failure reproduced and corrected, 1 October 2026 UTC
+
+The one r4 backup at3a7613c2129700390d694bc9a833de7c970982af began
+06:36:57.124663Z and failed06:49:57.800869Z. It is terminal, not pending or
+reusable. Its retained child diagnostic is original_audit_archive/BrokenPipeError,
+returncode1, inside capture_original_sender. The r4 folder contains only
+intent.json207bytes SHA256
+7d19c29d036b8375d695f0f43243d2ee862dfc4699e53369d5cc683cb87ead14
+and failure.json311bytes SHA256
+f3e4cbc92152ed8bff3c16ac06897f0273ea7c5727495dcc3dcc2fa0e4f86943.
+There is no recovery archive, completed study audit or export.
+
+A separate source-bound, read-only SSH test reproduced a broken connection
+after660seconds without archive or benchmark traffic. It ended07:08:24.646138Z
+with SSHreturncode255, no marker delivered and105stderr bytes (discarded),
+SHA2564788bad152436a863d62951efe250801158094f2790ae62e5282c44f37c467b0,
+fixed categorybroken_pipe. All319native source/private bindings and final
+local identities were checked. This is a current transport-liveness failure
+mechanism; it does not reconstruct unavailable historical exception stacks.
+
+The matching actual comparison changed only SSH ServerAliveInterval30 and
+ServerAliveCountMax150. After the SAME660second wait, the native peer received
+the exact17byte marker at07:20:49.485882Z, SHA256
+c9dcb1c7f764099e89eabb23ee054aa9181178ae095723919ffa1492deede5af.
+The comparison ended07:21:08.985361Z with SSHreturncode0, zero stderr and319
+native bindings rechecked. Neither test opened a recovery session, collected
+results, read an archive, wrote a backup, called a provider or sent a signal.
+Their own900second read deadline was diagnostic-only, not a benchmark limit.
+
+The Mac recovery reporting command and prospective baseline execution command
+now add ONLY those two options before the unchanged pinned host. The original
+constructor still verifies every existing option, key, known-host path and
+destination. The exact native program, isolated interpreter and environment
+remain unchanged. Thirty times150 preserves the existing4500second unresponsive
+transport window. This introduces no new task time, provider retry, spending,
+model-call or physical-request limit. The original source-bound audit sender
+and frozen R6/archived35 commands and bytes are not edited.
+
+Within the human's standing instruction to fix and deliver the existing
+reporting sequence, one separately bound corrected target is prepared at
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r5`. All FOUR terminal
+failed folders/EIGHT exact records must pass the existing protection/hash/
+identity checks through capture, verification and export. Prospective baseline
+readers consume this same new archive and all eight records. No fifth backup
+invocation or success is claimed by this source amendment. Existing or partial
+r5 state is terminal too; this is not a retry loop or benchmark rerun.
+
+At07:22:33.185792Z a fresh source-bound metadata observation found both diagnostic
+native processes absent and the native backup producer absent. The exact failed
+r4 receiverPID1824526/start101635195 remained in pipe_read. No signal was sent.
+Do not overlap a new live handoff with that receiver: require a fresh check of
+its exact identity and absence first. Local tests and the successful liveness
+comparison are not an actual completed recovery audit, archive or admission.
+Earlier destination/pending statements below are dated history.
+
 ## Actual sender verified; one separate r4 destination, 1 October 2026 UTC
 
 The human instructed "Deliver it then" and "Don't fuck up pls" after the

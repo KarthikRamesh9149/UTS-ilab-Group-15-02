@@ -1,5 +1,43 @@
 # Separate C0-NC setup recovery
 
+## SSH liveness correction verified, 1 October 2026 UTC
+
+Recovery remains **3/3 completed, 0 passed, 3 failed, 0 missing verifier**,
+with no active benchmark. Both baseline repeats remain **0/89**, unstarted.
+
+The fourth backup failed at06:49:57.800869Z with a retained sender
+BrokenPipeError. Its folder contains only protected intent/failure records.
+All four failed attempts are preserved; no recovery archive or export exists.
+
+A real, source-bound idle SSH test then failed after the660second quiet period
+(returncode255, broken_pipe). The otherwise identical comparison with only
+ServerAliveInterval30/ServerAliveCountMax150 passed: the native peer received
+the exact17byte marker, SSH exited0, stderr was empty and all319native source
+bindings were rechecked. Both were read-only diagnostics, not backup attempts.
+This establishes a current transport-liveness correction, not the missing
+historical exception causes or a successful end-to-end recovery archive.
+
+The Mac recovery and prospective baseline launch/reporting routes now add only
+those keepalive options. All original SSH identity/known-host/strict-host settings,
+the4500second transport window, frozen318/archived35 sources and benchmark
+controls remain. The separately prepared r5 target requires all four failed
+folders' eight exact records. No r5 invocation or success is claimed here.
+At07:22:33.185792Z the terminal r4 receiver still waited for input; both diagnostic
+processes were absent. No native signal was sent. A fresh absence check must
+precede another live handoff.
+
+All **244 final affected local tests passed** serially in437.256seconds
+(441.625 including guards), zero failures/errors/skips,413bindings before/
+discovery/after,208loadedmodules and per-test cache checks. Source map:
+`016fe65f9fed4fa5d65bce0240b3c7d949bf4a9e6a8b26cf3e568ff454161cb2`.
+The earlier23focused tests passed before the final protocol edits. Four contract
+tests failed before implementation, then passed; these are separate from the
+actual SSH reproduction. The older1490broad gate was not rerun. Native runtime
+observations in the local suite are mocked. Actual completed recovery audit,
+verified archive and export still precede any baseline installation.
+The [Mac reporting protocol](../../protocols/custom_recovery_mac_reporting_20260930.md)
+records exact evidence and invariants. Earlier dated entries below are history.
+
 ## Real sender verified; separate backup destination prepared, 1 October UTC
 
 Recovery remains **3/3 completed, 0 passed, 3 failed, 0 missing verifier**, with

@@ -1,5 +1,26 @@
 # Separate OpenHands repeat
 
+## SSH transport correction verified; prerequisites still pending, 1 October UTC
+
+This repeat remains **0/89**, with0passed,0failed,0missing verifier and no active
+task. Recovery is3/3 complete with three failed results retained separately.
+The fourth recovery backup failed; no completed recovery archive or export exists.
+
+The unchanged SSH route failed a real660second idle-data test. A comparison
+changing only SSH keepalives passed with exact native marker receipt and final
+source checks. Both prospective baseline launch/reporting paths now preserve
+connection liveness with the same pinned identity/host settings and4500second
+transport window. No benchmark/model/provider control changed.
+
+The separately prepared r5 recovery dependency requires all FOUR failed
+folders/EIGHT exact records. It has not been invoked. All244 final affected
+local tests passed, zero errors/failures/skips,413source bindings and208loaded
+modules. The [recovery status](../../custom-no-cutoff-recovery-20260929/README.md)
+distinguishes live transport evidence from mocked native tests. An abandoned
+receiver must first be freshly verified absent; actual recovery audit/verified
+backup/export must then complete. No baseline installation, native qualification
+or paid execution is inferred. Earlier dated checkpoints below are history.
+
 ## Actual recovery sender passed; archive still required, 1 October UTC
 
 This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and no

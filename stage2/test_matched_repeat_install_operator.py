@@ -99,7 +99,9 @@ class InstallationOperatorTests(unittest.TestCase):
         self.assertEqual(install.deploy(COMMIT), self.result)
         self.run.assert_called_once()
         args, kwargs = self.run.call_args
-        self.assertEqual(args[0][:-1], connection.ssh_command(self.root)[:-2])
+        fixed=connection.ssh_command(self.root)
+        self.assertEqual(args[0][:-1],fixed[:-3]+['-o','ServerAliveInterval=30',
+            '-o','ServerAliveCountMax=150']+fixed[-3:-2])
         remote = shlex.split(args[0][-1]); ast.parse(remote[-1])
         self.assertEqual(remote[-5:-1], [str(install.ORIGINAL / '.venv/bin/python'), '-I', '-B', '-c'])
         self.assertEqual(hashlib.sha256(kwargs['input']).hexdigest(),

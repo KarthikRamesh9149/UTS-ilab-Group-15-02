@@ -43,6 +43,13 @@ def failed_fixture(root):
                 started_utc='2026-10-01T03:11:20.813805+00:00')
             records['failure.json']['diagnostic'] = dict(
                 stage='capture_original_sender', error_class='ValueError')
+        if folder.endswith('-r4'):
+            records['intent.json'].update(commit='3a7613c2129700390d694bc9a833de7c970982af',
+                started_utc='2026-10-01T06:39:50.932258+00:00')
+            records['failure.json']['diagnostic'] = dict(
+                stage='capture_original_sender', error_class='OtherError',
+                sender=dict(stage='original_audit_archive', error_class='BrokenPipeError',
+                    returncode=1, transport=None))
         for name, value in records.items():
             raw = json.dumps(value, sort_keys=True).encode()
             assert hashlib.sha256(raw).hexdigest() == files[name]
@@ -81,29 +88,54 @@ class ContractTests(unittest.TestCase):
         self.assertIs(archive.validate_inventory,native_archive.validate_inventory)
 
     def test_fixed_native_commands_projection_and_exclusive_amended_destination(self):
-        self.assertIs(reporting._command,original._command)
+        self.assertIsNot(reporting._command,original._command)
         self.assertIs(reporting._ready,original._ready)
         self.assertIs(reporting.projection,original.projection)
         for name in ('EXPORT','PUBLIC','OUTPUTS','AUDIT_MAGIC'):
             self.assertEqual(getattr(reporting,name),getattr(original,name))
         self.assertEqual(reporting.FAILED_BACKUP, original.BACKUP)
-        self.assertEqual(reporting.BACKUP, '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4')
+        self.assertEqual(reporting.BACKUP, '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r5')
         self.assertNotIn(reporting.BACKUP, reporting.FAILED_BACKUPS)
         self.assertNotEqual(reporting.BACKUP, original.BACKUP)
         self.assertIsNot(reporting.backup,original.backup)
         self.assertIn('bridge.send(value, process.stdin)',inspect.getsource(reporting._capture))
 
-    def test_all_three_terminal_attempts_are_pinned_separately(self):
+    def test_all_four_terminal_attempts_are_pinned_separately(self):
         self.assertEqual(set(reporting.FAILED_BACKUPS), {
             reporting.FAILED_BACKUP,
             '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2',
             '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3',
+            '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4',
         })
         self.assertEqual(reporting.FAILED_BACKUPS[
             '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3'], {
             'intent.json': '68f1518d63b2a204b14f4a5edaf33033cbd429407d60c190711e2a7ba20f63f3',
             'failure.json': 'b2d691a45c3dea8ef638bdc465b7e05553c24755fc4130dd1c3e9ec5fb3692f0',
         })
+        self.assertEqual(reporting.FAILED_BACKUPS[
+            '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4'], {
+            'intent.json': '7d19c29d036b8375d695f0f43243d2ee862dfc4699e53369d5cc683cb87ead14',
+            'failure.json': 'f3e4cbc92152ed8bff3c16ac06897f0273ea7c5727495dcc3dcc2fa0e4f86943',
+        })
+
+    def test_only_keepalives_are_added_to_the_actual_frozen_command(self):
+        fixed=['ssh','-F','/dev/null','-o','StrictHostKeyChecking=yes',
+            'root@62.83.32.126','fixed native program']
+        before=list(fixed)
+        with patch.object(original,'_command',return_value=fixed) as command:
+            actual=reporting._command({'bound':'sources'},'a'*40,'audit')
+        self.assertEqual(actual,fixed[:-2]+['-o','ServerAliveInterval=30',
+            '-o','ServerAliveCountMax=150']+fixed[-2:])
+        command.assert_called_once_with({'bound':'sources'},'a'*40,'audit')
+        self.assertEqual(fixed,before)
+        self.assertEqual(30*150,reporting.TIMEOUT)
+
+    def test_liveness_wrapper_cannot_change_the_pinned_host_or_window(self):
+        for fixed,timeout in ((['ssh','untrusted','program'],4500),
+                (['ssh','root@62.83.32.126','program'],4499)):
+            with patch.object(original,'_command',return_value=fixed),\
+                    patch.object(reporting,'TIMEOUT',timeout),self.assertRaises(ValueError):
+                reporting._command({},'a'*40,'audit')
 
     def test_amendment_does_not_change_frozen_native_inventory(self):
         self.assertTrue(set(bridge.EXTRAS).isdisjoint(fixture.policy.REQUIRED_SOURCE_FILES))

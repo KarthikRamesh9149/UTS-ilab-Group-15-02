@@ -2,12 +2,24 @@
 
 The 1 October Darwin backup-location amendment in
 `custom_recovery_mac_reporting_20260930.md` fixes the recovery dependency to
-`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3`, preserving BOTH failed
-attempts as four additional pinned raw metadata records. Both successor
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r5`, preserving all FOUR failed
+attempts as eight additional pinned raw metadata records. Both successor
 senders and the exact native metadata schema use this separately bound path.
 The real Mac audit child and first-baseline archive sender use the Darwin
 reporter/file reader, not the legacy Linux operator readers. Local synthetic
 checks do not establish a real recovery archive or native baseline readiness.
+
+The actual unchanged SSH route failed a660second idle-data probe; the otherwise
+identical keepalive-only comparison passed with an exact native marker and
+source/private final checks. The prospective baseline execution constructor
+therefore adds only ServerAliveInterval30 and ServerAliveCountMax150 before the
+unchanged pinned host. Both baseline installers, live handoffs, status and
+reporting constructors inherit these options. All prior identity/known-host/
+strict-host/one-connection options and exact remote programs are preserved.
+The4500second transport window and every benchmark/model/provider control remain
+unchanged. No native baseline has been installed or qualified by this correction.
+The separate `baseline_openhands_successor_20260930.md` supersedes older
+OpenHands-inspection-only descriptions later in this protocol.
 
 These controls are prospective local implementation. No baseline root, native
 qualification, service, paid attempt, completed audit, archive or public result
