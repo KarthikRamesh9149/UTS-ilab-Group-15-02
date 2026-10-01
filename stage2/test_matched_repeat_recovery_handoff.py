@@ -52,13 +52,13 @@ class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase
             recovery_root=str(self.root), recovery_sources_sha256=recovery.policy.fingerprint(self.sources),
             fresh_audit=deepcopy(data), retained={n: v[0].decode() for n, v in value['records'].items()},
             archive_sha256=backup['receipt']['sha256'], paid_launch_ready=False)
-        inventory = recovery.boot.loads(document['retained'][recovery.BACKUP + '/inventory.json'].encode())
+        inventory = recovery.boot.loads(document['retained'][handoff.operator.BACKUP + '/inventory.json'].encode())
         for name, record in (('intent.json', dict(kind='one_shot_separate_recovery_backup', commit='a' * 40,
                 sources_sha256=recovery.policy.fingerprint(bound), automatic_resume=False,
                 started_utc=data['collected_utc'], paid_launch_ready=False)),
                 ('result.json', dict(backup['receipt'], automatic_resume=False, paid_launch_ready=False))):
             save(self.root, recovery.NATIVE_BACKUP + '/' + name, json.dumps(record).encode())
-        archive = (self.root / recovery.BACKUP / 'evidence.tar.gz').read_bytes()
+        archive = (self.root / handoff.operator.BACKUP / 'evidence.tar.gz').read_bytes()
         self.resources.reset_mock()  # Exclude the fixture's earlier synthetic completed audit.
         return data, backup, inventory, document, archive
 
@@ -114,6 +114,49 @@ class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase
         self.assertIsNone(data['rows'][2]['reward'])
         record['recovery_result_files'].clear()
         self.assertEqual(len(handoff.recheck(witness)['recovery_result_files']), 3)
+
+    async def test_exact_new_backup_and_pinned_failed_attempt_are_required_by_header(self):
+        _, _, _, document, _ = await self.fixture()
+        old = handoff.operator.mac_recovery.FAILED_BACKUP+'/failure.json'
+        new = handoff.operator.BACKUP+'/snapshot.json'
+        for mode in ('missing_failure', 'changed_failure', 'legacy_destination'):
+            changed = deepcopy(document)
+            if mode == 'missing_failure': del changed['retained'][old]
+            elif mode == 'changed_failure': changed['retained'][old] += ' '
+            else:
+                changed['retained'][handoff.operator.mac_recovery.FAILED_BACKUP+'/snapshot.json'] = changed['retained'].pop(new)
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                handoff._metadata(dict(kind=handoff.TRANSFER, schema_version=1,
+                    harness='terminus-2', operator=changed), 'terminus-2')
+
+    async def test_real_mac_sender_reads_new_same_archive_with_darwin_protection(self):
+        _, backup, _, document, archive = await self.fixture()
+        captured = {'retained': {'backup': backup}}
+        r, w = os.pipe(); received = []; errors = []
+        def consume():
+            try:
+                with os.fdopen(r, 'rb', buffering=0) as stream: received.append(stream.read())
+            except BaseException as error: errors.append(type(error).__name__)
+        thread = threading.Thread(target=consume); thread.start()
+        original = dict(kind='amended_off_server_predecessor_bytes_sent_not_admission',
+            operator_document_sha256='b'*64, archive_sha256='c'*64, paid_launch_ready=False)
+        try:
+            with os.fdopen(w, 'wb', buffering=0) as destination, \
+                    patch.object(handoff, '__file__', str(self.root/'stage2/matched_repeat_recovery_handoff.py')), \
+                    patch.object(handoff.original.launch, '_git', return_value=b'a'*40), \
+                    patch.object(handoff.operator, 'capture', return_value=(captured, document)) as capture, \
+                    patch.object(handoff.operator, '_current') as current, \
+                    patch.object(handoff.original, 'send', return_value=original), \
+                    patch.object(handoff.operator.mac, 'opened', wraps=handoff.operator.mac.opened) as opened:
+                result = handoff.send(destination)
+                opened.assert_called_once_with(self.root/handoff.operator.BACKUP/'evidence.tar.gz')
+                capture.assert_called_once_with('a'*40)
+                self.assertEqual(current.call_count, 2)
+                self.assertFalse(result['paid_launch_ready'])
+        finally: thread.join(10)
+        self.assertFalse(thread.is_alive()); self.assertEqual(errors, [])
+        self.assertIn(archive, received[0])
+        self.assertIn(handoff.operator.BACKUP.encode(), received[0])
 
     async def test_native_observation_occurs_after_original_post_audit_header(self):
         _, _, _, document, archive = await self.fixture()

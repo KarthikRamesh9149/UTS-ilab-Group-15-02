@@ -18,12 +18,40 @@ import no_cutoff_recovery_mac_archive as archive
 import no_cutoff_recovery_mac_bridge as bridge
 import no_cutoff_recovery_reporting as frozen
 from no_cutoff_recovery_reporting import (
-    BACKUP, EXPORT, PUBLIC, AUDIT_MAGIC, TIMEOUT, OUTPUTS,
+    BACKUP as FAILED_BACKUP, EXPORT, PUBLIC, AUDIT_MAGIC, TIMEOUT, OUTPUTS,
     _ready, _json, _equal_audit, _command, projection,
 )
 import no_cutoff_recovery_handoff as handoff
 import no_cutoff_recovery_policy as policy
 import no_cutoff_recovery_report as report
+
+BACKUP = '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2'
+FAILED_FILES = {
+    'intent.json': '7a49bd3ba8d0bd215cfb80f3cf03ec801f88bd8ca91a18f57a6ed306fedd4e5d',
+    'failure.json': '9cbc70820f9403c958bd5ba879b64f60d004fd2e3f11ecfb08028e2a317ee65c',
+}
+
+
+def _failed_backup():
+    """Actual terminal first attempt, never a destination to resume or repair."""
+    path = handoff.launch.REPO / FAILED_BACKUP
+    directory = boot.directories(path, private=True)
+    if {p.name for p in path.iterdir()} != set(FAILED_FILES):
+        raise ValueError('Exact retained failed recovery backup inventory required')
+    records = {n: boot.raw(path, n, digest) for n, digest in FAILED_FILES.items()}
+    if (boot.directories(path, private=True) != directory
+            or {p.name for p in path.iterdir()} != set(FAILED_FILES)
+            or any(boot.raw(path, n, FAILED_FILES[n]) != record for n, record in records.items())):
+        raise ValueError('Failed recovery backup bytes or identities changed')
+    return dict(directory=directory, records=records)
+
+
+def _prepare(commit):
+    preserved = _failed_backup()
+    value, files = bridge.prepare(commit)
+    value = dict(value, failed_backup=preserved)
+    _current(value, value['local_identities'])
+    return value, files
 
 
 def _parents():
@@ -41,7 +69,7 @@ def _state(path, identity):
 
 def _current(value, identities):
     bridge.current(value)
-    if value['local_identities'] != identities:
+    if value['local_identities'] != identities or _failed_backup() != value['failed_backup']:
         raise ValueError('Exact original operator identities required')
 
 
@@ -93,12 +121,13 @@ def _receive(process, mode, value, *, path=None):
 
 
 def _capture(commit, mode, *, path=None):
-    value, files = bridge.prepare(commit); identities = value['local_identities']
+    value, files = _prepare(commit); identities = value['local_identities']
     process = None
     try:
         process = subprocess.Popen(_command(files, commit, mode), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL, bufsize=0, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
         policy._same(frozen.connection.read_reply(process.stdout), _ready(files, commit, mode))
+        _current(value, identities)
         bridge.send(value, process.stdin)  # Actual fresh original audit + SAME original archive, never a saved receipt.
         process.stdin.close()
         result = _receive(process, mode, value, path=path)
@@ -113,7 +142,7 @@ def _capture(commit, mode, *, path=None):
 
 def backup(commit):
     """ONE exclusive off-server recovery archive, never another original copy."""
-    value, _ = bridge.prepare(commit); identities = value['local_identities']
+    value, _ = _prepare(commit); identities = value['local_identities']
     receiver = handoff.operator.receiver; parents = _parents()
     path = handoff.launch.REPO / BACKUP
     if path.exists() or path.is_symlink(): raise ValueError('Recovery backup already exists or is partial; do not repeat')
@@ -146,6 +175,7 @@ def backup(commit):
 
 
 def _read_backup(value):
+    preserved = _failed_backup()
     receiver = handoff.operator.receiver; path = handoff.launch.REPO / BACKUP
     state = (_parents(), _directory_id(path))
     if {p.name for p in path.iterdir()} != {'intent.json', 'snapshot.json', 'inventory.json', 'evidence.tar.gz', 'backup.json'}:
@@ -170,12 +200,13 @@ def _read_backup(value):
         _manifest(value), value['current_sources'])
     policy._same(verified, saved['verified']); _state(path, state)
     if any(boot.raw(path, n) != record for n, record in records.items()): raise ValueError('Retained backup metadata replaced')
+    if _failed_backup() != preserved: raise ValueError('Failed first backup changed during archive verification')
     return data, saved
 
 
 def export(commit):
     """Fresh actual native audit + SAME recovery archive before exclusive export."""
-    value, _ = bridge.prepare(commit); identities = value['local_identities']
+    value, _ = _prepare(commit); identities = value['local_identities']
     root = handoff.launch.REPO; path = root / EXPORT; receiver = handoff.operator.receiver
     parents = _parents(); public = root / PUBLIC
     if path.exists() or path.is_symlink(): raise ValueError('Existing/partial recovery export cannot be repeated')

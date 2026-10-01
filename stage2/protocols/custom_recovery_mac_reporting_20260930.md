@@ -5,6 +5,42 @@ paid admission, a task attempt, a score change or a replacement backup. The
 frozen R6 tree, all 318 source bytes, original reporter35 and every retained
 failed root remain unchanged. No permissions or ACLs are changed.
 
+## Authorised separate backup-only attempt, 1 October 2026
+
+After the failed-backup approval question, the human explicitly instructed:
+"As I said don’t ask for my confirmation Just do whatever u want to".
+This authorises ONE corrected backup-only attempt, not a benchmark replay or
+an unlimited retry loop. Routine automatic continuation of the already approved
+sequential baselines remains authorised. No payment, new server, parallel paid
+dispatch, native signal or cancellation is added.
+
+The separately bound Darwin reporter now fixes its only writable backup target
+to `.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2`. The original
+`.runtime/netcup/custom-no-cutoff-recovery3-20260929` remains terminal. Before
+preparation and through capture, completed archive reading and export, the
+operator requires exactly its two pinned metadata files below, their actual
+private ancestry/ACL/ownership/single-link identities and hashes. Extra files,
+missing or altered bytes, same-byte replacement during an operation, permission
+changes and existing/partial new destinations refuse. No old file is written.
+Both archive and export retain their existing strict schemas and final checks.
+The never-used export destination and all three public filenames stay fixed.
+
+The prospective baseline dependency reads only the new SAME verified recovery
+archive and additionally binds the two immutable failed-attempt metadata files.
+Its strict native handoff schema authenticates their exact hashes. Both baseline
+archive senders use the new fixed path. The first-baseline sender now uses the
+actual Darwin file reader (its previous call still used the frozen Linux reader),
+and its actual isolated fresh-audit child calls the separate Darwin reporter,
+with all frozen sources plus the explicit Mac amendment loaded-source bindings.
+No native frozen import inventory or original sender is changed or impersonated.
+
+The actual native backup command is unchanged and must still prove that its
+never-created producer state is absent; the earlier read-only observation is
+not saved admission. This amendment does not claim that the second attempt,
+completed audit, archive, export or baseline launch has happened. The historical
+first-attempt-only destination/approval statements below describe that earlier
+checkpoint and are superseded only as explicitly described here.
+
 ## First actual backup refusal and local pipe correction, 1 October Sydney
 
 The recovery run completed with three retained zero-score results and no missing

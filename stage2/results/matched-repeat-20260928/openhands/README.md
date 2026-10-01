@@ -1,5 +1,20 @@
 # Separate OpenHands repeat
 
+## Approved recovery backup correction, 1 October Sydney
+
+The human authorised one new backup-only attempt without another routine
+confirmation. The recovery dependency now uses the separately bound
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2` destination and preserves
+the terminal first attempt. Its actual completed audit, verified archive and
+export are still pending. This baseline remains **0/89**, unstarted, with no
+active task, passes, failures or missing verifier outcomes. No new native
+installation, qualification or paid dispatch is claimed. All **220 final affected
+local tests passed**, zero skips/errors/failures, in 330.895 seconds (334.798 with
+guards), with 413 source bindings and 208 final loaded project modules. The
+[recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records the
+exact source map and local-versus-native evidence boundary. The earlier broad
+gate below predates this amendment and was not rerun on it.
+
 ## Current blocker, 1 October Sydney
 
 OpenHands remains **0/89, unstarted**, with no passes, failures, missing results

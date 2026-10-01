@@ -1,5 +1,34 @@
 # Separate C0-NC setup recovery
 
+## Approved backup-only amendment, 1 October Sydney
+
+The user authorised one corrected backup-only attempt and continuation without
+another routine confirmation. The separately bound Mac writer now targets
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2`. It requires the first
+failed folder's exact two pinned files, private protections and unchanged live
+identities. That failed folder is never reused or altered. The native R6 reporter,
+318 frozen sources, archived35, all benchmark results and original archive stay
+unchanged. The actual new backup has not yet been invoked at this checkpoint.
+
+Both baseline dependency senders use the new fixed archive path and authenticate
+the preserved first failure. Two remaining Mac call sites now use the separate
+Darwin reporter and archive file reader, with the full explicit Mac source
+bindings. No task, baseline agent or scoring behaviour changed. All **220 final
+affected local tests passed** in 330.895 seconds (334.798 including guards), with
+zero skips/errors/failures, 413 source bindings before/discovery/after, 208 final
+loaded project modules and per-test cache isolation checks. Final source-map
+SHA256: `6bf3a5d64e3e54cf710b6f617e56292671e6077a2baeed9c5f222652a8bb9cdb`.
+These include real protected Mac files, pipes and isolated synthetic children;
+native observations are mocked. They are not a completed audit or real backup.
+The earlier broad gate below was not rerun on this amendment. A draft readiness
+fixture incorrectly mocked the global subprocess reader; its interrupted suite
+and the subsequent missing-constant fixture error are not passing gates. Only
+the owned local test parent was interrupted; no native process was signalled.
+The corrected isolated fixture and all 220 final tests then passed serially.
+Recovery remains **3/3, 0 passed, 3 failed, 0 missing**;
+both baselines remain **0/89**, unstarted. The genuine completed recovery audit,
+verified backup and export still precede the first native baseline installation.
+
 ## Recovery complete; backup attempt failed, 1 October Sydney
 
 The actual recovery is **3/3 completed: 0 passed, 3 failed, 0 missing verifier
@@ -14,8 +43,8 @@ The ONE private backup attempt began at 23:04:13.584138Z and failed at
 export exists. No task or qualification was repeated. Both baselines remain
 unstarted at 0/89. The [Mac reporting amendment](../../protocols/custom_recovery_mac_reporting_20260930.md)
 records the retained failure, safe diagnosis and narrow sender-pipe correction.
-The failed folder is terminal. A separately approved backup-only preservation
-amendment is required before another attempt; current paths have not changed.
+The failed folder is terminal. This earlier approval-pending checkpoint is
+superseded by the explicitly authorised separate destination described above.
 
 The new real-pipe regression failed before the Mac-only correction. All **241
 affected local tests** then passed on the final source bytes in 244.259 seconds

@@ -1,5 +1,14 @@
 # Separate baseline-repeat completion and reporting
 
+The 1 October Darwin backup-location amendment in
+`custom_recovery_mac_reporting_20260930.md` fixes the recovery dependency to
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2`, preserving the failed
+first attempt as two additional pinned raw metadata records. Both successor
+senders and the exact native metadata schema use this separately bound path.
+The real Mac audit child and first-baseline archive sender use the Darwin
+reporter/file reader, not the legacy Linux operator readers. Local synthetic
+checks do not establish a real recovery archive or native baseline readiness.
+
 These controls are prospective local implementation. No baseline root, native
 qualification, service, paid attempt, completed audit, archive or public result
 is implied. The fixed order remains one new89 Terminus-2, its actual audit and

@@ -21,7 +21,6 @@ import matched_repeat_recovery_archive as stream_archive
 import matched_repeat_recovery_operator as operator
 import matched_repeat_runtime as runtime
 import matched_repeat_stream as wire
-import no_cutoff_final_backup as private_archive
 import no_cutoff_recovery_files as evidence
 
 KIND = 'live_completed_recovery_for_baseline_not_admission'
@@ -51,7 +50,7 @@ def send(destination):
     header=dict(kind=TRANSFER,schema_version=1,harness='terminus-2',operator=document)
     digest=wire.write_header(destination,header)
     receipt=captured['retained']['backup']['receipt']
-    with private_archive._open(operator.REPO/operator.recovery.BACKUP,'evidence.tar.gz') as (source,_):
+    with operator.mac.opened(operator.REPO/operator.BACKUP/'evidence.tar.gz') as (source,_):
         wire.copy_archive(source,destination,receipt['compressed_bytes'],receipt['sha256'])
     operator._current(captured)
     wire.commit(destination,digest,receipt['sha256'])
@@ -99,7 +98,8 @@ def _metadata(header,harness):
     if not isinstance(document['operator_commit'],str) or not bootstrap.re.fullmatch('[a-f0-9]{40}',document['operator_commit']):
         raise ValueError('Full committed composite sender revision required')
     recovery.policy._hash(document['archive_sha256'])
-    names={recovery.BACKUP+'/'+n for n in ('intent.json','snapshot.json','inventory.json','backup.json')}
+    names={operator.BACKUP+'/'+n for n in ('intent.json','snapshot.json','inventory.json','backup.json')}
+    names|={operator.mac_recovery.FAILED_BACKUP+'/'+n for n in operator.mac_recovery.FAILED_FILES}
     names|={recovery.EXPORT+'/'+n for n in ('intent.json','result.json')}
     names|={recovery.PUBLIC+'/'+n for n in recovery.OUTPUTS}
     if type(document['retained']) is not dict or set(document['retained'])!=names:
@@ -107,16 +107,18 @@ def _metadata(header,harness):
     if any(type(v) is not str for v in document['retained'].values()):
         raise ValueError('Exact UTF-8 recovery metadata required')
     raw={n:v.encode('utf-8') for n,v in document['retained'].items()}
+    for name,digest in operator.mac_recovery.FAILED_FILES.items():
+        same(hashlib.sha256(raw[operator.mac_recovery.FAILED_BACKUP+'/'+name]).hexdigest(),digest)
     records={n:bootstrap.loads(v) for n,v in raw.items() if n.endswith('.json')}
-    data=records[recovery.BACKUP+'/snapshot.json'];inventory=records[recovery.BACKUP+'/inventory.json']
-    backup=records[recovery.BACKUP+'/backup.json'];receipt=backup['receipt']
+    data=records[operator.BACKUP+'/snapshot.json'];inventory=records[operator.BACKUP+'/inventory.json']
+    backup=records[operator.BACKUP+'/backup.json'];receipt=backup['receipt']
     if set(backup)!={'kind','receipt','verified','snapshot_sha256','inventory_sha256','automatic_resume','paid_launch_ready'}:
         raise ValueError('Exact completed recovery backup record required')
     for name,value in dict(kind='verified_off_server_recovery_backup',automatic_resume=False,paid_launch_ready=False,
             snapshot_sha256=recovery.policy.fingerprint(data),inventory_sha256=recovery.policy.fingerprint(inventory)).items():
         same(backup[name],value)
     same(document['archive_sha256'],receipt['sha256'])
-    for name,kind,fields in ((recovery.BACKUP+'/intent.json','one_shot_off_server_recovery_backup',
+    for name,kind,fields in ((operator.BACKUP+'/intent.json','one_shot_off_server_recovery_backup',
             {'kind','commit','started_utc','automatic_resume','paid_launch_ready'}),
             (recovery.EXPORT+'/intent.json','one_shot_separate_recovery_export',
             {'kind','commit','started_utc','automatic_resume'})):
@@ -149,7 +151,7 @@ def _backup_producer(document,backup):
     if set(intent)!={'kind','commit','sources_sha256','automatic_resume','started_utc','paid_launch_ready'}:
         raise ValueError('Actual one-shot recovery backup producer intent required')
     original.archive._utc(intent['started_utc'])
-    mac=bootstrap.loads(document['retained'][recovery.BACKUP+'/intent.json'].encode())
+    mac=bootstrap.loads(document['retained'][operator.BACKUP+'/intent.json'].encode())
     recovery.policy._same({n:v for n,v in intent.items() if n!='started_utc'},
         dict(kind='one_shot_separate_recovery_backup',commit=mac['commit'],
             sources_sha256=recovery.policy.fingerprint(bootstrap._recovery_files()),

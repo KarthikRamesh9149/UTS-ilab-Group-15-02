@@ -47,7 +47,7 @@ def send(destination):
     digest = wire.write_header(destination, dict(kind=recovery.TRANSFER, schema_version=1,
         harness='openhands', operator=recovery_document))
     recovered_receipt = recovered['retained']['backup']['receipt']
-    with operator.mac.opened(operator.REPO/recovery.operator.recovery.BACKUP/'evidence.tar.gz') as (source, _):
+    with operator.mac.opened(operator.REPO/recovery.operator.BACKUP/'evidence.tar.gz') as (source, _):
         wire.copy_archive(source, destination, recovered_receipt['compressed_bytes'], recovered_receipt['sha256'])
     recovery.operator._current(recovered); wire.commit(destination, digest, recovered_receipt['sha256'])
     # This unmodified subframe describes ONLY the original custom-final

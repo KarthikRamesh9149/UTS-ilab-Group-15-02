@@ -23,6 +23,7 @@ KIND = 'actual_recovery_capture_for_baseline_not_admission'
 REPO = original.launch.REPO
 PYTHON = REPO / '.tools/stage2-custom/bin/python'
 CACHE = REPO / '.runtime/absent-baseline-recovery-audit-bytecode'
+BACKUP = mac_recovery.BACKUP
 
 
 def _hash(raw):
@@ -108,14 +109,15 @@ def guard(event,args):
   violation=True;raise RuntimeError('Recovery audit child effect refused')
 sys.addaudithook(guard);sys.path.insert(0,str(root/'stage2'))
 with contextlib.redirect_stdout(io.StringIO()):
- import no_cutoff_recovery_reporting as reporting
+ import no_cutoff_recovery_mac_reporting as reporting
  importing=False
  if violation or current()!=before:raise ValueError('Import changed bound recovery reader')
- reporting.connection.operator.loaded(root,sources)
+ mac_bound={n:bound['stage2/'+n] for n in set(sources)|set(reporting.bridge.EXTRAS)}
+ reporting.bridge._loaded({'bound':mac_bound})
  fresh,captured,captured_ids=reporting._capture(commit,'audit')
  reporting._current(captured,captured_ids)
  if current()!=before or violation:raise ValueError('Late audit source/input change')
- reporting.connection.operator.loaded(root,sources)
+ reporting.bridge._loaded({'bound':mac_bound})
 print(json.dumps(fresh,sort_keys=True,allow_nan=False))
 '''.replace('Path(ROOT)','Path('+repr(str(REPO))+')').replace('bound=BOUND','bound='+repr(bound)).replace(
         'sources=SOURCES','sources='+repr(sources)).replace('commit=COMMIT','commit='+repr(commit)).replace(
@@ -124,13 +126,15 @@ print(json.dumps(fresh,sort_keys=True,allow_nan=False))
 
 
 def _retained(bindings, sources):
+    preserved = mac_recovery._failed_backup()
     data, backup = mac_recovery._read_backup({'current_sources':sources})  # Actual SAME archive read.
     root = REPO; state = root/recovery.EXPORT
     directory = mac.directories(state,private=True)
     if {p.name for p in state.iterdir()} != {'intent.json','result.json'}:
         raise ValueError('Actual completed immutable recovery export required')
-    records = {recovery.BACKUP+'/'+n:mac.raw(root/recovery.BACKUP,n)
+    records = {BACKUP+'/'+n:mac.raw(root/BACKUP,n)
         for n in ('intent.json','snapshot.json','inventory.json','backup.json')}
+    records.update({mac_recovery.FAILED_BACKUP+'/'+n:record for n,record in preserved['records'].items()})
     records.update({recovery.EXPORT+'/'+n:mac.raw(state,n) for n in ('intent.json','result.json')})
     intent = recovery.boot.loads(records[recovery.EXPORT+'/intent.json'][0])
     if (set(intent) != {'kind','commit','started_utc','automatic_resume'}
@@ -150,10 +154,11 @@ def _retained(bindings, sources):
         kind='separate_recovery_allowlisted_export_complete',files=public,
         snapshot_sha256=recovery.policy.fingerprint(data),archive_sha256=backup['receipt']['sha256'],
         automatic_resume=False,paid_launch_ready=False))
-    if mac.directories(state,private=True) != directory:
+    if mac.directories(state,private=True) != directory or mac_recovery._failed_backup() != preserved:
         raise ValueError('Recovery export identity changed')
     return dict(data=data,backup=backup,records=records,export_directory=directory,
-        archive_identity=recovery.boot.identity((root/recovery.BACKUP/'evidence.tar.gz').lstat()))
+        failed_backup=preserved,
+        archive_identity=recovery.boot.identity((root/BACKUP/'evidence.tar.gz').lstat()))
 
 
 def _loaded(bindings):

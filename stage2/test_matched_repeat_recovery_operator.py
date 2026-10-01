@@ -16,6 +16,7 @@ import matched_repeat_recovery_operator as operator
 from test_no_cutoff_recovery_execution import LocalFiles
 from test_no_cutoff_recovery_reporting import ReportingTests
 from test_no_cutoff_recovery_runtime import save
+from test_no_cutoff_recovery_mac_reporting import failed_fixture
 
 
 class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
@@ -44,8 +45,9 @@ class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         intent=dict(kind='one_shot_off_server_recovery_backup',commit='a'*40,
             started_utc=data['collected_utc'],automatic_resume=False,paid_launch_ready=False)
         for name,value in (('intent.json',intent),('snapshot.json',data),('inventory.json',inventory),('backup.json',backup)):
-            save(self.root,recovery.BACKUP+'/'+name,json.dumps(value).encode())
-        save(self.root,recovery.BACKUP+'/evidence.tar.gz',path.read_bytes())
+            save(self.root,operator.BACKUP+'/'+name,json.dumps(value).encode())
+        save(self.root,operator.BACKUP+'/evidence.tar.gz',path.read_bytes())
+        failed_fixture(self.root)
         public=recovery.projection(data,backup); bound={}
         for name,raw in public.items():
             relative=recovery.PUBLIC+'/'+name;save(self.root,relative,raw);bound[relative]=hashlib.sha256(raw).hexdigest()
@@ -67,12 +69,12 @@ class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         data,backup=await self.retained()
         actual=operator._retained({'commit':'a'*40},self.sources)
         self.assertEqual(actual['data'],data);self.assertEqual(actual['backup'],backup)
-        self.assertEqual(len(actual['records']),9)
+        self.assertEqual(len(actual['records']),11)
         self.assertEqual(operator._retained({'commit':'a'*40},self.sources),actual)
 
     async def test_archive_corruption_and_partial_export_refuse_without_replacement(self):
         await self.retained();recovery=operator.recovery
-        path=self.root/recovery.BACKUP/'evidence.tar.gz';original=path.read_bytes()
+        path=self.root/operator.BACKUP/'evidence.tar.gz';original=path.read_bytes()
         path.write_bytes(original[:-1])
         with self.assertRaises((ValueError,OSError)):operator._retained({'commit':'a'*40},self.sources)
         path.write_bytes(original)
@@ -96,10 +98,11 @@ class RecoveryChildDispatchTests(unittest.TestCase):
         ast.parse(code)
         self.assertIn("reporting._capture(commit,'audit')",code)
         self.assertIn("reporting._current(captured,captured_ids)",code)
-        self.assertLess(code.index('before=current()'),code.index('import no_cutoff_recovery_reporting'))
+        self.assertLess(code.index('before=current()'),code.index('import no_cutoff_recovery_mac_reporting'))
         self.assertNotIn('CALLBACK',code);self.assertNotIn('OPENROUTER_API_KEY',operator._environment())
         self.assertEqual(operator._environment()['PYTHON_DOTENV_DISABLED'],'1')
-        self.assertIn("reporting.connection.operator.loaded(root,sources)",code)
+        self.assertIn("reporting.bridge._loaded({'bound':mac_bound})",code)
+        self.assertNotIn('import no_cutoff_recovery_reporting as reporting', code)
 
     def fixture(self):
         bound={'commit':'a'*40,'local':{'stage2/example.py':'b'*64}}
@@ -146,21 +149,21 @@ class RecoveryChildProgramTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='.uts-baseline-reader-test-',dir=Path.home()) as folder:
             root=Path(folder).resolve();(root/'stage2').mkdir(mode=0o700);(root/'.runtime').mkdir(mode=0o700)
             source=(prefix+"\nfrom types import SimpleNamespace as N\n"
-                "connection=N(operator=N(loaded=lambda root,sources:None))\n"
+                "bridge=N(EXTRAS=(),_loaded=lambda value:None)\n"
                 "def _capture(commit,mode):\n"
                 " assert mode=='audit'\n"
                 " return dict(synthetic_child_only=True,measured=1.0,unknown=None),{},{}\n"
                 "def _current(value,identities):pass\n").encode()
-            save(root,'stage2/no_cutoff_recovery_reporting.py',source)
+            save(root,'stage2/no_cutoff_recovery_mac_reporting.py',source)
             commit='a'*40
-            bound={'stage2/no_cutoff_recovery_reporting.py':hashlib.sha256(source).hexdigest()}
-            if drift:save(root,'stage2/no_cutoff_recovery_reporting.py',source+b'\n# drift\n')
+            bound={'stage2/no_cutoff_recovery_mac_reporting.py':hashlib.sha256(source).hexdigest()}
+            if drift:save(root,'stage2/no_cutoff_recovery_mac_reporting.py',source+b'\n# drift\n')
             with patch.object(operator,'REPO',root),patch.object(operator,'PYTHON',Path(sys.executable).absolute()),\
                     patch.object(operator,'CACHE',root/'.runtime/absent-cache'):
-                code=operator._program(commit,bound,{'no_cutoff_recovery_reporting.py':bound[next(iter(bound))]})
+                code=operator._program(commit,bound,{'no_cutoff_recovery_mac_reporting.py':bound[next(iter(bound))]})
                 git_fixture=("import subprocess\n"
                     "def synthetic_git(argv,**kwargs):\n"
-                    " if argv==['git','show',"+repr(commit+':stage2/no_cutoff_recovery_reporting.py')+"]:return "+repr(source)+"\n"
+                    " if argv==['git','show',"+repr(commit+':stage2/no_cutoff_recovery_mac_reporting.py')+"]:return "+repr(source)+"\n"
                     " if argv in (['git','rev-parse','HEAD'],['git','rev-parse','origin/main']):return "+repr((commit+'\n').encode())+"\n"
                     " raise AssertionError('Unexpected synthetic Git command')\n"
                     "subprocess.check_output=synthetic_git\n")

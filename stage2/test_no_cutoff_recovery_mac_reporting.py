@@ -25,6 +25,24 @@ import test_no_cutoff_recovery_reporting as fixture
 from test_no_cutoff_recovery_execution import LocalFiles
 
 
+def failed_fixture(root):
+    """Exact allowlisted first-attempt metadata in an owned synthetic tree."""
+    path = root / reporting.FAILED_BACKUP
+    path.mkdir(parents=True, mode=0o700)
+    records = {
+        'intent.json': dict(automatic_resume=False, commit='42613a88ded7e80c157f1686851dc91b2f7bc4f7',
+            kind='one_shot_off_server_recovery_backup', paid_launch_ready=False,
+            started_utc='2026-09-30T23:06:17.968027+00:00'),
+        'failure.json': dict(automatic_resume=False, paid_launch_ready=False,
+            status='failed_or_uncertain_preserve_recovery_backup'),
+    }
+    for name, value in records.items():
+        raw = json.dumps(value, sort_keys=True).encode()
+        assert hashlib.sha256(raw).hexdigest() == reporting.FAILED_FILES[name]
+        from test_no_cutoff_recovery_runtime import save
+        save(root, reporting.FAILED_BACKUP+'/'+name, raw)
+
+
 class ContractTests(unittest.TestCase):
     def test_same_archive_algorithm_only_local_protection_changes(self):
         expected=inspect.getsource(native_archive.verify).replace('files.bootstrap.','mac.')
@@ -33,12 +51,15 @@ class ContractTests(unittest.TestCase):
         self.assertIs(archive._anchors,native_archive._anchors)
         self.assertIs(archive.validate_inventory,native_archive.validate_inventory)
 
-    def test_fixed_native_commands_projection_and_destinations_unchanged(self):
+    def test_fixed_native_commands_projection_and_exclusive_amended_destination(self):
         self.assertIs(reporting._command,original._command)
         self.assertIs(reporting._ready,original._ready)
         self.assertIs(reporting.projection,original.projection)
-        for name in ('BACKUP','EXPORT','PUBLIC','OUTPUTS','AUDIT_MAGIC'):
+        for name in ('EXPORT','PUBLIC','OUTPUTS','AUDIT_MAGIC'):
             self.assertEqual(getattr(reporting,name),getattr(original,name))
+        self.assertEqual(reporting.FAILED_BACKUP, original.BACKUP)
+        self.assertEqual(reporting.BACKUP, '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2')
+        self.assertNotEqual(reporting.BACKUP, original.BACKUP)
         self.assertIsNot(reporting.backup,original.backup)
         self.assertIn('bridge.send(value, process.stdin)',inspect.getsource(reporting._capture))
 
@@ -132,15 +153,19 @@ class MacReportingTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
                 'evidence.tar.gz':compressed}.items()}
             return (data,inventory,receipt,written),self.value,{}
         self.enterContext(patch.object(reporting.handoff.launch,'REPO',self.root))
+        failed_fixture(self.root)
+        self.value['failed_backup'] = reporting._failed_backup()
         self.enterContext(patch.object(bridge,'prepare',return_value=(self.value,self.bound)))
         self.current=self.enterContext(patch.object(bridge,'current'))
         self.enterContext(patch.object(reporting,'_manifest',return_value=self.f.manifest))
+        self.real_capture=reporting._capture
         self.capture=self.enterContext(patch.object(reporting,'_capture',side_effect=capture))
         return data,receipt
 
     async def test_real_mac_one_backup_and_export_no_recreation(self):
         if not self.available():return
         data,receipt=await self.setup_operator()
+        failed = reporting._failed_backup()
         verified=reporting.backup('a'*40);self.assertEqual(verified['archive_sha256'],receipt['sha256'])
         path=self.root/reporting.BACKUP/'evidence.tar.gz';before=mac.identity(path.stat())
         with self.assertRaises(ValueError):reporting.backup('a'*40)
@@ -157,6 +182,7 @@ class MacReportingTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         self.assertEqual(output['separate_recovery_denominator'],3)
         self.assertFalse(output['recovery_merged_into_original89'])
         rows=json.loads((self.public/'trials.json').read_bytes())['rows'];self.assertIsNone(rows[2]['reward'])
+        self.assertEqual(reporting._failed_backup(), failed)
 
     async def test_failure_stays_private_terminal_and_unreplayed(self):
         if not self.available():return
@@ -173,8 +199,9 @@ class MacReportingTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         await self.setup_operator();changed=False
         def replace(value):
             nonlocal changed
-            if not changed:
-                changed=True;path=self.root/reporting.BACKUP/'evidence.tar.gz';raw=path.read_bytes()
+            path=self.root/reporting.BACKUP/'evidence.tar.gz'
+            if not changed and path.exists():
+                changed=True;raw=path.read_bytes()
                 path.rename(path.parent/'original-retained')
                 reporting._private_bytes(path,raw)
         self.current.side_effect=replace
@@ -189,6 +216,84 @@ class MacReportingTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         data=json.loads(raw);data['receipt']['files']+=1
         path.write_bytes(json.dumps(data).encode())
         with self.assertRaises(ValueError):reporting._read_backup(self.value)
+
+    async def test_failed_attempt_change_refuses_before_new_destination_or_capture(self):
+        if not self.available():return
+        await self.setup_operator()
+        path=self.root/reporting.FAILED_BACKUP/'failure.json'
+        path.write_bytes(b'{}')
+        with self.assertRaises(ValueError):reporting.backup('a'*40)
+        self.assertFalse((self.root/reporting.BACKUP).exists())
+        self.assertEqual(self.capture.call_count,0)
+
+    async def test_failed_attempt_extra_missing_link_or_permissions_refuse(self):
+        if not self.available():return
+        await self.setup_operator();path=self.root/reporting.FAILED_BACKUP
+        intent=path/'intent.json';raw=intent.read_bytes()
+        for mode in ('extra','missing','symlink','hardlink','mode'):
+            with self.subTest(mode=mode):
+                if mode=='extra':mac.write_bytes(path/'evidence.tar.gz',b'not an archive')
+                elif mode=='missing':intent.unlink()
+                elif mode=='symlink':intent.unlink();intent.symlink_to(path/'failure.json')
+                elif mode=='hardlink':os.link(intent,self.root/'extra-link')
+                else:intent.chmod(0o644)
+                with self.assertRaises((ValueError,OSError)):reporting.backup('a'*40)
+                self.assertFalse((self.root/reporting.BACKUP).exists())
+                if mode=='extra':(path/'evidence.tar.gz').unlink()
+                elif mode in ('missing','symlink'):
+                    if intent.is_symlink():intent.unlink()
+                    mac.write_bytes(intent,raw)
+                elif mode=='hardlink':(self.root/'extra-link').unlink()
+                else:intent.chmod(0o600)
+        self.assertEqual(self.capture.call_count,0)
+
+    async def test_same_byte_failed_attempt_replacement_latches_before_completion(self):
+        if not self.available():return
+        await self.setup_operator();original_capture=self.capture.side_effect
+        def capture(*args,**kwargs):
+            result=original_capture(*args,**kwargs)
+            path=self.root/reporting.FAILED_BACKUP/'intent.json';raw=path.read_bytes()
+            path.rename(self.root/'preserved-first-intent')
+            mac.write_bytes(path,raw)
+            return result
+        self.capture.side_effect=capture
+        with self.assertRaises(ValueError):reporting.backup('a'*40)
+        self.assertFalse((self.root/reporting.BACKUP/'backup.json').exists())
+        self.assertTrue((self.root/reporting.BACKUP/'failure.json').exists())
+        with self.assertRaises(ValueError):reporting.backup('a'*40)
+        self.assertEqual(self.capture.call_count,1)
+
+    async def test_late_failed_attempt_change_refuses_export_and_successor_archive(self):
+        if not self.available():return
+        await self.setup_operator();reporting.backup('a'*40)
+        original_capture=self.capture.side_effect
+        def capture(*args,**kwargs):
+            result=original_capture(*args,**kwargs)
+            (self.root/reporting.FAILED_BACKUP/'failure.json').write_bytes(b'{}')
+            return result
+        self.capture.side_effect=capture
+        with self.assertRaises(ValueError):reporting.export('a'*40)
+        self.assertFalse((self.root/reporting.EXPORT/'result.json').exists())
+        self.assertFalse((self.public/'summary.json').exists())
+        with self.assertRaises(ValueError):reporting._read_backup(self.value)
+
+    async def test_preservation_recheck_after_readiness_precedes_original_sender(self):
+        if not self.available():return
+        await self.setup_operator()
+        # Call the real capture body, not the fixture's native-audit stand-in.
+        real_capture = self.real_capture
+        process=NS(stdin=io.BytesIO(),stdout=io.BytesIO(),poll=lambda:0)
+        def ready(stream):
+            (self.root/reporting.FAILED_BACKUP/'failure.json').write_bytes(b'{}')
+            return reporting._ready(self.bound, 'a'*40, 'audit')
+        with patch.object(reporting, '_prepare', return_value=(self.value,self.bound)), \
+                patch.object(reporting, '_command', return_value=['synthetic-no-execution']), \
+                patch.object(reporting, 'subprocess', NS(Popen=lambda *a,**k:process,
+                    PIPE=reporting.subprocess.PIPE, DEVNULL=reporting.subprocess.DEVNULL)), \
+                patch.object(reporting.frozen.connection, 'read_reply', side_effect=ready), \
+                patch.object(bridge, 'send') as send:
+            with self.assertRaises(ValueError):real_capture('a'*40,'audit')
+        send.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()
