@@ -5,7 +5,62 @@ paid admission, a task attempt, a score change or a replacement backup. The
 frozen R6 tree, all 318 source bytes, original reporter35 and every retained
 failed root remain unchanged. No permissions or ACLs are changed.
 
-## Authorised separate backup-only attempt, 1 October 2026
+## Second terminal failure and coherent-directory correction, 1 October 2026
+
+The second actual backup at commit0af784affcb2908b3cd9a54a882bc8afda5ee934
+started01:28:49.443873Z and failed01:31:55.014997Z. Its exact historical
+exception was not retained. Both failed directories remain immutable; neither
+has an archive, inventory, snapshot or completed backup. The second contains
+only intent.json207bytes SHA256
+c215bd13cb3b6dc5d998866936806ba5c49d356dc9b4ab5364a203632e669171
+and failure.json113bytes SHA256
+9cbc70820f9403c958bd5ba879b64f60d004fd2e3f11ecfb08028e2a317ee65c.
+
+The human then directly instructed "Why is it blocked? Fix it asap". Within
+that correction, ONE new fixed backup-only target is
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3`. Both previous failed
+attempts and all four exact metadata files are bound and reread, including
+actual protection and identity checks. The prospective baseline dependency and
+native handoff schema require these same four pinned records and the new SAME
+archive. Existing/partial destinations stay terminal; no benchmark replay,
+unlimited archive retry, new paid variant or native-source change is authorised.
+The prior r2-only destination paragraphs below are historical, not current.
+
+Fresh source-bound read-only native status at02:37:46.055984Z again verified
+the same successfully exited paid unit and3/3 completed,0passed,3failed,
+0missing verifier, no active task. Protected metadata at02:37:46.253352Z
+verified all319bindings/finalidentities, no relevant native process and absence
+of `.runtime/stage2/no-cutoff-recovery-completed-backup`. No collector, live
+session, archive read, provider request, native write or signal was invoked.
+An initial disposable observer omitted the committed Docker host flag from
+its own read-only allowlist; that observer refusal is not a backup cause.
+
+A local capture diagnostic refused during its own isolated preparation before
+any SSH; the exact underlying child condition was not retained. A subsequent
+actual child preparation passed on unchanged sources with every SSH/archive/
+write blocked. These checks are not actual backup attempts or proof of the
+unavailable historical failure cause.
+
+A deterministic actual-Mac regression separately reproduced a current race:
+ordinary child-file activity between the actual fixed `/bin/ls -lde` ACL read
+and its final directory stat changed only directory size/link-count/times and
+caused refusal. The correction discards that observation and permits at most
+three metadata observations of the SAME device/inode/mode/owner/group. One
+fully unchanged before/after actual ACL read is still mandatory. Continuous
+changes refuse. Object replacement, protection changes, regular-file changes
+and every forbidden ACL entry refuse without acceptance. File byte/time/
+single-link checks and all actual canonical ancestry checks are unchanged.
+This is bounded metadata observation, not a task, preparation or archive retry.
+No permission or ACL is changed; the historical traceback is not inferred.
+
+Future backup failures retain only a fixed local operation stage and allowlisted
+error class, in addition to the terminal failure marker. Unknown class names
+become OtherError. Messages, stacks, arbitrary paths and child/model payloads
+are never stored. This diagnostic grants no replay or admission.
+This source amendment does not itself establish a successful third backup,
+completed study audit, export or baseline native readiness.
+
+## Historical authorised separate backup-only attempt, 1 October 2026
 
 After the failed-backup approval question, the human explicitly instructed:
 "As I said don’t ask for my confirmation Just do whatever u want to".

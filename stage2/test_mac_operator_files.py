@@ -51,6 +51,76 @@ class MacFileTests(unittest.TestCase):
         with self.assertRaises(FileExistsError): mac.write_bytes(self.root/'value',b'replaced')
         self.assertEqual(mac.raw(self.root,'value'),before)
 
+    def test_directory_child_change_requires_fresh_coherent_acl_observation(self):
+        if not self.available(): return
+        actual_run=mac.subprocess.run; calls=[]
+        def observe(*args,**kwargs):
+            result=actual_run(*args,**kwargs); calls.append(args[0])
+            if len(calls)==1:
+                (self.root/'ordinary-child').write_bytes(b'owned synthetic child')
+            return result
+        # A child addition changes directory times/size, not its identity or
+        # protection. Accept only after another unchanged actual ACL read.
+        with patch.object(mac,'subprocess',NS(run=observe)):
+            self.assertEqual(mac.acl(self.root),())
+        self.assertEqual(len(calls),2)
+
+    def test_continuous_directory_changes_never_produce_acl_acceptance(self):
+        if not self.available(): return
+        actual_run=mac.subprocess.run; calls=[]
+        def observe(*args,**kwargs):
+            result=actual_run(*args,**kwargs); calls.append(args[0])
+            (self.root/('child-'+str(len(calls)))).write_bytes(b'owned')
+            return result
+        with patch.object(mac,'subprocess',NS(run=observe)),self.assertRaises(ValueError):
+            mac.acl(self.root)
+        self.assertEqual(len(calls),3)
+
+    def test_changed_directory_permissions_refuse_without_reobservation(self):
+        if not self.available(): return
+        actual_run=mac.subprocess.run; calls=[]
+        def observe(*args,**kwargs):
+            result=actual_run(*args,**kwargs); calls.append(args[0])
+            self.root.chmod(0o750)
+            return result
+        with patch.object(mac,'subprocess',NS(run=observe)),self.assertRaises(ValueError):
+            mac.acl(self.root)
+        self.assertEqual(len(calls),1)
+
+    def test_replaced_directory_refuses_without_reobservation(self):
+        if not self.available(): return
+        folder=self.root/'directory'; folder.mkdir(mode=0o700)
+        actual_run=mac.subprocess.run; calls=[]
+        def observe(*args,**kwargs):
+            result=actual_run(*args,**kwargs); calls.append(args[0])
+            folder.rename(self.root/'retained'); folder.mkdir(mode=0o700)
+            return result
+        with patch.object(mac,'subprocess',NS(run=observe)),self.assertRaises(ValueError):
+            mac.acl(folder)
+        self.assertEqual(len(calls),1)
+
+    def test_regular_file_change_refuses_without_reobservation(self):
+        if not self.available(): return
+        path=self.root/'file'; mac.write_bytes(path,b'first')
+        actual_run=mac.subprocess.run; calls=[]
+        def observe(*args,**kwargs):
+            result=actual_run(*args,**kwargs); calls.append(args[0])
+            path.write_bytes(b'changed')
+            return result
+        with patch.object(mac,'subprocess',NS(run=observe)),self.assertRaises(ValueError):
+            mac.acl(path)
+        self.assertEqual(len(calls),1)
+
+    def test_acl_grant_refuses_even_when_directory_children_changed(self):
+        if not self.available(): return
+        calls=[]
+        def observe(*args,**kwargs):
+            calls.append(args[0]); (self.root/'child').write_bytes(b'owned')
+            return NS(returncode=0,stdout=b'drwx------+ 1 u g 1 Jan 1 p\n 0: group:everyone allow write\n',stderr=b'')
+        with patch.object(mac,'subprocess',NS(run=observe)),self.assertRaises(ValueError):
+            mac.acl(self.root)
+        self.assertEqual(len(calls),1)
+
     def test_nonfinite_serialization_precedes_creation(self):
         if not self.available(): return
         with self.assertRaises(ValueError): mac.save(self.root/'bad.json',{'x':float('nan')})

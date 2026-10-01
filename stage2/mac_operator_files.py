@@ -30,23 +30,33 @@ def identity(s):
 
 def _acl(path):
     _darwin()
-    before = identity(path.lstat())
-    result = subprocess.run(['/bin/ls', '-lde', str(path)], capture_output=True,
-        timeout=10, env={'PATH': '/usr/bin:/bin', 'LANG': 'C', 'LC_ALL': 'C'})
-    lines = result.stdout.splitlines()
-    entries = tuple(line.strip() for line in lines[1:])
-    # The actual macOS home has the standard deny-delete ACL. It grants no
-    # access. This exact entry is permitted only on this fixed ancestor, not
-    # on evidence, arbitrary directories, or alongside any other ACL entry.
-    deny_delete = path == OPERATOR_HOME and entries == (b'0: group:everyone deny delete',)
-    if (result.returncode or result.stderr or not lines
-            or not lines[0].split(maxsplit=1)
-            or not re.fullmatch(rb'[-d][rwxstST-]{9}' + (rb'\+' if deny_delete else rb'@?'),
-                lines[0].split(maxsplit=1)[0])
-            or entries and not deny_delete
-            or identity(path.lstat()) != before):
-        raise ValueError('Actual unchanged restrictive Darwin operator ACL required')
-    return entries
+    anchor = identity(path.lstat())
+    for _ in range(3):
+        before = identity(path.lstat())
+        if before[:5] != anchor[:5]:
+            raise ValueError('Darwin ACL object or protection changed')
+        result = subprocess.run(['/bin/ls', '-lde', str(path)], capture_output=True,
+            timeout=10, env={'PATH': '/usr/bin:/bin', 'LANG': 'C', 'LC_ALL': 'C'})
+        lines = result.stdout.splitlines()
+        entries = tuple(line.strip() for line in lines[1:])
+        # Only the actual fixed home may have its exact deny-delete entry.
+        deny_delete = path == OPERATOR_HOME and entries == (b'0: group:everyone deny delete',)
+        if (result.returncode or result.stderr or not lines
+                or not lines[0].split(maxsplit=1)
+                or not re.fullmatch(rb'[-d][rwxstST-]{9}' + (rb'\+' if deny_delete else rb'@?'),
+                    lines[0].split(maxsplit=1)[0])
+                or entries and not deny_delete):
+            raise ValueError('Actual unchanged restrictive Darwin operator ACL required')
+        after = identity(path.lstat())
+        if after == before:
+            return entries
+        if not stat.S_ISDIR(before[2]) or after[:5] != anchor[:5]:
+            raise ValueError('Darwin ACL object or protection changed')
+        # Ordinary directory child activity changes size/link count/times.
+        # Discard this observation; never accept it or relax file identities.
+        # Reobserve this SAME object, requiring a fully unchanged actual read.
+        # This is bounded metadata observation, never a task/archive retry.
+    raise ValueError('No coherent unchanged Darwin ACL observation available')
 
 
 def acl(path):

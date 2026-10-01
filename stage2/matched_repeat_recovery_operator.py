@@ -134,7 +134,7 @@ def _retained(bindings, sources):
         raise ValueError('Actual completed immutable recovery export required')
     records = {BACKUP+'/'+n:mac.raw(root/BACKUP,n)
         for n in ('intent.json','snapshot.json','inventory.json','backup.json')}
-    records.update({mac_recovery.FAILED_BACKUP+'/'+n:record for n,record in preserved['records'].items()})
+    records.update(preserved['records'])
     records.update({recovery.EXPORT+'/'+n:mac.raw(state,n) for n in ('intent.json','result.json')})
     intent = recovery.boot.loads(records[recovery.EXPORT+'/intent.json'][0])
     if (set(intent) != {'kind','commit','started_utc','automatic_resume'}

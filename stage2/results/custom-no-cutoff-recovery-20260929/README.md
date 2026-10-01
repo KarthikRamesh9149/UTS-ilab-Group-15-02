@@ -1,5 +1,41 @@
 # Separate C0-NC setup recovery
 
+## Directory-check correction, 1 October 2026 UTC
+
+Recovery remains **3/3 completed, 0 passed, 3 failed, 0 missing verifier**,
+with no active benchmark task. Fresh actual completed-operation status at
+02:37:46.055984Z confirmed this; protected native metadata also confirmed no
+backup producer directory or relevant native process. Both baseline repeats
+remain **0/89**, unstarted.
+
+The second backup failed at 01:31:55.014997Z and is terminal, like the first.
+No recovery archive or export exists. The exact historical exception is unknown.
+A separate actual-Mac regression reproduced a directory-check race caused by
+ordinary child-file activity. The correction requires a fresh coherent read
+of the same directory; changed objects, protections, files and forbidden ACLs
+still refuse. No permission, native source, benchmark result or task is changed.
+
+Following the direct instruction "Why is it blocked? Fix it asap", the new
+fixed backup-only destination is
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3`. Both previous failed
+folders and all four exact metadata files remain pinned and immutable, including
+in both future baseline handoffs. No new archive call has been made at this
+source-publication checkpoint. A real committed preflight and then one actual
+backup must still succeed. No task rerun or unlimited retry is authorised.
+
+All **229 final affected tests passed** serially in 368.469 seconds (373.193
+including guards), with zero skips/errors/failures, 413 source bindings before,
+after discovery and after execution, 208 final loaded modules and per-test cache
+checks. Source-map SHA256:
+`5b853739f2854a6483670af24c30b012614b7a4d7053a4b0d2fa006827e09353`.
+The preceding 74 focused tests also passed. These use actual protected Mac
+files, pipes and synthetic archives/children; native observations are mocked.
+They do not establish a completed native audit or backup. Older broad-gate
+evidence below was not rerun on this candidate. All318 frozen native sources,
+archived35 and both failed backup inventories were checked unchanged; original211
+retain only the previously disclosed local scored-trial orchestration delta.
+The earlier dated checkpoints below are historical and superseded here.
+
 ## Approved backup-only amendment, 1 October Sydney
 
 The user authorised one corrected backup-only attempt and continuation without

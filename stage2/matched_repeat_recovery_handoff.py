@@ -99,7 +99,7 @@ def _metadata(header,harness):
         raise ValueError('Full committed composite sender revision required')
     recovery.policy._hash(document['archive_sha256'])
     names={operator.BACKUP+'/'+n for n in ('intent.json','snapshot.json','inventory.json','backup.json')}
-    names|={operator.mac_recovery.FAILED_BACKUP+'/'+n for n in operator.mac_recovery.FAILED_FILES}
+    names|={folder+'/'+n for folder,files in operator.mac_recovery.FAILED_BACKUPS.items() for n in files}
     names|={recovery.EXPORT+'/'+n for n in ('intent.json','result.json')}
     names|={recovery.PUBLIC+'/'+n for n in recovery.OUTPUTS}
     if type(document['retained']) is not dict or set(document['retained'])!=names:
@@ -107,8 +107,9 @@ def _metadata(header,harness):
     if any(type(v) is not str for v in document['retained'].values()):
         raise ValueError('Exact UTF-8 recovery metadata required')
     raw={n:v.encode('utf-8') for n,v in document['retained'].items()}
-    for name,digest in operator.mac_recovery.FAILED_FILES.items():
-        same(hashlib.sha256(raw[operator.mac_recovery.FAILED_BACKUP+'/'+name]).hexdigest(),digest)
+    for folder,files in operator.mac_recovery.FAILED_BACKUPS.items():
+        for name,digest in files.items():
+            same(hashlib.sha256(raw[folder+'/'+name]).hexdigest(),digest)
     records={n:bootstrap.loads(v) for n,v in raw.items() if n.endswith('.json')}
     data=records[operator.BACKUP+'/snapshot.json'];inventory=records[operator.BACKUP+'/inventory.json']
     backup=records[operator.BACKUP+'/backup.json'];receipt=backup['receipt']

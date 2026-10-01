@@ -1,5 +1,23 @@
 # Separate OpenHands repeat
 
+## Current backup correction, 1 October 2026 UTC
+
+This repeat is **0/89**, unstarted: no passes, failures, missing verifier outcomes
+or active task. Recovery is complete at3/3 (0passed,3failed,0missing), but both
+backup attempts failed without an archive. Their evidence remains immutable.
+The [recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records
+the direct fix instruction, actual directory-race regression and narrow Mac
+correction. The new fixed dependency is
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3`, with both failed
+attempts' four metadata files authenticated. No new backup is claimed yet.
+
+All229 final affected local tests passed, zero errors/failures/skips, with413
+source bindings and208 loaded modules. Real recovery audit/verified backup/export
+still precede Terminus installation; the completed Terminus sequence additionally
+precedes OpenHands. Neither native baseline installation nor qualification has
+been exercised. Original agent defaults and disclosed controls remain unchanged.
+The earlier dated checkpoints below are historical.
+
 ## Approved recovery backup correction, 1 October Sydney
 
 The human authorised one new backup-only attempt without another routine

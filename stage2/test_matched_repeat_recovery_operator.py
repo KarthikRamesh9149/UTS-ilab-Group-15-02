@@ -69,7 +69,7 @@ class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         data,backup=await self.retained()
         actual=operator._retained({'commit':'a'*40},self.sources)
         self.assertEqual(actual['data'],data);self.assertEqual(actual['backup'],backup)
-        self.assertEqual(len(actual['records']),11)
+        self.assertEqual(len(actual['records']),13)
         self.assertEqual(operator._retained({'commit':'a'*40},self.sources),actual)
 
     async def test_archive_corruption_and_partial_export_refuse_without_replacement(self):

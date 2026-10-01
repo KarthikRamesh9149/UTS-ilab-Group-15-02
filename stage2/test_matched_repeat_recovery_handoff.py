@@ -117,17 +117,18 @@ class RecoverySuccessorHandoffTests(LocalFiles, unittest.IsolatedAsyncioTestCase
 
     async def test_exact_new_backup_and_pinned_failed_attempt_are_required_by_header(self):
         _, _, _, document, _ = await self.fixture()
-        old = handoff.operator.mac_recovery.FAILED_BACKUP+'/failure.json'
         new = handoff.operator.BACKUP+'/snapshot.json'
-        for mode in ('missing_failure', 'changed_failure', 'legacy_destination'):
-            changed = deepcopy(document)
-            if mode == 'missing_failure': del changed['retained'][old]
-            elif mode == 'changed_failure': changed['retained'][old] += ' '
-            else:
-                changed['retained'][handoff.operator.mac_recovery.FAILED_BACKUP+'/snapshot.json'] = changed['retained'].pop(new)
-            with self.subTest(mode=mode), self.assertRaises(ValueError):
-                handoff._metadata(dict(kind=handoff.TRANSFER, schema_version=1,
-                    harness='terminus-2', operator=changed), 'terminus-2')
+        for folder in handoff.operator.mac_recovery.FAILED_BACKUPS:
+            old = folder+'/failure.json'
+            for mode in ('missing_failure', 'changed_failure', 'legacy_destination'):
+                changed = deepcopy(document)
+                if mode == 'missing_failure': del changed['retained'][old]
+                elif mode == 'changed_failure': changed['retained'][old] += ' '
+                else:
+                    changed['retained'][folder+'/snapshot.json'] = changed['retained'].pop(new)
+                with self.subTest(folder=folder, mode=mode), self.assertRaises(ValueError):
+                    handoff._metadata(dict(kind=handoff.TRANSFER, schema_version=1,
+                        harness='terminus-2', operator=changed), 'terminus-2')
 
     async def test_real_mac_sender_reads_new_same_archive_with_darwin_protection(self):
         _, backup, _, document, archive = await self.fixture()

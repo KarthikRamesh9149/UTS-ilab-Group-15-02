@@ -26,24 +26,39 @@ from test_no_cutoff_recovery_execution import LocalFiles
 
 
 def failed_fixture(root):
-    """Exact allowlisted first-attempt metadata in an owned synthetic tree."""
-    path = root / reporting.FAILED_BACKUP
-    path.mkdir(parents=True, mode=0o700)
-    records = {
-        'intent.json': dict(automatic_resume=False, commit='42613a88ded7e80c157f1686851dc91b2f7bc4f7',
-            kind='one_shot_off_server_recovery_backup', paid_launch_ready=False,
-            started_utc='2026-09-30T23:06:17.968027+00:00'),
-        'failure.json': dict(automatic_resume=False, paid_launch_ready=False,
-            status='failed_or_uncertain_preserve_recovery_backup'),
-    }
-    for name, value in records.items():
-        raw = json.dumps(value, sort_keys=True).encode()
-        assert hashlib.sha256(raw).hexdigest() == reporting.FAILED_FILES[name]
-        from test_no_cutoff_recovery_runtime import save
-        save(root, reporting.FAILED_BACKUP+'/'+name, raw)
+    """Exact allowlisted failed-attempt metadata in owned synthetic trees."""
+    for folder, files in reporting.FAILED_BACKUPS.items():
+        path = root / folder; path.mkdir(parents=True, mode=0o700)
+        first = folder == reporting.FAILED_BACKUP
+        records = {
+            'intent.json': dict(automatic_resume=False,
+                commit='42613a88ded7e80c157f1686851dc91b2f7bc4f7' if first else '0af784affcb2908b3cd9a54a882bc8afda5ee934',
+                kind='one_shot_off_server_recovery_backup', paid_launch_ready=False,
+                started_utc='2026-09-30T23:06:17.968027+00:00' if first else '2026-10-01T01:31:38.883400+00:00'),
+            'failure.json': dict(automatic_resume=False, paid_launch_ready=False,
+                status='failed_or_uncertain_preserve_recovery_backup'),
+        }
+        for name, value in records.items():
+            raw = json.dumps(value, sort_keys=True).encode()
+            assert hashlib.sha256(raw).hexdigest() == files[name]
+            from test_no_cutoff_recovery_runtime import save
+            save(root, folder+'/'+name, raw)
 
 
 class ContractTests(unittest.TestCase):
+    def test_capture_prepare_failure_retains_only_fixed_stage_and_class(self):
+        with patch.object(reporting, '_prepare', side_effect=ValueError('private arbitrary payload')), \
+                patch.object(reporting.subprocess, 'Popen') as popen:
+            with self.assertRaises(reporting._CaptureFailure) as caught:
+                reporting._capture('a'*40, 'backup')
+        self.assertEqual((caught.exception.stage,caught.exception.error_class),('prepare','ValueError'))
+        self.assertNotIn('private',str(caught.exception));popen.assert_not_called()
+
+    def test_diagnostic_unknown_names_are_not_exported(self):
+        error=type('PrivateArbitraryPayload', (Exception,), {})('raw private text')
+        self.assertEqual(reporting._error_class(error),'OtherError')
+        with self.assertRaises(ValueError):reporting._CaptureFailure('untrusted stage',error)
+
     def test_same_archive_algorithm_only_local_protection_changes(self):
         expected=inspect.getsource(native_archive.verify).replace('files.bootstrap.','mac.')
         actual=inspect.getsource(archive.verify)
@@ -58,7 +73,8 @@ class ContractTests(unittest.TestCase):
         for name in ('EXPORT','PUBLIC','OUTPUTS','AUDIT_MAGIC'):
             self.assertEqual(getattr(reporting,name),getattr(original,name))
         self.assertEqual(reporting.FAILED_BACKUP, original.BACKUP)
-        self.assertEqual(reporting.BACKUP, '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2')
+        self.assertEqual(reporting.BACKUP, '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3')
+        self.assertNotIn(reporting.BACKUP, reporting.FAILED_BACKUPS)
         self.assertNotEqual(reporting.BACKUP, original.BACKUP)
         self.assertIsNot(reporting.backup,original.backup)
         self.assertIn('bridge.send(value, process.stdin)',inspect.getsource(reporting._capture))
@@ -191,6 +207,8 @@ class MacReportingTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         path=self.root/reporting.BACKUP
         self.assertEqual({p.name for p in path.iterdir()},{'intent.json','failure.json'})
         self.assertNotIn(b'arbitrary',mac.raw(path,'failure.json')[0])
+        self.assertEqual(mac.loads(mac.raw(path,'failure.json')[0])['diagnostic'],
+            dict(stage='capture',error_class='ValueError'))
         with self.assertRaises(ValueError):reporting.backup('a'*40)
         self.assertEqual(self.capture.call_count,1)
 
@@ -225,6 +243,25 @@ class MacReportingTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):reporting.backup('a'*40)
         self.assertFalse((self.root/reporting.BACKUP).exists())
         self.assertEqual(self.capture.call_count,0)
+
+    async def test_second_failed_attempt_change_also_blocks_before_creation(self):
+        if not self.available():return
+        await self.setup_operator()
+        folder=next(n for n in reporting.FAILED_BACKUPS if n!=reporting.FAILED_BACKUP)
+        path=self.root/folder/'intent.json';raw=path.read_bytes()
+        for replacement in (b'{}',raw):
+            with self.subTest(same_bytes=replacement==raw):
+                if replacement==raw:
+                    path.write_bytes(raw)
+                    self.value['failed_backup']=reporting._failed_backup()
+                    path.rename(self.root/'preserved-second-intent')
+                    mac.write_bytes(path,raw)
+                    with self.assertRaises(ValueError):reporting._current(self.value,{})
+                else:
+                    path.write_bytes(replacement)
+                    with self.assertRaises(ValueError):reporting.backup('a'*40)
+                self.assertFalse((self.root/reporting.BACKUP).exists())
+                self.assertEqual(self.capture.call_count,0)
 
     async def test_failed_attempt_extra_missing_link_or_permissions_refuse(self):
         if not self.available():return
@@ -292,7 +329,8 @@ class MacReportingTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
                     PIPE=reporting.subprocess.PIPE, DEVNULL=reporting.subprocess.DEVNULL)), \
                 patch.object(reporting.frozen.connection, 'read_reply', side_effect=ready), \
                 patch.object(bridge, 'send') as send:
-            with self.assertRaises(ValueError):real_capture('a'*40,'audit')
+            with self.assertRaises(reporting._CaptureFailure) as caught:real_capture('a'*40,'audit')
+        self.assertEqual(caught.exception.stage,'before_sender_recheck')
         send.assert_not_called()
 
 

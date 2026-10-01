@@ -25,25 +25,56 @@ import no_cutoff_recovery_handoff as handoff
 import no_cutoff_recovery_policy as policy
 import no_cutoff_recovery_report as report
 
-BACKUP = '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2'
+BACKUP = '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3'
 FAILED_FILES = {
     'intent.json': '7a49bd3ba8d0bd215cfb80f3cf03ec801f88bd8ca91a18f57a6ed306fedd4e5d',
     'failure.json': '9cbc70820f9403c958bd5ba879b64f60d004fd2e3f11ecfb08028e2a317ee65c',
 }
+FAILED_BACKUPS = {
+    FAILED_BACKUP: FAILED_FILES,
+    '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2': {
+        'intent.json': 'c215bd13cb3b6dc5d998866936806ba5c49d356dc9b4ab5364a203632e669171',
+        'failure.json': '9cbc70820f9403c958bd5ba879b64f60d004fd2e3f11ecfb08028e2a317ee65c',
+    },
+}
+
+CAPTURE_STAGES = frozenset({'prepare', 'receiver_start', 'receiver_ready',
+    'before_sender_recheck', 'original_sender', 'stream_receive', 'final_recheck'})
+ERROR_CLASSES = frozenset({'ValueError', 'TypeError', 'OSError', 'PermissionError',
+    'FileNotFoundError', 'FileExistsError', 'TimeoutError', 'TimeoutExpired',
+    'BrokenPipeError', 'EOFError', 'RuntimeError', 'KeyboardInterrupt', 'CancelledError'})
+
+
+def _error_class(error):
+    name = type(error).__name__
+    return name if name in ERROR_CLASSES else 'OtherError'
+
+
+class _CaptureFailure(ValueError):
+    """Fixed stage/class only; never retain a message, stack or child payload."""
+    def __init__(self, stage, error):
+        if stage not in CAPTURE_STAGES:
+            raise ValueError('Unknown local capture stage')
+        self.stage = stage; self.error_class = _error_class(error)
+        super().__init__('Recovery capture failed; preserve without retry')
 
 
 def _failed_backup():
-    """Actual terminal first attempt, never a destination to resume or repair."""
-    path = handoff.launch.REPO / FAILED_BACKUP
-    directory = boot.directories(path, private=True)
-    if {p.name for p in path.iterdir()} != set(FAILED_FILES):
-        raise ValueError('Exact retained failed recovery backup inventory required')
-    records = {n: boot.raw(path, n, digest) for n, digest in FAILED_FILES.items()}
-    if (boot.directories(path, private=True) != directory
-            or {p.name for p in path.iterdir()} != set(FAILED_FILES)
-            or any(boot.raw(path, n, FAILED_FILES[n]) != record for n, record in records.items())):
-        raise ValueError('Failed recovery backup bytes or identities changed')
-    return dict(directory=directory, records=records)
+    """Both actual terminal attempts, never destinations to resume or repair."""
+    root = handoff.launch.REPO; directories = {}; records = {}
+    for folder, files in FAILED_BACKUPS.items():
+        path = root / folder
+        directories[folder] = boot.directories(path, private=True)
+        if {p.name for p in path.iterdir()} != set(files):
+            raise ValueError('Exact retained failed recovery backup inventory required')
+        records.update({folder+'/'+n: boot.raw(path, n, digest) for n, digest in files.items()})
+    for folder, files in FAILED_BACKUPS.items():
+        path = root / folder
+        if (boot.directories(path, private=True) != directories[folder]
+                or {p.name for p in path.iterdir()} != set(files)
+                or any(boot.raw(path, n, files[n]) != records[folder+'/'+n] for n in files)):
+            raise ValueError('Failed recovery backup bytes or identities changed')
+    return dict(directories=directories, records=records)
 
 
 def _prepare(commit):
@@ -121,18 +152,26 @@ def _receive(process, mode, value, *, path=None):
 
 
 def _capture(commit, mode, *, path=None):
-    value, files = _prepare(commit); identities = value['local_identities']
-    process = None
+    process = None; stage = 'prepare'
     try:
+        value, files = _prepare(commit); identities = value['local_identities']
+        stage = 'receiver_start'
         process = subprocess.Popen(_command(files, commit, mode), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL, bufsize=0, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
+        stage = 'receiver_ready'
         policy._same(frozen.connection.read_reply(process.stdout), _ready(files, commit, mode))
+        stage = 'before_sender_recheck'
         _current(value, identities)
+        stage = 'original_sender'
         bridge.send(value, process.stdin)  # Actual fresh original audit + SAME original archive, never a saved receipt.
         process.stdin.close()
+        stage = 'stream_receive'
         result = _receive(process, mode, value, path=path)
+        stage = 'final_recheck'
         _current(value, identities)
         return result, value, identities
+    except Exception as error:
+        raise _CaptureFailure(stage, error) from None
     finally:
         if process is not None:
             if process.poll() is None:
@@ -151,9 +190,12 @@ def backup(commit):
     boot.save(path / 'intent.json', dict(kind='one_shot_off_server_recovery_backup', commit=commit,
         started_utc=datetime.now(timezone.utc).isoformat(), automatic_resume=False, paid_launch_ready=False))
     intent = boot.raw(path, 'intent.json')
+    stage = 'capture'
     try:
         (data, inventory, receipt, written), capture, captured_ids = _capture(commit, 'backup', path=path)
+        stage = 'archive_verify'
         verified = archive.verify(path / 'evidence.tar.gz', data, inventory, receipt, _manifest(value), value['current_sources'])
+        stage = 'final_evidence_recheck'
         _state(path, state); _current(value, identities); _current(capture, captured_ids)
         if (boot.raw(path, 'intent.json') != intent
                 or {p.name for p in path.iterdir()} != {'intent.json', 'snapshot.json', 'inventory.json', 'evidence.tar.gz'}
@@ -161,16 +203,20 @@ def backup(commit):
                 or boot.loads(boot.raw(path, 'inventory.json')[0]) != inventory
                 or any(boot.identity((path / n).lstat()) != identity for n, identity in written.items())):
             raise ValueError('Recovery receiver evidence changed before durable completion')
+        stage = 'durable_completion'
         boot.save(path / 'backup.json', dict(kind='verified_off_server_recovery_backup', receipt=receipt,
             verified=verified, snapshot_sha256=policy.fingerprint(data), inventory_sha256=policy.fingerprint(inventory),
             automatic_resume=False, paid_launch_ready=False))
         _state(path, state)
         return dict(kind='recovery_backup_verified', completed=3, archive_sha256=receipt['sha256'],
             compressed_bytes=receipt['compressed_bytes'], full_runtime_restore_exercised=False, paid_launch_ready=False)
-    except BaseException:
+    except BaseException as error:
         _state(path, state)
+        diagnostic = dict(stage=stage, error_class=_error_class(error))
+        if type(error) is _CaptureFailure:
+            diagnostic = dict(stage='capture_'+error.stage, error_class=error.error_class)
         boot.save(path / 'failure.json', dict(status='failed_or_uncertain_preserve_recovery_backup',
-            automatic_resume=False, paid_launch_ready=False))
+            automatic_resume=False, paid_launch_ready=False, diagnostic=diagnostic))
         raise
 
 
@@ -200,7 +246,7 @@ def _read_backup(value):
         _manifest(value), value['current_sources'])
     policy._same(verified, saved['verified']); _state(path, state)
     if any(boot.raw(path, n) != record for n, record in records.items()): raise ValueError('Retained backup metadata replaced')
-    if _failed_backup() != preserved: raise ValueError('Failed first backup changed during archive verification')
+    if _failed_backup() != preserved: raise ValueError('Failed backup evidence changed during archive verification')
     return data, saved
 
 
