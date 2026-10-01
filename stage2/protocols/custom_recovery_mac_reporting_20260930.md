@@ -5,6 +5,54 @@ paid admission, a task attempt, a score change or a replacement backup. The
 frozen R6 tree, all 318 source bytes, original reporter35 and every retained
 failed root remain unchanged. No permissions or ACLs are changed.
 
+## Actual sender verified; one separate r4 destination, 1 October 2026 UTC
+
+The human instructed "Deliver it then" and "Don't fuck up pls" after the
+remaining live-diagnostic scope had been explained. Routine completion of the
+existing recovery reporting and sequential baseline plan is authorised without
+another routine approval. This does not authorise benchmark replay, unlimited
+archive attempts, signals, parallel dispatch or changes to benchmark controls.
+
+Fresh source-bound native metadata at06:00:08.980813Z verified all319bindings
+and final identities, no relevant original/recovery-root processes and absence
+of the native completed-backup producer. The old r3 receiver was absent. No
+signal was sent; its disappearance mechanism was not established.
+
+The actual committed sender diagnostic on7259bc53a5bc919470c4747362aab55f2b001dc1
+then PASSED at06:10:24.450881Z, after540.310103seconds. The exact isolated sender
+performed the actual fresh original audit and strict reread of the SAME retained
+original archive through a real FIFO. An owned local drain discarded all bytes:
+116879498 bytes, SHA256
+0ae9ccaab7c55066026141ba2f6268683071e8dc2195c84923b41aff22198101.
+All326committed sources, loaded origins, actual private identities, environment
+and all three failed folders were checked before/after. There were no blocked
+effects or sender errors. This created NO archive, backup destination, export
+or benchmark attempt. It verifies this real sender path, not the full recovery
+backup, completed recovery audit or unavailable historical r3 failure cause.
+
+An earlier disposable diagnostic refused the exact /dev/null descriptor open
+used by its own Popen before child creation. An actual stdlib probe reproduced
+that diagnostic-only refusal. Allowing only the existing character device,
+without create/truncate/append, passed an owned synthetic child/pipe probe
+before the successful live diagnostic. No production guard was changed.
+
+The only new backup target is
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4`. The amendment adds the
+third terminal folder's exact two pinned records to FAILED_BACKUPS; all three
+folders and six metadata files must pass the same actual protection, hash and
+live identity checks before preparation and throughout capture/verification/
+export. Prospective baseline dependency readers consume the same new archive
+and authenticate all six failure records through their existing strict schema.
+No archived/native source, receiver command, sender, scoring or agent changes.
+
+This is one separately bound backup-only attempt, not an automatic retry loop.
+An existing/partial r4 target is terminal too. The r1/r2/r3 targets cannot be
+reused, overwritten or deleted. A genuine fresh native recovery audit, original
+handoff, strict off-server archive verification and final session commitment
+remain mandatory. No r4 call or success is claimed at this publication checkpoint.
+Export retains its original never-used destination and three public filenames.
+Earlier paragraphs describing r3 as the current target are historical.
+
 ## Third terminal failure and bounded sender diagnostics, 1 October 2026 UTC
 
 The one r3 call at4cfaac53039242ff5a53fbc2bd2fa125cd57e7d4 began

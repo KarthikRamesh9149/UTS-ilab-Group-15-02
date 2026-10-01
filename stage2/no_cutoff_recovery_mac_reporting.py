@@ -25,7 +25,7 @@ import no_cutoff_recovery_handoff as handoff
 import no_cutoff_recovery_policy as policy
 import no_cutoff_recovery_report as report
 
-BACKUP = '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3'
+BACKUP = '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4'
 FAILED_FILES = {
     'intent.json': '7a49bd3ba8d0bd215cfb80f3cf03ec801f88bd8ca91a18f57a6ed306fedd4e5d',
     'failure.json': '9cbc70820f9403c958bd5ba879b64f60d004fd2e3f11ecfb08028e2a317ee65c',
@@ -35,6 +35,10 @@ FAILED_BACKUPS = {
     '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2': {
         'intent.json': 'c215bd13cb3b6dc5d998866936806ba5c49d356dc9b4ab5364a203632e669171',
         'failure.json': '9cbc70820f9403c958bd5ba879b64f60d004fd2e3f11ecfb08028e2a317ee65c',
+    },
+    '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3': {
+        'intent.json': '68f1518d63b2a204b14f4a5edaf33033cbd429407d60c190711e2a7ba20f63f3',
+        'failure.json': 'b2d691a45c3dea8ef638bdc465b7e05553c24755fc4130dd1c3e9ec5fb3692f0',
     },
 }
 
@@ -65,7 +69,7 @@ class _CaptureFailure(ValueError):
 
 
 def _failed_backup():
-    """Both actual terminal attempts, never destinations to resume or repair."""
+    """All three terminal attempts, never destinations to resume or repair."""
     root = handoff.launch.REPO; directories = {}; records = {}
     for folder, files in FAILED_BACKUPS.items():
         path = root / folder

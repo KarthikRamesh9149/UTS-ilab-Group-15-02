@@ -38,6 +38,11 @@ def failed_fixture(root):
             'failure.json': dict(automatic_resume=False, paid_launch_ready=False,
                 status='failed_or_uncertain_preserve_recovery_backup'),
         }
+        if folder.endswith('-r3'):
+            records['intent.json'].update(commit='4cfaac53039242ff5a53fbc2bd2fa125cd57e7d4',
+                started_utc='2026-10-01T03:11:20.813805+00:00')
+            records['failure.json']['diagnostic'] = dict(
+                stage='capture_original_sender', error_class='ValueError')
         for name, value in records.items():
             raw = json.dumps(value, sort_keys=True).encode()
             assert hashlib.sha256(raw).hexdigest() == files[name]
@@ -82,11 +87,23 @@ class ContractTests(unittest.TestCase):
         for name in ('EXPORT','PUBLIC','OUTPUTS','AUDIT_MAGIC'):
             self.assertEqual(getattr(reporting,name),getattr(original,name))
         self.assertEqual(reporting.FAILED_BACKUP, original.BACKUP)
-        self.assertEqual(reporting.BACKUP, '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3')
+        self.assertEqual(reporting.BACKUP, '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4')
         self.assertNotIn(reporting.BACKUP, reporting.FAILED_BACKUPS)
         self.assertNotEqual(reporting.BACKUP, original.BACKUP)
         self.assertIsNot(reporting.backup,original.backup)
         self.assertIn('bridge.send(value, process.stdin)',inspect.getsource(reporting._capture))
+
+    def test_all_three_terminal_attempts_are_pinned_separately(self):
+        self.assertEqual(set(reporting.FAILED_BACKUPS), {
+            reporting.FAILED_BACKUP,
+            '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r2',
+            '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3',
+        })
+        self.assertEqual(reporting.FAILED_BACKUPS[
+            '.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3'], {
+            'intent.json': '68f1518d63b2a204b14f4a5edaf33033cbd429407d60c190711e2a7ba20f63f3',
+            'failure.json': 'b2d691a45c3dea8ef638bdc465b7e05553c24755fc4130dd1c3e9ec5fb3692f0',
+        })
 
     def test_amendment_does_not_change_frozen_native_inventory(self):
         self.assertTrue(set(bridge.EXTRAS).isdisjoint(fixture.policy.REQUIRED_SOURCE_FILES))
@@ -266,24 +283,25 @@ class MacReportingTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         self.assertFalse((self.root/reporting.BACKUP).exists())
         self.assertEqual(self.capture.call_count,0)
 
-    async def test_second_failed_attempt_change_also_blocks_before_creation(self):
+    async def test_later_failed_attempt_changes_also_block_before_creation(self):
         if not self.available():return
         await self.setup_operator()
-        folder=next(n for n in reporting.FAILED_BACKUPS if n!=reporting.FAILED_BACKUP)
-        path=self.root/folder/'intent.json';raw=path.read_bytes()
-        for replacement in (b'{}',raw):
-            with self.subTest(same_bytes=replacement==raw):
-                if replacement==raw:
-                    path.write_bytes(raw)
-                    self.value['failed_backup']=reporting._failed_backup()
-                    path.rename(self.root/'preserved-second-intent')
-                    mac.write_bytes(path,raw)
-                    with self.assertRaises(ValueError):reporting._current(self.value,{})
-                else:
-                    path.write_bytes(replacement)
-                    with self.assertRaises(ValueError):reporting.backup('a'*40)
-                self.assertFalse((self.root/reporting.BACKUP).exists())
-                self.assertEqual(self.capture.call_count,0)
+        for index,folder in enumerate(n for n in reporting.FAILED_BACKUPS if n!=reporting.FAILED_BACKUP):
+            path=self.root/folder/'intent.json';raw=path.read_bytes()
+            for replacement in (b'{}',raw):
+                with self.subTest(folder=folder,same_bytes=replacement==raw):
+                    if replacement==raw:
+                        path.write_bytes(raw)
+                        self.value['failed_backup']=reporting._failed_backup()
+                        path.rename(self.root/('preserved-later-intent-'+str(index)))
+                        mac.write_bytes(path,raw)
+                        with self.assertRaises(ValueError):reporting._current(self.value,{})
+                    else:
+                        path.write_bytes(replacement)
+                        with self.assertRaises(ValueError):reporting.backup('a'*40)
+                    self.assertFalse((self.root/reporting.BACKUP).exists())
+                    self.assertEqual(self.capture.call_count,0)
+            self.value['failed_backup']=reporting._failed_backup()
 
     async def test_failed_attempt_extra_missing_link_or_permissions_refuse(self):
         if not self.available():return

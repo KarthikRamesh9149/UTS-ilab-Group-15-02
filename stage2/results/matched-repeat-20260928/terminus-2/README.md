@@ -1,5 +1,20 @@
 # Separate Terminus-2 repeat
 
+## Actual recovery sender passed; archive still required, 1 October UTC
+
+This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and no
+active task. Recovery is 3/3 complete with three failed results retained.
+The real original-audit/SAME-archive sender diagnostic passed at06:10:24.450881Z,
+but no completed recovery archive/export or baseline native readiness is inferred.
+The dependency now names the separate r4 recovery backup target and authenticates
+all three failed folders' six exact records. No r4 invocation is claimed at this
+publication checkpoint. All241 final affected local tests passed, zero failures,
+errors or skips, with413 source bindings and208 loaded modules. The
+[recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records exact
+evidence and the corrected draft test expectation. Frozen native sources and
+baseline controls are unchanged. Actual recovery audit/backup/export still
+precede installation and genuine native qualification. Earlier entries are history.
+
 ## Recovery backup still blocked, 1 October 2026 UTC
 
 This repeat remains **0/89**, with0passed,0failed,0missing verifier and no active

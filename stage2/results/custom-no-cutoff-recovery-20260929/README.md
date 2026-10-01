@@ -1,5 +1,41 @@
 # Separate C0-NC setup recovery
 
+## Real sender verified; separate backup destination prepared, 1 October UTC
+
+Recovery remains **3/3 completed, 0 passed, 3 failed, 0 missing verifier**, with
+no active benchmark. Both baseline repeats remain **0/89**, unstarted.
+
+The actual committed original-audit/SAME-archive sender passed at
+06:10:24.450881Z in 540.310103 seconds. It sent 116879498 bytes through a real
+discard-only FIFO, SHA256
+`0ae9ccaab7c55066026141ba2f6268683071e8dc2195c84923b41aff22198101`,
+with 326 committed sources and final identity/environment checks. This was a
+real sender diagnostic, not a recovery archive or completed recovery study audit.
+It does not establish the unavailable historical cause of the third failure.
+Fresh native metadata found the old receiver absent; no signal was sent.
+
+The fixed new backup-only target is
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r4`. All three failed folders
+and six exact metadata records are preserved and required by the Mac reporter
+and prospective baseline handoffs. No sender, frozen native source, agent or
+score changed. One actual backup still requires its real live audit, archive
+verification and final commitment. No r4 call or success is claimed at this
+publication checkpoint; the new target and export/public outputs are absent.
+
+All **241 final affected local tests passed** serially in 401.773 seconds
+(406.118 including guards), zero failures/errors/skips, 413 source bindings
+before/discovery/after, 208 final loaded modules and per-test cache checks.
+Source map: `59daac0c0584767cf666b0fffd0c94e6ad401ebc0a8334433e3102f922f18de6`.
+Real protected Mac files, pipes and synthetic archives/children were tested;
+native observations in these tests are mocked. The older broad gate was not
+rerun. The preceding 34-test gate passed on the earlier candidate. A draft
+241-test gate had one stale expected-record-count assertion (13 versus the new
+15); the test now checks the exact 15-record inventory, including all six failure
+records. No production protection was changed to resolve that test failure.
+All318 frozen, archived35 and original211 preservation checks passed; the only
+original-source difference remains the prior local scored_trial.py change.
+The earlier dated checkpoints below are historical.
+
 ## Third backup failed; diagnostic gap corrected, 1 October 2026 UTC
 
 Recovery is **3/3 completed, 0 passed, 3 failed, 0 missing verifier**, with no

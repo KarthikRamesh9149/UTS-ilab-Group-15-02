@@ -69,7 +69,14 @@ class RecoveryOperatorTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         data,backup=await self.retained()
         actual=operator._retained({'commit':'a'*40},self.sources)
         self.assertEqual(actual['data'],data);self.assertEqual(actual['backup'],backup)
-        self.assertEqual(len(actual['records']),13)
+        expected = {operator.BACKUP+'/'+name for name in (
+            'intent.json','snapshot.json','inventory.json','backup.json')}
+        expected |= {operator.recovery.EXPORT+'/'+name for name in ('intent.json','result.json')}
+        expected |= {operator.recovery.PUBLIC+'/'+name for name in operator.recovery.OUTPUTS}
+        expected |= {folder+'/'+name for folder,files in operator.mac_recovery.FAILED_BACKUPS.items()
+            for name in files}
+        self.assertEqual(len(expected),15)
+        self.assertEqual(set(actual['records']),expected)
         self.assertEqual(operator._retained({'commit':'a'*40},self.sources),actual)
 
     async def test_archive_corruption_and_partial_export_refuse_without_replacement(self):
