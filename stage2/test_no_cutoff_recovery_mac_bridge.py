@@ -57,6 +57,90 @@ class CommitTests(unittest.TestCase):
             with self.assertRaises(ValueError):bridge._program(value,'callback')
 
 
+class SenderDiagnosticTests(unittest.TestCase):
+    def record(self):
+        return dict(stage='original_audit_archive', error_class='ValueError', transport=None)
+
+    def child(self, code):
+        process=subprocess.Popen([sys.executable,'-I','-B','-c',code],
+            stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,
+            env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'})
+        self.addCleanup(process.stderr.close)
+        def finish():
+            if process.poll() is None:process.kill();process.wait(timeout=10)
+        self.addCleanup(finish)
+        return process
+
+    def test_real_child_stream_discards_large_untrusted_stderr(self):
+        record=self.record()
+        code='import os\nos.write(2,b"private payload"*100000+b"\\n")\nos.write(2,'+repr(
+            b'UTS_MAC_RECOVERY_CHILD_FAILURE_V1 '+json.dumps(record).encode()+b'\n')+')\nraise SystemExit(1)'
+        process=self.child(code)
+        with self.assertRaises(bridge._SenderFailure) as caught:bridge._sender_result(process)
+        self.assertEqual(caught.exception.diagnostic,record)
+        self.assertEqual(caught.exception.returncode,1)
+        self.assertNotIn('private',str(caught.exception))
+        self.assertEqual(process.poll(),1)
+
+    def test_missing_duplicate_or_untrusted_record_never_becomes_trusted_metadata(self):
+        valid=b'UTS_MAC_RECOVERY_CHILD_FAILURE_V1 '+json.dumps(self.record()).encode()+b'\n'
+        for raw in (b'private error text\n',valid+valid,
+                b'UTS_MAC_RECOVERY_CHILD_FAILURE_V1 '+b'{"stage":"private payload"}\n'):
+            with self.subTest(raw_length=len(raw)):
+                process=self.child('import os\nos.write(2,'+repr(raw)+')\nraise SystemExit(1)')
+                with self.assertRaises(bridge._SenderFailure) as caught:bridge._sender_result(process)
+                self.assertEqual(caught.exception.diagnostic,
+                    dict(stage='unreported_child',error_class='OtherError',transport=None))
+
+    def test_success_requires_no_failure_record_and_successful_exit(self):
+        self.assertIsNone(bridge._sender_result(self.child('pass')))
+        raw=b'UTS_MAC_RECOVERY_CHILD_FAILURE_V1 '+json.dumps(self.record()).encode()+b'\n'
+        with self.assertRaises(bridge._SenderFailure):
+            bridge._sender_result(self.child('import os\nos.write(2,'+repr(raw)+')'))
+
+    def test_schema_rejects_arbitrary_fields_classes_and_noninteger_codes(self):
+        self.assertTrue(bridge._valid_failure(self.record()))
+        for value in (dict(self.record(),message='private text'),
+                dict(self.record(),error_class='PrivateClassName'),
+                dict(self.record(),stage='private path'),
+                dict(self.record(),transport=dict(status='child_exit',error_class='ValueError',
+                    returncode=True,stdout_bytes=0))):
+            self.assertFalse(bridge._valid_failure(value))
+
+    def test_real_error_projection_drops_messages_frames_and_other_metadata(self):
+        from no_cutoff_final_transport import AuditTransportError
+        error=AuditTransportError(dict(status='child_exit',error_type='ValueError',returncode=1,
+            stdout_bytes=0,diagnostics={'private':'not retained'},message='private payload'))
+        record=bridge._child_failure(error)
+        self.assertEqual(record,dict(stage='entry',error_class='AuditTransportError',
+            transport=dict(status='child_exit',error_class='ValueError',returncode=1,stdout_bytes=0)))
+        self.assertNotIn('private',json.dumps(record))
+
+    def test_duplicate_json_keys_and_truncated_or_oversized_markers_are_untrusted(self):
+        for raw in (bridge.FAILURE_PREFIX+b'{"stage":"entry","stage":"entry"}\n',
+                bridge.FAILURE_PREFIX+json.dumps(self.record()).encode(),
+                bridge.FAILURE_PREFIX+b'x'*2000+b'\n'):
+            process=self.child('import os\nos.write(2,'+repr(raw)+')\nraise SystemExit(1)')
+            with self.assertRaises(bridge._SenderFailure) as caught:bridge._sender_result(process)
+            self.assertEqual(caught.exception.diagnostic['stage'],'unreported_child')
+
+    def test_transport_timeout_does_not_signal_a_native_or_other_process(self):
+        process=self.child('import time\ntime.sleep(20)')
+        with patch.object(bridge,'TIMEOUT',0.01):
+            with self.assertRaises(subprocess.TimeoutExpired):bridge._sender_result(process)
+        self.assertIsNone(process.poll())  # Only this test's owned-child cleanup may kill it.
+
+    def test_sender_failure_closes_only_its_owned_local_child_and_pipe(self):
+        record=self.record();raw=bridge.FAILURE_PREFIX+json.dumps(record).encode()+b'\n'
+        command=[sys.executable,'-I','-B','-c','import os\nos.write(2,'+repr(raw)+')\nraise SystemExit(1)']
+        with patch.object(bridge,'current') as current, \
+                patch.object(bridge,'_child_command',return_value=command):
+            with self.assertRaises(bridge._SenderFailure) as caught:
+                bridge.send({},subprocess.DEVNULL)
+        self.assertEqual(caught.exception.diagnostic,record)
+        self.assertEqual(current.call_count,1)
+
+
 class ChildTests(unittest.TestCase):
     def setUp(self):
         temp=tempfile.TemporaryDirectory(prefix='.uts-report-child-',dir=Path.home() if sys.platform=='darwin' else None)
@@ -128,9 +212,13 @@ _local_identities=ids
         native={n:self.bound[n] for n in sorted(self.native_names)}
         frozen=hashlib.sha256(json.dumps(native,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         raw=(STAGE/'no_cutoff_recovery_mac_bridge.py').read_text(); tree=ast.parse(raw)
-        pieces=[ast.get_source_segment(raw,n) for n in tree.body if isinstance(n,(ast.ClassDef,ast.FunctionDef)) and n.name in ('_CommitTail','_child')]
+        pieces=[ast.get_source_segment(raw,n) for n in tree.body if isinstance(n,(ast.ClassDef,ast.FunctionDef))
+            and n.name in ('_CommitTail','_valid_failure','_child_failure','_child')]
         constants=dict(ROOT_LITERAL=str(self.root),EXPECTED_ENV=self.environment,FINAL_LITERAL=bridge.FINAL,
-            FINAL_SHA_LITERAL=hashlib.sha256(self.final_raw).hexdigest(),FROZEN_MAP_LITERAL=frozen)
+            FINAL_SHA_LITERAL=hashlib.sha256(self.final_raw).hexdigest(),FROZEN_MAP_LITERAL=frozen,
+            FAILURE_PREFIX=bridge.FAILURE_PREFIX,CHILD_STAGES=bridge.CHILD_STAGES,
+            CHILD_ERRORS=bridge.CHILD_ERRORS,TRANSPORT_STAGES=bridge.TRANSPORT_STAGES,
+            VALIDATION_STAGES=bridge.VALIDATION_STAGES)
         self.program='\n'.join(k+'='+repr(v) for k,v in constants.items())+'\n'+'\n\n'.join(pieces)
 
     def run_child(self,mode='prepare',env=None):
@@ -153,6 +241,27 @@ _local_identities=ids
         if sys.platform!='darwin':self.assertNotEqual(result.returncode,0);return
         self.assertEqual(result.returncode,0,result.stderr.decode())
         self.assertEqual(result.stdout,b'synthetic-payload'*40+b'COMMIT\n'+b'h'*32+b'a'*32)
+
+    def test_actual_child_failure_handler_emits_stage_not_private_payload(self):
+        self.fixture(send_prelude="raise ValueError('private synthetic task payload')")
+        raw=(STAGE/'no_cutoff_recovery_mac_bridge.py').read_bytes()
+        import mac_operator_files as mac
+        with patch.object(mac,'raw',return_value=(raw,())):
+            generated=bridge._program({'commit':self.commit,'bound':{
+                'no_cutoff_recovery_mac_bridge.py':hashlib.sha256(raw).hexdigest()}},'send')
+        marker='\nexcept BaseException as error:\n'
+        self.assertEqual(generated.count(marker),1)
+        code=self.program+'\ntry:\n _child('+','.join(map(repr,('send',self.commit,self.bound)))+')'+marker+generated.split(marker)[1]
+        result=subprocess.run([str(self.python),'-I','-B','-c',code],cwd=self.root,
+            env=self.environment,capture_output=True,timeout=30)
+        self.assertEqual(result.returncode,1)
+        self.assertEqual(result.stdout,b'')
+        self.assertTrue(result.stderr.startswith(bridge.FAILURE_PREFIX))
+        record=json.loads(result.stderr[len(bridge.FAILURE_PREFIX):])
+        self.assertTrue(bridge._valid_failure(record))
+        self.assertEqual(record['stage'],'original_audit_archive' if sys.platform=='darwin' else 'entry')
+        self.assertEqual(record['error_class'],'ValueError')
+        self.assertNotIn(b'private synthetic',result.stderr)
 
     def test_send_allows_fdopen_of_own_existing_anonymous_pipe(self):
         self.fixture(send_prelude="""reader,writer=os.pipe()

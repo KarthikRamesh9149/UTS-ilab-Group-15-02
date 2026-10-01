@@ -56,6 +56,11 @@ class _CaptureFailure(ValueError):
         if stage not in CAPTURE_STAGES:
             raise ValueError('Unknown local capture stage')
         self.stage = stage; self.error_class = _error_class(error)
+        self.sender = None
+        if type(error) is bridge._SenderFailure:
+            if not bridge._valid_failure(error.diagnostic) or type(error.returncode) is not int:
+                raise ValueError('Untrusted sender failure metadata')
+            self.sender = dict(error.diagnostic, returncode=error.returncode)
         super().__init__('Recovery capture failed; preserve without retry')
 
 
@@ -215,6 +220,7 @@ def backup(commit):
         diagnostic = dict(stage=stage, error_class=_error_class(error))
         if type(error) is _CaptureFailure:
             diagnostic = dict(stage='capture_'+error.stage, error_class=error.error_class)
+            if error.sender is not None: diagnostic['sender'] = error.sender
         boot.save(path / 'failure.json', dict(status='failed_or_uncertain_preserve_recovery_backup',
             automatic_resume=False, paid_launch_ready=False, diagnostic=diagnostic))
         raise

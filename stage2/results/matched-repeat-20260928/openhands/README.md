@@ -1,5 +1,19 @@
 # Separate OpenHands repeat
 
+## Recovery backup still blocked, 1 October 2026 UTC
+
+This repeat remains **0/89**, with0passed,0failed,0missing verifier and no active
+task. The third separate recovery backup failed at03:21:07.420726Z; no recovery
+archive or export exists. Its fixed r3 destination is terminal, not reusable.
+The [recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records
+the still-unestablished inner cause, a remaining receiver observation and the
+Mac-only bounded sender diagnostics. All240 affected local tests passed, with
+413 source bindings and208 loaded modules. This does not establish a successful
+backup or native readiness. No fourth backup target/attempt, baseline install,
+qualification or paid run was created. Actual recovery audit/verified
+backup/export, then the complete Terminus sequence, remain mandatory.
+Earlier dated checkpoints below are historical.
+
 ## Current backup correction, 1 October 2026 UTC
 
 This repeat is **0/89**, unstarted: no passes, failures, missing verifier outcomes

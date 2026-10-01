@@ -1,5 +1,40 @@
 # Separate C0-NC setup recovery
 
+## Third backup failed; diagnostic gap corrected, 1 October 2026 UTC
+
+Recovery is **3/3 completed, 0 passed, 3 failed, 0 missing verifier**, with no
+active benchmark. Actual completed-operation status again passed at
+03:35:10.138057Z. Both baseline repeats remain **0/89**, unstarted.
+
+The one r3 backup failed at03:21:07.420726Z, at the original sender stage.
+Only its private intent and failure records exist. All three failed folders
+are terminal and unchanged; no fourth target or attempt has been created.
+The exact inner historical exception was discarded, so its cause is still
+unestablished. The [Mac reporting protocol](../../protocols/custom_recovery_mac_reporting_20260930.md)
+records the exact retained hashes and read-only observations. Its native
+receiver was still waiting in a pipe read at03:43:53.239456Z; no native signal
+was sent. Later state must be checked without overlapping another handoff.
+
+The separate Mac sender now retains only fixed stages, error classes and
+available integer transport metadata. Raw stderr, messages, stacks, paths
+and task/model payloads are discarded. This is an observability correction,
+not a successful backup or an established fix for the remaining failure.
+The actual audit, verified recovery archive and export still block baselines.
+
+All **240 final affected local tests passed** serially in363.505seconds
+(367.895 including guards), zero skips/errors/failures, 413 source bindings
+before/discovery/after, 208 final loaded modules and per-test cache checks.
+Source-map SHA256:
+`0d69603c8683e061c5ab1eed1fe80e5ccb358fbbbe581f641ebe4f1e097d3506`.
+The preceding51 focused tests passed70.466seconds (74.546 guarded), before
+the final protocol edit. Synthetic owned children exercise real stderr pipes,
+large private-output discard, malformed/duplicate/truncated records, timeout,
+exact stage projection and terminal private failures. Native observations are
+mocked; no native qualification, audit or backup is inferred. The older broad
+gate was not rerun on this amendment. Preservation checked frozen318,
+archived35, original211 with only its prior local scored_trial.py difference,
+and all three actual failed backup inventories. Earlier checkpoints are history.
+
 ## Directory-check correction, 1 October 2026 UTC
 
 Recovery remains **3/3 completed, 0 passed, 3 failed, 0 missing verifier**,

@@ -5,6 +5,64 @@ paid admission, a task attempt, a score change or a replacement backup. The
 frozen R6 tree, all 318 source bytes, original reporter35 and every retained
 failed root remain unchanged. No permissions or ACLs are changed.
 
+## Third terminal failure and bounded sender diagnostics, 1 October 2026 UTC
+
+The one r3 call at4cfaac53039242ff5a53fbc2bd2fa125cd57e7d4 began
+03:08:37.621464Z and failed03:21:07.420726Z. Its Mac parent62193/Python14497
+ended; it is not a pending operation to poll or repeat. The terminal folder
+`.runtime/netcup/custom-no-cutoff-recovery3-20261001-r3` contains only
+intent.json207bytes SHA256
+68f1518d63b2a204b14f4a5edaf33033cbd429407d60c190711e2a7ba20f63f3
+and failure.json194bytes SHA256
+b2d691a45c3dea8ef638bdc465b7e05553c24755fc4130dd1c3e9ec5fb3692f0.
+Actual protected Mac reads verified both files and the two older failed folders.
+The retained diagnostic is `capture_original_sender / ValueError`. It does not
+identify the inner exception: the isolated sender discarded stderr. In
+particular, neither the earlier FIFO defect nor the reproduced directory race
+is established as this failure's historical cause.
+
+Fresh source-bound completed-operation status at03:35:10.138057Z again verified
+recovery3/3,0passed,3failed,0missing verifier, no active benchmark. Metadata at
+03:35:10.342823Z verified all319native bindings/final identities and absence of
+the native completed-backup producer. A separate bounded process observation
+at03:43:53.239456Z matched the exact r3 native reporting argv and PID1803725,
+startticks100383142, parent1803724. That process was sleeping in a pipe read.
+This is process metadata, not authentication, a completed audit or a backup.
+An earlier comparison used a different dictionary insertion order; correcting
+only the disposable observer to the actual sorted JSON-derived constructor
+established the exact match. No native/source guard was changed. Local exact
+argv observation at03:45:42.799201Z found no matching r3 Mac SSH client.
+No native process was signalled. Later process state must be freshly checked;
+do not overlap a new handoff or infer that this receiver has exited.
+
+An actual source-bound local sender diagnostic at03:39:48.502316Z reached the
+original-audit SSH launch point, where an independent guard deliberately
+refused SSH before creation. Its existing FIFO wrapper succeeded, the child's
+own violation flag stayed false, and no archive or native connection was used.
+This local observation is not a successful audit or proof of the historical
+failure. No fourth destination or backup attempt has been created.
+
+The Mac-only amendment now preserves a fixed inner child stage and allowlisted
+error class. A genuine original AuditTransportError may additionally contribute
+only its fixed transport/validation category, available integer return code
+and stdout byte count. No messages, frame lists, paths, task/model payloads or
+raw child output are retained. Stderr is drained in bounded chunks; arbitrary
+lines are discarded. Missing, malformed, truncated, duplicate or oversized
+diagnostic records are labelled unreported, never trusted. A failure record
+or nonzero exit always fails the send. The unchanged4500second transport window,
+exact SSH route, original live audit/SAME-archive sender, all source/identity
+checks and withheld final commitment remain. Cleanup is limited to the owned
+Mac child and its pipe; no native signal or retry is introduced.
+
+The backup target remains the already-terminal r3 directory, so the existing
+entry cannot start a fourth attempt. All three failed folders and benchmark
+outcomes must remain untouched. This closes an observability gap, not the
+unidentified end-to-end backup failure. A real completed recovery audit,
+verified separate archive and export are still absent. Both baselines remain
+unstarted. Future diagnostic/operation scope must be established explicitly;
+neither synthetic tests nor this new error record grants another archive call.
+The earlier r3-pending and uninvoked paragraphs below are historical.
+
 ## Second terminal failure and coherent-directory correction, 1 October 2026
 
 The second actual backup at commit0af784affcb2908b3cd9a54a882bc8afda5ee934

@@ -12,8 +12,10 @@ import json
 import os
 from pathlib import Path
 import re
+import selectors
 import subprocess
 import sys
+import time
 
 REPO = Path('/Users/karthikramesh/.codex/.chatgpt-projects/g-p-6a789724c2d48191b80421978177d029/terminal-bench-progress-smoke')
 PYTHON = REPO / '.tools/stage2-custom/bin/python'
@@ -29,6 +31,21 @@ EXTRAS = (
     'protocols/custom_recovery_mac_reporting_20260930.md',
 )
 TIMEOUT = 4500  # Same original handoff window, never a task or request limit.
+FAILURE_PREFIX = b'UTS_MAC_RECOVERY_CHILD_FAILURE_V1 '
+CHILD_STAGES = frozenset({'entry', 'source_bootstrap', 'source_before_imports',
+    'project_imports', 'original_prepare', 'prepared_identity_recheck',
+    'original_audit_archive', 'original_final_recheck', 'amendment_final_recheck',
+    'commitment', 'prepare_reply', 'unreported_child'})
+CHILD_ERRORS = frozenset({'ValueError', 'TypeError', 'KeyError', 'IndexError',
+    'AssertionError', 'RuntimeError', 'OSError', 'FileNotFoundError', 'FileExistsError',
+    'PermissionError', 'TimeoutError', 'TimeoutExpired', 'CalledProcessError',
+    'BrokenPipeError', 'EOFError', 'KeyboardInterrupt', 'SystemExit', 'CancelledError',
+    'AuditTransportError', 'OtherError'})
+TRANSPORT_STAGES = frozenset({'transport_start', 'transport_send', 'transport_read',
+    'transport_timeout', 'reply_window_exceeded', 'child_exit', 'transport_finished',
+    'local_client_cleanup_uncertain'})
+VALIDATION_STAGES = frozenset({'operator_source_recheck', 'completed_return_validation',
+    'snapshot_schema_validation', 'final_operator_source_recheck'})
 
 
 def _environment():
@@ -135,9 +152,58 @@ class _CommitTail:
         self.stream.flush(); self.tail.clear()
 
 
+def _valid_failure(value):
+    """Only fixed categories and available integer transport metadata escape."""
+    if (type(value) is not dict or set(value) != {'stage', 'error_class', 'transport'}
+            or type(value['stage']) is not str or value['stage'] not in CHILD_STAGES
+            or type(value['error_class']) is not str or value['error_class'] not in CHILD_ERRORS):
+        return False
+    item = value['transport']
+    if item is None: return True
+    base = {'status', 'error_class', 'returncode', 'stdout_bytes'}
+    extra = {'validation_stage', 'validation_error_class'}
+    if (type(item) is not dict or set(item) not in (base, base | extra)
+            or type(item['status']) is not str or item['status'] not in TRANSPORT_STAGES
+            or item['error_class'] is not None and (type(item['error_class']) is not str
+                or item['error_class'] not in CHILD_ERRORS)
+            or item['returncode'] is not None and type(item['returncode']) is not int
+            or type(item['stdout_bytes']) is not int or not 0 <= item['stdout_bytes'] <= 64 * 1024 * 1024):
+        return False
+    return not extra.issubset(item) or (
+        type(item['validation_stage']) is str and item['validation_stage'] in VALIDATION_STAGES
+        and type(item['validation_error_class']) is str and item['validation_error_class'] in CHILD_ERRORS)
+
+
+def _child_failure(error):
+    """Read one fixed local stage, never export a frame, message or payload."""
+    stage = 'entry'; trace = error.__traceback__
+    while trace is not None:
+        if trace.tb_frame.f_code is _child.__code__:
+            observed = trace.tb_frame.f_locals.get('stage')
+            if type(observed) is str and observed in CHILD_STAGES: stage = observed
+        trace = trace.tb_next
+    name = type(error).__name__
+    if name not in CHILD_ERRORS or type(error).__module__ not in (
+            'builtins', 'subprocess', 'asyncio.exceptions', 'no_cutoff_final_transport'):
+        name = 'OtherError'
+    value = dict(stage=stage, error_class=name, transport=None)
+    if name == 'AuditTransportError' and type(error).__module__ == 'no_cutoff_final_transport':
+        item = getattr(error, 'metadata', None)
+        if type(item) is dict:
+            transport = dict(status=item.get('status'), error_class=item.get('error_type'),
+                returncode=item.get('returncode'), stdout_bytes=item.get('stdout_bytes'))
+            if 'operator_failure_stage' in item or 'operator_error_type' in item:
+                transport.update(validation_stage=item.get('operator_failure_stage'),
+                    validation_error_class=item.get('operator_error_type'))
+            candidate = dict(value, transport=transport)
+            if _valid_failure(candidate): value = candidate
+    return value
+
+
 def _child(mode, commit, expected):
     # Embedded stdlib producer, extracted from these exact committed bytes.
     # No child import of this new module or replacement of a frozen function.
+    stage = 'entry'
     import ast
     import contextlib
     import hashlib
@@ -226,6 +292,7 @@ def _child(mode, commit, expected):
             if os.fstat(handle.fileno()) != s or path.lstat() != s: raise ValueError('Bootstrap identity changed')
         if raw != git('show',commit+':stage2/'+name): raise ValueError('Exact committed bootstrap bytes required')
         return raw
+    stage = 'source_bootstrap'
     mac_raw = seed('mac_operator_files.py')
     own_raw = seed('no_cutoff_recovery_mac_bridge.py')
     # This separately verified stdlib object is intentionally not a project
@@ -265,25 +332,34 @@ def _child(mode, commit, expected):
             raise ValueError('Source/private ancestry changed during child read')
         observed['__actual_ancestry__'] = ancestry
         return observed, native
+    stage = 'source_before_imports'
     before, native = current()
     sys.path.insert(0,str(root/'stage2'))
     with contextlib.redirect_stdout(sys.stderr):
+        stage = 'project_imports'
         import no_cutoff_recovery_connection as connection
         importing = False
         connection.operator.loaded(root,native)
+        stage = 'original_prepare'
         value, files = connection.prepare(commit)
+        stage = 'prepared_identity_recheck'
         identities = connection._local_identities(value)
         connection.operator._current(value)
         if current() != (before,native): raise ValueError('Source or private identity changed during real preparation')
         if mode == 'send':
             output = _CommitTail(sys.__stdout__.buffer,connection.handoff.wire.COMMIT)
+            stage = 'original_audit_archive'
             sent = connection.handoff.send(output)  # ALWAYS fresh original audit and SAME archive.
+            stage = 'original_final_recheck'
             connection.operator._current(value)
+            stage = 'amendment_final_recheck'
             if connection._local_identities(value) != identities or current() != (before,native):
                 raise ValueError('Late handoff source/private drift; withhold commitment')
             connection.operator.loaded(root,native)
+            stage = 'commitment'
             output.commit(sent['archive_sha256'])
             return
+        stage = 'prepare_reply'
         local = dict(value['bindings']['local'])
         for mapping in (value['recovery_local'],value['publication']):
             connection.handoff.report._merge(local,mapping)
@@ -301,14 +377,28 @@ def _program(value, mode):
         value['bound']['no_cutoff_recovery_mac_bridge.py'], private=False)[0]
     tree = ast.parse(raw)
     pieces = [ast.get_source_segment(raw.decode(),n) for n in tree.body
-        if isinstance(n,(ast.ClassDef,ast.FunctionDef)) and n.name in ('_CommitTail','_child')]
-    if len(pieces) != 2: raise ValueError('Fixed committed child producer required')
+        if isinstance(n,(ast.ClassDef,ast.FunctionDef)) and n.name in (
+            '_CommitTail','_valid_failure','_child_failure','_child')]
+    if len(pieces) != 4: raise ValueError('Fixed committed child producer required')
     constants = dict(ROOT_LITERAL=str(REPO),EXPECTED_ENV=_environment(),FINAL_LITERAL=FINAL,
-        FINAL_SHA_LITERAL=FINAL_SHA,FROZEN_MAP_LITERAL=FROZEN_MAP)
+        FINAL_SHA_LITERAL=FINAL_SHA,FROZEN_MAP_LITERAL=FROZEN_MAP,
+        FAILURE_PREFIX=FAILURE_PREFIX,CHILD_STAGES=CHILD_STAGES,CHILD_ERRORS=CHILD_ERRORS,
+        TRANSPORT_STAGES=TRANSPORT_STAGES,VALIDATION_STAGES=VALIDATION_STAGES)
     prefix = '\n'.join(k+'='+repr(v) for k,v in constants.items())
     call = '_child('+','.join(map(repr,(mode,value['commit'],value['bound'])))+')'
     return prefix+'\n'+'\n\n'.join(pieces)+'\ntry:\n '+call+(
-        '\nexcept BaseException:\n raise SystemExit("Mac recovery reporting refused; preserve evidence") from None\n')
+        '\nexcept BaseException as error:\n'
+        ' try:\n'
+        '  import json,os\n'
+        '  record=_child_failure(error)\n'
+        '  raw=FAILURE_PREFIX+json.dumps(record,sort_keys=True,allow_nan=False).encode()+b"\\n"\n'
+        '  if _valid_failure(record) and len(raw)<=1024:\n'
+        '   while raw:\n'
+        '    count=os.write(2,raw)\n'
+        '    if count<=0:break\n'
+        '    raw=raw[count:]\n'
+        ' except BaseException:pass\n'
+        ' raise SystemExit(1) from None\n')
 
 
 def _child_command(value, mode):
@@ -349,14 +439,70 @@ def current(value):
     _loaded(value)
 
 
+class _SenderFailure(ValueError):
+    def __init__(self, diagnostic, returncode):
+        if not _valid_failure(diagnostic) or type(returncode) is not int:
+            raise ValueError('Exact bounded child failure metadata required')
+        self.diagnostic = json.loads(json.dumps(diagnostic, allow_nan=False))
+        self.returncode = returncode
+        super().__init__('Actual original sender failed; preserve without retry')
+
+
+def _sender_result(process):
+    """Drain, discard and schema-filter stderr without retaining raw output."""
+    deadline = time.monotonic() + TIMEOUT
+    partial = bytearray(); dropping = False; record = None; invalid = False
+    def pairs(items):
+        value = {}
+        for key, item in items:
+            if key in value: raise ValueError('Duplicate diagnostic field')
+            value[key] = item
+        return value
+    def accept(raw):
+        nonlocal record, invalid
+        if not raw.startswith(FAILURE_PREFIX): return
+        try:
+            item = json.loads(raw[len(FAILURE_PREFIX):], object_pairs_hook=pairs)
+            if not _valid_failure(item) or record is not None: raise ValueError('Untrusted diagnostic')
+            record = item
+        except (ValueError, TypeError, UnicodeError): invalid = True
+    with selectors.DefaultSelector() as selected:
+        fd = process.stderr.fileno(); os.set_blocking(fd, False)
+        selected.register(fd, selectors.EVENT_READ)
+        while selected.get_map():
+            remaining = deadline - time.monotonic()
+            if remaining <= 0: raise subprocess.TimeoutExpired('isolated Mac sender', TIMEOUT)
+            for key, _ in selected.select(min(30, remaining)):
+                try: raw = os.read(key.fd, 65536)
+                except BlockingIOError: continue
+                if not raw:
+                    selected.unregister(key.fd); break
+                for byte in raw:
+                    if byte == 10:
+                        if not dropping: accept(bytes(partial))
+                        elif partial.startswith(FAILURE_PREFIX): invalid = True
+                        partial.clear(); dropping = False
+                    elif not dropping:
+                        if len(partial) == 1024: dropping = True
+                        else: partial.append(byte)
+    if partial.startswith(FAILURE_PREFIX): invalid = True
+    remaining = deadline - time.monotonic()
+    if remaining <= 0: raise subprocess.TimeoutExpired('isolated Mac sender', TIMEOUT)
+    code = process.wait(timeout=remaining)
+    if code or record is not None or invalid:
+        if record is None or invalid:
+            record = dict(stage='unreported_child', error_class='OtherError', transport=None)
+        raise _SenderFailure(record, code)
+
+
 def send(value, stream):
     current(value)
-    process = subprocess.Popen(_child_command(value,'send'),stdout=stream,stderr=subprocess.DEVNULL,
+    process = subprocess.Popen(_child_command(value,'send'),stdout=stream,stderr=subprocess.PIPE,
         stdin=subprocess.DEVNULL,cwd=REPO,env=_environment())
     try:
-        if process.wait(timeout=TIMEOUT) != 0:
-            raise ValueError('Actual fresh original audit/archive sender failed; no retry')
+        _sender_result(process)
         current(value)
     finally:
         if process.poll() is None:
             process.kill(); process.wait(timeout=30)  # Owned isolated Mac sender only, never native.
+        process.stderr.close()

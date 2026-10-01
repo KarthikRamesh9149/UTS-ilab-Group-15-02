@@ -59,6 +59,15 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(reporting._error_class(error),'OtherError')
         with self.assertRaises(ValueError):reporting._CaptureFailure('untrusted stage',error)
 
+    def test_sender_metadata_is_bounded_and_propagated_without_exception_payload(self):
+        record=dict(stage='original_audit_archive',error_class='ValueError',transport=None)
+        error=bridge._SenderFailure(record,1)
+        failure=reporting._CaptureFailure('original_sender',error)
+        self.assertEqual(failure.sender,dict(record,returncode=1))
+        error.diagnostic['message']='private arbitrary payload'
+        self.assertNotIn('message',failure.sender)
+        with self.assertRaises(ValueError):reporting._CaptureFailure('original_sender',error)
+
     def test_same_archive_algorithm_only_local_protection_changes(self):
         expected=inspect.getsource(native_archive.verify).replace('files.bootstrap.','mac.')
         actual=inspect.getsource(archive.verify)
@@ -209,6 +218,19 @@ class MacReportingTests(LocalFiles,unittest.IsolatedAsyncioTestCase):
         self.assertNotIn(b'arbitrary',mac.raw(path,'failure.json')[0])
         self.assertEqual(mac.loads(mac.raw(path,'failure.json')[0])['diagnostic'],
             dict(stage='capture',error_class='ValueError'))
+        with self.assertRaises(ValueError):reporting.backup('a'*40)
+        self.assertEqual(self.capture.call_count,1)
+
+    async def test_real_private_failure_retains_only_validated_inner_sender_categories(self):
+        if not self.available():return
+        await self.setup_operator()
+        record=dict(stage='original_audit_archive',error_class='ValueError',transport=None)
+        self.capture.side_effect=reporting._CaptureFailure('original_sender',bridge._SenderFailure(record,1))
+        with self.assertRaises(reporting._CaptureFailure):reporting.backup('a'*40)
+        path=self.root/reporting.BACKUP
+        failure=mac.loads(mac.raw(path,'failure.json')[0])
+        self.assertEqual(failure['diagnostic']['sender'],dict(record,returncode=1))
+        self.assertEqual({p.name for p in path.iterdir()},{'intent.json','failure.json'})
         with self.assertRaises(ValueError):reporting.backup('a'*40)
         self.assertEqual(self.capture.call_count,1)
 
