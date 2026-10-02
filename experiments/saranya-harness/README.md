@@ -82,7 +82,7 @@ logged warning.
 |---|---|
 | `passed` | verifier reward above zero |
 | `not_attempted` | no spending approval, so the model was never called |
-| `infrastructure` | the Mac reference solution also fails (install-windows-3.11, qemu-alpine-ssh, qemu-startup: Rosetta syscall 282); or command output contained an explicit Rosetta error; or Harbor's environment/setup failed |
+| `infrastructure` | an explicit Rosetta error in the trial's output; a host network failure (`no such host` in a Harbor error, or `Could not resolve '` in verifier output); Harbor's environment/setup failed; or the task's reference solution fails on this Mac (install-windows-3.11 and qemu-alpine-ssh confirmed on Saranya's Mac; qemu-startup from Karthik's Mac run only, see [`oracle/ORACLE_MAC_DEV20.md`](oracle/ORACLE_MAC_DEV20.md)) |
 | `budget_stop` | the spending safety stop ended the trial |
 | `infrastructure_review` | an unrecognised exception or a verifier timeout; a person must decide |
 | `model_failure` | everything else with reward 0, including agent timeouts |
@@ -126,9 +126,18 @@ PYTHONPATH="$PWD" harbor run -d terminal-bench/terminal-bench-2-1 \
 Run trials one at a time (`-n 1`), as Stage 2 did. Commit only the curated CSV
 from `summarize`, never the job directories or the trajectory logs.
 
+On a Mac, keep it on mains power with the lid open, and wrap the run in
+`caffeinate -is`. Sleep stops Harbor's time limits from working, and the
+verifier needs the network to install its tools.
+
 ## Status
 
-- 33 offline tests pass.
+- 35 offline tests pass.
+- Oracle run r1 on the dev20 tasks was compromised by sleep and a network
+  outage. Only 3 of 20 trials gave valid host evidence: video-processing passes,
+  and install-windows-3.11 and qemu-alpine-ssh hit the Rosetta syscall-282 crash.
+  See [`oracle/ORACLE_MAC_DEV20.md`](oracle/ORACLE_MAC_DEV20.md). A rerun of the
+  other 17 is pending.
 - A zero-spend Harbor trial on openssl-selfsigned-cert (Mac, Docker Desktop)
   loaded the agent, made no model call, ran the verifier (reward 0) and recorded
   the metadata. The summariser classified it as `not_attempted`.
