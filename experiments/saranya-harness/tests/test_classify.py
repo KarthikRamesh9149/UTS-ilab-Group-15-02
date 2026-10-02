@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from saranya_harness.classify import classify_trial, scan_output
+from saranya_harness.classify import classify_trial, scan_network, scan_output
 from saranya_harness.summarize import summarise
 
 
@@ -34,6 +34,15 @@ class ClassifyTest(unittest.TestCase):
         self.assertEqual(classify(stop_reason='no_spending_approval', task_id='qemu-startup'), 'not_attempted')
         self.assertEqual(classify(exception_type='VerifierTimeoutError'), 'infrastructure_review')
         self.assertEqual(classify(reward=None, exception_type='RuntimeError'), 'infrastructure_review')
+        self.assertEqual(classify(reward=None, exception_type='RuntimeError',
+                                  network_signals=['no such host']), 'infrastructure')
+        self.assertEqual(classify(network_signals=["Could not resolve '"]), 'infrastructure')
+
+    def test_network_signatures(self):
+        self.assertEqual(scan_network("E: Failed to fetch ... Could not resolve 'deb.debian.org'"),
+                         ["Could not resolve '"])
+        self.assertEqual(scan_network('dial tcp: lookup registry-1.docker.io: no such host'), ['no such host'])
+        self.assertEqual(scan_network('All 6 tests passed'), [])
 
 
 class SummariseTest(unittest.TestCase):
@@ -62,6 +71,29 @@ class SummariseTest(unittest.TestCase):
             counts = summarise(job, output)
             self.assertEqual(dict(counts), {'passed': 1, 'infrastructure': 1, 'model_failure': 1})
             self.assertIn('900.0', output.read_text())
+
+    def test_oracle_logs_and_verifier_network_are_scanned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            job = Path(tmp) / 'job'
+            trials = {
+                # Built-in agents record no metadata: the Rosetta crash is only in agent/oracle.txt.
+                'rosetta': ('terminal-bench/install-windows-3.11', 'agent', 'oracle.txt',
+                            'rosetta error: Unimplemented syscall number 282'),
+                # The solution succeeded but the verifier could not download its tools.
+                'offline': ('terminal-bench/openssl-selfsigned-cert', 'verifier', 'test-stdout.txt',
+                            "E: Failed to fetch x  Could not resolve 'deb.debian.org'"),
+            }
+            for name, (task, folder, filename, text) in trials.items():
+                (job / name / folder).mkdir(parents=True)
+                (job / name / folder / filename).write_text(text)
+                (job / name / 'result.json').write_text(json.dumps(
+                    {'task_name': task, 'trial_name': name, 'verifier_result': {'rewards': {'reward': 0.0}}}))
+            output = Path(tmp) / 'out.csv'
+            counts = summarise(job, output, host='linux-x86_64')
+            self.assertEqual(dict(counts), {'infrastructure': 2})
+            text = output.read_text()
+            self.assertIn('host translation signature', text)
+            self.assertIn('host network failure', text)
 
 
 if __name__ == '__main__':
