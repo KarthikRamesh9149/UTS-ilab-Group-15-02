@@ -182,6 +182,9 @@ def recheck(session):
     try:
         root, harness = state['root'], state['harness']
         _context(root, harness); handoff._no_stop(root)
+        import matched_repeat_revision as retired
+        import matched_repeat_execution_bootstrap as bootstrap
+        retired.native(bootstrap)
         original, final, files = _inputs(root)
         if files != state['files']:
             raise ValueError('Locked session source or input bytes changed')
@@ -214,6 +217,7 @@ def recheck(session):
         if locks.file_identities(root, files) != state['identities']:
             raise ValueError('Late baseline source or private file identity change')
         runtime.loaded_sources(root, host['sources'])
+        retired.native(bootstrap)
         return describe(session)
     except BaseException:
         invalidate(session)

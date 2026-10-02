@@ -1,5 +1,37 @@
 # Separate OpenHands repeat
 
+## Transport correction locally verified; Terminus still first, 2 October 2026 UTC
+
+This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and
+no active task. OpenHands remains uninstalled. The original Terminus installation
+and isolated imports succeeded, but its qualification connection failed before
+durable acceptance; no actual qualifier or scored task started. Its failed
+root and evidence remain preserved, not resumed or relabelled.
+
+The human authorised the separately bound correction described in the
+[repair protocol](../../../protocols/baseline_transport_repair_20261002.md).
+Terminus now has a distinct, still-uninstalled corrected destination. OpenHands
+retains its own unstarted destination and will use the same corrected source
+union. Duplex liveness covers prerequisite audits and future reporting without
+changing benchmark, model, provider, scoring or official-limit settings.
+Actual inner/outer commitments, EOF, normal SSH exit and source/lock gates remain.
+
+All **1,591 final local tests across 67 modules** and **12 repository tests**
+passed, with zero errors, failures or skips. The full suite took 1828.808 seconds.
+Final preservation verified 424 candidate bindings, 318 frozen R6 sources,
+35 archived reporter sources, both native reporting payloads, five retained
+local installation/failure records and three recovery public hashes.
+The candidate source-map SHA256 is
+`77ba99952a112d6f5e8b85cc334956ed8faac19979963f12a299150730a0cddc`.
+Local synthetic evidence is not native qualification or paid admission.
+
+The corrected Terminus installation, actual imports, ONE successful native
+qualification and ONE 89-task run must come first, followed by completed audit,
+ONE backup/export and publication. Only then may OpenHands perform its own
+installation, native gates and ONE 89-task run. Recovery remains separately
+**3/3, 0 passed, 3 failed, 0 missing verifier**, with reporting complete.
+The VPS and monitoring remain active. Earlier checkpoints below are history.
+
 ## Recovery reporting verified; Terminus still precedes OpenHands, 2 October 2026 UTC
 
 This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and no

@@ -12,6 +12,7 @@ import re
 import stat
 
 import matched_repeat_runtime as runtime
+import matched_repeat_revision as retired
 import no_cutoff_recovery_revision as recovery
 import run_deadline_custom as ancestors
 from direct_final_evidence import CURRENT as C3_ROOT
@@ -34,6 +35,7 @@ def paths(root, harness):
         (C3_ROOT, NC_ROOT, FINAL_ROOT, recovery.RETIRED, recovery.REJECTED, recovery.REGRESSION_REJECTED,
             recovery.CONNECTION_REJECTED, recovery.SYMLINK_REJECTED) for name in NAMES)
     values.extend(recovery.ROOT / RT / name for name in NAMES[1:])
+    values.extend(retired.ROOT / RT / name for name in NAMES)
     if harness == 'openhands':
         values.extend(runtime.DEPLOYMENTS['terminus-2'] / RT / name for name in NAMES)
     values.append(root / RT / 'matrix.lock')

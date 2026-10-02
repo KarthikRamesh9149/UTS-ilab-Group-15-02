@@ -17,13 +17,13 @@ import shlex
 import struct
 import subprocess
 import sys
-import time
 
 import mac_operator_files as mac
 import matched_repeat_mac_archive as mac_archive
 import matched_repeat_archive as archive
 import matched_repeat_execution_bootstrap as boot
 import matched_repeat_execution_connection as connection
+import matched_repeat_execution_transport as transport
 import no_cutoff_recovery_files as evidence
 import matched_repeat_recovery_handoff as handoff
 import matched_repeat_policy as policy
@@ -80,48 +80,50 @@ async def native(files, commit, mode):
     output.write(service._line(_ready(files, commit, mode))); output.flush()
     created = False; state = data = inventory = inventory_state = receipt = None
     try:
-        with redirect_stdout(sys.stderr), session.open_execution_session(ROOT, HARNESS, incoming) as active:
-            live = session._live(active)
-            archive.same(session.operator_commit(active), commit)
+        with transport.Writer(output) as framed:
+            with redirect_stdout(sys.stderr), session.open_execution_session(ROOT, HARNESS, transport.Reader(incoming)) as active:
+                live = session._live(active)
+                archive.same(session.operator_commit(active), commit)
+                if mode == 'backup':
+                    path.mkdir(mode=0o700); service._sync(path.parent); created = True
+                    parent_id = boot.directories(path, private=True)
+                    evidence.save(path / 'intent.json', dict(kind='one_shot_separate_baseline_backup',
+                        commit=commit, sources_sha256=policy.fingerprint(files), automatic_resume=False,
+                        started_utc=datetime.now(timezone.utc).isoformat(), paid_launch_ready=False))
+                    intent = boot.raw(ROOT, NATIVE_BACKUP + '/intent.json')
+                data, state = report.collect(active)
+                if data['harness'] != HARNESS: raise ValueError('Exact OpenHands baseline reporter required')
+                manifest = boot.loads(boot.raw(ROOT, 'stage2/input_manifest.json', policy.INPUT_SHA256)[0])
+                report.validate(data, manifest, {n[7:]: h for n, h in live['files'].items() if n.startswith('stage2/')})
+                if mode == 'backup':
+                    inventory, inventory_state = archive.inventory(data)
+                    archive.framing._write(framed, archive.MAGIC)
+                    archive.framing._metadata(framed, dict(snapshot=data, inventory=inventory))
+                    receipt = archive.pack(framed, inventory, inventory_state)
+                    actual, actual_state = report.collect(active); _equal_audit(data, actual)
+                    archive.recheck(inventory, inventory_state); report.reread(ROOT, data, state)
+                    if (boot.directories(path, private=True) != parent_id
+                            or boot.raw(ROOT, NATIVE_BACKUP + '/intent.json') != intent
+                            or {p.name for p in path.iterdir()} != {'intent.json'}):
+                        raise ValueError('Native backup operation evidence changed')
+                    evidence.save(path / 'result.json', dict(receipt, automatic_resume=False, paid_launch_ready=False))
+                    result_identity = boot.raw(ROOT, NATIVE_BACKUP + '/result.json')
+            # Both real session handles must exit successfully before commitment.
+            boot.check(HARNESS, files, identities); service.loaded(HARNESS, files); report.reread(ROOT, data, state)
             if mode == 'backup':
-                path.mkdir(mode=0o700); service._sync(path.parent); created = True
-                parent_id = boot.directories(path, private=True)
-                evidence.save(path / 'intent.json', dict(kind='one_shot_separate_baseline_backup',
-                    commit=commit, sources_sha256=policy.fingerprint(files), automatic_resume=False,
-                    started_utc=datetime.now(timezone.utc).isoformat(), paid_launch_ready=False))
-                intent = boot.raw(ROOT, NATIVE_BACKUP + '/intent.json')
-            data, state = report.collect(active)
-            if data['harness'] != HARNESS: raise ValueError('Exact OpenHands baseline reporter required')
-            manifest = boot.loads(boot.raw(ROOT, 'stage2/input_manifest.json', policy.INPUT_SHA256)[0])
-            report.validate(data, manifest, {n[7:]: h for n, h in live['files'].items() if n.startswith('stage2/')})
-            if mode == 'backup':
-                inventory, inventory_state = archive.inventory(data)
-                archive.framing._write(output, archive.MAGIC)
-                archive.framing._metadata(output, dict(snapshot=data, inventory=inventory))
-                receipt = archive.pack(output, inventory, inventory_state)
-                actual, actual_state = report.collect(active); _equal_audit(data, actual)
-                archive.recheck(inventory, inventory_state); report.reread(ROOT, data, state)
+                archive.recheck(inventory, inventory_state)
                 if (boot.directories(path, private=True) != parent_id
                         or boot.raw(ROOT, NATIVE_BACKUP + '/intent.json') != intent
-                        or {p.name for p in path.iterdir()} != {'intent.json'}):
-                    raise ValueError('Native backup operation evidence changed')
-                evidence.save(path / 'result.json', dict(receipt, automatic_resume=False, paid_launch_ready=False))
-                result_identity = boot.raw(ROOT, NATIVE_BACKUP + '/result.json')
-        # Both real session handles must exit successfully before commitment.
-        boot.check(HARNESS, files, identities); service.loaded(HARNESS, files); report.reread(ROOT, data, state)
-        if mode == 'backup':
-            archive.recheck(inventory, inventory_state)
-            if (boot.directories(path, private=True) != parent_id
-                    or boot.raw(ROOT, NATIVE_BACKUP + '/intent.json') != intent
-                    or boot.raw(ROOT, NATIVE_BACKUP + '/result.json') != result_identity
-                    or {p.name for p in path.iterdir()} != {'intent.json', 'result.json'}):
-                raise ValueError('Late native backup evidence changed')
-            archive.framing._write(output, struct.pack('!Q', 0))
-            archive.framing._metadata(output, receipt)
-        else:
-            archive.framing._write(output, AUDIT_MAGIC)
-            archive.framing._metadata(output, data)
-        archive.framing._write(output, archive.END); output.flush()
+                        or boot.raw(ROOT, NATIVE_BACKUP + '/result.json') != result_identity
+                        or {p.name for p in path.iterdir()} != {'intent.json', 'result.json'}):
+                    raise ValueError('Late native backup evidence changed')
+                archive.framing._write(framed, struct.pack('!Q', 0))
+                archive.framing._metadata(framed, receipt)
+            else:
+                archive.framing._write(framed, AUDIT_MAGIC)
+                archive.framing._metadata(framed, data)
+            archive.framing._write(framed, archive.END); framed.flush()
+            framed.finish()
     except BaseException:
         if created:
             evidence.save(path / 'failure.json', dict(status='failed_or_uncertain_preserve_evidence',
@@ -175,13 +177,21 @@ def _state(path, identity):
         raise ValueError('Actual protected Mac reporting ancestry changed')
 
 
-def _receive(process, mode, value, *, path=None):
+def _receive(process, mode, value, *, received, path=None):
     receiver = handoff.original.receiver
-    deadline = time.monotonic() + TIMEOUT
+    if type(received) is not transport.StreamReceiver or received.stream is not process.stdout:
+        raise ValueError('Same actual owned reporting transport required')
+    def exact(size): return handoff.wire._exact(received, size)
+    def metadata():
+        size = struct.unpack('!Q', exact(8))[0]
+        if not 0 < size <= archive.original_archive.ANCHOR_WINDOW:
+            raise ValueError('Backup metadata parser window exceeded')
+        raw = exact(size)
+        return receiver.phase._loads(raw), raw
     magic = archive.MAGIC if mode == 'backup' else AUDIT_MAGIC
-    if receiver._read(process.stdout, len(magic), deadline) != magic:
+    if exact(len(magic)) != magic:
         raise ValueError('Exact baseline reporting stream required')
-    document, raw = receiver._metadata(process.stdout, deadline)
+    document, raw = metadata()
     if mode == 'backup':
         if set(document) != {'snapshot', 'inventory'}: raise ValueError('Exact baseline backup envelope required')
         data, inventory = document['snapshot'], document['inventory']
@@ -195,20 +205,20 @@ def _receive(process, mode, value, *, path=None):
         target = path / 'evidence.tar.gz'; sha = hashlib.sha256(); size = 0
         with os.fdopen(os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600), 'wb') as handle:
             while True:
-                count = struct.unpack('!Q', receiver._read(process.stdout, 8, deadline))[0]
+                count = struct.unpack('!Q', exact(8))[0]
                 if count == 0: break
                 if count > archive.CHUNK: raise ValueError('Invalid baseline archive frame')
-                payload = receiver._read(process.stdout, count, deadline)
+                payload = exact(count)
                 archive.framing._write(handle, payload); sha.update(payload); size += count
             handle.flush(); os.fsync(handle.fileno())
             written['evidence.tar.gz'] = mac.identity(os.fstat(handle.fileno()))
         receiver._sync(path)
-        receipt, _ = receiver._metadata(process.stdout, deadline)
+        receipt, _ = metadata()
         if receipt.get('sha256') != sha.hexdigest() or receipt.get('compressed_bytes') != size:
             raise ValueError('Received baseline archive differs from native commitment')
-    if receiver._read(process.stdout, len(archive.END), deadline) != archive.END:
+    if exact(len(archive.END)) != archive.END:
         raise ValueError('Missing post-session native reporting commitment')
-    if process.wait(timeout=30) != 0 or process.stdout.read(1):
+    if received.read(1) or process.wait(timeout=30) != 0 or process.stdout.read(1):
         raise ValueError('Uncertain reporting SSH exit; retain evidence without retry')
     if mode == 'backup' and any(mac.identity((path / n).lstat()) != identity for n, identity in written.items()):
         raise ValueError('Received baseline evidence replaced before verification')
@@ -222,9 +232,12 @@ def _capture(commit, mode, *, path=None):
         process = subprocess.Popen(_command(files, commit, mode), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL, bufsize=0, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
         archive.same(connection.read_reply(process.stdout), _ready(files, commit, mode))
-        connection.send(HARNESS, process.stdin)  # All THREE actual fresh audits/SAME archives.
-        process.stdin.close()
-        result = _receive(process, mode, value, path=path)
+        with transport.StreamReceiver(process.stdout) as received:
+            with transport.Writer(process.stdin, peer=received) as outgoing:
+                connection.send(HARNESS, outgoing)  # All THREE actual fresh audits/SAME archives.
+                outgoing.finish()
+            process.stdin.close()
+            result = _receive(process, mode, value, received=received, path=path)
         _current(value, identities)
         return result, value, identities
     finally:

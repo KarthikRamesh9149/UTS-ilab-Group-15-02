@@ -42,7 +42,7 @@ class OpenHandsRouteTests(unittest.TestCase):
         self.assertNotEqual(reporting.BACKUP,first_report.BACKUP)
         self.assertNotEqual(reporting.EXPORT,first_report.EXPORT)
         self.assertEqual(installer._lock_paths(recovery_install,boot),locks.paths(installer.ROOT,'openhands')[:-1])
-        self.assertEqual(len(installer._lock_paths(recovery_install,boot)),54)
+        self.assertEqual(len(installer._lock_paths(recovery_install,boot)),57)
         self.assertEqual(installer._lock_paths(recovery_install,boot)[:-3],first_install._lock_paths(recovery_install,boot))
 
     def test_only_openhands_full_prepare_requires_actual_completed_terminus_reader(self):
@@ -67,7 +67,7 @@ class OpenHandsRouteTests(unittest.TestCase):
     def test_openhands_reporter_calls_real_three_predecessor_dispatch_and_own_bootstrap(self):
         import inspect
         source=inspect.getsource(reporting)
-        self.assertIn('connection.send(HARNESS, process.stdin)',source)
+        self.assertIn('connection.send(HARNESS, outgoing)',source)
         self.assertIn('session.operator_commit(active)',source)
         self.assertEqual(reporting.HARNESS,'openhands')
         self.assertEqual(reporting.ROOT,boot.root_for('openhands'))
@@ -95,7 +95,7 @@ class OpenHandsRouteTests(unittest.TestCase):
             'openhands','terminus-2').replace('matched_repeat_terminus-2_reporting.py','matched_repeat_reporting.py').replace(
             'Exact OpenHands baseline','Exact first baseline').replace('session.operator_commit(active)',
             "session.handoff._live(live['witness'])['header']['operator']['operator_commit']").replace(
-            'connection.send(HARNESS, process.stdin)','handoff.send(process.stdin)')
+            'connection.send(HARNESS, outgoing)','handoff.send(outgoing)')
         # Docstrings are intentionally distinct; executable AST must match.
         a,b=ast.parse(old),ast.parse(new);a.body=a.body[1:];b.body=b.body[1:]
         self.assertEqual(ast.dump(a,include_attributes=False),ast.dump(b,include_attributes=False))
@@ -357,10 +357,13 @@ class OpenHandsReportingTests(unittest.TestCase):
                 patch.object(connection,'_identities',return_value=identities),patch.object(reporting,'_current'),\
                 patch.object(reporting,'_command',return_value=['fixed-test-command']),\
                 patch.object(reporting.subprocess,'Popen',return_value=process),\
+                patch.object(reporting.transport,'Writer') as writer,\
+                patch.object(reporting.transport,'StreamReceiver'),\
                 patch.object(connection,'send',return_value={}) as send,\
                 patch.object(reporting,'_receive',return_value={'test':'audit'}):
             self.assertEqual(reporting._capture('a'*40,'audit')[0],{'test':'audit'})
-            send.assert_called_once_with('openhands',process.stdin)
+            send.assert_called_once_with('openhands',writer.return_value.__enter__.return_value)
+            writer.return_value.__enter__.return_value.finish.assert_called_once_with()
 
 
 class OpenHandsServiceTests(unittest.IsolatedAsyncioTestCase):

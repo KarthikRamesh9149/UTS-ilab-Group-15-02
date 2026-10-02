@@ -1,5 +1,40 @@
 # Separate Terminus-2 repeat
 
+## Transport correction locally verified; new native gates next, 2 October 2026 UTC
+
+This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and
+no active benchmark task. The original installation and isolated native import
+verification succeeded, but its qualification connection failed before durable
+handoff acceptance. No actual qualifier or scored task started. That failed
+attempt and its installed root remain terminal and preserved.
+
+The human authorised a separately bound transport correction. The corrected
+root `/opt/uts-capstone-matched-repeat-terminus-2-20261002-r2` is still uninstalled
+at this checkpoint. Duplex liveness now covers prerequisite audits and future
+reporting, while retaining the 4500-second unresponsive window, strict inner
+and outer commitments, actual EOF, normal SSH exit and real source/lock gates.
+No benchmark, model, provider, scoring or official-limit setting changed.
+The [repair protocol](../../../protocols/baseline_transport_repair_20261002.md)
+records the scope, preserved failure evidence and mandatory sequence.
+
+The final **1,591 local tests across 67 modules passed**, with zero errors,
+failures or skips, in 1828.808 seconds. All **12 repository tests also passed**.
+The final checks verified 424 candidate bindings, 318 frozen R6 sources,
+35 archived reporter sources, both native reporting payloads, all five retained
+local installation/failure records and the three recovery public hashes.
+The candidate source-map SHA256 is
+`77ba99952a112d6f5e8b85cc334956ed8faac19979963f12a299150730a0cddc`.
+These are local checks with synthetic native facts, not native qualification
+or paid admission. The earlier full-suite fixture error was diagnosed and
+corrected; the passing full suite uses the corrected fixture and final bytes.
+
+After publication, ONE corrected installation, actual isolated native imports
+and ONE qualification handoff are required. Its exact successful service exit
+must precede ONE 89-task dispatch. Completed Terminus audit, ONE backup/export
+and publication must then precede OpenHands. Recovery remains separately
+**3/3, 0 passed, 3 failed, 0 missing verifier**, with reporting already complete.
+The VPS and monitoring remain active. Earlier checkpoints below are history.
+
 ## Recovery reporting verified; native repeat next, 2 October 2026 UTC
 
 This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and no

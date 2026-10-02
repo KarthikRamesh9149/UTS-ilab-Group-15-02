@@ -85,22 +85,37 @@ class ReportingTests(fixture.ArchiveTests):
         path = self.root / 'receiver'; path.mkdir(mode=0o700)
         read, write = os.pipe()
         def send():
-            with os.fdopen(write, 'wb', buffering=0) as stream: archive.framing._write(stream, wire.getvalue())
+            with os.fdopen(write, 'wb', buffering=0) as stream:
+                with reporting.transport.Writer(stream) as framed:
+                    archive.framing._write(framed, wire.getvalue()); framed.finish()
         thread = threading.Thread(target=send); thread.start()
         try:
             with os.fdopen(read, 'rb', buffering=0) as stream, patch.object(reporting, '_manifest', return_value=self.f.manifest):
-                received = reporting._receive(NS(stdout=stream, wait=lambda **kw: 0), 'backup', {'sources': self.sources}, path=path)
-                self.assertEqual(received[:3], (data, inventory, receipt))
+                with reporting.transport.StreamReceiver(stream) as transport:
+                    received = reporting._receive(NS(stdout=stream, wait=lambda **kw: 0), 'backup',
+                        {'sources': self.sources}, received=transport, path=path)
+                    self.assertEqual(received[:3], (data, inventory, receipt))
         finally: thread.join(10)
         self.assertFalse(thread.is_alive())
         self.assertEqual(archive.verify(path / 'evidence.tar.gz', data, inventory, receipt, self.f.manifest, self.sources)['verified_result_files'], 89)
 
     def native(self, *, fail_exit=False):
         self.produce(); output = io.BytesIO(); read, write = os.pipe(); os.close(write)
-        events = []
+        events = []; ready = threading.Event(); errors = []
+        read_output, write_output = os.pipe()
+        destination = os.fdopen(write_output, 'wb', buffering=0)
+        def receive():
+            try:
+                with os.fdopen(read_output, 'rb', buffering=0) as stream:
+                    output.write(reporting.transport.ready_line(stream, service.REPLY_LIMIT)); ready.set()
+                    reader = reporting.transport.Reader(stream)
+                    while raw := reader.read(reporting.transport.CHUNK): output.write(raw)
+            except BaseException as error: errors.append(type(error).__name__)
+        worker = threading.Thread(target=receive); worker.start()
         @contextmanager
         def open_session(root, harness, stream):
             self.assertEqual((root, harness), (self.root, 'terminus-2'))
+            self.assertTrue(ready.wait(5))
             self.assertEqual(boot.loads(output.getvalue()), reporting._ready(self.bound, 'a' * 40, 'backup'))
             events.append('real-entry-would-authenticate-composite'); yield object()
             self.assertFalse(output.getvalue().endswith(archive.END)); events.append('session-exit')
@@ -110,12 +125,17 @@ class ReportingTests(fixture.ArchiveTests):
                 patch.object(boot, 'check', side_effect=lambda harness, bound, *args: files.capture(self.root, bound)[1]), \
                 patch.object(service, 'loaded'), patch.object(session, 'open_execution_session', side_effect=open_session), \
                 patch.object(session.handoff, '_live', return_value={'header': {'operator': {'operator_commit': 'a' * 40}}}), \
-                patch.object(sys, 'stdin', NS(buffer=incoming)), patch.object(sys, '__stdout__', NS(buffer=output)):
-            if fail_exit:
-                with self.assertRaises(ValueError): asyncio.run(reporting.native(self.bound, 'a' * 40, 'backup'))
-            else:
-                asyncio.run(reporting.native(self.bound, 'a' * 40, 'backup'))
-                with self.assertRaises(ValueError): asyncio.run(reporting.native(self.bound, 'a' * 40, 'backup'))
+                patch.object(sys, 'stdin', NS(buffer=incoming)), patch.object(sys, '__stdout__', NS(buffer=destination)):
+            try:
+                if fail_exit:
+                    with self.assertRaises(ValueError): asyncio.run(reporting.native(self.bound, 'a' * 40, 'backup'))
+                else:
+                    asyncio.run(reporting.native(self.bound, 'a' * 40, 'backup'))
+                    with self.assertRaises(ValueError): asyncio.run(reporting.native(self.bound, 'a' * 40, 'backup'))
+            finally:
+                destination.close(); worker.join(5)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(errors, ['ValueError'] if fail_exit else [])
         return output.getvalue(), events
 
     def test_actual_native_pack_commit_follows_successful_session_exit(self):
@@ -137,6 +157,11 @@ class ReadinessTests(unittest.TestCase):
         self.enterContext(patch.object(reporting.connection, '_identities', return_value=self.ids))
         self.enterContext(patch.object(reporting, '_command', return_value=['fixed-synthetic-command']))
         self.enterContext(patch.object(reporting, '_current'))
+        # Lifecycle-only endpoint fixtures; the archive/native tests above use
+        # real framed pipes, real receiver writes and strict archive verification.
+        writer = self.enterContext(patch.object(reporting.transport, 'Writer'))
+        self.writer = writer.return_value.__enter__.return_value
+        self.enterContext(patch.object(reporting.transport, 'StreamReceiver'))
 
     def test_composite_sender_waits_for_exact_actual_readiness(self):
         read, write = os.pipe(); pending = threading.Event(); events = []

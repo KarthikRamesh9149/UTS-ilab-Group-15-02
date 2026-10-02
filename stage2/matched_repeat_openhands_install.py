@@ -96,6 +96,7 @@ def _lock_paths(seed, boot):
         for n in ('matrix.lock', 'scored.lock', 'gateway.lock')]
     return tuple(early + [boot.RECOVERY / '.runtime/stage2/matrix.lock'] + late +
         [boot.RECOVERY / '.runtime/stage2' / n for n in ('scored.lock', 'gateway.lock')] +
+        [boot.RETIRED / '.runtime/stage2' / n for n in ('matrix.lock','scored.lock','gateway.lock')] +
         [boot.root_for('terminus-2') / '.runtime/stage2' / n for n in ('matrix.lock','scored.lock','gateway.lock')])
 
 
@@ -217,6 +218,9 @@ def _old(value, decoded, boot, seed, libraries, guard, *, absent):
     if revision.ROOT != boot.RECOVERY: raise ValueError('Exact retained recovery revision required')
     observed = {'retained': revision.inspect(), 'recovery': boot._recovery_files(),
         'terminus':{n:boot.raw(boot.root_for('terminus-2'),n,h) for n,h in files.items()}}
+    retired = _module('matched_repeat_revision', decoded['stage2/matched_repeat_revision.py'])
+    if retired.ROOT != boot.RETIRED: raise ValueError('Exact terminal baseline root required')
+    observed['retired_baseline'] = retired.native(boot)
     for base, bindings in ((ORIGINAL, value['native']), (REPORTER, value['reporter'])):
         for name, digest in bindings.items():
             libraries.read(base, name, digest); observed[(str(base), name)] = libraries.identity((base / name).lstat())
