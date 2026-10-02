@@ -25,6 +25,9 @@ class ServiceExecutionTests(LocalFiles, unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
         self.protect(Path(temporary.name).resolve())
+        # Mock only system ancestry outside the owned local fixture in BOTH
+        # bootstrap namespaces; retain real in-fixture protection checks.
+        self.enterContext(patch.object(service.boot, 'directories', side_effect=service.evidence.bootstrap.directories))
         self.enterContext(patch.dict(service.boot.ROOTS, {'terminus-2': self.root}))
         self.enterContext(patch.dict(service.runtime.DEPLOYMENTS, {'terminus-2': self.root}))
         self.operation = 'qualify-repeat'; self.nonce = '1' * 32; self.commit = '2' * 40

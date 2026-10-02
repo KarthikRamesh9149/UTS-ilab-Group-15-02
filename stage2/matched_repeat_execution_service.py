@@ -11,16 +11,15 @@ import json
 import os
 from pathlib import Path
 import re
-import selectors
 import socket
 import stat
 import struct
 import subprocess
 import sys
-import time
 
 import matched_repeat_completion as completion
 import matched_repeat_execution_bootstrap as boot
+import matched_repeat_execution_transport as transport
 import matched_repeat_policy as policy
 import matched_repeat_recovery_handoff as handoff
 import matched_repeat_runtime as runtime
@@ -175,19 +174,9 @@ def relay(harness, nonce, files, commit, identities, operation):
             if peer != _service_process(harness, expected['unit']) or _socket_identity(sock) != socket_id:
                 raise ValueError('Actual peer is not the retained systemd MainPID')
             sys.stdout.buffer.write(_line(dict(expected, kind='baseline_receiver_ready_not_authenticated', native_process=peer)))
-            sys.stdout.buffer.flush(); deadline = time.monotonic() + TIMEOUT
-            with selectors.DefaultSelector() as selector:
-                selector.register(sys.stdin.buffer, selectors.EVENT_READ)
-                while True:
-                    left = deadline - time.monotonic()
-                    if left <= 0 or not selector.select(left): raise ValueError('Baseline handoff transfer window expired')
-                    raw = os.read(sys.stdin.buffer.fileno(), wire.CHUNK)
-                    if not raw: break
-                    connection.settimeout(max(0.001, deadline - time.monotonic())); connection.sendall(raw)
-            connection.shutdown(socket.SHUT_WR); connection.settimeout(TIMEOUT)
-            with connection.makefile('rb') as incoming: result = _read_reply(incoming)
+            sys.stdout.buffer.flush()
+            transport.relay(sys.stdin.buffer, sys.stdout.buffer, connection)
             if boot.directories(path, private=True) != directory_id: raise ValueError('Baseline connection directory replaced')
-            sys.stdout.buffer.write(_line(result)); sys.stdout.buffer.flush()
     except BaseException:
         _failure(path, 'relay-failure.json', expected); raise
     finally:
@@ -269,9 +258,11 @@ def serve(harness, nonce, files, commit, identities, relay_process, operation):
             connection.settimeout(TIMEOUT); connection.connect(str(sock)); stage = 'peer_identity'
             if _peer(harness, connection) != relay_process or _socket_identity(sock) != socket_id:
                 raise ValueError('Baseline service peer is not its pinned relay process')
-            check(harness, files, identities); stage = 'live_execution_session'
-            with connection.makefile('rb') as incoming:
-                asyncio.run(execute(harness, nonce, files, commit, identities, incoming, connection, path, intent_raw, operation))
+            with connection.makefile('rb', buffering=0) as incoming, connection.makefile('wb', buffering=0) as outgoing:
+                with transport.Writer(outgoing) as writer:
+                    check(harness, files, identities); stage = 'live_execution_session'
+                    asyncio.run(execute(harness, nonce, files, commit, identities,
+                        transport.Reader(incoming), transport.Acknowledgement(writer, connection), path, intent_raw, operation))
     except BaseException as error:
         _failure(path, 'failure.json', expected)
         allowed = {ValueError, OSError, TimeoutError, BrokenPipeError, RuntimeError, asyncio.CancelledError, SystemExit, KeyboardInterrupt}

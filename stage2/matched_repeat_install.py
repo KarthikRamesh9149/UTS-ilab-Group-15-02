@@ -20,10 +20,10 @@ import subprocess
 import sys
 import types
 
-ROOT = Path('/opt/uts-capstone-matched-repeat-terminus-2-20260928')
+ROOT = Path('/opt/uts-capstone-matched-repeat-terminus-2-20261002-r2')
 ORIGINAL = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
 REPORTER = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r4')
-STATE = '.runtime/netcup/matched-repeat-terminus-2-installation-20260930'
+STATE = '.runtime/netcup/matched-repeat-terminus-2-installation-20261002-r2'
 KIND = 'exclusive_baseline_installation_not_qualification'
 SNAPSHOT = '.runtime/netcup/corrected-final-20260925/snapshot.json'
 SNAPSHOT_SHA = '960a119ad8a6dc009884eb2b559712e0e48f0a16711ddf9d1c57399ee0aac244'
@@ -95,7 +95,8 @@ def _lock_paths(seed, boot):
     late = [Path('/opt') / r / '.runtime/stage2' / n for r in seed.LATE
         for n in ('matrix.lock', 'scored.lock', 'gateway.lock')]
     return tuple(early + [boot.RECOVERY / '.runtime/stage2/matrix.lock'] + late +
-        [boot.RECOVERY / '.runtime/stage2' / n for n in ('scored.lock', 'gateway.lock')])
+        [boot.RECOVERY / '.runtime/stage2' / n for n in ('scored.lock', 'gateway.lock')] +
+        [boot.RETIRED / '.runtime/stage2' / n for n in ('matrix.lock', 'scored.lock', 'gateway.lock')])
 
 
 @contextmanager
@@ -207,6 +208,9 @@ def _old(value, decoded, boot, seed, libraries, guard, *, absent):
     revision = _module('no_cutoff_recovery_revision', decoded['stage2/no_cutoff_recovery_revision.py'])
     if revision.ROOT != boot.RECOVERY: raise ValueError('Exact retained recovery revision required')
     observed = {'retained': revision.inspect(), 'recovery': boot._recovery_files()}
+    retired = _module('matched_repeat_revision', decoded['stage2/matched_repeat_revision.py'])
+    if retired.ROOT != boot.RETIRED: raise ValueError('Exact terminal baseline root required')
+    observed['retired_baseline'] = retired.native(boot)
     for base, bindings in ((ORIGINAL, value['native']), (REPORTER, value['reporter'])):
         for name, digest in bindings.items():
             libraries.read(base, name, digest); observed[(str(base), name)] = libraries.identity((base / name).lstat())

@@ -51,6 +51,13 @@ class OperatorTests(unittest.TestCase):
         self.process = Mock(stdin=io.BytesIO(), stdout=io.BytesIO(),
             wait=Mock(return_value=0), poll=Mock(return_value=None))
         self.popen = self.enterContext(patch.object(connection.subprocess, 'Popen', return_value=self.process))
+        # Operator lifecycle tests mock endpoints; real duplex FD coverage is
+        # in test_matched_repeat_execution_transport, never native admission.
+        self.writer = Mock()
+        writer_factory = self.enterContext(patch.object(connection.transport, 'Writer'))
+        writer_factory.return_value.__enter__.return_value = self.writer
+        reply_factory = self.enterContext(patch.object(connection.transport, 'ReplyReceiver'))
+        self.received = reply_factory.return_value.__enter__.return_value
         self.sent = dict(recovery_document_sha256='a'*64, recovery_archive_sha256='b'*64,
             original=dict(operator_document_sha256='c'*64, archive_sha256='d'*64))
         self.send = self.enterContext(patch.object(connection.handoff, 'send', return_value=self.sent))
@@ -72,7 +79,8 @@ class OperatorTests(unittest.TestCase):
 
     def test_actual_sender_is_required_and_acceptance_is_not_qualification(self):
         result, path = self.invoke()
-        self.send.assert_called_once_with(self.process.stdin)
+        self.send.assert_called_once_with(self.writer)
+        self.writer.finish.assert_called_once_with()
         self.assertFalse(result['paid_launch_ready']); self.assertFalse(result['repeat_execution_qualified'])
         self.assertEqual({p.name for p in path.iterdir()}, {'intent.json','receiver.json','result.json'})
         self.assertTrue(all(p.stat().st_mode & 0o777 == 0o600 for p in path.iterdir()))
@@ -92,6 +100,7 @@ class OperatorTests(unittest.TestCase):
     def test_incomplete_handoff_preserves_failure_and_kills_only_owned_client(self):
         self.send.side_effect = BrokenPipeError('synthetic transfer refusal')
         with self.assertRaises(BrokenPipeError): self.invoke()
+        self.writer.finish.assert_not_called()
         path = self.root / connection.state_name('terminus-2','qualify-repeat')
         self.assertEqual({p.name for p in path.iterdir()}, {'intent.json','receiver.json','failure.json'})
         self.process.kill.assert_called_once()
@@ -134,7 +143,7 @@ class OperatorTests(unittest.TestCase):
             connection.command('terminus-2',NONCE,self.files,COMMIT,'qualify-repeat')
 
     def test_both_baselines_keep_the_same_transport_window_and_commands(self):
-        self.assertEqual(30*150,connection.read_reply.__globals__['TIMEOUT'])
+        self.assertEqual(30*150, connection.transport.IDLE_SECONDS)
         fixed=connection.ssh_command(self.root)
         for harness in ('terminus-2','openhands'):
             for operation in ('qualify-repeat','run-repeat'):
@@ -183,6 +192,7 @@ class MacSourceReaderTests(unittest.TestCase):
     """Real Mac-source reader; Git/anchor and fixed-checkout facts are fixtures."""
 
     def setUp(self):
+        self.retired = self.enterContext(patch.object(connection.revision, 'local'))
         temp = tempfile.TemporaryDirectory(); self.addCleanup(temp.cleanup)
         self.root = Path(temp.name).resolve(); self.root.chmod(0o700)
         stage = self.root/'stage2'; stage.mkdir(mode=0o700)
@@ -232,6 +242,11 @@ class MacSourceReaderTests(unittest.TestCase):
         module = ModuleType(path.stem); module.__file__ = str(path)
         with patch.dict(sys.modules, {path.stem:module}), self.assertRaises(ValueError):
             self.operator._loaded(self.bindings)
+
+    def test_retired_local_preservation_failure_prevents_preparation(self):
+        self.retired.side_effect = ValueError('Synthetic retired evidence mismatch')
+        with self.assertRaises(ValueError): connection._source_inputs(COMMIT, 'terminus-2')
+        self.mac.assert_not_called(); self.native.assert_not_called()
 
     def test_other_checkout_origin_is_refused(self):
         with patch.object(connection, '__file__', str(self.root/'elsewhere/matched_repeat_execution_connection.py')):

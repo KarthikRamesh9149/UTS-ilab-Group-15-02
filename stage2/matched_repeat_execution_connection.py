@@ -13,13 +13,21 @@ import subprocess
 import matched_repeat_completion as completion
 import matched_repeat_execution_bootstrap as boot
 import matched_repeat_execution_service as service
+import matched_repeat_execution_transport as transport
+import matched_repeat_revision as revision
 import matched_repeat_policy as policy
 import matched_repeat_recovery_handoff as handoff
-from no_cutoff_recovery_connection import read_reply
 from progress_dashboard import ssh_command, REMOTE_HOST
 from scored_gateway import durable_json
 
 REPO = handoff.operator.REPO
+
+
+def read_reply(stream, *, received=None):
+    if received is not None and (type(received) is not transport.ReplyReceiver or received.stream is not stream):
+        raise ValueError('Same actual owned reply transport required')
+    raw = transport.ready_line(stream, service.REPLY_LIMIT) if received is None else received.wait()
+    return boot.loads(raw)
 
 
 def _first(harness):
@@ -28,7 +36,8 @@ def _first(harness):
 
 def state_name(harness, operation):
     _first(harness); completion.operation_state(operation)
-    return '.runtime/netcup/matched-repeat-' + harness + '-' + completion.OPERATIONS[operation] + '-20260930'
+    date = '-20261002-r2' if harness == 'terminus-2' else '-20260930'
+    return '.runtime/netcup/matched-repeat-' + harness + '-' + completion.OPERATIONS[operation] + date
 
 
 def _identities(bindings):
@@ -42,6 +51,7 @@ def _identities(bindings):
 
 
 def _current(value):
+    revision.local(REPO, handoff.operator.mac)
     handoff.original.launch._recheck(value['bindings'])
     if _identities(value['bindings']) != value['identities']:
         raise ValueError('Committed baseline operator source/private identity changed')
@@ -71,6 +81,7 @@ def _source_inputs(commit, harness):
     _first(harness)
     if Path(__file__).absolute() != REPO / 'stage2/matched_repeat_execution_connection.py':
         raise ValueError('Fixed Mac baseline execution connection required')
+    revision.local(REPO, handoff.operator.mac)
     # This immutable reader supplies the ORIGINAL custom-final dependency,
     # not the new harness's execution identity. OpenHands additionally needs
     # the actual completed-Terminus reader in prepare/send and its live scope.
@@ -161,11 +172,14 @@ def _operate(commit, harness, operation):
         process = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL, bufsize=0, env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8'})
         ready = reply(read_reply(process.stdout), harness, nonce, files, commit, operation)
-        receiver = save('receiver.json', ready); _current(value)
-        sent = send(harness, process.stdin)  # Actual fresh captures of EVERY required predecessor.
-        process.stdin.close()
-        accepted = reply(read_reply(process.stdout), harness, nonce, files, commit, operation,
-            sent=sent, peer=ready['native_process'])
+        with transport.ReplyReceiver(process.stdout, service.REPLY_LIMIT) as received:
+            with transport.Writer(process.stdin, peer=received) as outgoing:
+                receiver = save('receiver.json', ready); _current(value)
+                sent = send(harness, outgoing)  # Real fresh captures on this owning main thread.
+                outgoing.finish()
+            process.stdin.close()
+            accepted = reply(read_reply(process.stdout, received=received), harness, nonce, files, commit, operation,
+                sent=sent, peer=ready['native_process'])
         if process.wait(timeout=10) != 0 or process.stdout.read(1):
             raise ValueError('Ambiguous baseline SSH exit; inspect retained native operation')
         _current(value)

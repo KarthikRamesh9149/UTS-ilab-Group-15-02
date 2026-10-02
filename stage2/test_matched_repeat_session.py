@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 import matched_repeat_session as session
 import matched_repeat_policy as policy
+import matched_repeat_revision as retired
 from run_credit_only import hold
 from test_matched_repeat_runtime import TreeTests
 from test_matched_repeat_policy import image_evidence
@@ -23,6 +24,8 @@ class SessionTests(TreeTests):
         super().setUp()
         self.root = self.root.resolve()
         self.events = []; self.locked = False; self.witness = None
+        self.retired = self.enterContext(patch.object(retired, 'native',
+            side_effect=lambda *args: self.under_lock('retired-preservation', {})))
         self.synthetic_task = object(); real_task = session._task
         self.task = lambda: real_task() or self.synthetic_task
         self.enterContext(patch.object(session, '_task', side_effect=self.task))
@@ -333,6 +336,14 @@ class SessionTests(TreeTests):
                 with self.assertRaisesRegex(ValueError, 'inventory drift'): session.recheck(active)
                 reader.side_effect = previous
                 with self.assertRaises(ValueError): session.describe(active)
+
+    def test_retired_baseline_drift_invalidates_and_cannot_be_restored(self):
+        previous = self.retired.side_effect
+        with self.invalidated() as active:
+            self.retired.side_effect = ValueError('Retired baseline drift')
+            with self.assertRaisesRegex(ValueError, 'Retired baseline drift'): session.recheck(active)
+            self.retired.side_effect = previous
+            with self.assertRaises(ValueError): session.describe(active)
 
     def test_mutation_during_library_host_inspection_is_caught_by_final_rechecks(self):
         previous = self.host_read.side_effect
