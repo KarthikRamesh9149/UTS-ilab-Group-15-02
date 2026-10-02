@@ -1,0 +1,63 @@
+{
+  "aggregate": {
+    "accepted_model_responses": 5,
+    "attempted": 3,
+    "error_requests": 91,
+    "failed": 3,
+    "full_benchmark_win_claimed": false,
+    "generation_timings": 96,
+    "http_429_requests": 91,
+    "independent_receipts_verified": false,
+    "interrupted_requests": 0,
+    "known_cost_usd": "0.00175632",
+    "known_input_tokens": 23056,
+    "known_output_tokens": 5336,
+    "missing_generation_timings": 0,
+    "model_requests": 96,
+    "no_verifier_result": 0,
+    "other_unaccepted_requests": 0,
+    "passed": 0,
+    "phase_durations": {
+      "agent": {
+        "all_attempts_measured": true,
+        "measured_attempts": 3,
+        "measured_subtotal_seconds": 4169.773266329197,
+        "not_run_attempts": 0
+      },
+      "setup": {
+        "all_attempts_measured": true,
+        "measured_attempts": 3,
+        "measured_subtotal_seconds": 12.582102673943155,
+        "not_run_attempts": 0
+      },
+      "verifier": {
+        "all_attempts_measured": true,
+        "measured_attempts": 3,
+        "measured_subtotal_seconds": 684.1442649399396,
+        "not_run_attempts": 0
+      }
+    },
+    "retry_records": 91,
+    "total_cost_usd": null,
+    "transport_error_requests": 91,
+    "unknown_cost_requests": 91
+  },
+  "archive_sha256": "b3575795b471c6e0b4c31a8939d463460939a36fc9f036ee2c564126ef846aed",
+  "best_of_selection": false,
+  "collected_utc": "2026-10-02T00:32:09.515463+00:00",
+  "completed_recovery_audit": true,
+  "experiment": "custom-no-cutoff-recovery-20260929",
+  "full_runtime_restore_exercised": false,
+  "historical_installed_bytes_attested": false,
+  "off_server_backup_verified": true,
+  "original_experiment": "custom-no-cutoff-final-20260928",
+  "original_full89_denominator": 89,
+  "original_results_replaced": false,
+  "paid_launch_ready": false,
+  "qualification_sha256": "2f1ae82a3d20e3fd25c1628edb5ea9b30cad61d93d38b5f9addb1ae23b0e9d73",
+  "recovery_merged_into_original89": false,
+  "registration_sha256": "ce8d70536e7697f8e111921caa6465b3467b64964a015193ea44296c1a1bbc4a",
+  "separate_recovery_denominator": 3,
+  "snapshot_sha256": "61638afff729889b520a485ef9662325c5001a2f6df01cf5215ebf9710178206",
+  "sources_sha256": "bc6adb1cdd6792c1617946de5c876972016884d6a3ceb4851c7a39deae23175d"
+}

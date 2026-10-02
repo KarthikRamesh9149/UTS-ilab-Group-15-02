@@ -1,5 +1,27 @@
 # Separate Terminus-2 repeat
 
+## Recovery reporting verified; native repeat next, 2 October 2026 UTC
+
+This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and no
+active task. Its recovery prerequisite now has a genuinely completed audit,
+verified off-server backup and public export. Backup returned successfully at
+02:04:07.510697 UTC; export returned successfully at 04:01:43.772270 UTC.
+Both parents ended with exit 0. The actual three public hashes, durable records
+and SAME archive were reverified at 04:14:47.885002 UTC.
+The [recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records
+the evidence and separate **3/3, 0 passed, 3 failed, 0 missing verifier** results.
+All six failed reporting attempts remain preserved, not relabelled.
+
+No Terminus installation, native qualification or paid run is claimed at this
+publication checkpoint. Actual full preparation, new-root absence, ONE exclusive
+installation, isolated actual imports and ONE successful native qualification
+remain required before its ONE 89-task run. These authorised phases proceed
+after publication without another routine approval question. Linux, systemd
+and Docker compatibility remains unexercised for this repeat. All 419 bound
+sources are unchanged from the 284-test local gate; local tests are not native
+admission. OpenHands remains sequentially dependent on completed Terminus
+reporting. Earlier dated checkpoints below are history.
+
 ## Corrected recovery dependency bound; repeat unstarted, 2 October 2026 Sydney
 
 This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and

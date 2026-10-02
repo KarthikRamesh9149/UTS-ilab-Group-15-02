@@ -1,5 +1,48 @@
 # Separate C0-NC setup recovery
 
+## Recovery audit, backup and export verified, 2 October 2026 UTC
+
+Recovery is **3/3 completed: 0 passed, 3 failed, 0 missing verifier**, with no
+active benchmark. These are separate recovery outcomes, not replacements for
+or additions to the original 89-task score. The actual public results are
+[summary.json](summary.json), [trials.json](trials.json) and [trials.csv](trials.csv).
+
+The ONE reporting-r2 backup returned successfully at **02:04:07.510697 UTC**
+and its parent ended with exit 0. The ONE export, started at 02:31:50.792516 UTC,
+returned successfully at **04:01:43.772270 UTC**, also exit 0. Both operated at
+commit `5bed5af40dcddce0381734f71607b469496f8fae`; their actual wrappers checked
+332 committed source bindings, loaded origins, environment and preserved
+terminal evidence after each genuine return. The export performed another
+fresh native audit and read the SAME verified archive, not a new backup.
+
+The archive is **218,947,973 bytes**, SHA256
+`b3575795b471c6e0b4c31a8939d463460939a36fc9f036ee2c564126ef846aed`.
+Local verification at **04:14:47.885002 UTC** rechecked its strict archive
+validation, durable backup/export records, deterministic public bytes and
+the exact returned public hashes:
+
+| Public file | SHA256 |
+| --- | --- |
+| summary.json | `7c14e13d54efd2c4ffbb95fc656939a20fbd2828b9000da9f428dcaf558988d5` |
+| trials.json | `59619b74d51c725976744ac73e050b44be105034740dec8bb394064a81691e1f` |
+| trials.csv | `9f2f0a2c470e72ff247be0ba71d1917c90f256a2969667b9461897eb05d49741` |
+
+All SIX failed Mac folders, FOURTEEN JSON records and the old partial R5 archive
+remain unchanged and terminal. The successful backup does not relabel them.
+All 419 prospective source bindings still have map
+`6913f8f6a7a33cbeda05dffac9ad2092973425a9e967736f8b18e88559173f7c`.
+The earlier 284-test local gate remains applicable to these unchanged bytes;
+it is not native baseline qualification. No benchmark, model or scoring control
+changed, and no full-runtime restore was exercised.
+
+At this publication checkpoint, Terminus-2 and OpenHands each remain **0/89**,
+with 0 passed, 0 failed and 0 missing verifier. Neither repeat has been installed,
+qualified or run natively. The authorised next phase is actual Terminus
+preparation, exclusive installation, isolated imports and ONE native
+qualification before ONE 89-task run. Its completed audit/backup/export and
+publication precede the OpenHands sequence. Export success alone is not paid
+launch readiness. Earlier dated checkpoints below are history.
+
 ## Corrected backup destination bound and locally verified, 2 October 2026 Sydney
 
 The human's direct instruction to proceed resolves the corrected-backup scope;

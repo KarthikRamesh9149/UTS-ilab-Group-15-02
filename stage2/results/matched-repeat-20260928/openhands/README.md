@@ -1,5 +1,27 @@
 # Separate OpenHands repeat
 
+## Recovery reporting verified; Terminus still precedes OpenHands, 2 October 2026 UTC
+
+This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and no
+active task. The recovery prerequisite now has a genuinely completed audit,
+verified off-server backup and public export. Backup returned successfully at
+02:04:07.510697 UTC; export returned successfully at 04:01:43.772270 UTC.
+Both parents ended with exit 0. The actual public hashes, durable records and
+SAME archive were reverified at 04:14:47.885002 UTC.
+The [recovery status](../../custom-no-cutoff-recovery-20260929/README.md) records
+the separate **3/3, 0 passed, 3 failed, 0 missing verifier** outcomes and
+preservation of all six failed reporting attempts.
+
+Neither baseline has been installed, qualified or run natively at this
+publication checkpoint. The authorised Terminus installation/qualification/
+89-task run and its genuine completed audit/backup/export/publication come
+first. Only then does OpenHands proceed through its own actual installation,
+isolated imports, ONE native qualification and ONE 89-task run, with fresh
+predecessor audits and the SAME verified archives. No parallel paid work is
+authorised. All 419 bound sources remain unchanged from the 284-test local gate;
+Linux, systemd and Docker compatibility is still unexercised for these repeats.
+Earlier dated checkpoints below are history.
+
 ## Corrected recovery dependency bound; repeat unstarted, 2 October 2026 Sydney
 
 This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and
