@@ -1,0 +1,5 @@
+trial_id,task_id,harness,reward,status,agent_error_type,verifier_error_type,setup_seconds,agent_seconds,verifier_seconds,model_requests,accepted_model_responses,http_429_requests,known_cost_usd,total_cost_usd,unknown_cost_requests,known_input_tokens,input_tokens,known_output_tokens,output_tokens
+c-a,task-a,C0-NC,1,verified,,,10.0,90.0,5.0,3,3,0,0.0009,0.0009,0,900,900,90,90
+c-b,task-b,C0-NC,0,verified,OpenAIPermissionDeniedError,,10.0,895.0,5.0,20,5,15,0.0003,,15,300,,30,
+c-c,task-c,C0-NC,1,verified,,,10.0,400.0,5.0,7,7,0,0.0014,0.0014,0,1400,1400,140,140
+c-d,task-d,C0-NC,,setup_failed,RuntimeError,,10.0,,,0,0,0,0,0,0,0,0,0,0
