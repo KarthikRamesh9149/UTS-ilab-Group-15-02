@@ -265,11 +265,73 @@ def serve(harness, nonce, files, commit, identities, relay_process, operation):
                         transport.Reader(incoming), transport.Acknowledgement(writer, connection), path, intent_raw, operation))
     except BaseException as error:
         _failure(path, 'failure.json', expected)
-        allowed = {ValueError, OSError, TimeoutError, BrokenPipeError, RuntimeError, asyncio.CancelledError, SystemExit, KeyboardInterrupt}
-        save(path / 'failure-diagnostic.json', dict(stage=stage,
-            error_class=type(error).__name__ if type(error) in allowed else 'OtherException',
-            automatic_resume=False, paid_launch_ready=False))
+        try:
+            diagnostic = failure_diagnostic(root, files, stage, error)
+        except BaseException:
+            # Diagnostics cannot replace the original failure with a new one.
+            diagnostic = dict(stage='unavailable', error_class='OtherException',
+                diagnostic_unavailable=True, automatic_resume=False, paid_launch_ready=False)
+        save(path / 'failure-diagnostic.json', diagnostic)
         raise
+
+
+def failure_diagnostic(root, files, stage, error):
+    """Bounded failure metadata, never messages, commands, streams or locals.
+
+    Exact type identities prevent an arbitrary exception's name from becoming
+    output. Source-site hashes are lookup hints for these bound bytes, not a
+    claim that a path in a traceback authenticates executed code. This cannot
+    recover details omitted from an older failed attempt or authorise a retry.
+    """
+    audit_error = handoff.original.launch.transport.AuditTransportError
+    allowed = {kind: kind.__name__ for kind in (ValueError, TypeError, KeyError,
+        IndexError, AssertionError, OSError, FileNotFoundError, PermissionError,
+        TimeoutError, BrokenPipeError, RuntimeError, subprocess.CalledProcessError,
+        subprocess.TimeoutExpired, json.JSONDecodeError, audit_error,
+        asyncio.CancelledError, SystemExit, KeyboardInterrupt)}
+    stages = {'service_identity', 'socket_connect', 'peer_identity', 'live_execution_session'}
+    aliases = {str(root / name): sha for name, sha in files.items()
+        if type(name) is str and re.fullmatch(r'stage2/[A-Za-z0-9_]+\.py', name)
+        and type(sha) is str and re.fullmatch('[a-f0-9]{64}', sha)}
+
+    def integer(value, *, minimum=-(2 ** 31), maximum=2 ** 31 - 1):
+        return value if type(value) is int and minimum <= value <= maximum else None
+
+    result = dict(schema_version=2, stage=stage if type(stage) is str and stage in stages else 'unavailable',
+        error_class=allowed.get(type(error), 'OtherException'), exceptions=[],
+        automatic_resume=False, paid_launch_ready=False)
+    seen = set(); remaining_sites = 16
+    while error is not None and id(error) not in seen and len(result['exceptions']) < 8:
+        seen.add(id(error))
+        item = dict(error_class=allowed.get(type(error), 'OtherException'), bound_sites_sha256=[])
+        frame = error.__traceback__; scanned = 0
+        while frame is not None and scanned < 128 and remaining_sites:
+            sha = aliases.get(frame.tb_frame.f_code.co_filename)
+            if sha is not None and 0 < frame.tb_lineno <= 100000:
+                item['bound_sites_sha256'].append(hashlib.sha256(
+                    (sha + ':' + str(frame.tb_lineno)).encode()).hexdigest())
+                remaining_sites -= 1
+            frame = frame.tb_next; scanned += 1
+        if type(error) is subprocess.CalledProcessError:
+            item['returncode'] = integer(error.returncode)
+        if type(error) is audit_error:
+            metadata = error.metadata if type(error.metadata) is dict else {}
+            status = metadata.get('status')
+            transport_stages = {'transport_start', 'transport_send', 'transport_read',
+                'transport_timeout', 'reply_window_exceeded', 'child_exit',
+                'transport_finished', 'local_client_cleanup_uncertain'}
+            error_class = metadata.get('error_type')
+            item['transport'] = dict(
+                status=status if type(status) is str and status in transport_stages else 'unavailable',
+                error_class=error_class if type(error_class) is str and error_class in
+                    handoff.original.launch.transport.ERROR_TYPES else 'OtherException',
+                returncode=integer(metadata.get('returncode')),
+                stdout_bytes=integer(metadata.get('stdout_bytes'), minimum=0,
+                    maximum=handoff.original.launch.transport.WINDOW))
+        result['exceptions'].append(item)
+        error = error.__cause__ if error.__cause__ is not None else (
+            None if error.__suppress_context__ else error.__context__)
+    return result
 
 
 def operation_status(harness, files, commit, identities, operation):

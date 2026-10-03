@@ -16,10 +16,11 @@ import stat
 import sys
 
 ROOTS = {
-    'terminus-2': Path('/opt/uts-capstone-matched-repeat-terminus-2-20261002-r2'),
+    'terminus-2': Path('/opt/uts-capstone-matched-repeat-terminus-2-20261003-r3'),
     'openhands': Path('/opt/uts-capstone-matched-repeat-openhands-20260928')}
 RECOVERY = Path('/opt/uts-capstone-custom-no-cutoff-recovery-20260930-r6')
 RETIRED = Path('/opt/uts-capstone-matched-repeat-terminus-2-20260928')
+RETIRED_SECOND = Path('/opt/uts-capstone-matched-repeat-terminus-2-20261002-r2')
 RECOVERY_COMMIT = 'fbefc033cd04c7981e7374f68c9d5b20186d461a'
 RECOVERY_SOURCES_SHA = 'bc6adb1cdd6792c1617946de5c876972016884d6a3ceb4851c7a39deae23175d'
 BASELINE_INPUT = '.runtime/stage2/matched-repeat-original-qualification.json'
@@ -267,7 +268,8 @@ def ancestors(harness, files):
     name = 'stage2/matched_repeat_revision.py'
     source = raw(root, name, files[name])[0]
     retired = {}; exec(compile(source, '<bound-terminal-baseline-reader>', 'exec'), retired)
-    if retired['ROOT'] != RETIRED: raise ValueError('Exact terminal baseline root required')
+    if retired['ROOT'] != RETIRED or retired['SECOND_ROOT'] != RETIRED_SECOND:
+        raise ValueError('Both exact terminal baseline roots required')
     retired['native'](sys.modules[__name__])
     completed = recovery_finished()
     if harness == 'openhands': terminus_finished(files)

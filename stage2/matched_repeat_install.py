@@ -20,15 +20,17 @@ import subprocess
 import sys
 import types
 
-ROOT = Path('/opt/uts-capstone-matched-repeat-terminus-2-20261002-r2')
+ROOT = Path('/opt/uts-capstone-matched-repeat-terminus-2-20261003-r3')
 ORIGINAL = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
 REPORTER = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r4')
-STATE = '.runtime/netcup/matched-repeat-terminus-2-installation-20261002-r2'
+STATE = '.runtime/netcup/matched-repeat-terminus-2-installation-20261003-r3'
 KIND = 'exclusive_baseline_installation_not_qualification'
 SNAPSHOT = '.runtime/netcup/corrected-final-20260925/snapshot.json'
 SNAPSHOT_SHA = '960a119ad8a6dc009884eb2b559712e0e48f0a16711ddf9d1c57399ee0aac244'
 LAUNCH = 'stage2/results/baseline-corrected-20260923/launch.json'
 LAUNCH_SHA = '0c8aafa10d744095c4551ff018065e1d6d9849e1dfe11bcf30e9e4b1ffafaaaa'
+BASELINE_CSV = 'stage2/results/baseline-corrected-20260923/trials.csv'
+BASELINE_CSV_SHA = '8769a865d19bc81132166d67f85a5fb84725f2cda8f5b2a45f98b1d9993d5429'
 WINDOW = 64 * 1024 * 1024
 
 
@@ -75,12 +77,13 @@ def _payload(value):
             or seed.ROOT != boot.RECOVERY or libraries.ORIGINAL != ORIGINAL or libraries.RECOVERY != boot.RECOVERY
             or value['hashes'].get(boot.BASELINE_INPUT) != boot.BASELINE_SHA
             or value['hashes'].get(boot.FINAL_INPUT) != boot.FINAL_SHA
-            or value['hashes'].get(SNAPSHOT) != SNAPSHOT_SHA or value['hashes'].get(LAUNCH) != LAUNCH_SHA):
+            or value['hashes'].get(SNAPSHOT) != SNAPSHOT_SHA or value['hashes'].get(LAUNCH) != LAUNCH_SHA
+            or value['hashes'].get(BASELINE_CSV) != BASELINE_CSV_SHA):
         raise ValueError('Fixed original/recovery/baseline identities required')
     final = boot.loads(decoded[boot.FINAL_INPUT])
     required = set(final['sources']) | boot._required(decoded['stage2/matched_repeat_policy.py'])
     if set(decoded) != {'stage2/' + n for n in required} | _public() | {
-            boot.BASELINE_INPUT, boot.FINAL_INPUT, SNAPSHOT, LAUNCH}:
+            boot.BASELINE_INPUT, boot.FINAL_INPUT, SNAPSHOT, LAUNCH, BASELINE_CSV}:
         raise ValueError('Complete original/current baseline inventory required')
     native = {'stage2/' + n: h for n, h in final['sources'].items()}
     native.update(final['evidence_files']); native[seed.ORIGINAL_QUALIFICATION] = boot.FINAL_SHA
@@ -96,7 +99,8 @@ def _lock_paths(seed, boot):
         for n in ('matrix.lock', 'scored.lock', 'gateway.lock')]
     return tuple(early + [boot.RECOVERY / '.runtime/stage2/matrix.lock'] + late +
         [boot.RECOVERY / '.runtime/stage2' / n for n in ('scored.lock', 'gateway.lock')] +
-        [boot.RETIRED / '.runtime/stage2' / n for n in ('matrix.lock', 'scored.lock', 'gateway.lock')])
+        [base / '.runtime/stage2' / n for base in (boot.RETIRED, boot.RETIRED_SECOND)
+            for n in ('matrix.lock', 'scored.lock', 'gateway.lock')])
 
 
 @contextmanager
@@ -209,7 +213,8 @@ def _old(value, decoded, boot, seed, libraries, guard, *, absent):
     if revision.ROOT != boot.RECOVERY: raise ValueError('Exact retained recovery revision required')
     observed = {'retained': revision.inspect(), 'recovery': boot._recovery_files()}
     retired = _module('matched_repeat_revision', decoded['stage2/matched_repeat_revision.py'])
-    if retired.ROOT != boot.RETIRED: raise ValueError('Exact terminal baseline root required')
+    if retired.ROOT != boot.RETIRED or retired.SECOND_ROOT != boot.RETIRED_SECOND:
+        raise ValueError('Both exact terminal baseline roots required')
     observed['retired_baseline'] = retired.native(boot)
     for base, bindings in ((ORIGINAL, value['native']), (REPORTER, value['reporter'])):
         for name, digest in bindings.items():
@@ -367,7 +372,7 @@ def prepare(commit):
     hashes.update({connection.handoff.original.export.DESTINATION + '/' + n: h
         for n, h in connection.handoff.operator.recovery.policy.PUBLIC_FILES.items()})
     # These are exact already retained original178 anchors, not new audits.
-    hashes.update({SNAPSHOT: SNAPSHOT_SHA, LAUNCH: LAUNCH_SHA})
+    hashes.update({SNAPSHOT: SNAPSHOT_SHA, LAUNCH: LAUNCH_SHA, BASELINE_CSV: BASELINE_CSV_SHA})
     decoded = {n: launch._raw(n, h) for n, h in hashes.items()}
     for target, source, digest in ((boot.BASELINE_INPUT, connection.handoff.original.operator.old.ORIGINAL, boot.BASELINE_SHA),
             (boot.FINAL_INPUT, connection.handoff.original.operator.old.PRIVATE + '/.runtime/stage2/no-cutoff-final-qualification.json', boot.FINAL_SHA)):
@@ -376,10 +381,12 @@ def prepare(commit):
         hashes=hashes, native=value['bindings']['native'], reporter=value['bindings']['reporting'])
     _, _, _, seed, _, _ = _payload(payload)
     if (locks.paths(ROOT, 'terminus-2')[:-1] != _lock_paths(seed, boot)
-            or original.SNAPSHOT != SNAPSHOT or original.SNAPSHOT_SHA256 != SNAPSHOT_SHA):
+            or original.SNAPSHOT != SNAPSHOT or original.SNAPSHOT_SHA256 != SNAPSHOT_SHA
+            or original.PUBLIC + '/trials.csv' != BASELINE_CSV
+            or original.policy.BASELINE_CSV_SHA256 != BASELINE_CSV_SHA):
         raise ValueError('Actual original snapshot and inherited lock order required')
     extra = {n: (launch._raw(n, hashes[n]), boot.identity((connection.REPO / n).lstat()))
-        for n in (SNAPSHOT, LAUNCH)}
+        for n in (SNAPSHOT, LAUNCH, BASELINE_CSV)}
     connection._current(value)
     return value, payload, extra
 
