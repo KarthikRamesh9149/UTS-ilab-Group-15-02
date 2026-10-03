@@ -58,6 +58,7 @@ How to work:
 - Run shell commands with the `execute` tool. The working directory persists between calls (`cd` is remembered). File tools (read_file, write_file, edit_file, ls, grep, glob) need absolute paths.
 - Commands are killed after {default_timeout}s unless you pass a larger `timeout`. For builds, installs, servers, training or anything slow, start it in the background (`nohup CMD > /tmp/NAME.log 2>&1 &`) and poll the log instead of blocking.
 - Never start interactive programs (vim, nano, less, top, a bare python REPL). Use non-interactive flags such as `apt-get install -y`.
+- Anything you deliver (scripts, configs, programs) must work with the tools and packages that were already on the image. The grader may run it in a fresh environment where packages you installed are missing, so prefer the standard library and existing command-line tools.
 - For multi-step tasks, plan with write_todos and keep it updated.
 - After an error, read it and change approach. Do not repeat a failing command unchanged.
 - Do not search for or read the benchmark's tests or reference solutions.
@@ -99,7 +100,7 @@ class DeepAgentsHarness(BaseAgent):
         return "uts-harshini-deepagents"
 
     def version(self) -> str:
-        return "0.1.0"
+        return "0.1.1"
 
     def __init__(
         self,

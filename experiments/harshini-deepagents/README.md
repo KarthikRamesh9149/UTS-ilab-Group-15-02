@@ -56,5 +56,6 @@ Per-trial trace: `<trial>/agent/deepagents-trajectory.json`.
 | OpenHands | 10 | 44 |
 | Group custom (C0 / C0-NC) | 15 | 50 |
 
-This harness has no scored runs yet. Runs on the Windows laptop host should be
-compared against Terminus-2 run on the same host.
+This harness: one-task probes only so far (see [`CHANGELOG.md`](CHANGELOG.md)).
+Runs on the Windows laptop host should be compared against Terminus-2 run on the
+same host.
