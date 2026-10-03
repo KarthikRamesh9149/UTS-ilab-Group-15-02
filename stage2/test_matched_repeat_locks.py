@@ -139,8 +139,8 @@ class OrderTests(unittest.TestCase):
         openhands = locks.paths(locks.runtime.DEPLOYMENTS['openhands'], 'openhands')
         self.assertEqual(len(original), 49)
         self.assertEqual(terminus[:49], original)
-        self.assertEqual((len(terminus), len(openhands)), (55, 58))
-        self.assertEqual(openhands[:55], terminus)
+        self.assertEqual((len(terminus), len(openhands)), (58, 61))
+        self.assertEqual(openhands[:58], terminus)
         self.assertEqual(terminus[-1], locks.runtime.DEPLOYMENTS['terminus-2'] / locks.RT / 'matrix.lock')
         self.assertEqual(openhands[-1], locks.runtime.DEPLOYMENTS['openhands'] / locks.RT / 'matrix.lock')
 

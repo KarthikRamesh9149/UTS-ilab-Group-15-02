@@ -175,6 +175,48 @@ class ServiceExecutionTests(LocalFiles, unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError): await self.execute()
         self.runner.assert_not_called(); self.assertFalse((self.path / 'accepted.json').exists())
 
+    def invoke_failed_service(self, error):
+        # Remove only the synthetic pre-existing fixture start record: serve
+        # must create its own exclusive record, never reuse a real attempt.
+        (self.path / 'service-started.json').unlink()
+        with patch.object(service.completion, 'started', return_value='7' * 32), \
+                patch.object(service, '_service_process', side_effect=error):
+            with self.assertRaises(type(error)) as raised:
+                service.serve('terminus-2', self.nonce, self.files, self.commit,
+                    self.identities, self.relay, self.operation)
+        self.assertIs(raised.exception, error)
+        self.qualifier.assert_not_called(); self.runner.assert_not_called()
+        self.assertFalse((self.path / 'accepted.json').exists())
+        self.assertFalse((self.path / 'result.json').exists())
+        self.assertTrue((self.path / 'failure.json').is_file())
+        diagnostic = self.path / 'failure-diagnostic.json'
+        self.assertEqual(diagnostic.stat().st_mode & 0o777, 0o600)
+        return service.boot.loads(diagnostic.read_bytes())
+
+    async def test_real_failure_file_keeps_child_code_and_preserves_failed_attempt(self):
+        before = {name: service.evidence.read(self.root,
+            (self.path / name).relative_to(self.root).as_posix())
+            for name in ('intent.json', 'service.log')}
+        error = service.subprocess.CalledProcessError(7, ['PRIVATE_COMMAND'], stderr=b'PRIVATE_STDERR')
+        record = self.invoke_failed_service(error)
+        self.assertEqual(record['stage'], 'service_identity')
+        self.assertEqual(record['error_class'], 'CalledProcessError')
+        self.assertEqual(record['exceptions'][0]['returncode'], 7)
+        self.assertNotIn('PRIVATE_', json.dumps(record))
+        for name, saved in before.items():
+            self.assertEqual(service.evidence.read(self.root,
+                (self.path / name).relative_to(self.root).as_posix()), saved)
+        with self.assertRaises(ValueError):
+            service.serve('terminus-2', self.nonce, self.files, self.commit,
+                self.identities, self.relay, self.operation)
+
+    async def test_diagnostic_failure_does_not_replace_original_exception(self):
+        with patch.object(service, 'failure_diagnostic', side_effect=TypeError('PRIVATE_DIAGNOSTIC')):
+            record = self.invoke_failed_service(FileNotFoundError('PRIVATE_ORIGINAL'))
+        self.assertTrue(record['diagnostic_unavailable'])
+        self.assertFalse(record['automatic_resume']); self.assertFalse(record['paid_launch_ready'])
+        self.assertNotIn('PRIVATE_', json.dumps(record))
+
 
 class ServiceContractTests(unittest.TestCase):
     def test_real_program_generator_accepts_actual_source_and_private_input_shape(self):
@@ -229,6 +271,107 @@ class ServiceContractTests(unittest.TestCase):
             self.assertEqual(manager.call_count, 2)
             manager.side_effect = [state, dict(state, InvocationID='b' * 32)]
             with self.assertRaises(ValueError): service._service_process('terminus-2', 'fixed.service')
+
+
+class FailureDiagnosticTests(unittest.TestCase):
+    """Metadata contracts only; no host, provider or failed-attempt replay."""
+    root = Path('/synthetic-baseline-diagnostic')
+    files = {'stage2/site.py': 'a' * 64}
+
+    def record(self, error, stage='live_execution_session'):
+        return service.failure_diagnostic(self.root, self.files, stage, error)
+
+    def test_exact_known_exception_types_are_not_collapsed(self):
+        transport_error = service.handoff.original.launch.transport.AuditTransportError
+        errors = [ValueError(), TypeError(), KeyError(), IndexError(), AssertionError(),
+            FileNotFoundError(), PermissionError(), BrokenPipeError(), OSError(), RuntimeError(),
+            TimeoutError(), service.subprocess.CalledProcessError(7, ['PRIVATE_COMMAND']),
+            service.subprocess.TimeoutExpired(['PRIVATE_COMMAND'], 300),
+            json.JSONDecodeError('PRIVATE_MESSAGE', 'PRIVATE_DOCUMENT', 0),
+            transport_error({}), asyncio.CancelledError(), SystemExit(), KeyboardInterrupt()]
+        for error in errors:
+            with self.subTest(kind=type(error).__name__):
+                record = self.record(error)
+                self.assertEqual(record['error_class'], type(error).__name__)
+                self.assertEqual(record['exceptions'][0]['error_class'], type(error).__name__)
+                self.assertFalse(record['automatic_resume']); self.assertFalse(record['paid_launch_ready'])
+                self.assertNotIn('PRIVATE_', json.dumps(record))
+
+    def test_unknown_or_spoofed_types_do_not_expose_names_or_messages(self):
+        spoof = type('ValueError', (ValueError,), {'__module__': 'builtins',
+            '__str__': lambda self: self.fail_if_formatted()})
+        for error in (spoof('PRIVATE_VALUE'), type('PRIVATE_EXCEPTION_NAME', (Exception,), {})()):
+            record = self.record(error)
+            self.assertEqual(record['error_class'], 'OtherException')
+            self.assertNotIn('PRIVATE_', json.dumps(record))
+
+    def test_only_bound_source_sites_are_hashed_without_paths_or_locals(self):
+        filename = str(self.root / 'stage2/site.py')
+        scope = {'__name__': 'synthetic', 'PRIVATE_LOCAL': 'PRIVATE_SECRET'}
+        try:
+            exec(compile("raise TypeError('PRIVATE_MESSAGE')\n", filename, 'exec'), scope)
+        except TypeError as error:
+            record = self.record(error)
+        sites = record['exceptions'][0]['bound_sites_sha256']
+        expected = hashlib.sha256((('a' * 64) + ':1').encode()).hexdigest()
+        self.assertEqual(sites, [expected])
+        raw = json.dumps(record)
+        for forbidden in ('PRIVATE_', filename, 'site.py', str(self.root)):
+            self.assertNotIn(forbidden, raw)
+
+    def test_child_exit_code_is_kept_without_command_or_output(self):
+        error = service.subprocess.CalledProcessError(-9, ['PRIVATE_ARG'],
+            output=b'PRIVATE_STDOUT', stderr=b'PRIVATE_STDERR')
+        item = self.record(error)['exceptions'][0]
+        self.assertEqual(item['returncode'], -9)
+        self.assertNotIn('PRIVATE_', json.dumps(item))
+        error.returncode = True
+        self.assertIsNone(self.record(error)['exceptions'][0]['returncode'])
+        error.returncode = 'PRIVATE_CODE'
+        self.assertIsNone(self.record(error)['exceptions'][0]['returncode'])
+
+    def test_transport_fields_are_explicitly_filtered_not_copied(self):
+        error_type = service.handoff.original.launch.transport.AuditTransportError
+        error = error_type(dict(status='child_exit', error_type='ValueError', returncode=1,
+            stdout_bytes=25, diagnostics={'PRIVATE': 'SECRET'}, command='PRIVATE_COMMAND'))
+        item = self.record(error)['exceptions'][0]
+        self.assertEqual(item['transport'], dict(status='child_exit', error_class='ValueError',
+            returncode=1, stdout_bytes=25))
+        self.assertNotIn('PRIVATE', json.dumps(item))
+        error.metadata = dict(status='PRIVATE_STATUS', error_type='PRIVATE_ERROR',
+            returncode='PRIVATE_CODE', stdout_bytes=-1)
+        self.assertEqual(self.record(error)['exceptions'][0]['transport'],
+            dict(status='unavailable', error_class='OtherException', returncode=None, stdout_bytes=None))
+
+    def test_exception_chain_is_bounded_cycle_safe_and_respects_suppression(self):
+        errors = [TypeError() for _ in range(20)]
+        for first, second in zip(errors, errors[1:]): first.__cause__ = second
+        errors[-1].__cause__ = errors[0]
+        self.assertEqual(len(self.record(errors[0])['exceptions']), 8)
+        first = ValueError(); second = TypeError(); first.__context__ = second
+        self.assertEqual(len(self.record(first)['exceptions']), 2)
+        first.__suppress_context__ = True
+        self.assertEqual(len(self.record(first)['exceptions']), 1)
+        first.__cause__ = second; second.__cause__ = first
+        self.assertEqual(len(self.record(first)['exceptions']), 2)
+
+    def test_untrusted_stage_and_invalid_bindings_cannot_leak(self):
+        for stage in ('PRIVATE_STAGE', [], {'PRIVATE': 'STAGE'}, None):
+            self.assertEqual(self.record(ValueError(), stage)['stage'], 'unavailable')
+        record = service.failure_diagnostic(self.root, {'stage2/site.py': 'PRIVATE_HASH'},
+            'live_execution_session', ValueError('PRIVATE_MESSAGE'))
+        self.assertNotIn('PRIVATE', json.dumps(record))
+
+    def test_deep_tracebacks_share_one_bounded_site_budget(self):
+        scope = {}
+        source = 'def deep(n):\n if n: return deep(n-1)\n raise ValueError("PRIVATE")\ndeep(200)\n'
+        try:
+            exec(compile(source, str(self.root / 'stage2/site.py'), 'exec'), scope)
+        except ValueError as error:
+            following = TypeError(); following.__cause__ = error
+            record = self.record(following)
+        self.assertEqual(sum(len(item['bound_sites_sha256']) for item in record['exceptions']), 16)
+        self.assertLess(len(json.dumps(record)), 4096)
 
 
 if __name__ == '__main__': unittest.main()

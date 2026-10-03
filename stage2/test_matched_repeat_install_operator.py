@@ -31,6 +31,7 @@ class InstallationPreparationTests(unittest.TestCase):
         self.enterContext(patch.object(connection.boot, 'BASELINE_SHA', install._sha(baseline)))
         self.enterContext(patch.object(connection.boot, 'FINAL_SHA', install._sha(final)))
         self.enterContext(patch.object(original_reader, 'SNAPSHOT_SHA256', install.SNAPSHOT_SHA))
+        self.enterContext(patch.object(original_reader.policy, 'BASELINE_CSV_SHA256', install.BASELINE_CSV_SHA))
         aliases = {
             connection.handoff.original.operator.old.ORIGINAL: baseline,
             connection.handoff.original.operator.old.PRIVATE + '/.runtime/stage2/no-cutoff-final-qualification.json': final}
@@ -42,7 +43,7 @@ class InstallationPreparationTests(unittest.TestCase):
             return raw
         self.enterContext(patch.object(connection.handoff.original.launch, '_raw', side_effect=read))
         self.enterContext(patch.object(connection, 'REPO', root))
-        for name in (install.SNAPSHOT, install.LAUNCH):
+        for name in (install.SNAPSHOT, install.LAUNCH, install.BASELINE_CSV):
             path = root / name; path.parent.mkdir(parents=True, mode=0o700, exist_ok=True)
             path.write_bytes(decoded[name]); path.chmod(0o600)
         public = install._public(); exported = connection.handoff.original.export.DESTINATION
@@ -50,7 +51,8 @@ class InstallationPreparationTests(unittest.TestCase):
         outputs = {n[len(exported)+1:]:install._sha(decoded[n]) for n in public if n.startswith(exported + '/')}
         self.enterContext(patch.object(connection.handoff.original.export, 'PREREQUISITES', prerequisites))
         self.enterContext(patch.object(connection.handoff.operator.recovery.policy, 'PUBLIC_FILES', outputs))
-        source_files = {n:install._sha(raw) for n,raw in decoded.items() if n.startswith('stage2/')}
+        source_files = {n:install._sha(raw) for n,raw in decoded.items()
+            if n.startswith('stage2/') and n not in public | {install.LAUNCH, install.BASELINE_CSV}}
         source_files.update({connection.boot.BASELINE_INPUT:install._sha(baseline),
             connection.boot.FINAL_INPUT:install._sha(final)})
         value = dict(bindings={n:fixture.payload()[n] for n in ('native','reporter')})
@@ -58,8 +60,12 @@ class InstallationPreparationTests(unittest.TestCase):
         self.enterContext(patch.object(connection, 'prepare', return_value=(value,source_files)))
         current = self.enterContext(patch.object(connection, '_current'))
         actual, payload, extra = install.prepare(COMMIT)
-        self.assertIs(actual,value); self.assertEqual(set(extra),{install.SNAPSHOT,install.LAUNCH})
+        self.assertIs(actual,value)
+        self.assertEqual(set(extra),{install.SNAPSHOT,install.LAUNCH,install.BASELINE_CSV})
         self.assertEqual({n:base64.b64decode(raw) for n,raw in payload['files'].items()},decoded)
+        self.assertEqual(base64.b64decode(payload['files'][install.BASELINE_CSV]), fixture.csv)
+        self.assertNotIn(install.BASELINE_CSV, source_files)
+        self.assertNotIn(install.BASELINE_CSV, prerequisites)
         self.assertTrue(set(aliases) <= set(reads)); current.assert_called_once_with(value)
 
 
@@ -74,7 +80,7 @@ class InstallationOperatorTests(unittest.TestCase):
         self.hashes = dict(self.fixture.files,
             **{'stage2/matched_repeat_install.py': hashlib.sha256(source).hexdigest()})
         extra = {}
-        for name in (install.SNAPSHOT, install.LAUNCH):
+        for name in (install.SNAPSHOT, install.LAUNCH, install.BASELINE_CSV):
             path = self.root / name; path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
             raw = b'{"synthetic_original178_anchor":true}\n'
             path.write_bytes(raw); path.chmod(0o600)
@@ -154,6 +160,19 @@ class InstallationOperatorTests(unittest.TestCase):
         self.run.side_effect = replace
         with self.assertRaisesRegex(ValueError, 'anchor was replaced'): install.deploy(COMMIT)
         self.assertTrue((self.state / 'failure.json').exists()); self.assertFalse((self.state / 'result.json').exists())
+
+    def test_same_byte_required_csv_replacement_after_ssh_refuses_success(self):
+        def replace(*args, **kwargs):
+            path = self.root / install.BASELINE_CSV; raw = path.read_bytes()
+            path.rename(path.with_suffix('.retained')); path.write_bytes(raw); path.chmod(0o600)
+            return Mock(returncode=0, stdout=json.dumps(self.result).encode())
+        self.run.side_effect = replace
+        with self.assertRaisesRegex(ValueError, 'anchor was replaced'): install.deploy(COMMIT)
+        self.assertTrue((self.state / 'failure.json').exists()); self.assertFalse((self.state / 'result.json').exists())
+        self.assertEqual((self.root / install.BASELINE_CSV).read_bytes(),
+            (self.root / install.BASELINE_CSV).with_suffix('.retained').read_bytes())
+        with self.assertRaisesRegex(ValueError, 'terminal'): install.deploy(COMMIT)
+        self.run.assert_called_once()
 
     def test_extra_operator_file_refuses_success_and_is_preserved(self):
         def extra(*args, **kwargs):

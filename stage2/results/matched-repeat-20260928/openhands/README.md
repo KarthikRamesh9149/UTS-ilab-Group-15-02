@@ -1,5 +1,36 @@
 # Separate OpenHands repeat
 
+## Required CSV corrected; Terminus R3 still first, 3 October 2026 UTC
+
+OpenHands remains uninstalled and **0/89**, with 0 passed, 0 failed and 0 missing
+verifier. Both earlier Terminus qualification connections failed before durable
+acceptance and before any actual qualifier or scored task. Their roots and
+evidence remain terminal and preserved.
+
+Both installers now include the exact pinned original-baseline CSV required by
+the original audit. A failing local contract exposed the omission; the completed
+read-only native capture confirmed its absence from the failed Terminus R2
+filesystem and inventories. The historical exception remains unretained.
+The [repair protocol](../../../protocols/baseline_transport_repair_20261002.md)
+records the grounded correction and separate Terminus R3 destination.
+
+All **1,611 final local tests across 67 modules** passed at 01:45:36.546468 UTC
+in 1822.788 seconds, followed by **12 passing repository tests**. Both had zero
+errors, failures or skips. Final preservation checked 424 candidate sources,
+318 frozen sources, 35 archived reporters, both native reporting payloads, ten
+protected local records, the CSV, recovery public hashes, both retained archive
+hashes and all six failed reporting attempts with their partial archive.
+The source-map SHA256 is
+`58d7dfce9baa6ef12ab8a5cc9218443c5c8c2cefa5531e772d37ee58ee9381d7`.
+These local checks include mocked native facts, not native qualification.
+
+Terminus R3 still requires publication, exclusive installation, actual imports,
+ONE qualification connection and its exact successful service exit before its
+ONE 89-task run. Its completed audit, ONE backup/export and publication must
+precede OpenHands installation, imports, qualification and ONE 89-task run.
+Recovery remains separately **3/3, 0 passed, 3 failed, 0 missing verifier**, fully
+reported. The VPS and monitor remain active. Earlier checkpoints are history.
+
 ## Transport correction locally verified; Terminus still first, 2 October 2026 UTC
 
 This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and

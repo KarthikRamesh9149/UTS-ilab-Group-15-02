@@ -13,6 +13,8 @@ import unittest
 from unittest.mock import patch
 
 import matched_repeat_install as install
+import matched_repeat_openhands_install as openhands_install
+from matched_repeat_baseline_probe import check_files
 import matched_repeat_execution_bootstrap as boot
 import matched_repeat_locks as locks
 import no_cutoff_recovery_install as seed
@@ -130,9 +132,17 @@ class InstallTests(LocalFiles, unittest.TestCase):
 
 
 class ContractTests(unittest.TestCase):
+    def test_both_installers_pin_the_actual_original_audit_csv(self):
+        import matched_repeat_original as original
+        for installer in (install, openhands_install):
+            self.assertEqual(installer.BASELINE_CSV, original.PUBLIC + '/trials.csv')
+            self.assertEqual(installer.BASELINE_CSV_SHA, original.policy.BASELINE_CSV_SHA256)
+            raw = (Path(install.__file__).parent.parent / installer.BASELINE_CSV).read_bytes()
+            self.assertEqual(installer._sha(raw), installer.BASELINE_CSV_SHA)
+
     def test_exact_real_baseline_ancestor_order_excludes_only_own_uncreated_matrix(self):
         self.assertEqual(install._lock_paths(seed, boot), locks.paths(install.ROOT, 'terminus-2')[:-1])
-        self.assertEqual(len(install._lock_paths(seed, boot)), 54)
+        self.assertEqual(len(install._lock_paths(seed, boot)), 57)
 
     def test_only_validated_seed_destination_interpreter_alias_is_rebased(self):
         trees = [dict(links={'alias': dict(target=str(seed.ROOT / '.venv/bin/python3.12'), original='retained'),
@@ -170,9 +180,12 @@ class PayloadTests(unittest.TestCase):
         self.decoded[boot.BASELINE_INPUT] = b'{"synthetic_baseline":true}'
         self.decoded[install.SNAPSHOT] = b'{"synthetic_original178":true}'
         self.decoded[install.LAUNCH] = b'{"synthetic_launch":true}'
+        self.csv = b'harness,task_id,reward\nsynthetic,synthetic,0.0\n'
+        self.decoded[install.BASELINE_CSV] = self.csv
         for n in install._public(): self.decoded[n] = b'{"synthetic_public":true}'
         self.enterContext(patch.object(install, 'SNAPSHOT_SHA', install._sha(self.decoded[install.SNAPSHOT])))
         self.enterContext(patch.object(install, 'LAUNCH_SHA', install._sha(self.decoded[install.LAUNCH])))
+        self.enterContext(patch.object(install, 'BASELINE_CSV_SHA', install._sha(self.csv)))
         module = install._module
         def load(name, raw):
             value = module(name, raw)
@@ -195,6 +208,41 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(decoded, self.decoded); self.assertEqual(final, self.final)
         self.assertEqual(actual_boot.RECOVERY, actual_seed.ROOT)
         self.assertEqual(libraries.ORIGINAL, guard.ROOT)
+
+    def test_both_payloads_deliver_the_csv_required_by_the_original_audit(self):
+        required = 'stage2/results/baseline-corrected-20260923/trials.csv'
+        with patch.object(openhands_install, '_module', side_effect=install._module), \
+                patch.object(openhands_install, 'SNAPSHOT_SHA', install.SNAPSHOT_SHA), \
+                patch.object(openhands_install, 'LAUNCH_SHA', install.LAUNCH_SHA), \
+                patch.object(openhands_install, 'BASELINE_CSV_SHA', install.BASELINE_CSV_SHA):
+            for installer in (install, openhands_install):
+                with self.subTest(harness=installer.ROOT.name):
+                    decoded = installer._payload(self.payload())[0]
+                    self.assertIn(required, decoded,
+                        'The original audit cannot run without its installed baseline CSV')
+                    with tempfile.TemporaryDirectory() as folder:
+                        root = Path(folder).resolve()
+                        path = root / required
+                        path.parent.mkdir(parents=True)
+                        path.write_bytes(decoded[required])
+                        self.assertEqual(decoded[required], self.csv)
+                        check_files(root, {required: install._sha(self.csv)})
+
+    def test_both_payloads_reject_missing_or_altered_required_csv(self):
+        with patch.object(openhands_install, '_module', side_effect=install._module), \
+                patch.object(openhands_install, 'SNAPSHOT_SHA', install.SNAPSHOT_SHA), \
+                patch.object(openhands_install, 'LAUNCH_SHA', install.LAUNCH_SHA), \
+                patch.object(openhands_install, 'BASELINE_CSV_SHA', install.BASELINE_CSV_SHA):
+            for installer in (install, openhands_install):
+                for raw in (None, self.csv + b'altered,synthetic,1.0\n'):
+                    with self.subTest(harness=installer.ROOT.name, missing=raw is None):
+                        value = self.payload(); name = install.BASELINE_CSV
+                        if raw is None:
+                            value['files'].pop(name); value['hashes'].pop(name)
+                        else:
+                            value['files'][name] = base64.b64encode(raw).decode()
+                            value['hashes'][name] = install._sha(raw)
+                        with self.assertRaises(ValueError): installer._payload(value)
 
     def test_incomplete_current_inventory_and_extra_file_refuse(self):
         for name in ('stage2/original.py', next(iter(install._public()))):

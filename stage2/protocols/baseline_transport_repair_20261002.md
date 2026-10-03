@@ -1,5 +1,91 @@
 # Baseline pre-acceptance transport correction, 2 October 2026
 
+## Missing original-baseline CSV and separately bound R3, 3 October 2026
+
+The human again directly requested “FIX EVERYTHING AND RUN THE 2 BASELINE
+TESTS”, then “then do it”. The following grounded input correction and separate
+deployment continue that authority; the older R2 deployment sequence below is
+historical and must not be executed again.
+
+`matched_repeat_original._anchors` requires the original baseline's
+`stage2/results/baseline-corrected-20260923/trials.csv`. Both baseline installers
+omitted it from their exact payload inventories. The original-audit fixtures
+created that file independently, so they did not detect the producer/consumer
+gap. A new local contract failed for both installers before the correction.
+
+One read-only native preservation capture completed at
+2026-10-03T01:03:04.174230Z (native final observation01:03:02.067410Z).
+It confirmed that this CSV is absent from the failed R2 filesystem, installation
+input map and runtime inventory. It verified the actual failed service, both
+recorded processes absent, all424 source bindings plus two private anchors,
+all435 installed inputs, the same five terminal records, and four installation
+metadata files. R2 tree metadata has18164 entries and SHA256
+`ca78f3713389834724b0e98f0b7421c319c38d641d1049fcad1b83b9edac4abd`.
+This establishes a current native missing-input defect, not the discarded
+historical traceback or historical runtime-byte attestation. No existing
+native bytes were changed, and no qualifier or benchmark was invoked.
+
+Both installers now include and independently pin the exact CSV bytes at
+SHA256`8769a865d19bc81132166d67f85a5fb84725f2cda8f5b2a45f98b1d9993d5429`.
+Mac preparation checks agreement with the consumer's path/hash and rechecks
+the file's identity through normal SSH completion. Missing bytes, altered bytes
+with a recomputed caller hash, or same-byte file replacement refuse. No original
+score is changed or merged; this is a prerequisite input, not a new result.
+
+Use ONLY `/opt/uts-capstone-matched-repeat-terminus-2-20261003-r3` and exclusive
+Mac installation/qualification/run state dated`20261003-r3` for the separately
+corrected Terminus attempt. That root was observed absent by the capture;
+installation must freshly require absence again. Neither R1 nor R2 may be
+patched, resumed, removed or reused. OpenHands retains its still-unstarted
+destination and remains strictly after completed Terminus reporting.
+
+`matched_repeat_revision.py` now preserves BOTH failed attempts, including
+their exact installation and terminal file identities, source inventories,
+tree metadata, retained failed manager invocations and saved process absence.
+All ten protected Mac installation/failure records are checked. Each native
+preservation call rechecks both attempts before returning; any late drift
+refuses. Both old roots' three existing locks precede the new baseline locks.
+Terminus/OpenHands sessions hold58/61 locks; installers acquire57/60 existing
+locks and create only their own three. The first49 locks retain R6 order.
+
+The combined candidate requires fresh affected and full local gates after the
+last bound source/protocol edit, publication with exact identities, ONE exclusive
+installation, actual native imports and qualification, and the genuine successful
+qualifier service exit before ONE paid89-task dispatch. Local tests and a
+read-only capture are not admission. Preserve all failed evidence and every
+original/recovery result/archive. No provider, model, benchmark, deadline, retry,
+spending, signal, cancellation or scoring policy is changed.
+
+## Subsequent local diagnostic correction
+
+The corrected qualification connection also failed before acceptance. Its
+`20261002-r2` root, records and installed sources are terminal evidence, not an
+available deployment target. No actual qualifier or paid repeat task started.
+The historical underlying exception was not retained and remains unknown.
+
+The current local service correction addresses a confirmed information-loss
+defect only: exact known exception types such as `AuditTransportError`,
+`CalledProcessError`, `JSONDecodeError` and `FileNotFoundError` were collapsed
+into `OtherException`. Future failure diagnostics retain allowlisted exact
+type categories, validated child return codes and selected transport metadata.
+They include at most eight chained exceptions and sixteen source-site hashes,
+with bounded traceback traversal. A site hash is SHA256 of the bound source
+SHA256, a colon and the decimal line number. It is a lookup hint, not proof of
+executed-code identity. Unknown types and transport values remain redacted.
+Messages, commands, stdout/stderr, raw paths, frames and locals are not saved.
+
+The existing exclusive protected writer, terminal failure marker and disabled
+resume/paid-readiness flags remain. Diagnostic collection failure falls back to
+a fixed unavailable record without replacing the original exception. Local
+tests cover redaction, exact types, bounds, the actual failure-file writer and
+refusal to reuse the failed synthetic attempt. Native facts in those tests are
+mocked. This does not recover the old exception or establish an execution fix.
+
+This correction alone does not authorise a replacement root, installation,
+qualification replay or paid dispatch. No existing native source or evidence
+is modified. The earlier deployment sequence below is historical, not an
+instruction to reuse either failed Terminus attempt.
+
 ## Authority and immutable history
 
 The human directly requested: “Pls fix everything and start baseline runs once

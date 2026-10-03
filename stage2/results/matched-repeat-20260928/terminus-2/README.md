@@ -1,5 +1,38 @@
 # Separate Terminus-2 repeat
 
+## Required CSV corrected; R3 native gates next, 3 October 2026 UTC
+
+This repeat remains **0/89**, with 0 passed, 0 failed and 0 missing verifier.
+Both prior qualification connections failed before durable acceptance; neither
+started the actual qualifier or any scored task. Their roots and evidence are
+terminal and preserved, never patched or reused.
+
+A local failing contract exposed a missing prerequisite CSV in both installers.
+The read-only native capture completed at 01:03:04.174230 UTC and confirmed
+that the failed R2 installation lacks the CSV in its filesystem and inventories.
+Both installers now deliver the exact pinned original CSV and recheck its file
+identity. This establishes an input defect, not the discarded historical
+exception. The [repair protocol](../../../protocols/baseline_transport_repair_20261002.md)
+records the correction and preservation controls.
+
+The final **1,611 local tests across 67 modules passed** at 01:45:36.546468 UTC,
+with zero errors, failures or skips, in 1822.788 seconds. The subsequent
+**12 repository tests passed** with zero errors, failures or skips. Final checks
+verified 424 candidate sources, 318 frozen sources, 35 archived reporters, both
+native reporting payloads, ten protected local installation/failure records,
+the required CSV, recovery public hashes, both retained archive hashes, and all
+six failed reporting attempts with their partial archive. The source-map SHA256 is
+`58d7dfce9baa6ef12ab8a5cc9218443c5c8c2cefa5531e772d37ee58ee9381d7`.
+Local tests include mocked native facts and are not native qualification.
+
+The separately authorised destination
+`/opt/uts-capstone-matched-repeat-terminus-2-20261003-r3` is not installed at this
+checkpoint. After publication it requires ONE exclusive installation, actual
+isolated imports, ONE qualification connection and its exact successful service
+exit before ONE 89-task dispatch. Full Terminus reporting must precede OpenHands.
+Recovery remains separately **3/3, 0 passed, 3 failed, 0 missing verifier**, fully
+reported. The VPS and monitor remain active. Earlier checkpoints are history.
+
 ## Transport correction locally verified; new native gates next, 2 October 2026 UTC
 
 This repeat remains **0/89**, with 0 passed, 0 failed, 0 missing verifier and

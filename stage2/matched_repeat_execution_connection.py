@@ -36,7 +36,7 @@ def _first(harness):
 
 def state_name(harness, operation):
     _first(harness); completion.operation_state(operation)
-    date = '-20261002-r2' if harness == 'terminus-2' else '-20260930'
+    date = '-20261003-r3' if harness == 'terminus-2' else '-20260930'
     return '.runtime/netcup/matched-repeat-' + harness + '-' + completion.OPERATIONS[operation] + date
 
 
