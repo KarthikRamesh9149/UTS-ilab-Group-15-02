@@ -1,5 +1,70 @@
 # Baseline pre-acceptance transport correction, 2 October 2026
 
+## Original source enclosure and separately bound R4, 3 October 2026
+
+The human requested “Fix it properly pls” after the R3 failure. R3's one
+qualification connection failed before acceptance at 04:23:05 UTC. The actual
+native service failed with exit 1; its saved service and relay processes were
+observed absent. No actual qualifier or paid repeat task started. R3 remains
+terminal and must never be patched, resumed or reused.
+
+Its retained schema-2 diagnostic contained seven source-site hashes. Resolving
+them against the actual bound source led from the execution service/session
+through `matched_repeat_original.authenticate` to the generic
+`matched_repeat_locks.directories` guard. A bounded native observation then
+reproduced that guard's rejection on the first original source input: the
+original `stage2` directory is owned by UID 501/GID 50 with mode 0755, not by
+the native root operator. The enclosing original root is root-owned 0700.
+A separate read-only observation verified all 88 bound source hashes and exact
+identities: 53 files retain 501:50 ownership and 35 are root-owned. All are 0600
+or 0644, with canonical non-writable-by-group/others, ACL-free ancestry.
+These are current native observations, not historical runtime-byte attestation.
+
+The correction is limited to the original reader's source identity checks.
+It requires the actual private operator-owned enclosing root, permits only the
+current operator or the observed 501:50 source owner/group pair, and checks
+canonical ancestry, restrictive modes, absence of ACLs, regular single-link
+files, no-follow opens, pinned hashes, descriptor identity and final rereads.
+Private evidence continues through the unchanged strict generic file reader.
+The generic lock/file ownership guards are not relaxed. Authentication compares
+identities across the actual collector; the under-lock recheck also compares
+identities before and after its real reads. No original owner, permission,
+source byte, result or archive is changed.
+
+Local tests first reproduced the legacy-source refusal and missing enclosure
+contracts. Tests use real temporary bytes, descriptors and locks; native
+ownership and ACL observations are explicitly synthetic. They cover the
+private enclosure, unrelated owner refusal, private-evidence exclusion, ACLs,
+unsafe modes, symlinks, hardlinks, byte changes, file/parent replacement and
+late recheck drift. Passing these tests does not establish native qualification.
+
+The R3 preservation capture completed at 2026-10-03T05:49:27.824101Z, with
+native final observation 05:49:22.465297Z. It reread all 436 installed inputs,
+four installation metadata records, five terminal records, exact saved manager
+invocation/process absence and the full installation tree metadata. The tree
+has 18165 entries and SHA256
+`894457077e0972b0b156f78f86ce7655381fb026c91c634abf05035bd000d4d9`.
+The original baseline CSV is present with the required pinned hash. The proposed
+R4 root was absent; no directory was created by this observation.
+
+Use ONLY `/opt/uts-capstone-matched-repeat-terminus-2-20261003-r4` and exclusive
+Mac installation/qualification/run state dated `20261003-r4` for the separately
+bound corrected attempt. All three failed roots and all fifteen protected Mac
+records are retained. Native preservation rechecks all three attempts, including
+their exact source/input/record/tree identities, failed manager invocations and
+saved process absence. Sessions use 61 Terminus / 64 OpenHands locks; installers
+acquire 60 / 63 existing locks and create only their own three. The first 49
+locks keep R6 order; the R3 locks follow the R1/R2 locks.
+
+Fresh affected and full final-candidate tests, exact committed-source publication,
+new exclusive installation, actual isolated native imports and actual native
+qualification are still mandatory. Only the exact successful qualifier service
+exit and fresh execution admission may precede the single paid Terminus run.
+This amendment changes no provider/model/benchmark/deadline/spending policy.
+The older R3 and R2 deployment instructions below are historical, not authority
+to reuse those roots. Preserve all failures and keep the sequential reporting
+and OpenHands gates unchanged.
+
 ## Missing original-baseline CSV and separately bound R3, 3 October 2026
 
 The human again directly requested “FIX EVERYTHING AND RUN THE 2 BASELINE

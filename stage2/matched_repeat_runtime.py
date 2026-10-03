@@ -19,7 +19,7 @@ from portable_candidate_freeze import _check_root, _digest, _regular
 from portable_custom_agent import runtime_bundle
 from portable_custom_study import dependencies
 
-DEPLOYMENTS = {'terminus-2': Path('/opt/uts-capstone-matched-repeat-terminus-2-20261003-r3'),
+DEPLOYMENTS = {'terminus-2': Path('/opt/uts-capstone-matched-repeat-terminus-2-20261003-r4'),
     'openhands': Path('/opt/uts-capstone-matched-repeat-openhands-20260928')}
 KIND = 'current_matched_repeat_host_not_paid_admission'
 

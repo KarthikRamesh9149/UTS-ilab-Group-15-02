@@ -1,7 +1,7 @@
-"""Read-only preservation of both terminal pre-acceptance Terminus attempts.
+"""Read-only preservation of three terminal pre-acceptance Terminus attempts.
 
 Pins came from the read-only captures completed 2026-10-02T10:36:27Z and
-2026-10-03T01:03:04Z, never from a retried qualification.
+2026-10-03T01:03:04Z and 2026-10-03T05:49:27Z, never from a retried qualification.
 No old root, unit, lock or state may be repaired, resumed, removed or relabelled.
 The tree fingerprint attests current metadata, not historical runtime bytes.
 This module contains no operation dispatcher and never grants paid admission.
@@ -556,6 +556,276 @@ LOCAL.update({
         }
     }
 })
+THIRD_ROOT = Path('/opt/uts-capstone-matched-repeat-terminus-2-20261003-r3')
+THIRD = dict(root=THIRD_ROOT, **{
+    "commit": "cc9c7c7c5315dab6a36ba37e77cd9c8e588c6e2c",
+    "sources_sha": "58d7dfce9baa6ef12ab8a5cc9218443c5c8c2cefa5531e772d37ee58ee9381d7",
+    "source_count": 424,
+    "input_count": 436,
+    "unit": "uts-matched-repeat-terminus-2-qualify-5fe57d07db81e1fa35ed517147a62cdf.service",
+    "invocation": "5a14f8cbdfb840a0b142c8a467a846d2",
+    "processes": [
+        [
+            2101363,
+            117413490
+        ],
+        [
+            2104235,
+            117468370
+        ]
+    ],
+    "metadata": {
+        "installation-files.json": {
+            "bytes": 2553273,
+            "identity": [
+                "65028",
+                "8752465",
+                "33152",
+                "0",
+                "0",
+                "1",
+                "2553273",
+                "1790993194563059051",
+                "1790993194563059051"
+            ],
+            "sha256": "f865cf8400aa4012e90a8dc0bdbdd0bc447726bf23073575881fec2237f215a9"
+        },
+        "installation-intent.json": {
+            "bytes": 193,
+            "identity": [
+                "65028",
+                "8752040",
+                "33152",
+                "0",
+                "0",
+                "1",
+                "193",
+                "1790992910380268605",
+                "1790992910380268605"
+            ],
+            "sha256": "e8059301f5b2e8e6f2a57dadd7234d476b7eb055ddd868e011416cb2ab212fcd"
+        },
+        "installation-result.json": {
+            "bytes": 513,
+            "identity": [
+                "65028",
+                "8752466",
+                "33152",
+                "0",
+                "0",
+                "1",
+                "513",
+                "1790993215763267848",
+                "1790993215763267848"
+            ],
+            "sha256": "d0691073a253e42402d9233dce4de081db834f186389dce4207603b586ebe250"
+        },
+        "source-commit.txt": {
+            "bytes": 41,
+            "identity": [
+                "65028",
+                "8752464",
+                "33152",
+                "0",
+                "0",
+                "1",
+                "41",
+                "1790993009057235533",
+                "1790993009057235533"
+            ],
+            "sha256": "e5615aa873038699c557e96715466b798d19abc2a13f8f2d6f8170ea13f5b0a1"
+        }
+    },
+    "evidence": {
+        "failure-diagnostic.json": {
+            "bytes": 687,
+            "identity": [
+                "65028",
+                "8861002",
+                "33152",
+                "0",
+                "0",
+                "1",
+                "687",
+                "1791001384363992526",
+                "1791001384363992526"
+            ],
+            "sha256": "419264601727257d5f3eb17989136263619f971d98f4bfbe70fa19b398db8110"
+        },
+        "failure.json": {
+            "bytes": 613,
+            "identity": [
+                "65028",
+                "8861001",
+                "33152",
+                "0",
+                "0",
+                "1",
+                "613",
+                "1791001384355992447",
+                "1791001384355992447"
+            ],
+            "sha256": "00e63a2b121c6299c359197af24bfcb8569321cc780f7bf8b2e9c2454e9cb734"
+        },
+        "intent.json": {
+            "bytes": 662,
+            "identity": [
+                "65028",
+                "8860998",
+                "33152",
+                "0",
+                "0",
+                "1",
+                "662",
+                "1790995154010484496",
+                "1790995154010484496"
+            ],
+            "sha256": "7e3c80fab783f9934553170c158a74f919c022002212619dc23c4eb6f2446277"
+        },
+        "service-started.json": {
+            "bytes": 665,
+            "identity": [
+                "65028",
+                "8861000",
+                "33152",
+                "0",
+                "0",
+                "1",
+                "665",
+                "1790995563474550810",
+                "1790995563474550810"
+            ],
+            "sha256": "399b7e6f4eb73a77e6cc6f57aad7c911fd969f0ad0f7946dca7c9a6e13914278"
+        },
+        "service.log": {
+            "bytes": 2878,
+            "identity": [
+                "65028",
+                "8860999",
+                "33152",
+                "0",
+                "0",
+                "1",
+                "2878",
+                "1791001384367992565",
+                "1791001384367992565"
+            ],
+            "sha256": "994320020c5f5c6c8ff4598743ad61dac0abd51b95595ddacb7c503e2f62fdc5"
+        }
+    },
+    "tree": {
+        "entries": 18165,
+        "sha256": "894457077e0972b0b156f78f86ce7655381fb026c91c634abf05035bd000d4d9"
+    }
+})
+LOCAL.update({
+    ".runtime/netcup/matched-repeat-terminus-2-installation-20261003-r3": {
+        "directory_identity": [
+            "16777230",
+            "132619610",
+            "16832",
+            "501",
+            "20",
+            "4",
+            "128",
+            "1790993248034133939",
+            "1790993248034133939"
+        ],
+        "files": {
+            "intent.json": {
+                "bytes": 228,
+                "sha256": "2a38248cbac993d3507ba578defe55b750f4bb4583b95a54d014716b18a18204",
+                "identity": [
+                    "16777230",
+                    "132619611",
+                    "33152",
+                    "501",
+                    "20",
+                    "1",
+                    "228",
+                    "1790992558713012024",
+                    "1790992558713012024"
+                ]
+            },
+            "result.json": {
+                "bytes": 513,
+                "sha256": "d0691073a253e42402d9233dce4de081db834f186389dce4207603b586ebe250",
+                "identity": [
+                    "16777230",
+                    "132620294",
+                    "33152",
+                    "501",
+                    "20",
+                    "1",
+                    "513",
+                    "1790993248034651946",
+                    "1790993248034651946"
+                ]
+            }
+        }
+    },
+    ".runtime/netcup/matched-repeat-terminus-2-qualify-20261003-r3": {
+        "directory_identity": [
+            "16777230",
+            "132621547",
+            "16832",
+            "501",
+            "20",
+            "5",
+            "160",
+            "1791001385886683517",
+            "1791001385886683517"
+        ],
+        "files": {
+            "failure.json": {
+                "bytes": 611,
+                "sha256": "d5fa17c2231f704e0992601a93930faf7fb6ce7d948a560db093031a37282c4c",
+                "identity": [
+                    "16777230",
+                    "132627148",
+                    "33152",
+                    "501",
+                    "20",
+                    "1",
+                    "611",
+                    "1791001385887100015",
+                    "1791001385887100015"
+                ]
+            },
+            "intent.json": {
+                "bytes": 550,
+                "sha256": "b3cdafe4a73f57357cfc0c63d5855114cfacabc48b5f70ddfb01dabc53f7395f",
+                "identity": [
+                    "16777230",
+                    "132621548",
+                    "33152",
+                    "501",
+                    "20",
+                    "1",
+                    "550",
+                    "1790994720332165834",
+                    "1790994720332165834"
+                ]
+            },
+            "receiver.json": {
+                "bytes": 665,
+                "sha256": "3955ece0037e45984e6cd19463780d766ce03c846106d34dc58b64b762ca35b0",
+                "identity": [
+                    "16777230",
+                    "132622323",
+                    "33152",
+                    "501",
+                    "20",
+                    "1",
+                    "665",
+                    "1790995563739947977",
+                    "1790995563739947977"
+                ]
+            }
+        }
+    }
+})
+
 ABSENT = ('matched-repeat-qualification-intent.json', 'matched-repeat-qualification-failure.json',
     'matched-repeat-qualification-result.json', 'matched-repeat-matrix.json',
     'matched-repeat-image-build.json', 'matched-repeat-images.json', 'scored-trials',
@@ -688,7 +958,7 @@ def native(boot):
     """Current old evidence/process reads; no historical module import or job."""
     if platform.system() != 'Linux' or os.getuid() != 0 or os.getgid() != 0:
         raise ValueError('Actual native retired-root inspection required')
-    attempts = (_first(), SECOND)
+    attempts = (_first(), SECOND, THIRD)
     saved = []
     for attempt in attempts:
         manager = _manager(attempt); _quiet(attempt)

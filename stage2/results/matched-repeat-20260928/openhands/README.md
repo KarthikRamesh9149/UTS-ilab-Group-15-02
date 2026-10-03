@@ -1,5 +1,37 @@
 # Separate OpenHands repeat
 
+## Original-source enclosure corrected; Terminus R4 first, 3 October 2026 UTC
+
+OpenHands remains uninstalled and **0/89**, with 0 passed, 0 failed and 0 missing
+verifier. Terminus R3 installation and isolated imports succeeded, but its
+qualification connection failed before acceptance or an actual qualifier or
+scored task. All three failed Terminus attempts and their evidence are preserved.
+
+Native diagnosis identified a source-ownership incompatibility inside the
+original private 0700 root. The new original-source-only reader verifies that
+enclosure, hashes, ownership, modes, ACLs and file/ancestor identities without
+changing historical metadata or the strict private-evidence guard. The
+[repair protocol](../../../protocols/baseline_transport_repair_20261002.md)
+records the correction and the separate, still-uninstalled Terminus R4 target.
+
+All **1,634 final local tests across 67 modules passed** at 06:50:56.063314 UTC
+in 2663.644 seconds, followed by **12 passing repository tests** at
+07:09:30.665968 UTC. Both had zero errors, failures or skips and checked the same
+424-source map,
+`388bc27ebbfa7c36fc79379319c4ee9f3a64bd336e94cfc211454e14da65a9b3`.
+Preservation covered 318 frozen sources, 35 archived reporters, both native
+payloads, fifteen protected local records, the CSV, three recovery public files,
+both retained archive hashes and all six failed reporting folders with their
+partial archive. Local checks include mocked native facts, not native admission.
+
+After publication, Terminus R4 still requires exclusive installation, actual
+imports, ONE qualification connection and its exact successful service exit,
+then ONE 89-task run and completed audit, ONE backup/export and publication.
+Only then may OpenHands perform its own installation, imports, qualification
+and ONE 89-task run. Recovery remains separately **3/3, 0 passed, 3 failed,
+0 missing verifier**, fully reported. The VPS and monitor remain active.
+Earlier checkpoints below are history.
+
 ## Required CSV corrected; Terminus R3 still first, 3 October 2026 UTC
 
 OpenHands remains uninstalled and **0/89**, with 0 passed, 0 failed and 0 missing

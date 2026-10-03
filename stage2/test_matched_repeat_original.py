@@ -1,5 +1,5 @@
 """Mocked original native collector with real files/locks, not paid evidence."""
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 from copy import deepcopy
 import csv
 import hashlib
@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import patch
@@ -23,7 +24,7 @@ class AuditTests(TreeTests):
     def setUp(self):
         super().setUp()
         self.root = self.root.resolve()
-        self.native = self.root / 'original'; self.native.mkdir()
+        self.native = self.root / 'original'; self.native.mkdir(mode=0o700)
         self.final_root = self.root / 'final'; (self.final_root / '.runtime/stage2').mkdir(parents=True)
         self.old = self.f.original; self.final = self.f.final
         for name in self.old['sources']:
@@ -112,6 +113,100 @@ class AuditTests(TreeTests):
 
     def recheck(self, record):
         return reader.recheck(self.root, self.old, self.final, 'terminus-2', record)
+
+    @contextmanager
+    def legacy_source_metadata(self, owner=(501, 50), extra_paths=()):
+        # The actual native source enclosure is root-owned 0700, while its
+        # stage2 tree retains 501:50 ownership. Only uid/gid are synthetic:
+        # bytes, descriptors, modes, identities, locks and readers stay real.
+        paths = {self.native / 'stage2', *(self.native / 'stage2').rglob('*'), *extra_paths}
+        lstat = Path.lstat; fstat = os.fstat
+        identities = {(lstat(path).st_dev, lstat(path).st_ino) for path in paths}
+        def observed(value):
+            if (value.st_dev, value.st_ino) not in identities:
+                return value
+            fields = {key: getattr(value, key) for key in dir(value) if key.startswith('st_')}
+            fields.update(st_uid=owner[0], st_gid=owner[1])
+            return NS(**fields)
+        with (patch.object(Path, 'lstat', lambda path: observed(lstat(path))),
+                patch.object(os, 'fstat', lambda fd: observed(fstat(fd)))):
+            yield
+
+    def test_enclosed_legacy_sources_reach_real_reader_without_weakening_generic_guard(self):
+        sources = {name: value for name, value in self.anchors()['original'].items()
+            if name.startswith('stage2/')}
+        with self.legacy_source_metadata():
+            with self.assertRaises(ValueError):
+                reader.locks.file_identities(self.native, sources)
+            value = self.authenticate()
+            self.assertFalse(value['paid_launch_ready'])
+            self.audit.assert_called_once()
+            self.assertEqual(self.recheck(value), value)
+
+    def test_original_source_enclosure_must_be_private_before_collector(self):
+        self.native.chmod(0o755)
+        with self.assertRaises(ValueError): self.authenticate()
+        self.audit.assert_not_called()
+
+    def test_original_source_enclosure_is_rechecked_after_collector(self):
+        def weaken(files):
+            self.native.chmod(0o755)
+            return deepcopy(self.data)
+        self.audit.side_effect = weaken
+        with self.assertRaises(ValueError): self.authenticate()
+        self.audit.assert_called_once()
+
+    def test_under_lock_recheck_refuses_weakened_original_source_enclosure(self):
+        value = self.authenticate(); self.audit.reset_mock()
+        self.native.chmod(0o755)
+        with self.assertRaises(ValueError): self.recheck(value)
+        self.audit.assert_not_called()
+
+    def test_under_lock_recheck_refuses_same_byte_original_source_replacement(self):
+        value = self.authenticate(); self.audit.reset_mock()
+        path = self.native / 'stage2/native_agents.py'; raw = path.read_bytes()
+        actual = reader._check
+        def replace(*args):
+            actual(*args)
+            path.rename(path.with_name('retained-source.py'))
+            path.write_bytes(raw); path.chmod(0o600)
+        with patch.object(reader, '_check', side_effect=replace):
+            with self.assertRaisesRegex(ValueError, 'identity changed'): self.recheck(value)
+        self.audit.assert_not_called()
+
+    def test_legacy_allowance_does_not_include_private_evidence_or_enclosing_root(self):
+        evidence = self.native / '.runtime/stage2/corrected-matrix.json'
+        for extra in (evidence, self.native):
+            with self.subTest(category='evidence' if extra == evidence else 'root'):
+                with self.legacy_source_metadata(extra_paths=(extra,)):
+                    with self.assertRaises(ValueError): self.authenticate()
+        self.audit.assert_not_called()
+
+    def test_unobserved_source_owner_pair_is_not_allowed(self):
+        for owner in ((777, 50), (501, 777), (0, 50)):
+            with self.subTest(owner=owner), self.legacy_source_metadata(owner):
+                with self.assertRaises(ValueError): self.authenticate()
+        self.audit.assert_not_called()
+
+    def test_legacy_source_same_byte_replacement_during_collector_is_refused(self):
+        path = self.native / 'stage2/native_agents.py'; raw = path.read_bytes()
+        def replace(files):
+            moved = path.with_name('retained-original.py'); path.rename(moved)
+            path.write_bytes(raw); path.chmod(0o600)
+            return deepcopy(self.data)
+        self.audit.side_effect = replace
+        with self.legacy_source_metadata(), self.assertRaisesRegex(ValueError, 'identity changed'):
+            self.authenticate()
+        self.audit.assert_called_once()
+
+    def test_legacy_source_writable_ancestry_and_file_are_refused(self):
+        for path in (self.native / 'stage2', self.native / 'stage2/native_agents.py'):
+            mode = path.stat().st_mode & 0o777
+            path.chmod(mode | 0o020)
+            with self.subTest(directory=path.is_dir()), self.legacy_source_metadata():
+                with self.assertRaises(ValueError): self.authenticate()
+            path.chmod(mode)
+        self.audit.assert_not_called()
 
     def test_all_178_results_and_unknown_costs_preserved_without_paid_admission(self):
         value = self.authenticate()
@@ -324,6 +419,110 @@ class AuditTests(TreeTests):
         with patch.object(reader.platform, 'system', return_value='Darwin'), self.assertRaises(ValueError): self.authenticate()
         with self.assertRaises(ValueError): reader._context(self.native, 'terminus-2')
         with self.assertRaises(ValueError): reader._context(self.root, 'C0-NC')
+
+
+class OriginalSourceIdentityTests(unittest.TestCase):
+    """Real bytes/descriptors with explicitly synthetic native uid/gid and ACLs."""
+    legacy_source_metadata = AuditTests.legacy_source_metadata
+
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory(); self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name).resolve()
+        self.native = self.root / 'original'; self.native.mkdir(mode=0o700)
+        self.name = 'stage2/nested/source.py'
+        self.files = {self.name: AuditTests.put(self.native, self.name, b'# retained source\n')}
+        self.path = self.native / self.name
+        self.enterContext(patch.object(reader.baseline, 'ORIGINAL_ROOT', self.native))
+        self.acl = self.enterContext(patch.object(reader.locks.os, 'listxattr', return_value=[], create=True))
+        self.enterContext(patch.object(reader.locks, '_parents', side_effect=lambda path:
+            tuple(p for p in reversed(path.parents) if p == self.root or p.is_relative_to(self.root))))
+
+    def read(self, files=None):
+        return reader._original_file_identities(self.files if files is None else files)
+
+    def test_actual_file_bytes_and_nine_field_identity_are_retained(self):
+        before = self.path.read_bytes(), reader.locks.identity(self.path.lstat())
+        for legacy in (False, True):
+            with self.subTest(legacy=legacy), ExitStack() as stack:
+                if legacy: stack.enter_context(self.legacy_source_metadata())
+                value = self.read()[self.name]
+                self.assertEqual(len(value[0]), 9)
+                self.assertEqual(value[0], reader.locks.identity(self.path.lstat()))
+                self.assertEqual(value[1][-1][0], str(self.path.parent))
+        self.assertEqual((self.path.read_bytes(), reader.locks.identity(self.path.lstat())), before)
+
+    def test_symlinked_file_directory_and_hardlink_are_refused(self):
+        original = self.path.with_name('retained.py'); self.path.rename(original)
+        self.path.symlink_to(original)
+        with self.assertRaises(ValueError): self.read()
+        self.path.unlink(); os.link(original, self.path)
+        with self.assertRaises(ValueError): self.read()
+        self.path.unlink(); original.rename(self.path)
+        directory = self.path.parent; moved = directory.with_name('retained-directory')
+        directory.rename(moved); directory.symlink_to(moved)
+        with self.assertRaises(ValueError): self.read()
+
+    def test_original_root_alias_is_not_a_private_enclosure(self):
+        alias = self.root / 'alias'; alias.symlink_to(self.native)
+        with patch.object(reader.baseline, 'ORIGINAL_ROOT', alias), self.assertRaises(ValueError): self.read()
+
+    def test_source_acl_and_unsafe_permission_modes_are_refused(self):
+        for target in (self.native, self.path.parent, self.path):
+            for attribute in ('system.posix_acl_access', 'system.posix_acl_default'):
+                self.acl.side_effect = lambda path, **kw: [attribute] if path == target else []
+                with self.subTest(acl=attribute, directory=target.is_dir()), self.assertRaises(ValueError):
+                    self.read()
+        self.acl.side_effect = None
+        for mode in (0o664, 0o666, 0o4644, 0o1644):
+            self.path.chmod(mode)
+            with self.subTest(mode=mode), self.assertRaises(ValueError): self.read()
+        self.path.chmod(0o600)
+
+    def test_unbound_bytes_and_malformed_or_out_of_scope_names_are_refused(self):
+        cases = ({}, {self.name: 'f' * 64}, {self.name: 'invalid'},
+            {'../source.py': 'f' * 64}, {'/stage2/source.py': 'f' * 64},
+            {'stage2/../source.py': 'f' * 64}, {'stage2//source.py': 'f' * 64},
+            {'elsewhere/source.py': 'f' * 64})
+        for files in cases:
+            with self.subTest(names=tuple(files)), self.assertRaises(ValueError): self.read(files)
+
+    def test_same_byte_replacement_before_open_is_refused(self):
+        actual = os.open; raw = self.path.read_bytes()
+        def replace(path, flags, *args, **kwargs):
+            if Path(path) == self.path:
+                self.path.rename(self.path.with_name('retained.py'))
+                self.path.write_bytes(raw); self.path.chmod(0o600)
+            return actual(path, flags, *args, **kwargs)
+        with patch.object(reader.os, 'open', side_effect=replace), self.assertRaisesRegex(ValueError, 'before read'):
+            self.read()
+
+    def test_changed_open_file_is_refused_after_digest(self):
+        actual = hashlib.file_digest
+        def mutate(stream, algorithm):
+            result = actual(stream, algorithm)
+            self.path.write_bytes(b'# changed source\n')
+            return result
+        with patch.object(reader.hashlib, 'file_digest', side_effect=mutate):
+            with self.assertRaisesRegex(ValueError, 'while reading'): self.read()
+
+    def test_same_byte_parent_replacement_after_digest_is_refused(self):
+        actual = hashlib.file_digest; raw = self.path.read_bytes()
+        def replace(stream, algorithm):
+            result = actual(stream, algorithm)
+            parent = self.path.parent; parent.rename(parent.with_name('retained'))
+            parent.mkdir(); self.path.write_bytes(raw); self.path.chmod(0o600)
+            return result
+        with patch.object(reader.hashlib, 'file_digest', side_effect=replace):
+            with self.assertRaisesRegex(ValueError, 'ancestry changed'): self.read()
+
+    def test_private_metadata_keeps_the_strict_existing_reader(self):
+        name = '.runtime/stage2/result.json'
+        files = dict(self.files, **{name: AuditTests.put(self.native, name, b'{}')})
+        self.read(files)
+        path = self.native / name
+        with self.legacy_source_metadata(extra_paths=(path,)), self.assertRaises(ValueError): self.read(files)
+        path.chmod(0o644)
+        with self.assertRaises(ValueError): self.read(files)
 
 
 class NativeProgramTests(unittest.TestCase):
