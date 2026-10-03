@@ -38,9 +38,14 @@ from saranya_harness.classify import scan_output
 from saranya_harness.openrouter import MODEL, ModelError, OpenRouterClient, estimate_cost
 
 VERSION = '0.2.0'
-# C0's per-command timeout could not exceed 3600 s (stage2/custom_jobs.py at
-# 004943b). The same ceiling is used here; Harbor's task deadline still wins.
-COMMAND_TIMEOUT_SECONDS = 3600
+# Matches C0 at 004943b: a 60 s default per command (stage2/custom_backend.py:22,
+# stage2/custom_jobs.py:12) that the agent may change per command to an integer
+# from 1 to 3600 s; other values are refused with C0's error message
+# (stage2/custom_jobs.py:13-14). Harbor's task deadline still wins.
+DEFAULT_COMMAND_TIMEOUT_SECONDS = 60
+MAX_COMMAND_TIMEOUT_SECONDS = 3600
+TIMEOUT_ERROR = 'Timeout must be an integer between 1 and 3600 seconds'
+_TIMEOUT_DIRECTIVE = re.compile(r'#\s*timeout\s*[=:]\s*(\S+)\s*', re.IGNORECASE)
 OBSERVATION_HEAD_CHARS = 4_000
 OBSERVATION_TAIL_CHARS = 6_000
 # Keeps the prompt well inside the 1,048,576-token context window.
@@ -62,8 +67,10 @@ Rules:
   Put needed exports in the same command, or write them to a file and source it.
 - Do not use interactive programs (editors, pagers, prompts). Use non-interactive
   flags such as -y, and write files with heredocs or printf.
-- A command is stopped after one hour. Start long-running servers in the
-  background with nohup, redirecting their output to a file.
+- A command is stopped after 60 seconds by default. For a longer command, make
+  the first line of the block `# timeout=SECONDS`, with a whole number of
+  seconds up to 3600. Start long-running servers in the background with nohup,
+  redirecting their output to a file.
 - You will see the exit code and output of each command. Long output is truncated.
 - The task has a fixed time limit. Work efficiently.
 - When the task is fully complete and you have checked the result, reply with
@@ -81,6 +88,18 @@ def parse_action(content: str) -> tuple[str, str | None]:
     if re.fullmatch(r'\s*DONE\.?\s*', content or '', re.IGNORECASE):
         return 'done', None
     return 'none', None
+
+
+def command_timeout(command: str) -> int | None:
+    """The timeout requested on the command's first line, the default, or None if invalid."""
+    first_line = command.lstrip().split('\n', 1)[0]
+    match = _TIMEOUT_DIRECTIVE.fullmatch(first_line)
+    if match is None:
+        return DEFAULT_COMMAND_TIMEOUT_SECONDS
+    value = match.group(1)
+    if not value.isdigit() or not 1 <= int(value) <= MAX_COMMAND_TIMEOUT_SECONDS:
+        return None
+    return int(value)
 
 
 def wrap_command(command: str, cwd: str | None) -> str:
@@ -183,7 +202,9 @@ class SaranyaMinimalAgent(BaseAgent):
         totals = _Totals()
         metadata: dict[str, Any] = {
             'harness': self.name(), 'version': VERSION, 'model': MODEL, 'host': detect_host(),
-            'model_call_ceiling': None, 'command_timeout_seconds': COMMAND_TIMEOUT_SECONDS,
+            'model_call_ceiling': None,
+            'command_timeout_seconds': {'default': DEFAULT_COMMAND_TIMEOUT_SECONDS,
+                                        'max': MAX_COMMAND_TIMEOUT_SECONDS},
             'stop_reason': None, 'budget_stop': None, 'infrastructure_signals': [],
             'history_pairs_dropped': 0,
         }
@@ -281,8 +302,12 @@ class SaranyaMinimalAgent(BaseAgent):
 
     async def _execute(self, environment: BaseEnvironment, command: str, cwd: str | None,
                        metadata: dict, call: int) -> dict:
+        timeout = command_timeout(command)
+        if timeout is None:
+            self._trajectory({'event': 'exec_refused', 'call': call, 'reason': TIMEOUT_ERROR})
+            return {'text': f'The command was not run: {TIMEOUT_ERROR}.', 'cwd': None}
         try:
-            result = await environment.exec(wrap_command(command, cwd), timeout_sec=COMMAND_TIMEOUT_SECONDS)
+            result = await environment.exec(wrap_command(command, cwd), timeout_sec=timeout)
         except RuntimeError as exc:
             text = f'The command did not finish: {exc}'
             self._trajectory({'event': 'exec_error', 'call': call, 'error': str(exc)})

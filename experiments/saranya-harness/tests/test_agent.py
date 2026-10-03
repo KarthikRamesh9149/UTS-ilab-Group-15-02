@@ -10,8 +10,8 @@ from unittest import mock
 from harbor.environments.base import ExecResult
 from harbor.models.agent.context import AgentContext
 
-from saranya_harness.agent import (PWD_MARKER, SaranyaMinimalAgent, parse_action, split_marker, trim_history,
-                                   truncate, wrap_command)
+from saranya_harness.agent import (PWD_MARKER, SaranyaMinimalAgent, command_timeout, parse_action, split_marker,
+                                   trim_history, truncate, wrap_command)
 from saranya_harness.budget import LEDGER_ENV, OVERALL_CAP_ENV
 from saranya_harness.openrouter import Completion, ModelError
 
@@ -75,6 +75,17 @@ class HelperTest(unittest.TestCase):
         self.assertTrue(result.startswith('a' * 4000) and result.endswith('b' * 6000))
         self.assertIn('5000 characters omitted', result)
 
+    def test_command_timeout_default_request_and_bounds(self):
+        self.assertEqual(command_timeout('make'), 60)
+        self.assertEqual(command_timeout('# timeout=600\nmake -j4'), 600)
+        self.assertEqual(command_timeout('  # Timeout: 3600\nmake'), 3600)
+        self.assertEqual(command_timeout('# timeout=1\ntrue'), 1)
+        for bad in ('0', '3601', '90.5', '-5', 'ten'):
+            self.assertIsNone(command_timeout(f'# timeout={bad}\nmake'), bad)
+        # Only the first line counts, as the prompt says.
+        self.assertEqual(command_timeout('make\n# timeout=600'), 60)
+        self.assertEqual(command_timeout('# build the project\nmake'), 60)
+
     def test_trim_history_keeps_system_and_task(self):
         messages = [{'role': 'system', 'content': 's'}, {'role': 'user', 'content': 't'}]
         messages += [{'role': r, 'content': 'x' * 100} for r in ('assistant', 'user') * 5]
@@ -117,13 +128,25 @@ class AgentTest(unittest.TestCase):
         self.assertIn(str(self.workdir / 'sub'), observation)
         self.assertTrue(observation.endswith('X='))  # environment variables do not persist
         self.assertNotIn(PWD_MARKER, observation)
-        self.assertTrue(all(timeout == 3600 for _, timeout in environment.commands))
+        self.assertTrue(all(timeout == 60 for _, timeout in environment.commands))  # C0's default
         self.assertEqual(context.metadata['stop_reason'], 'done')
         self.assertEqual(context.metadata['model_calls'], 3)
         self.assertEqual((context.n_input_tokens, context.n_cache_tokens, context.n_output_tokens), (3000, 600, 150))
         self.assertAlmostEqual(context.cost_usd, 0.003)
         self.assertIsNone(context.metadata['model_call_ceiling'])
         self.assertTrue(model.closed)
+
+    def test_requested_timeout_is_used_and_invalid_request_is_refused(self):
+        model, environment, context = self.run_agent([
+            completion('```bash\n# timeout=900\necho long\n```'),
+            completion('```bash\n# timeout=7200\necho too-long\n```'),
+            completion('DONE'),
+        ])
+        self.assertEqual([timeout for _, timeout in environment.commands], [900])
+        refusal = model.seen[2][-1]['content']
+        self.assertIn('not run', refusal)
+        self.assertIn('between 1 and 3600 seconds', refusal)
+        self.assertEqual(context.metadata['command_timeout_seconds'], {'default': 60, 'max': 3600})
 
     def test_no_spending_approval_makes_no_model_call(self):
         model, _, context = self.run_agent([completion('DONE')], env_vars={LEDGER_ENV: str(self.ledger)})

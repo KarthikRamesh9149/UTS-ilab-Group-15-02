@@ -22,24 +22,31 @@ The aim is a fair development comparison with Stage 2's C0 custom harness
 - The dev20 task list is `development_ids` in `stage2/input_manifest.json`.
 - Nothing in `stage2/` is modified.
 
-## Matched settings
+## Settings compared with C0
 
-| Setting | Value | Matches |
-|---|---|---|
-| Model | `deepseek/deepseek-v4-flash-0731` via OpenRouter | `stage2/gateway_policy.py` |
-| Provider | only/order `deepinfra/fp8`, no fallbacks, `require_parameters`, fp8; no price filter | `gateway_policy.py`, `credit_only_gateway.py` |
-| Sampling | temperature 1.0, top_p 1.0, no seed, reasoning effort high | `retry_policy.py`, `model_protocol.py` |
-| Output allowance | 384,000 tokens | `retry_policy.py` |
-| Model-call ceiling | none | C0 at `004943b`: `max_model_calls=None` in `corrected_custom_agent.py` |
-| Time limit | the official task deadline (Harbor cancels the agent) | C0 launch record: official limits unchanged |
-| Per-command timeout | 3,600 s | C0's maximum in `custom_jobs.py` at `004943b` |
-| Retries | 429/502/503 and connection failures, no count cap, inside the deadline | `retry_policy.py` (`undelivered-transient-only-within-task-deadline`) |
+C0's settings are taken from the source at its launch commit `004943b`
+(`stage2/results/custom-portable-20260926/launch.json`). File paths in the C0
+column are under `stage2/` at that commit.
 
-I confirmed C0's 15/20 setting from the source at its launch commit `004943b`
-(`stage2/results/custom-portable-20260926/launch.json`): no model-call ceiling,
-official deadline. C0 also had harness-specific limits that this harness does not
-copy, because it has no equivalent mechanism: at most two completion-repair cycles,
-and a background-job quota.
+| Setting | C0 (source) | This harness | Status |
+|---|---|---|---|
+| Model | `deepseek/deepseek-v4-flash-0731` via OpenRouter (`gateway_policy.py`) | same | Matched |
+| Provider | only/order `deepinfra/fp8`, no fallbacks, `require_parameters`, fp8; no price filter (`gateway_policy.py`, `credit_only_gateway.py`) | same | Matched |
+| Sampling | temperature 1.0, top_p 1.0, no seed, reasoning effort high (`retry_policy.py`, `model_protocol.py`) | same | Matched |
+| Output allowance | 384,000 tokens (`retry_policy.py`) | same | Matched |
+| Model-call ceiling | none: `max_model_calls=None` (`corrected_custom_agent.py`) | none | Matched |
+| Time limit | the official task deadline (launch record: official limits unchanged) | same; Harbor cancels the agent | Matched |
+| Per-command timeout | 60 s default (`custom_backend.py:22`, `custom_jobs.py:12`); the agent may set an integer from 1 to 3,600 s per command, and other values are refused (`custom_jobs.py:13–14`) | 60 s default; the model may set `# timeout=SECONDS` as the block's first line, an integer from 1 to 3,600; other values are refused with C0's error message | Matched |
+| Request retries | 429/502/503 and connection failures, no count cap, inside the deadline (`retry_policy.py`) | same rule, own implementation | Matched |
+| Stopping a timed-out command | background jobs: the command's process group is killed inside the container, `kill -TERM` then `kill -KILL` (`custom_jobs.py`) | Harbor ends the host-side `docker compose exec`; whether the command keeps running inside the container is **unconfirmed** | **Known difference** |
+| Background jobs | managed handles: at most 4 active and 64 per trial (`custom_jobs.py:15–16`) | no managed jobs; the model can start its own with `nohup` or `&`, with no limit | **Known difference**: no equivalent |
+| Completion repairs | `complete_task` call; at most 2 repair cycles after an incomplete completion (`custom_control.py:8–9`, enforced at lines 52–54) | the model replies `DONE` and the trial ends; no repair cycle | **Known difference**: no equivalent |
+| Tools | Deep Agents file and shell tools, with output windows (`custom_backend.py`: 1 MiB file reads, 64,000-character output) | one bash command per turn; output clipped to the first 4,000 and last 6,000 characters | **Known difference** |
+
+C0's three cutoffs were the 60-second command default, the background-job quota and
+the two-repair stop. Stage 2 later removed all three (C3 and C0-NC; see
+`stage2/protocols/custom_c3_design_20260927.md`). The comparison here is with C0
+as it actually ran for its 15/20.
 
 ## Differences from C0 that matter for interpretation
 
@@ -132,7 +139,7 @@ verifier needs the network to install its tools.
 
 ## Status
 
-- 35 offline tests pass.
+- 37 offline tests pass.
 - Oracle run r1 on the dev20 tasks was compromised by sleep and a network
   outage. Only 3 of 20 trials gave valid host evidence: video-processing passes,
   and install-windows-3.11 and qemu-alpine-ssh hit the Rosetta syscall-282 crash.
