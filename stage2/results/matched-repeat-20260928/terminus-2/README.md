@@ -1,5 +1,40 @@
 # Separate Terminus-2 repeat
 
+## Original-source enclosure corrected; R4 native gates next, 3 October 2026 UTC
+
+This repeat remains **0/89**, with 0 passed, 0 failed and 0 missing verifier.
+R3 installation and isolated native imports succeeded, but its qualification
+connection failed before acceptance or any actual qualifier or scored task.
+All three failed attempts, their installed roots and fifteen protected local
+records remain terminal and preserved, never patched or reused.
+
+Read-only native diagnosis identified the original-source ancestry refusal:
+legacy-owned sources sit inside the original root's private operator-owned
+0700 enclosure. The scoped reader now validates that enclosure, exact source
+hashes, ownership, modes, ACLs, no-follow access and before/after identities.
+Private runtime evidence retains the strict generic ownership guard. No
+historical native source bytes, ownership or permissions were changed.
+The [repair protocol](../../../protocols/baseline_transport_repair_20261002.md)
+records the observed defect and preservation requirements.
+
+All **1,634 local tests across 67 modules passed** at 06:50:56.063314 UTC,
+with zero errors, failures or skips, in 2663.644 seconds. The final
+**12 repository tests passed** at 07:09:30.665968 UTC, with zero errors,
+failures or skips. Both gates verified the same 424-source map,
+`388bc27ebbfa7c36fc79379319c4ee9f3a64bd336e94cfc211454e14da65a9b3`,
+318 frozen sources, 35 archived reporters, both native payloads, all fifteen
+local records, the required CSV, three recovery public files, both retained
+archive hashes and six failed reporting folders with their partial archive.
+These are local checks, including mocked native facts, not native qualification.
+
+The new destination `/opt/uts-capstone-matched-repeat-terminus-2-20261003-r4`
+has not been installed at this checkpoint. After publication, it requires ONE
+exclusive installation, actual isolated imports, ONE qualification connection
+and its exact successful service exit before ONE 89-task dispatch. Full Terminus
+audit, ONE backup/export and publication must precede OpenHands. Recovery remains
+separately **3/3, 0 passed, 3 failed, 0 missing verifier**, fully reported.
+The VPS and monitor remain active. Earlier checkpoints below are history.
+
 ## Required CSV corrected; R3 native gates next, 3 October 2026 UTC
 
 This repeat remains **0/89**, with 0 passed, 0 failed and 0 missing verifier.

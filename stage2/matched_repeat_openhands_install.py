@@ -99,7 +99,7 @@ def _lock_paths(seed, boot):
         for n in ('matrix.lock', 'scored.lock', 'gateway.lock')]
     return tuple(early + [boot.RECOVERY / '.runtime/stage2/matrix.lock'] + late +
         [boot.RECOVERY / '.runtime/stage2' / n for n in ('scored.lock', 'gateway.lock')] +
-        [base / '.runtime/stage2' / n for base in (boot.RETIRED, boot.RETIRED_SECOND)
+        [base / '.runtime/stage2' / n for base in (boot.RETIRED, boot.RETIRED_SECOND, boot.RETIRED_THIRD)
             for n in ('matrix.lock','scored.lock','gateway.lock')] +
         [boot.root_for('terminus-2') / '.runtime/stage2' / n for n in ('matrix.lock','scored.lock','gateway.lock')])
 
@@ -223,8 +223,9 @@ def _old(value, decoded, boot, seed, libraries, guard, *, absent):
     observed = {'retained': revision.inspect(), 'recovery': boot._recovery_files(),
         'terminus':{n:boot.raw(boot.root_for('terminus-2'),n,h) for n,h in files.items()}}
     retired = _module('matched_repeat_revision', decoded['stage2/matched_repeat_revision.py'])
-    if retired.ROOT != boot.RETIRED or retired.SECOND_ROOT != boot.RETIRED_SECOND:
-        raise ValueError('Both exact terminal baseline roots required')
+    if (retired.ROOT != boot.RETIRED or retired.SECOND_ROOT != boot.RETIRED_SECOND
+            or retired.THIRD_ROOT != boot.RETIRED_THIRD):
+        raise ValueError('All three exact terminal baseline roots required')
     observed['retired_baseline'] = retired.native(boot)
     for base, bindings in ((ORIGINAL, value['native']), (REPORTER, value['reporter'])):
         for name, digest in bindings.items():

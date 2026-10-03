@@ -20,10 +20,10 @@ import subprocess
 import sys
 import types
 
-ROOT = Path('/opt/uts-capstone-matched-repeat-terminus-2-20261003-r3')
+ROOT = Path('/opt/uts-capstone-matched-repeat-terminus-2-20261003-r4')
 ORIGINAL = Path('/opt/uts-capstone-custom-no-cutoff-final-20260928')
 REPORTER = Path('/opt/uts-capstone-custom-no-cutoff-final-reporting-20260929-r4')
-STATE = '.runtime/netcup/matched-repeat-terminus-2-installation-20261003-r3'
+STATE = '.runtime/netcup/matched-repeat-terminus-2-installation-20261003-r4'
 KIND = 'exclusive_baseline_installation_not_qualification'
 SNAPSHOT = '.runtime/netcup/corrected-final-20260925/snapshot.json'
 SNAPSHOT_SHA = '960a119ad8a6dc009884eb2b559712e0e48f0a16711ddf9d1c57399ee0aac244'
@@ -99,7 +99,7 @@ def _lock_paths(seed, boot):
         for n in ('matrix.lock', 'scored.lock', 'gateway.lock')]
     return tuple(early + [boot.RECOVERY / '.runtime/stage2/matrix.lock'] + late +
         [boot.RECOVERY / '.runtime/stage2' / n for n in ('scored.lock', 'gateway.lock')] +
-        [base / '.runtime/stage2' / n for base in (boot.RETIRED, boot.RETIRED_SECOND)
+        [base / '.runtime/stage2' / n for base in (boot.RETIRED, boot.RETIRED_SECOND, boot.RETIRED_THIRD)
             for n in ('matrix.lock', 'scored.lock', 'gateway.lock')])
 
 
@@ -213,8 +213,9 @@ def _old(value, decoded, boot, seed, libraries, guard, *, absent):
     if revision.ROOT != boot.RECOVERY: raise ValueError('Exact retained recovery revision required')
     observed = {'retained': revision.inspect(), 'recovery': boot._recovery_files()}
     retired = _module('matched_repeat_revision', decoded['stage2/matched_repeat_revision.py'])
-    if retired.ROOT != boot.RETIRED or retired.SECOND_ROOT != boot.RETIRED_SECOND:
-        raise ValueError('Both exact terminal baseline roots required')
+    if (retired.ROOT != boot.RETIRED or retired.SECOND_ROOT != boot.RETIRED_SECOND
+            or retired.THIRD_ROOT != boot.RETIRED_THIRD):
+        raise ValueError('All three exact terminal baseline roots required')
     observed['retired_baseline'] = retired.native(boot)
     for base, bindings in ((ORIGINAL, value['native']), (REPORTER, value['reporter'])):
         for name, digest in bindings.items():

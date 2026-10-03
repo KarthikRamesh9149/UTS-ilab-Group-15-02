@@ -42,7 +42,7 @@ class OpenHandsRouteTests(unittest.TestCase):
         self.assertNotEqual(reporting.BACKUP,first_report.BACKUP)
         self.assertNotEqual(reporting.EXPORT,first_report.EXPORT)
         self.assertEqual(installer._lock_paths(recovery_install,boot),locks.paths(installer.ROOT,'openhands')[:-1])
-        self.assertEqual(len(installer._lock_paths(recovery_install,boot)),60)
+        self.assertEqual(len(installer._lock_paths(recovery_install,boot)),63)
         self.assertEqual(installer._lock_paths(recovery_install,boot)[:-3],first_install._lock_paths(recovery_install,boot))
 
     def test_only_openhands_full_prepare_requires_actual_completed_terminus_reader(self):

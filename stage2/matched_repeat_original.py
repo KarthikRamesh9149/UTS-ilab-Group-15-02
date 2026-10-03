@@ -9,10 +9,14 @@ bytes, task execution of a repeat, or permission to dispatch a paid trial.
 from contextlib import ExitStack
 import ast
 import csv
+import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import platform
+import re
+import stat
 import subprocess
 
 import export_corrected as exporter
@@ -41,6 +45,74 @@ CURRENT_COLLECTOR_IMPORTS = ('calibrate_tokenizer.py', 'extended_token_calibrati
 
 def _hash_audit(data):
     return policy.fingerprint({k: v for k, v in data.items() if k != 'collected_utc'})
+
+
+def _original_file_identities(files):
+    """Read pinned historical sources inside their private native enclosure.
+
+    The original root is operator-owned 0700 (root on the native host). Its
+    source tree retains the observed 501:50 ownership; that principal cannot
+    traverse the enclosing root. Do not change the historical metadata or
+    extend this exception to current deployments, locks or private evidence.
+    """
+    root = baseline.ORIGINAL_ROOT
+    enclosure = locks.directories(root, private=True)
+    if type(files) is not dict or not files:
+        raise ValueError('Actual original file bindings required')
+    source_files = {}; private_files = {}
+    for name, expected in files.items():
+        relative_name(name)
+        if type(expected) is not str or not re.fullmatch('[a-f0-9]{64}', expected):
+            raise ValueError('Exact original source hash required')
+        if name.startswith('stage2/'):
+            source_files[name] = expected
+        elif name.startswith('.runtime/'):
+            private_files[name] = expected
+        else:
+            raise ValueError('Only original source and private evidence bindings allowed')
+    allowed_owners = {(os.getuid(), os.getgid()), (501, 50)}
+
+    def parents(path):
+        current = root
+        answer = list(locks.directories(root, private=True))
+        for part in path.relative_to(root).parts:
+            current = current / part
+            value = current.lstat(); locks._acl(current)
+            if (current.resolve() != current or not stat.S_ISDIR(value.st_mode)
+                    or (value.st_uid, value.st_gid) not in allowed_owners
+                    or stat.S_IMODE(value.st_mode) not in {0o700, 0o755}):
+                raise ValueError('Protected original source ancestry required')
+            answer.append((str(current), value.st_dev, value.st_ino,
+                value.st_mode, value.st_uid, value.st_gid))
+        return tuple(answer)
+
+    def source_identity(path):
+        value = path.lstat(); locks._acl(path)
+        if (path.resolve() != path or not stat.S_ISREG(value.st_mode) or value.st_nlink != 1
+                or (value.st_uid, value.st_gid) not in allowed_owners
+                or stat.S_IMODE(value.st_mode) not in {0o600, 0o644}):
+            raise ValueError('Protected single-link original source required')
+        return locks.identity(value)
+
+    answer = {}
+    for name, expected in source_files.items():
+        path = root / name; ancestry = parents(path.parent)
+        before = source_identity(path)
+        with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as stream:
+            if locks.identity(os.fstat(stream.fileno())) != before:
+                raise ValueError('Original source replaced before read')
+            observed = hashlib.file_digest(stream, 'sha256').hexdigest()
+            if locks.identity(os.fstat(stream.fileno())) != before:
+                raise ValueError('Original source changed while reading')
+        if (observed != expected or source_identity(path) != before
+                or parents(path.parent) != ancestry):
+            raise ValueError('Original source bytes or file ancestry changed')
+        answer[name] = (before, ancestry)
+    if private_files:
+        answer.update(locks.file_identities(root, private_files))
+    if locks.directories(root, private=True) != enclosure:
+        raise ValueError('Original source enclosure changed')
+    return answer
 
 
 def _context(root, harness):
@@ -335,7 +407,7 @@ def authenticate(root, original, final, harness):
         support = _support_files(baseline.ORIGINAL_ROOT, anchors['data'])
         copied_identities = locks.file_identities(root, anchors['copied'])
         native_files = dict(anchors['original'], **support)
-        native_identities = locks.file_identities(baseline.ORIGINAL_ROOT, native_files)
+        native_identities = _original_file_identities(native_files)
         _check(root, anchors, support)
         lease.recheck()
         fresh = _native_audit(native_files)
@@ -346,7 +418,7 @@ def authenticate(root, original, final, harness):
         _check(root, anchors, support)
         lease.recheck()
         if (locks.file_identities(root, anchors['copied']) != copied_identities
-                or locks.file_identities(baseline.ORIGINAL_ROOT, native_files) != native_identities):
+                or _original_file_identities(native_files) != native_identities):
             raise ValueError('Original audit source or evidence identity changed')
         return _record(harness, anchors, support)
 
@@ -358,8 +430,12 @@ def recheck(root, original, final, harness, authenticated):
     runtime.loaded_sources(root, anchors['sources'])
     baseline.inactive_ancestors()
     support = _support_files(baseline.ORIGINAL_ROOT, anchors['data'])
+    native_files = dict(anchors['original'], **support)
+    native_identities = _original_file_identities(native_files)
     expected = _record(harness, anchors, support)
     if policy.fingerprint(authenticated) != policy.fingerprint(expected):
         raise ValueError('Exact fresh original audit record required; copied flags are not admission')
     _check(root, anchors, support)
+    if _original_file_identities(native_files) != native_identities:
+        raise ValueError('Original source or evidence identity changed during recheck')
     return expected

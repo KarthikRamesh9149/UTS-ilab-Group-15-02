@@ -37,6 +37,7 @@ def paths(root, harness):
     values.extend(recovery.ROOT / RT / name for name in NAMES[1:])
     values.extend(retired.ROOT / RT / name for name in NAMES)
     values.extend(retired.SECOND_ROOT / RT / name for name in NAMES)
+    values.extend(retired.THIRD_ROOT / RT / name for name in NAMES)
     if harness == 'openhands':
         values.extend(runtime.DEPLOYMENTS['terminus-2'] / RT / name for name in NAMES)
     values.append(root / RT / 'matrix.lock')

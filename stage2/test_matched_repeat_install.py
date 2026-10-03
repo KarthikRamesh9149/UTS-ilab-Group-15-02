@@ -142,7 +142,7 @@ class ContractTests(unittest.TestCase):
 
     def test_exact_real_baseline_ancestor_order_excludes_only_own_uncreated_matrix(self):
         self.assertEqual(install._lock_paths(seed, boot), locks.paths(install.ROOT, 'terminus-2')[:-1])
-        self.assertEqual(len(install._lock_paths(seed, boot)), 57)
+        self.assertEqual(len(install._lock_paths(seed, boot)), 60)
 
     def test_only_validated_seed_destination_interpreter_alias_is_rebased(self):
         trees = [dict(links={'alias': dict(target=str(seed.ROOT / '.venv/bin/python3.12'), original='retained'),
