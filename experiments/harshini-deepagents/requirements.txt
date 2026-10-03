@@ -1,0 +1,5 @@
+# Install into Harbor's own environment (the custom agent runs inside Harbor's process):
+#   uv pip install --python "$(uv tool dir)/harbor/Scripts/python.exe" -r experiments/harshini-deepagents/requirements.txt
+harbor==0.22.0
+deepagents==0.7.14
+langchain-openai==1.6.2

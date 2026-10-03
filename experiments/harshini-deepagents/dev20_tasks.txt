@@ -1,0 +1,22 @@
+# Group Stage 2 development subset (20 tasks), same IDs as
+# stage2/results/baseline-corrected-20260923/development-baselines.csv on main.
+adaptive-rejection-sampler
+build-pov-ray
+constraints-scheduling
+db-wal-recovery
+distribution-search
+install-windows-3.11
+mailman
+merge-diff-arc-agi-task
+modernize-scientific-stack
+nginx-request-logging
+openssl-selfsigned-cert
+overfull-hbox
+polyglot-rust-c
+prove-plus-comm
+qemu-alpine-ssh
+qemu-startup
+regex-chess
+reshard-c4-data
+sqlite-db-truncate
+video-processing
