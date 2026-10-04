@@ -330,5 +330,5 @@ as a variant:
   on branch `harshini-trial-run`.
 - **Saranya's minimal harness v0.2.** Saranya's one-command-per-turn agent
   pinned to the Stage 2 model settings, with a spending safety stop. It is
-  untested on paid runs: `experiments/saranya-harness/` on branch
-  `saranya-minimal-harness` (commit `f603282`).
+  untested on paid runs:
+  `saranya-minimal-harness`, `experiments/saranya-harness/`.
