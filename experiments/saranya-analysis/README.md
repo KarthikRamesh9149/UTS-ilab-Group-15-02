@@ -212,6 +212,45 @@ included for reference.
 | Terminus-2 (round C, dev20) | 20 / 20 | 5.4 | 721 |
 | OpenHands (round C, dev20) | 20 / 20 | 4.9 | 460 |
 
+### C0-NC's separate dev20 validation run (not in the tables above)
+
+Before its final 89-task run, C0-NC ran once on the same 20 dev tasks as a
+validation. It scored **11/20**
+(`stage2/results/custom-no-cutoff-20260928/c0-nc/trials.csv`). The same 20 tasks
+scored **15/20** inside the final run. This package does not load the
+validation file.
+
+The two runs' recorded conditions were **not identical**, so the 4-task gap is
+not reported as single-run variance.
+
+**The same in both** (32 identical fields in the two `credit-policy.json` files,
+plus both `trials.csv` files):
+- model, endpoint and sampling;
+- harness version 0.5.0 and its execution contract;
+- retry policy, with no caps;
+- each task's official limits;
+- task order;
+- the agent's prompt, graph and tool code.
+
+**What differed:**
+1. **Source commit:** `06d94f7` for validation vs `fb2d5cc` for the final
+   (`launch.json`, `source_commit`). Among existing files, only
+   `stage2/scored_trial.py` changed (admission plumbing). The final added new
+   admission, policy and gateway modules (`stage2/no_cutoff_final_*.py`).
+2. **Gateway container image:** different digests (`qualification.json`,
+   `gateway_image`). The final image added a new gateway session wrapper around
+   the same retry logic.
+3. **Frozen candidate file:** different lineage hashes (`lineage.json`,
+   `candidate_file_sha256`). They hash two different private files that are not
+   committed, so whether the difference affects behaviour is unconfirmed.
+4. **Time:** validation ran 27 Sep 21:17 – 28 Sep 02:43 UTC; the final's dev20
+   tasks ran 28 Sep 03:38 – 08:01 UTC. Rate limiting was light in both
+   (3 vs 1 HTTP 429s).
+
+None of these touches the model, the limits or the agent logic, but their effect
+on behaviour is unconfirmed. The 11/20 is a caution against reading any single
+dev20 score precisely.
+
 ## Caveats
 
 1. **Single runs.** Every harness ran each task once, at temperature 1. The
