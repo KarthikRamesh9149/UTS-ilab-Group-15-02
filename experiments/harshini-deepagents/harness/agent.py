@@ -67,12 +67,28 @@ How to work:
 - When the task is done, reply with a short summary and no tool call."""
 
 
-class DeadlineNote(AgentMiddleware):
-    """Append the remaining time as a trailing message on each model call (not stored in state)."""
+PYTHON_FILE_TOOLS = frozenset({"read_file", "edit_file", "ls", "grep", "glob"})
 
-    def __init__(self, deadline: Deadline):
+
+class DeadlineNote(AgentMiddleware):
+    """Per model call: append the remaining time as a trailing message (not stored in
+    state) and hide tools the task image cannot run."""
+
+    def __init__(self, deadline: Deadline, hidden_tools: frozenset[str] = frozenset()):
         super().__init__()
         self.deadline = deadline
+        self.hidden_tools = hidden_tools
+
+    def _visible(self, tools):
+        def tool_name(tool):
+            return getattr(tool, "name", None) or (tool.get("name") if isinstance(tool, dict) else None)
+        return [tool for tool in tools if tool_name(tool) not in self.hidden_tools]
+
+    def _adjust(self, request):
+        overrides = {"messages": [*request.messages, self._note()]}
+        if self.hidden_tools:
+            overrides["tools"] = self._visible(request.tools)
+        return request.override(**overrides)
 
     def _note(self) -> HumanMessage:
         left = self.deadline.remaining()
@@ -88,10 +104,21 @@ class DeadlineNote(AgentMiddleware):
         )
 
     async def awrap_model_call(self, request, handler):
-        return await handler(request.override(messages=[*request.messages, self._note()]))
+        return await handler(self._adjust(request))
 
     def wrap_model_call(self, request, handler):
-        return handler(request.override(messages=[*request.messages, self._note()]))
+        return handler(self._adjust(request))
+
+
+def is_empty_reply(message) -> bool:
+    if not isinstance(message, AIMessage) or message.tool_calls:
+        return False
+    content = message.content
+    if isinstance(content, list):
+        content = "".join(
+            block.get("text", "") if isinstance(block, dict) else str(block) for block in content
+        )
+    return not str(content or "").strip()
 
 
 class DeepAgentsHarness(BaseAgent):
@@ -100,7 +127,7 @@ class DeepAgentsHarness(BaseAgent):
         return "uts-harshini-deepagents"
 
     def version(self) -> str:
-        return "0.1.1"
+        return "0.1.2"
 
     def __init__(
         self,
@@ -144,7 +171,9 @@ class DeepAgentsHarness(BaseAgent):
         self._default_command_timeout = int(default_command_timeout)
         self._timeout_override = float(agent_timeout_sec) if agent_timeout_sec else None
         self._max_finish_nudges = int(max_finish_nudges)
+        self._max_empty_nudges = 3
         self._start_cwd = "/app"
+        self._has_python3 = True
         register_harness_profile(
             "openai:" + PINNED_MODEL,
             HarnessProfile(
@@ -175,6 +204,8 @@ class DeepAgentsHarness(BaseAgent):
         check = await environment.exec("command -v bash && command -v timeout && command -v base64", timeout_sec=15)
         if check.return_code != 0:
             raise RuntimeError("task image lacks bash, timeout or base64")
+        python = await environment.exec("command -v python3", timeout_sec=15)
+        self._has_python3 = python.return_code == 0
 
     async def run(self, instruction: str, environment: BaseEnvironment, context: AgentContext) -> None:
         budget, budget_source = self._task_timeout()
@@ -186,13 +217,20 @@ class DeepAgentsHarness(BaseAgent):
             start_cwd=self._start_cwd,
             default_timeout=self._default_command_timeout,
         )
+        hidden_tools = frozenset() if self._has_python3 else PYTHON_FILE_TOOLS
         graph = create_deep_agent(
             model=self._model,
             tools=[],
             system_prompt=SYSTEM_PROMPT.format(default_timeout=self._default_command_timeout),
             backend=backend,
-            middleware=[DeadlineNote(deadline)],
+            middleware=[DeadlineNote(deadline, hidden_tools)],
             subagents=[],
+        )
+        environment_note = (
+            ""
+            if self._has_python3
+            else "\nThis image has no python3, so only `execute` and `write_file` are available "
+            "for files: read and edit with shell tools (cat, sed, grep, find)."
         )
         state: dict[str, Any] = {
             "messages": [
@@ -200,14 +238,19 @@ class DeepAgentsHarness(BaseAgent):
                     content=(
                         f"Task:\n{instruction}\n\n"
                         f"Starting directory: {self._start_cwd}\n"
-                        f"Time budget: {int(budget)} seconds."
+                        f"Time budget: {int(budget)} seconds.{environment_note}"
                     )
                 )
             ]
         }
         stop_reason = "model_done"
         nudges = 0
+        empty_nudges = 0
         error_type = None
+
+        def with_message(text: str) -> dict[str, Any]:
+            return {**state, "messages": [*state["messages"], HumanMessage(content=text)]}
+
         try:
             with tracing_context(enabled=False):
                 async with asyncio.timeout(max(30.0, budget - 15)):
@@ -216,22 +259,25 @@ class DeepAgentsHarness(BaseAgent):
                             state, config={"recursion_limit": 10000}, stream_mode="values"
                         ):
                             state = snapshot
+                        last = state["messages"][-1] if state.get("messages") else None
+                        if (
+                            is_empty_reply(last)
+                            and empty_nudges < self._max_empty_nudges
+                            and deadline.remaining() > 30
+                        ):
+                            empty_nudges += 1
+                            state = with_message(
+                                "[harness] Your last reply had no text and no tool call. Continue "
+                                "working on the task; when it is complete, reply with a short summary."
+                            )
+                            continue
                         failed = backend.last_exit_code not in (None, 0)
                         if failed and nudges < self._max_finish_nudges and deadline.remaining() > 60:
                             nudges += 1
-                            state = {
-                                **state,
-                                "messages": [
-                                    *state["messages"],
-                                    HumanMessage(
-                                        content=(
-                                            f"[harness] Your last command failed (exit {backend.last_exit_code}). "
-                                            "Fix it, or confirm the task requirements are already met, "
-                                            "before finishing."
-                                        )
-                                    ),
-                                ],
-                            }
+                            state = with_message(
+                                f"[harness] Your last command failed (exit {backend.last_exit_code}). "
+                                "Fix it, or confirm the task requirements are already met, before finishing."
+                            )
                             continue
                         break
         except TimeoutError:
@@ -241,9 +287,12 @@ class DeepAgentsHarness(BaseAgent):
             error_type = type(exc).__name__
             raise
         finally:
-            self._record(context, state, backend, budget, budget_source, stop_reason, nudges, error_type)
+            self._record(
+                context, state, backend, budget, budget_source, stop_reason, error_type,
+                finish_nudges=nudges, empty_reply_nudges=empty_nudges, image_has_python3=self._has_python3,
+            )
 
-    def _record(self, context, state, backend, budget, budget_source, stop_reason, nudges, error_type) -> None:
+    def _record(self, context, state, backend, budget, budget_source, stop_reason, error_type, **extra) -> None:
         messages = state.get("messages", [])
         tokens_in = tokens_out = cache = 0
         cost = 0.0
@@ -271,7 +320,7 @@ class DeepAgentsHarness(BaseAgent):
             "agent_budget_sec": budget,
             "agent_budget_source": budget_source,
             "model_calls": model_calls,
-            "finish_nudges": nudges,
+            **extra,
             **backend.stats(),
         }
         self.logs_dir.mkdir(parents=True, exist_ok=True)

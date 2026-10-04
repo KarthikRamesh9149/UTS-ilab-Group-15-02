@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.1.2 — 2026-10-03
+
+- Empty-reply nudge: a model turn with no text and no tool call no longer ends the
+  run; the harness asks the model to continue (up to 3 times while >30 s remain).
+- Images without `python3`: `write_file` creates parent directories with a shell
+  preflight instead of Deep Agents' Python one, and the Python-backed file tools
+  (`read_file`, `edit_file`, `ls`, `grep`, `glob`) are hidden from the model, with a
+  note telling it to use shell tools.
+- Metadata adds `empty_reply_nudges` and `image_has_python3`.
+- Offline smoke test adds a `debian:bookworm-slim` scenario (9/9 checks pass).
+
+### Partial dev-20 run on 0.1.1 (stopped at task 6 when the host went down)
+
+| Task | Reward | Stop | Cause |
+|---|---:|---|---|
+| constraints-scheduling | 1.0 | model_done | |
+| distribution-search | 1.0 | model_done | |
+| adaptive-rejection-sampler | 0.0 | deadline | `write_file` failed: no `python3` on the R image |
+| build-pov-ray | 0.0 | model_done | empty model reply ended the run at 14 of 200 min |
+| db-wal-recovery | 0.0 | deadline | no working approach found |
+
+Not a valid score: two of the three failures came from the harness bugs fixed above.
+
 ## 0.1.1 — 2026-10-03
 
 - Prompt: deliverables must run with the tools and packages already on the image,

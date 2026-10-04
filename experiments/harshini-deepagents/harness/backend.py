@@ -17,6 +17,7 @@ from deepagents.backends.protocol import (
     ExecuteResponse,
     FileDownloadResponse,
     FileUploadResponse,
+    WriteResult,
 )
 from deepagents.backends.sandbox import BaseSandbox
 
@@ -131,6 +132,17 @@ class HarborShellBackend(BaseSandbox):
 
     def execute(self, command: str, *, timeout: int | None = None) -> ExecuteResponse:
         return self._sync(lambda: self.aexecute(command, timeout=timeout))
+
+    # Deep Agents' default write preflight shells out to python3, which some task
+    # images lack. Creating the parent directory needs only coreutils.
+    async def _awrite_preflight(self, file_path: str):
+        response = await self._raw(f"mkdir -p -- \"$(dirname -- {shlex.quote(file_path)})\"", 30)
+        if response.return_code != 0:
+            return WriteResult(error=f"Failed to create parent directory for '{file_path}'")
+        return None
+
+    def _write_preflight(self, file_path: str):
+        return self._sync(lambda: self._awrite_preflight(file_path))
 
     async def aupload_files(self, files: list[tuple[str, bytes]]) -> list[FileUploadResponse]:
         results = []
