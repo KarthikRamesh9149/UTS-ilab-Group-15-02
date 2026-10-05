@@ -61,6 +61,6 @@ Langfuse status: `local_metadata_retained_credentials_unavailable`. Local metada
 
 Public JSON files are a delivery projection: account lifetime usage, key lifetime limits and generation identifiers are omitted. Original evidence hashes are in `delivery-projection.json`; registration hashes refer to the preserved private original, not the projected public file.
 
-Branch: `codex/gemini-dev20-laptop-20260930`. Push pending: GitHub authentication is unavailable on this laptop. The branch is committed locally.
+Delivery branch: `codex/gemini-dev20-results-20261005`, created on 5 October 2026 from the recorded experiment commits. Original experiment branch: `codex/gemini-dev20-laptop-20260930`. Results commit: `747c66a`. Benchmark evidence and original commit history are preserved.
 
 Next decision: what would you like to do after reviewing this batch? Await the userâ€™s direction before any further paid run.
