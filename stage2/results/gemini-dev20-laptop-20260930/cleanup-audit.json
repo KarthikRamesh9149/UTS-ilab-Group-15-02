@@ -1,0 +1,9 @@
+{
+  "study_process_exited": true,
+  "worker_pid": 41983,
+  "active_task_containers": [],
+  "stopped_task_containers": [],
+  "controller_name": "uts-gemini-controller-20260930",
+  "checked_utc": "2026-09-30T08:32:19.510226+00:00",
+  "private_volume_preserved": true
+}

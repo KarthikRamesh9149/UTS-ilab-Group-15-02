@@ -1,0 +1,11 @@
+{
+  "log_files_checked": 8841,
+  "log_checksum_mismatches": 0,
+  "complete_private_archive_saved": true,
+  "private_archive_bytes": 103956520,
+  "private_archive_sha256": "1885da069716237ae82e43f9838cbcb3e5d00fa23a5034aba3a76fa53b49c800",
+  "controller_stopped": true,
+  "task_containers_remaining": 0,
+  "private_volume_preserved": true,
+  "private_evidence_published": false
+}
