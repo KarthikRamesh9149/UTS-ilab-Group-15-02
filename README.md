@@ -11,9 +11,10 @@ agent harness and comparing it with the client baselines on Terminal-Bench 2.1.
 | | |
 |---|---|
 | Harness | Deep Agents, version 0.1.3 |
+| Latest full result | **10/20** on the dev set (`dev20-v0.1.3`, Windows laptop) |
 | Running now | repeat study: 3 dev-set runs each of this harness and Terminus-2 on the same laptop |
-| Best result so far | one-task test passed; 2 of 5 finished tasks passed in the first 20-task trial |
-| Score to beat | Terminus-2 14/20 on the dev set (target: 16/20 before a full 89-task run) |
+| Same-laptop Terminus-2 | 9 passed of the first 16 tasks (run in progress); this harness passed 8 of those 16 |
+| Reference scores | Terminus-2 14/20 and Karthik's C0 15/20, both on the Netcup server |
 
 ![Progress chart](results/harshini/progress.png)
 
@@ -31,7 +32,9 @@ Runs on the Windows laptop with Harbor and Docker; the model is called through O
 | [`dev20-v0.1.1`](results/harshini/deepagents/dev20-v0.1.1.csv) | 0.1.1 | 5 of 20 finished | **2 passed** | host went down; 2 failures were harness bugs |
 | `dev20-v0.1.2` | 0.1.2 | 3 of 20 | no score | provider overload; all 3 ended on rate-limit errors (retry added in 0.1.3) |
 | [`probe-openssl-terminus2`](results/harshini/deepagents/probe-openssl-terminus2.csv) | Terminus-2 | 1 | **1/1** | Terminus-2 with the reference settings runs on the laptop |
-| `dev20-v0.1.3` (+ r2, r3) | 0.1.3 | 20 each | running | repeat study, alternating with Terminus-2 r1–r3 |
+| [`dev20-v0.1.3`](results/harshini/deepagents/dev20-v0.1.3.csv) | 0.1.3 | 20 | **10/20** | repeat study run 1; both `qemu` tasks fail on this host |
+| [`dev20-terminus2-r1`](results/harshini/deepagents/dev20-terminus2-r1.csv) | Terminus-2 | 16 of 20 so far | **9 passed** | same laptop; also fails both `qemu` tasks (passed on Netcup) |
+| `dev20-v0.1.3-r2`, `-r3`, `dev20-terminus2-r2`, `-r3` | both | 20 each | queued | rest of the repeat study |
 
 Fixes between versions are listed in the
 [harness changelog](experiments/harshini-deepagents/CHANGELOG.md).
