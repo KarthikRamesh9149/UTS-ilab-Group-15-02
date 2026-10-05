@@ -19,6 +19,9 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
+import httpx
+import openai
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 os.environ.setdefault("OPENROUTER_API_KEY", "offline-test")
 
@@ -30,14 +33,23 @@ from harness.agent import PYTHON_FILE_TOOLS, DeepAgentsHarness  # noqa: E402
 
 
 class ScriptedModel(GenericFakeChatModel):
-    """Replays fixed replies and records which tool names each call was offered."""
+    """Replays fixed replies, records which tool names each call was offered, and can
+    raise a number of 429 errors before the first reply."""
 
     offered: list = []
+    rate_limits: int = 0
 
     def bind_tools(self, tools, **kwargs):
         names = sorted(getattr(t, "name", None) or t.get("name") for t in tools)
         self.offered.append(names)
         return self
+
+    def _generate(self, *args, **kwargs):
+        if self.rate_limits > 0:
+            self.rate_limits -= 1
+            request = httpx.Request("POST", "https://openrouter.ai/api/v1/chat/completions")
+            raise openai.RateLimitError("rate-limited upstream", response=httpx.Response(429, request=request), body=None)
+        return super()._generate(*args, **kwargs)
 
 
 def call(name: str, idx: int, **args) -> AIMessage:
@@ -57,7 +69,7 @@ class DockerEnv:
         return SimpleNamespace(stdout=out.decode(), stderr=err.decode(), return_code=proc.returncode)
 
 
-async def run_scenario(image: str, script: list[AIMessage]):
+async def run_scenario(image: str, script: list[AIMessage], rate_limits: int = 0):
     container = subprocess.check_output(
         ["docker", "run", "-d", "--rm", "-w", "/app", image, "sleep", "600"], text=True
     ).strip()
@@ -67,6 +79,7 @@ async def run_scenario(image: str, script: list[AIMessage]):
                                   agent_timeout_sec=300, default_command_timeout=5)
         model = ScriptedModel(messages=iter(script))
         model.offered = []
+        model.rate_limits = rate_limits
         agent._model = model
         env = DockerEnv(container)
         await agent.setup(env)
@@ -105,7 +118,8 @@ async def main() -> int:
         AIMessage(content=""),
         call("execute", 2, command="cat /app/out/note.txt"),
         AIMessage(content="Done."),
-    ])
+    ], rate_limits=1)
+    checks["429 retried, run continued"] = meta["model_retries"] == 1 and meta["stop_reason"] == "model_done"
     checks["no-python image detected"] = meta["image_has_python3"] is False
     checks["write_file without python3"] = note == "written without python\n"
     checks["python file tools hidden"] = bool(offered) and not (PYTHON_FILE_TOOLS & set(offered[-1]))

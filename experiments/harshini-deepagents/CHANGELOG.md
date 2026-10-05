@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.3 — 2026-10-05
+
+- Provider errors are retried inside the task deadline: HTTP 429, 5xx and connection
+  failures get exponential backoff (2 s doubling to 60 s, ±20% jitter) with no count
+  cap, matching the C0 reference retry rule. The OpenAI client's own retries are off,
+  so every retry is counted.
+- Metadata adds `model_retries` and `model_retries_by_type`.
+- Offline smoke test adds a scripted 429 (10/10 checks pass).
+
+### dev-20 on 0.1.2 — stopped after 3 tasks
+
+All three tasks ended with `OpenAIRateLimitError` (DeepInfra `engine_overloaded`,
+shared upstream pool) after the client's built-in retries, with no verifier result.
+The run was stopped; no score.
+
 ## 0.1.2 — 2026-10-03
 
 - Empty-reply nudge: a model turn with no text and no tool call no longer ends the

@@ -10,6 +10,8 @@ DeepInfra FP8 via OpenRouter). Design levers, relative to the C0-NC reference ag
 - If the model stops while its last command failed, it is sent back to fix or
   verify, at most `max_finish_nudges` times.
 - `write_todos` planning stays enabled; sub-agents and summarisation are off.
+- Provider 429/5xx and connection failures are retried with backoff until the
+  task deadline, with no count cap.
 
 Run with:
     harbor run ... -a harness.agent:DeepAgentsHarness \
@@ -21,11 +23,13 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import random
 import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import openai
 from deepagents import (
     GeneralPurposeSubagentProfile,
     HarnessProfile,
@@ -110,6 +114,40 @@ class DeadlineNote(AgentMiddleware):
         return handler(self._adjust(request))
 
 
+TRANSIENT_ERRORS = (openai.RateLimitError, openai.APIConnectionError, openai.InternalServerError)
+
+
+class TransientRetry(AgentMiddleware):
+    """Retry 429, 5xx and connection failures with capped exponential backoff, with no
+    count cap, for as long as the task deadline allows (same rule as the C0 reference)."""
+
+    def __init__(self, deadline: Deadline, first_delay: float = 2.0, max_delay: float = 60.0):
+        super().__init__()
+        self.deadline = deadline
+        self.first_delay = first_delay
+        self.max_delay = max_delay
+        self.retries = 0
+        self.by_type: dict[str, int] = {}
+
+    async def awrap_model_call(self, request, handler):
+        delay = self.first_delay
+        while True:
+            try:
+                return await handler(request)
+            except TRANSIENT_ERRORS as exc:
+                wait = delay * random.uniform(0.8, 1.2)
+                if self.deadline.remaining() < wait + 20:
+                    raise
+                self.retries += 1
+                name = type(exc).__name__
+                self.by_type[name] = self.by_type.get(name, 0) + 1
+                await asyncio.sleep(wait)
+                delay = min(delay * 2, self.max_delay)
+
+    def stats(self) -> dict[str, Any]:
+        return {"model_retries": self.retries, "model_retries_by_type": dict(self.by_type)}
+
+
 def is_empty_reply(message) -> bool:
     if not isinstance(message, AIMessage) or message.tool_calls:
         return False
@@ -127,7 +165,7 @@ class DeepAgentsHarness(BaseAgent):
         return "uts-harshini-deepagents"
 
     def version(self) -> str:
-        return "0.1.2"
+        return "0.1.3"
 
     def __init__(
         self,
@@ -158,7 +196,7 @@ class DeepAgentsHarness(BaseAgent):
             api_key=api_key,
             temperature=float(temperature),
             max_tokens=int(max_output_tokens),
-            max_retries=3,
+            max_retries=0,
             timeout=900,
             streaming=False,
             use_responses_api=False,
@@ -218,12 +256,13 @@ class DeepAgentsHarness(BaseAgent):
             default_timeout=self._default_command_timeout,
         )
         hidden_tools = frozenset() if self._has_python3 else PYTHON_FILE_TOOLS
+        retry = TransientRetry(deadline)
         graph = create_deep_agent(
             model=self._model,
             tools=[],
             system_prompt=SYSTEM_PROMPT.format(default_timeout=self._default_command_timeout),
             backend=backend,
-            middleware=[DeadlineNote(deadline, hidden_tools)],
+            middleware=[retry, DeadlineNote(deadline, hidden_tools)],
             subagents=[],
         )
         environment_note = (
@@ -290,6 +329,7 @@ class DeepAgentsHarness(BaseAgent):
             self._record(
                 context, state, backend, budget, budget_source, stop_reason, error_type,
                 finish_nudges=nudges, empty_reply_nudges=empty_nudges, image_has_python3=self._has_python3,
+                **retry.stats(),
             )
 
     def _record(self, context, state, backend, budget, budget_source, stop_reason, error_type, **extra) -> None:
