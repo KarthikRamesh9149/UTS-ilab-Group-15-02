@@ -1,90 +1,87 @@
-# UTS iLab Group 15-02 — Terminal-Bench 2.1 harness comparison
+# Harshini Prasad — custom harness experiments (Group 15-02)
 
-This repository is a small, honest comparison of three coding-agent harnesses on a fixed 21-task Terminal-Bench 2.1 development subset:
+Branch `harshini-trial-run` of the UTS iLab Project #15 repository: building a custom
+agent harness and comparing it with the client baselines on Terminal-Bench 2.1.
 
-- Mini-SWE-Agent (baseline 1)
-- OpenHands (baseline 2)
-- UTS Qwen custom harness 2.2.0
+**Current work:** a LangGraph **Deep Agents** harness using **DeepSeek V4 Flash 0731**
+(the group's locked model), compared against **Terminus-2** and **OpenHands**.
 
-Each harness runs the same tasks once (`k=1`, concurrency 1, temperature 0) with both locally hosted Q4_K_M models:
+## Status
 
-- Qwen2.5-Coder-3B-Instruct (`qwen2.5-coder:3b`)
-- Qwen2.5-Coder-7B-Instruct (`qwen2.5-coder:7b`)
+| | |
+|---|---|
+| Harness | Deep Agents, version 0.1.2 |
+| Running now | 20-task dev set, version 0.1.2 |
+| Best result so far | one-task test passed; 2 of 5 finished tasks passed in the first 20-task trial |
+| Score to beat | Terminus-2 14/20 on the dev set (target: 16/20 before a full 89-task run) |
 
-The intended matrix is therefore 21 tasks × 3 harnesses × 2 models = **126 trials**. This is deliberately **not** a full 89-task run, an official leaderboard submission, or a statistically representative accuracy estimate.
+![Progress chart](results/harshini/progress.png)
 
-## Harshini track (`harshini-trial-run`)
+## Results by stage
 
-Larger open model on CETUS (Qwen2.5-Coder-14B-AWQ via vLLM) + Harbor on the Windows host. Details and CSVs: [`results/harshini/`](results/harshini/README.md).
+### Stage 3 — Deep Agents harness, DeepSeek V4 Flash (October 2026, current)
+
+Runs on the Windows laptop with Harbor and Docker; the model is called through OpenRouter
+(DeepInfra FP8, the same route as the group runs).
+
+| Run | Harness | Tasks | Result | Notes |
+|---|---|---|---|---|
+| [`probe-openssl-v0.1.0`](results/harshini/deepagents/probe-openssl-v0.1.0.csv) | 0.1.0 | 1 | 0/1 (5 of 6 tests) | check script used a package the grader lacks |
+| [`probe-openssl-v0.1.1`](results/harshini/deepagents/probe-openssl-v0.1.1.csv) | 0.1.1 | 1 | **1/1** | prompt fix: deliverables must use only preinstalled tools |
+| [`dev20-v0.1.1`](results/harshini/deepagents/dev20-v0.1.1.csv) | 0.1.1 | 5 of 20 finished | **2 passed** | host went down; 2 failures were harness bugs |
+| `dev20-v0.1.2` | 0.1.2 | 20 | running | first full dev-set run |
+
+Fixes between versions are listed in the
+[harness changelog](experiments/harshini-deepagents/CHANGELOG.md).
+
+**Group reference scores** (same model, group runs on the Netcup server):
+
+| Harness | Dev 20 | Full 89 |
+|---|---:|---:|
+| Terminus-2 (client baseline) | 14 | 52 |
+| OpenHands (client baseline) | 10 | 44 |
+| Group custom harness (C0 / C0-NC) | 15 | 50 |
+
+### Stage 2 — larger open model on UTS HPC (September 2026)
+
+Qwen2.5-Coder-14B (AWQ) served with vLLM on the CETUS HPC, tasks run on the laptop over
+an SSH tunnel, frozen 21-task subset.
 
 | Check | Result |
 |---|---|
-| Oracle on scoring host | **21 / 21** valid |
-| Custom harness × 14B (full 21) | **0 / 21** passes |
-| mini-SWE × 14B | **Partial** (4/21 trials; 0 passes; interrupted — not a finished baseline) |
+| Oracle (official solutions) on the laptop | **21/21** tasks valid |
+| Custom bash harness × 14B | **0/21** |
+| mini-SWE-agent × 14B | not finished (4 of 21 trials, 0 passes) |
 
-## Current phase: a model capable enough to separate harnesses
+The model was too weak to pass any task, so this stage could not separate harnesses.
+Details: [`results/harshini/README.md`](results/harshini/README.md).
 
-The 126-trial matrix scored **0 passes in every condition**, so accuracy could not
-distinguish one harness from another. Terminal-Bench 2.1 is hard by construction —
-frontier models score 65–85% and small models around 15% — and a 3B/7B checkpoint at
-4-bit sits below the level where the benchmark produces signal at all.
+### Stage 1 — team baseline with small local models (August 2026)
 
-The current phase keeps the frozen 21-task subset and the fairness controls below, and
-changes only the model, to a size where a harness difference has somewhere to show up.
+Qwen2.5-Coder 3B and 7B on three harnesses: **0 passes in all 126 trials**.
+Archived write-up: [`docs/team-stage1.md`](docs/team-stage1.md).
 
-| Piece | Where | Status |
-|---|---|---|
-| Custom harness (one bash command per turn) | [`experiments/itsha-bash-react/`](experiments/itsha-bash-react/README.md) | v0.2.2 |
-| Host Oracle check (frozen 21) | [`results/harshini/oracle-21-final.csv`](results/harshini/oracle-21-final.csv) | 21/21 |
-| Custom × 14B scores | [`results/harshini/custom-21-final.csv`](results/harshini/custom-21-final.csv) | 0/21 |
-| CETUS vLLM PBS scripts | [`hpc/`](hpc/) | in repo |
-| Same-model subset runner | `scripts/run_subset_vllm.py` | working |
+## Next
 
-Oracle validation is host-specific, so it was re-run on the machine that will produce
-the scored rows. That is verification only: the subset stays frozen at 21 task IDs and
-the two host-limited tasks remain in the denominator.
+1. Finish the `dev20-v0.1.2` run and compare it with the group scores above.
+2. Run Terminus-2 on the same laptop and tasks, so the comparison uses one host.
+3. Add Langfuse tracing to the Deep Agents harness.
+4. Run the full 89 tasks if the dev-set score reaches 16/20.
 
-## Evaluation safeguards
+## Where things are
 
-- The task list is frozen in `configs/progress_subset.txt`.
-- Selection uses seed 42 and accepts only tasks whose official Oracle trial produced a valid passing verifier result.
-- Oracle outcomes are selection evidence only and never enter model pass rates.
-- A reward-zero model trial is retained; only unambiguous infrastructure failures may be corrected.
-- Custom harness version 2.2.0 is frozen for every scored custom row.
-- Missing trials remain visible in the 126-row CSV instead of disappearing from the denominator.
-- Raw Harbor jobs and local model weights are ignored because of their size; curated CSV, summaries, manifests, and terminal evidence are committed.
+| Path | Contents |
+|---|---|
+| [`experiments/harshini-deepagents/`](experiments/harshini-deepagents/README.md) | Deep Agents harness, tests, task runner, changelog |
+| [`results/harshini/deepagents/`](results/harshini/deepagents/) | one CSV per Deep Agents run |
+| [`results/harshini/`](results/harshini/README.md) | Stage 2 results (Oracle, 14B runs) and the progress chart |
+| [`experiments/itsha-bash-react/`](experiments/itsha-bash-react/README.md) | Stage 2 custom bash harness |
+| [`hpc/`](hpc/) | CETUS PBS scripts for serving the Stage 2 model |
+| [`docs/team-stage1.md`](docs/team-stage1.md) | archived team Stage 1 README |
 
-## Reproduce or resume
+Raw Harbor job folders (`jobs/`) are not committed. After a run:
 
-The project uses local, ignored tool/model directories. See `docs/setup-notes.md` for exact versions and endpoint details.
-
-```bash
-make preflight
-make model-start
-make model-test
-make matrix
-make collect
-make report
-make evidence
-make test
+```powershell
+python experiments/harshini-deepagents/summarize_run.py dev20-v0.1.2 --dev20
+uv run --no-project --with matplotlib python results/harshini/plot_progress.py
 ```
-
-`scripts/run_matrix.py` is resumable: it discovers valid existing trials by task, harness, model, and frozen custom version, then runs only missing cells sequentially.
-
-## Results
-
-The completed run artifacts live under `results/progress_smoke_20260831_133343/`. Read `summary.md` for the six-condition comparison, `results.csv` for all intended trial rows, `limitations.md` before interpreting the numbers, and `terminal_evidence/` for per-condition output captures.
-
-Model | Harness | Valid / Intended | Passed | Pass rate | Mean runtime
---- | --- | ---: | ---: | ---: | ---:
-Qwen 3B | Mini-SWE-Agent | 21 / 21 | 0 | 0.0% | 353.5 s
-Qwen 3B | OpenHands | 21 / 21 | 0 | 0.0% | 442.9 s
-Qwen 3B | UTS custom 2.2.0 | 20 / 21 | 0 | 0.0% | 233.2 s
-Qwen 7B | Mini-SWE-Agent | 21 / 21 | 0 | 0.0% | 289.7 s
-Qwen 7B | OpenHands | 21 / 21 | 0 | 0.0% | 515.0 s
-Qwen 7B | UTS custom 2.2.0 | 21 / 21 | 0 | 0.0% | 400.4 s
-
-All six conditions scored zero passes, so this run provides no evidence that any harness or model size is more accurate on the subset. The custom harness had the lowest mean runtime with 3B, but one of its 3B trials exceeded the frozen 120-second command limit before verification; that row remains an invalid, non-infrastructure outcome. Runtime alone is not a quality win.
-
-The custom harness is intentionally benchmark-specific rather than a general agent framework. It uses a strict JSON action contract, phase-aware prompting, rolling context, bounded execution, repeat/destructive-command guards, exact artifact checks, and an edit-plus-test completion gate. Its behavior is covered by the repository test suite and frozen at version 2.2.0 for all scored custom rows.

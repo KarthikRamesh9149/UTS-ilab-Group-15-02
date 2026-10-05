@@ -1,0 +1,21 @@
+task,status,reward,stop_reason,agent_min,budget_min,cost_usd,model_calls,harness_version
+adaptive-rejection-sampler,fail,0.0,deadline,14.8,15,0.0150,13,0.1.1
+build-pov-ray,fail,0.0,model_done,13.9,200,0.0195,31,0.1.1
+constraints-scheduling,pass,1.0,model_done,7.1,20,0.0067,13,0.1.1
+db-wal-recovery,fail,0.0,deadline,14.8,15,0.0128,13,0.1.1
+distribution-search,pass,1.0,model_done,12.4,60,0.0079,10,0.1.1
+install-windows-3.11,not run,,,,,,,
+mailman,not run,,,,,,,
+merge-diff-arc-agi-task,not run,,,,,,,
+modernize-scientific-stack,not run,,,,,,,
+nginx-request-logging,not run,,,,,,,
+openssl-selfsigned-cert,not run,,,,,,,
+overfull-hbox,not run,,,,,,,
+polyglot-rust-c,not run,,,,,,,
+prove-plus-comm,not run,,,,,,,
+qemu-alpine-ssh,not run,,,,,,,
+qemu-startup,not run,,,,,,,
+regex-chess,not run,,,,,,,
+reshard-c4-data,not run,,,,,,,
+sqlite-db-truncate,not run,,,,,,,
+video-processing,not run,,,,,,,

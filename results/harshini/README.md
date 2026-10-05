@@ -1,35 +1,29 @@
-# Harshini results — branch `harshini-trial-run`
+# Harshini results
 
-Frozen 21-task subset (`configs/progress_subset.txt`, seed 42).  
-Team Ollama matrix (3B/7B): [`../progress_smoke_20260831_133343/`](../progress_smoke_20260831_133343/).
+Overview and current status: [branch README](../../README.md).
 
-## Summary
+| Folder / file | Stage | What it is |
+|---|---|---|
+| [`deepagents/`](deepagents/) | 3 | One CSV per Deep Agents run (DeepSeek V4 Flash) |
+| [`progress.png`](progress.png) | 3 | Chart from the latest dev-20 CSV ([`plot_progress.py`](plot_progress.py)) |
+| [`oracle-21-final.csv`](oracle-21-final.csv) | 2 | Oracle on the laptop after the timeout multiplier (**21/21**) |
+| [`oracle-21-check.csv`](oracle-21-check.csv) | 2 | First Oracle pass (19/21; two timeouts) |
+| [`oracle-21-windows-check.md`](oracle-21-windows-check.md) | 2 | Write-up of the Oracle host check |
+| [`custom-21-final.csv`](custom-21-final.csv) | 2 | Custom bash harness × Qwen 14B, full 21 tasks (**0/21**) |
+| [`mini-swe-agent-21-partial-20260915.csv`](mini-swe-agent-21-partial-20260915.csv) | 2 | mini-SWE-agent × Qwen 14B, unfinished (4/21 trials, 0 passes) |
+| [`archive/`](archive/) | 2 | Superseded exports and invalid mini-SWE attempts; not used for any score |
 
-| Run | Model | Result | Status |
-|-----|--------|--------|--------|
-| Oracle (Windows host) | n/a (official solutions) | **21 / 21** environments valid | Done — see [`oracle-21-final.csv`](oracle-21-final.csv) |
-| Custom harness (`BashReActAgent`) | Qwen2.5-Coder-14B-AWQ on CETUS | **0 / 21** official passes | Done — [`custom-21-final.csv`](custom-21-final.csv) |
-| mini-SWE-agent (same model) | Qwen2.5-Coder-14B-AWQ on CETUS | **0 passes**; **4/21** trials present (3 reward 0.0, 1 timeout); rest not run | Partial — GPU walltime / Docker / VPN cut the run short — [`mini-swe-agent-21-partial-20260915.csv`](mini-swe-agent-21-partial-20260915.csv) |
+## Deep Agents run CSVs
 
-**Takeaway:** the scoring host can run all 21 tasks. On the open 14B model, the custom harness completed a full fair run at **0/21**. A same-model mini-SWE baseline was started with tool-enabled vLLM but **did not finish**; treat the partial CSV as incomplete, not a full comparison.
+Columns: `task`, `status` (pass / fail / error / not run), `reward`, `stop_reason`
+(`model_done` or `deadline`), `agent_min`, `budget_min` (task time limit), `cost_usd`,
+`model_calls`, `harness_version`. Dev-20 CSVs keep all 20 tasks, so unfinished runs show
+`not run` rows rather than a smaller denominator.
 
-Earlier mini-SWE exports under this folder (`mini-swe-agent-21-final.csv`, `*-20260914_*.csv`) are **invalid** (empty stubs or vLLM rejecting tool calls) and should not be used as the baseline score.
+## Stage 2 notes
 
-## Files
-
-| File | What it is |
-|------|------------|
-| [`oracle-21-windows-check.md`](oracle-21-windows-check.md) | Write-up of the Oracle host check |
-| [`oracle-21-check.csv`](oracle-21-check.csv) | First Oracle pass (19/21; two timeouts) |
-| [`oracle-21-final.csv`](oracle-21-final.csv) | Oracle after timeout multiplier (**21/21**) |
-| [`custom-21-final.csv`](custom-21-final.csv) | Full custom × 14B run (**0/21**) |
-| [`mini-swe-agent-21-partial-20260915.csv`](mini-swe-agent-21-partial-20260915.csv) | Incomplete mini-SWE × 14B attempt |
-| `custom-21-20260912_201547.csv` | Stamp export for the custom job |
-| `mini-swe-agent-21-*.csv` (other) | Invalid / superseded mini-SWE attempts |
-
-Raw Harbor `jobs/` directories and watcher logs are not committed (large / local-only).
-
-## How these runs were produced
-
-- Model served on UTS CETUS (`hpc/stage_assets.pbs`, `hpc/serve_vllm.pbs`)
-- Tasks run on the laptop via Harbor + SSH tunnel (`scripts/run_subset_vllm.py`, `scripts/watch_and_run.ps1`)
+- Model served on UTS CETUS (`hpc/stage_assets.pbs`, `hpc/serve_vllm.pbs`); tasks run on the
+  laptop via Harbor and an SSH tunnel (`scripts/run_subset_vllm.py`).
+- The mini-SWE baseline was cut short by GPU walltime, Docker and VPN interruptions; the
+  partial CSV is not a finished comparison.
+- Files in `archive/` are empty stubs or runs where vLLM rejected tool calls.

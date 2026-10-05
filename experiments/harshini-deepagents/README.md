@@ -56,6 +56,12 @@ Per-trial trace: `<trial>/agent/deepagents-trajectory.json`.
 | OpenHands | 10 | 44 |
 | Group custom (C0 / C0-NC) | 15 | 50 |
 
-This harness: one-task probes only so far (see [`CHANGELOG.md`](CHANGELOG.md)).
-Runs on the Windows laptop host should be compared against Terminus-2 run on the
-same host.
+Results for this harness: [`results/harshini/deepagents/`](../../results/harshini/deepagents/),
+summarised in the [branch README](../../README.md). Runs on the Windows laptop host
+should be compared against Terminus-2 run on the same host.
+
+Summarise a finished run into a CSV:
+
+```powershell
+python experiments/harshini-deepagents/summarize_run.py dev20-v0.1.2 --dev20
+```
