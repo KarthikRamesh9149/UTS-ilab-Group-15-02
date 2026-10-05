@@ -14,9 +14,13 @@ agent harness and comparing it with the client baselines on Terminal-Bench 2.1.
 | Latest full result | **10/20** on the dev set (`dev20-v0.1.3`, Windows laptop) |
 | Running now | repeat study: 3 dev-set runs each of this harness and Terminus-2 on the same laptop |
 | Same-laptop Terminus-2 | 9 passed of the first 16 tasks (run in progress); this harness passed 8 of those 16 |
-| Reference scores | Terminus-2 14/20 and Karthik's C0 15/20, both on the Netcup server |
+| Reference scores | Terminus-2 14/20 and the Stage 2 custom harness (C0) 15/20, both on the Netcup server |
 
 ![Progress chart](results/harshini/progress.png)
+
+**All findings so far:** [`results/harshini/FINDINGS.md`](results/harshini/FINDINGS.md) —
+same-host vs. server comparison, the repeat study, where the Stage 2 harnesses differ,
+and the harness bugs found on real tasks.
 
 ## Results by stage
 
@@ -45,7 +49,7 @@ Fixes between versions are listed in the
 |---|---:|---:|
 | Terminus-2 (client baseline) | 14 | 52 |
 | OpenHands (client baseline) | 10 | 44 |
-| Karthik's custom harness (C0 / C0-NC) | 15 | 50 |
+| Stage 2 custom harness (C0 / C0-NC) | 15 | 50 |
 
 ### Stage 2 — larger open model on UTS HPC (September 2026)
 

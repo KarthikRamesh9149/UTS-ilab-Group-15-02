@@ -75,7 +75,7 @@ Outputs: `results/harshini/deepagents/dev20-v0.1.3{,-r2,-r3}.csv` and
 |---|---:|---:|
 | Terminus-2 | 14 | 52 |
 | OpenHands | 10 | 44 |
-| Karthik's custom harness (C0 / C0-NC) | 15 | 50 |
+| Stage 2 custom harness (C0 / C0-NC) | 15 | 50 |
 
 Results for this harness: [`results/harshini/deepagents/`](../../results/harshini/deepagents/),
 summarised in the [branch README](../../README.md). Runs on the Windows laptop host

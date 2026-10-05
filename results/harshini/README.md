@@ -4,8 +4,11 @@ Overview and current status: [branch README](../../README.md).
 
 | Folder / file | Stage | What it is |
 |---|---|---|
-| [`deepagents/`](deepagents/) | 3 | One CSV per Deep Agents run (DeepSeek V4 Flash) |
+| [`FINDINGS.md`](FINDINGS.md) | 3 | All findings so far |
+| [`deepagents/`](deepagents/) | 3 | One CSV per laptop run (Deep Agents and pinned Terminus-2) |
 | [`progress.png`](progress.png) | 3 | Chart from the latest dev-20 CSV ([`plot_progress.py`](plot_progress.py)) |
+| [`dev20-tasks.png`](dev20-tasks.png) | 3 | Per-task grid: laptop runs vs. Stage 2 server runs ([`compare_reference.py`](compare_reference.py)) |
+| [`reference/`](reference/) | 3 | Stage 2 server results reduced to one row per task, extracted from `main` |
 | [`oracle-21-final.csv`](oracle-21-final.csv) | 2 | Oracle on the laptop after the timeout multiplier (**21/21**) |
 | [`oracle-21-check.csv`](oracle-21-check.csv) | 2 | First Oracle pass (19/21; two timeouts) |
 | [`oracle-21-windows-check.md`](oracle-21-windows-check.md) | 2 | Write-up of the Oracle host check |

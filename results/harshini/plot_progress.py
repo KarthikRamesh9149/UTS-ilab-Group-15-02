@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Patch
 
 HERE = Path(__file__).resolve().parent
-BASELINES = [("OpenHands", 10, "#9aa5b1"), ("Terminus-2", 14, "#1f3b5c"), ("Karthik's custom (C0)", 15, "#3a7bd5")]
+BASELINES = [("OpenHands", 10, "#9aa5b1"), ("Terminus-2", 14, "#1f3b5c"), ("Stage 2 custom (C0)", 15, "#3a7bd5")]
 TARGET = 16
 COLOURS = {"pass": "#2e9e5b", "fail": "#d9534f", "error": "#f0ad4e", "unscored": "#f0ad4e", "not run": "#d5dbe1"}
 
