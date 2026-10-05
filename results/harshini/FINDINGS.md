@@ -23,7 +23,8 @@ study is still running.
    harness passed **8** and Terminus-2 **9**.
 4. In the Stage 2 server runs (89 tasks), the three harnesses solve **different tasks**:
    **62** tasks are solved by at least one harness, against **52** for the best single
-   one, and **27** are solved by none.
+   one, and **27** are solved by none. The custom harness leads only on dev-20, the set
+   it was selected on; on the other 69 tasks Terminus-2 leads (38 vs 35).
 5. Harness bugs found on real tasks, not in offline tests, were the main obstacle early
    on: an empty model reply ending a run, images without `python3`, and provider
    overload. Each is fixed and covered by the offline test (10/10 checks).
@@ -104,7 +105,32 @@ one run each.
   but sends about 3× Terminus-2's input tokens and has the highest known cost. Agent
   time includes waits on rate-limited requests, so it is not a clean speed measure, and
   costs are incomplete (hundreds of requests per run have no recorded cost).
-- The score differences (52 vs 50 vs 44) are within single-run noise; the paired
+- **Time limits are the main failure mode for every harness:** 20 of Terminus-2's 37
+  non-passes, 29 of OpenHands' 45 and 25 of C0-NC's 39 hit the agent time limit.
+
+**Head-to-head (per task, 89 tasks; C0-NC's 3 setup failures counted as not passed):**
+
+| Pair | Both pass | Only first | Only second | Neither |
+|---|---:|---:|---:|---:|
+| C0-NC vs Terminus-2 | 42 | 8 | 10 | 29 |
+| C0-NC vs OpenHands | 36 | 14 | 8 | 31 |
+| Terminus-2 vs OpenHands | 39 | 13 | 5 | 32 |
+
+**dev-20 vs. the other 69 tasks:**
+
+| | dev-20 | other 69 |
+|---|---:|---:|
+| Terminus-2 | 14 | 38 |
+| OpenHands | 10 | 34 |
+| C0-NC | 15 | 35 |
+
+- The custom harness leads only on dev-20, and dev-20 is where it was chosen: C0 was the
+  best of four variants on those 20 tasks (C0 15, C1 14, C2 14, C3 13). On the 69 tasks
+  not used for selection, Terminus-2 leads (38 vs 35).
+- C0-NC's own validation run on the same 20 tasks scored 11/20, against 15/20 inside its
+  final run (recorded conditions were not identical). A single dev-20 score can move by
+  several tasks, which is why the repeat study (section 3) matters.
+- The overall differences (52 vs 50 vs 44) are within single-run noise; the paired
   statistical tests are in the Stage 2 analysis on `main`
   (`experiments/saranya-analysis/`).
 
@@ -129,6 +155,16 @@ Found on real tasks and fixed (see the
   request for their lifetime.
 - **CETUS (UTS HPC) cannot run Harbor** (no Docker; Stage 2 work, see the
   [results README](README.md)), so the laptop is the run host for this branch.
+
+## 7. Gaps in the project's evidence (review of all branches, 5 October 2026)
+
+| Gap | Status in the project | Covered here? |
+|---|---|---|
+| Run-to-run variation on the same tasks | Never measured; the matched repeat run had not started a scored task | Yes — repeat study (section 3) |
+| Same-host comparison against a baseline | Custom and baseline runs were days apart under different provider load | Yes — Terminus-2 on the same laptop (section 2) |
+| Single-lever tests of the brief's four levers (system prompt, tools, context management, retries) | Only the system prompt was tested as a variant (C1, C2); C3 and C0-NC bundled several changes (`experiments/saranya-changelog/HARNESS_CHANGELOG.md` on `main`) | Next — one change at a time on this harness |
+| Failure analysis from agent logs | Failure categories come from recorded fields only | Partly — near-miss analysis (section 1) |
+| Step-by-step tracing (Langfuse) | Not present on any branch | Planned |
 
 ## Open questions
 

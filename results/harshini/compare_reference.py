@@ -28,7 +28,7 @@ SOURCES = {
     "c0": "stage2/results/custom-portable-20260926/c0/trials.csv",
 }
 HARNESSES = ("terminus2", "openhands", "c0nc")
-METRICS = ("pass", "agent_s", "out_tokens", "in_tokens", "known_cost")
+METRICS = ("pass", "agent_s", "out_tokens", "in_tokens", "known_cost", "agent_error")
 
 
 def dev20() -> list[str]:
@@ -49,6 +49,7 @@ def reduce_row(row: dict) -> dict:
         "out_tokens": row.get("output_tokens") or row.get("known_output_tokens", ""),
         "in_tokens": row.get("input_tokens") or row.get("known_input_tokens", ""),
         "known_cost": row.get("known_cost_usd", ""),
+        "agent_error": row.get("agent_error_type", ""),
     }
 
 
@@ -93,6 +94,16 @@ def report(ref: list[dict]) -> None:
     print(f"C0-NC only: {sorted(passed['c0nc'] - passed['terminus2'] - passed['openhands'])}")
     print(f"Terminus-2 only: {sorted(passed['terminus2'] - passed['c0nc'] - passed['openhands'])}")
     print(f"OpenHands only: {sorted(passed['openhands'] - passed['c0nc'] - passed['terminus2'])}")
+    dev = {r["task"] for r in ref if r["dev20"] == "1"}
+    held = tasks - dev
+    print("dev-20 / other 69: " + ", ".join(f"{h} {len(passed[h] & dev)}/{len(passed[h] & held)}" for h in HARNESSES))
+    for a, b in (("c0nc", "terminus2"), ("c0nc", "openhands"), ("terminus2", "openhands")):
+        print(f"head-to-head {a} vs {b}: both {len(passed[a] & passed[b])}, only {a} {len(passed[a] - passed[b])}, "
+              f"only {b} {len(passed[b] - passed[a])}, neither {len(tasks - passed[a] - passed[b])}")
+    for h in HARNESSES:
+        fails = [r for r in ref if r[f"{h}_pass"] != "1"]
+        timeouts = sum(r[f"{h}_agent_error"] == "TimeoutError" for r in fails)
+        print(f"{h}: {len(fails)} not passed, {timeouts} of them hit the agent time limit")
     for h in HARNESSES:
         wins = [r for r in ref if r[f"{h}_pass"] == "1"]
         med = lambda m: median([x for x in (num(r[f"{h}_{m}"]) for r in wins) if x is not None] or [0])
