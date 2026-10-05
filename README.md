@@ -10,8 +10,8 @@ agent harness and comparing it with the client baselines on Terminal-Bench 2.1.
 
 | | |
 |---|---|
-| Harness | Deep Agents, version 0.1.2 |
-| Running now | 20-task dev set, version 0.1.2 |
+| Harness | Deep Agents, version 0.1.3 |
+| Running now | repeat study: 3 dev-set runs each of this harness and Terminus-2 on the same laptop |
 | Best result so far | one-task test passed; 2 of 5 finished tasks passed in the first 20-task trial |
 | Score to beat | Terminus-2 14/20 on the dev set (target: 16/20 before a full 89-task run) |
 
@@ -29,7 +29,9 @@ Runs on the Windows laptop with Harbor and Docker; the model is called through O
 | [`probe-openssl-v0.1.0`](results/harshini/deepagents/probe-openssl-v0.1.0.csv) | 0.1.0 | 1 | 0/1 (5 of 6 tests) | check script used a package the grader lacks |
 | [`probe-openssl-v0.1.1`](results/harshini/deepagents/probe-openssl-v0.1.1.csv) | 0.1.1 | 1 | **1/1** | prompt fix: deliverables must use only preinstalled tools |
 | [`dev20-v0.1.1`](results/harshini/deepagents/dev20-v0.1.1.csv) | 0.1.1 | 5 of 20 finished | **2 passed** | host went down; 2 failures were harness bugs |
-| `dev20-v0.1.2` | 0.1.2 | 20 | running | first full dev-set run |
+| `dev20-v0.1.2` | 0.1.2 | 3 of 20 | no score | provider overload; all 3 ended on rate-limit errors (retry added in 0.1.3) |
+| [`probe-openssl-terminus2`](results/harshini/deepagents/probe-openssl-terminus2.csv) | Terminus-2 | 1 | **1/1** | Terminus-2 with the reference settings runs on the laptop |
+| `dev20-v0.1.3` (+ r2, r3) | 0.1.3 | 20 each | running | repeat study, alternating with Terminus-2 r1–r3 |
 
 Fixes between versions are listed in the
 [harness changelog](experiments/harshini-deepagents/CHANGELOG.md).
@@ -63,8 +65,9 @@ Archived write-up: [`docs/team-stage1.md`](docs/team-stage1.md).
 
 ## Next
 
-1. Finish the `dev20-v0.1.2` run and compare it with the reference scores above.
-2. Run Terminus-2 on the same laptop and tasks, so the comparison uses one host.
+1. Finish the repeat study: how much does a dev-set score move between identical runs,
+   and does this harness differ from Terminus-2 on the same host?
+2. Compare with the reference scores above.
 3. Add Langfuse tracing to the Deep Agents harness.
 4. Run the full 89 tasks if the dev-set score reaches 16/20.
 

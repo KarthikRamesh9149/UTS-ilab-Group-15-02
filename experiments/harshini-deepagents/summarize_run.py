@@ -17,7 +17,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 FIELDS = ["task", "status", "reward", "stop_reason", "agent_min", "budget_min",
-          "cost_usd", "model_calls", "harness_version"]
+          "cost_usd", "model_calls", "harness", "harness_version"]
 
 
 def minutes(span: dict | None) -> str:
@@ -52,6 +52,7 @@ def row_for(task: str, task_dir: Path) -> dict:
         "budget_min": f"{budget / 60:.0f}" if budget else "",
         "cost_usd": f"{cost:.4f}" if cost is not None else "",
         "model_calls": meta.get("model_calls", ""),
+        "harness": meta.get("harness", ""),
         "harness_version": meta.get("harness_version", ""),
     }
 

@@ -8,6 +8,9 @@
   so every retry is counted.
 - Metadata adds `model_retries` and `model_retries_by_type`.
 - Offline smoke test adds a scripted 429 (10/10 checks pass).
+- Added `harness/terminus_pinned.py` (Harbor's Terminus-2 with the reference model
+  settings and the same retry rule) and `repeat_study.py`. Terminus-2 probe on
+  `openssl-selfsigned-cert`: 1/1 on the Windows laptop.
 
 ### dev-20 on 0.1.2 — stopped after 3 tasks
 

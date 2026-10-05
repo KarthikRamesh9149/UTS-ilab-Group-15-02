@@ -9,7 +9,9 @@ baselines **Terminus-2** and **OpenHands**.
 | Harbor agent + Deep Agents graph | [`harness/agent.py`](harness/agent.py) |
 | Container backend (execute, file tools) | [`harness/backend.py`](harness/backend.py) |
 | Offline smoke test (fake model + Docker) | [`tests/smoke_offline.py`](tests/smoke_offline.py) |
+| Terminus-2 with the reference model settings | [`harness/terminus_pinned.py`](harness/terminus_pinned.py) |
 | Task runner | [`run_probe.py`](run_probe.py) |
+| Repeat study runner | [`repeat_study.py`](repeat_study.py) |
 | Dev subset (20 tasks) | [`dev20_tasks.txt`](dev20_tasks.txt) |
 
 ## Design
@@ -47,6 +49,25 @@ python experiments/harshini-deepagents/run_probe.py custom openssl-selfsigned-ce
 
 Raw Harbor output goes to `jobs/harshini-deepagents/<run-name>/` (not committed).
 Per-trial trace: `<trial>/agent/deepagents-trajectory.json`.
+
+## Repeat study (same host)
+
+All published scores for this model are single runs at temperature 1.0, so a
+one- or two-task gap on dev-20 may be run-to-run noise. The repeat study measures
+that directly on the Windows laptop: three dev-20 runs of this harness (frozen at
+0.1.3) and three of Terminus-2, alternating between the two.
+
+Terminus-2 here is Harbor's own agent ([`harness/terminus_pinned.py`](harness/terminus_pinned.py)):
+its prompt, tools and loop are unchanged; only the connection is pinned to the
+reference settings (model, DeepInfra FP8 route, temperature 1.0, reasoning high,
+384k output tokens) with the same deadline-bounded retry on 429/5xx/connection errors.
+
+```powershell
+python experiments/harshini-deepagents/repeat_study.py
+```
+
+Outputs: `results/harshini/deepagents/dev20-v0.1.3{,-r2,-r3}.csv` and
+`dev20-terminus2-r{1,2,3}.csv`.
 
 ## Reference scores (Netcup server, same model)
 

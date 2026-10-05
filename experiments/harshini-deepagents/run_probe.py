@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Run Terminal-Bench 2.1 tasks one at a time with this harness or Oracle.
+"""Run Terminal-Bench 2.1 tasks one at a time with this harness, pinned Terminus-2 or Oracle.
 
     python experiments/harshini-deepagents/run_probe.py oracle --dev20
     python experiments/harshini-deepagents/run_probe.py custom openssl-selfsigned-cert
+    python experiments/harshini-deepagents/run_probe.py terminus --dev20 --run-name dev20-terminus2-r1
     python experiments/harshini-deepagents/run_probe.py custom --dev20 --run-name dev20-v0.1.0
 
 Each task is its own Harbor job under jobs/<run-name>/<task>/. Tasks that already
@@ -23,7 +24,10 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 DATASET = "terminal-bench/terminal-bench-2-1"
 MODEL = "openrouter/deepseek/deepseek-v4-flash-0731"
-AGENT = "harness.agent:DeepAgentsHarness"
+AGENTS = {
+    "custom": "harness.agent:DeepAgentsHarness",
+    "terminus": "harness.terminus_pinned:PinnedTerminus2",
+}
 
 
 def dev20() -> list[str]:
@@ -58,7 +62,7 @@ def scored(task_dir: Path) -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("agent", choices=("custom", "oracle"))
+    parser.add_argument("agent", choices=("custom", "terminus", "oracle"))
     parser.add_argument("tasks", nargs="*")
     parser.add_argument("--dev20", action="store_true", help="run the 20-task dev subset")
     parser.add_argument("--run-name")
@@ -75,7 +79,7 @@ def main() -> int:
     env["PYTHONIOENCODING"] = "utf-8"
     env["PYTHONUTF8"] = "1"
 
-    paid = args.agent == "custom"
+    paid = args.agent != "oracle"
     if paid and not env.get("OPENROUTER_API_KEY", "").strip():
         raise SystemExit("OPENROUTER_API_KEY is not set")
     before = key_usage() if paid else None
@@ -91,7 +95,7 @@ def main() -> int:
             "harbor", "run", "-d", DATASET, "-i", f"terminal-bench/{task}",
             "-n", "1", "-k", "1", "-o", str(run_dir), "--job-name", task, "--yes",
         ]
-        cmd += ["-a", "oracle"] if args.agent == "oracle" else ["-a", AGENT, "-m", MODEL]
+        cmd += ["-a", "oracle"] if args.agent == "oracle" else ["-a", AGENTS[args.agent], "-m", MODEL]
         subprocess.run(cmd, cwd=ROOT, env=env, check=False)
 
     if before is not None:
