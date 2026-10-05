@@ -1,6 +1,6 @@
 # Team Stage 1 — Qwen 3B/7B harness comparison (archived)
 
-Archived copy of the group README from Stage 1 (Ollama, Qwen2.5-Coder 3B/7B). Paths below are relative to the repository root.
+Archived copy of the team README from Stage 1 (Ollama, Qwen2.5-Coder 3B/7B). Paths below are relative to the repository root.
 
 This repository is a small, honest comparison of three coding-agent harnesses on a fixed 21-task Terminal-Bench 2.1 development subset:
 

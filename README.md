@@ -1,10 +1,10 @@
-# Harshini Prasad — custom harness experiments (Group 15-02)
+# Harshini Prasad — custom harness experiments (UTS iLab Project #15)
 
 Branch `harshini-trial-run` of the UTS iLab Project #15 repository: building a custom
 agent harness and comparing it with the client baselines on Terminal-Bench 2.1.
 
 **Current work:** a LangGraph **Deep Agents** harness using **DeepSeek V4 Flash 0731**
-(the group's locked model), compared against **Terminus-2** and **OpenHands**.
+(the model set by the client), compared against **Terminus-2** and **OpenHands**.
 
 ## Status
 
@@ -22,7 +22,7 @@ agent harness and comparing it with the client baselines on Terminal-Bench 2.1.
 ### Stage 3 — Deep Agents harness, DeepSeek V4 Flash (October 2026, current)
 
 Runs on the Windows laptop with Harbor and Docker; the model is called through OpenRouter
-(DeepInfra FP8, the same route as the group runs).
+(DeepInfra FP8, the same route as the reference runs).
 
 | Run | Harness | Tasks | Result | Notes |
 |---|---|---|---|---|
@@ -34,13 +34,13 @@ Runs on the Windows laptop with Harbor and Docker; the model is called through O
 Fixes between versions are listed in the
 [harness changelog](experiments/harshini-deepagents/CHANGELOG.md).
 
-**Group reference scores** (same model, group runs on the Netcup server):
+**Reference scores** (same model, Netcup server):
 
 | Harness | Dev 20 | Full 89 |
 |---|---:|---:|
 | Terminus-2 (client baseline) | 14 | 52 |
 | OpenHands (client baseline) | 10 | 44 |
-| Group custom harness (C0 / C0-NC) | 15 | 50 |
+| Karthik's custom harness (C0 / C0-NC) | 15 | 50 |
 
 ### Stage 2 — larger open model on UTS HPC (September 2026)
 
@@ -63,7 +63,7 @@ Archived write-up: [`docs/team-stage1.md`](docs/team-stage1.md).
 
 ## Next
 
-1. Finish the `dev20-v0.1.2` run and compare it with the group scores above.
+1. Finish the `dev20-v0.1.2` run and compare it with the reference scores above.
 2. Run Terminus-2 on the same laptop and tasks, so the comparison uses one host.
 3. Add Langfuse tracing to the Deep Agents harness.
 4. Run the full 89 tasks if the dev-set score reaches 16/20.

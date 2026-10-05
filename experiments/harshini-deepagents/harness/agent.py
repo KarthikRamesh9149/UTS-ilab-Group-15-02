@@ -1,7 +1,7 @@
 """Harbor agent: Deep Agents (LangGraph) controller for Terminal-Bench 2.1.
 
-Same pinned model and provider route as the group study (DeepSeek V4 Flash 0731 on
-DeepInfra FP8 via OpenRouter). Design levers, relative to the group's C0-NC agent:
+Same pinned model and provider route as the reference runs (DeepSeek V4 Flash 0731 on
+DeepInfra FP8 via OpenRouter). Design levers, relative to the C0-NC reference agent:
 
 - One blocking `execute` tool with a sticky working directory and a default
   per-command cap; slow work is pushed to background jobs that the model polls.

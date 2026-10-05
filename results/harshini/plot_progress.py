@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Patch
 
 HERE = Path(__file__).resolve().parent
-BASELINES = [("OpenHands", 10, "#9aa5b1"), ("Terminus-2", 14, "#1f3b5c"), ("Team custom (C0)", 15, "#3a7bd5")]
+BASELINES = [("OpenHands", 10, "#9aa5b1"), ("Terminus-2", 14, "#1f3b5c"), ("Karthik's custom (C0)", 15, "#3a7bd5")]
 TARGET = 16
 COLOURS = {"pass": "#2e9e5b", "fail": "#d9534f", "error": "#f0ad4e", "unscored": "#f0ad4e", "not run": "#d5dbe1"}
 
@@ -68,7 +68,7 @@ def main() -> None:
                         Patch(color=COLOURS["not run"], label="not run yet")],
                loc="lower center", bbox_to_anchor=(0.5, -0.2), ncol=3, frameon=False, fontsize=9)
 
-    fig.text(0.09, 0.02, "Baselines: group runs on the Netcup server. Deep Agents: Windows laptop host. "
+    fig.text(0.09, 0.02, "Reference scores: Netcup server. Deep Agents: Windows laptop host. "
              "Circle numbers follow dev20_tasks.txt order.", fontsize=8, color="#555")
     fig.savefig(HERE / "progress.png", bbox_inches="tight", facecolor="white")
     print(f"progress.png from {latest.name}: {passed}/{len(rows)} passed, {finished} finished")

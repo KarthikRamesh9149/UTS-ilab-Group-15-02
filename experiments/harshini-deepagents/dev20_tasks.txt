@@ -1,4 +1,4 @@
-# Group Stage 2 development subset (20 tasks), same IDs as
+# Stage 2 development subset (20 tasks), same IDs as
 # stage2/results/baseline-corrected-20260923/development-baselines.csv on main.
 adaptive-rejection-sampler
 build-pov-ray
