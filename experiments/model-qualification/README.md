@@ -234,4 +234,4 @@ trial was rerun with the corrected setting.
   valid). It also appends Stage 2's committed DeepSeek + Terminus-2 rows for the tasks
   with a valid trial.
 - `results.csv`: one row per trial (13 local and 4 reference). Harbor job directories
-  and logs are not committed.
+  and logs are not committed; the raw job logs are archived locally.
