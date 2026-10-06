@@ -151,8 +151,12 @@ Found on real tasks and fixed (see the
 - **Terminus-2 runs on Windows with Harbor 0.22** when the OpenRouter key and provider
   route are passed in the agent's LLM settings (`terminus_pinned.py`); the one-task probe
   passed with no authentication errors.
-- **Laptop sleep stops runs.** The run launchers now hold a Windows "system required"
-  request for their lifetime.
+- **Laptop sleep stops runs.** The run launchers hold a Windows "system required"
+  request, which prevents idle sleep but not Modern Standby from closing the lid or the
+  power button. On 5–6 October the laptop sat in Modern Standby for about 24 h during
+  Terminus-2's `regex-chess` (run 1); Harbor's timers paused, and the trial ended with
+  24.5 h of recorded agent time. It was the only trial that overlapped standby, and it
+  was set aside to be re-run rather than counted.
 - **CETUS (UTS HPC) cannot run Harbor** (no Docker; Stage 2 work, see the
   [results README](README.md)), so the laptop is the run host for this branch.
 

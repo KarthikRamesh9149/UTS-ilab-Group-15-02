@@ -28,7 +28,8 @@ RUNS = [
 
 
 def main() -> int:
-    for agent, run_name in RUNS:
+    # The second pass only re-runs tasks left without a verifier result (e.g. trials set aside after host sleep).
+    for agent, run_name in RUNS + RUNS:
         print(f"=== {agent} {run_name}", flush=True)
         subprocess.run([sys.executable, str(HERE / "run_probe.py"), agent, "--dev20", "--run-name", run_name],
                        cwd=ROOT, check=False)
