@@ -1,6 +1,6 @@
-# C0-NC · Terminal-Bench Agent Harness
+# Build a Custom Harness and Beat an Established One on Terminal-Bench
 
-**A deadline-aware coding agent built with Deep Agents and LangGraph.**
+**A custom coding-agent harness built with Deep Agents and LangGraph.**
 
 UTS iLab Capstone · Group 15-02 · Developed by Karthik Ramesh
 
