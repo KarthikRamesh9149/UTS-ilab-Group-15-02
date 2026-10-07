@@ -1,4 +1,0 @@
-ARG PARENT
-FROM ${PARENT}
-COPY credit_only_gateway.py retry_gateway.py portable_custom_policy.py portable_final_selection.py portable_custom_probe.py custom_control.py deadline_custom_contract.py deadline_custom_policy.py deadline_custom_gateway.py deadline_custom_probe.py /study/stage2/
-ENTRYPOINT ["python", "/study/stage2/deadline_custom_gateway.py"]

@@ -1,114 +1,127 @@
-# UTS iLab Group 15-02 — Terminal-Bench 2.1 harness comparison
+# C0-NC · Terminal-Bench Agent Harness
 
-## Active study: Netcup + OpenRouter
+**A deadline-aware coding agent built with Deep Agents and LangGraph.**
 
-The [one-model Harbor study on native x86-64 Linux](stage2/NETCUP.md)
-uses DeepSeek V4 Flash 0731 through the pinned DeepInfra FP8 endpoint.
-Terminus-2, OpenHands and the custom Deep Agents/LangGraph harness use the same
-benchmark. The saved study results include three 89-task baseline rounds, a
-20-task C0–C3 custom-candidate comparison, and one completed 89-task C0-NC
-custom run. Their different denominators and stages are reported separately
-below.
+UTS iLab Capstone · Group 15-02 · Developed by Karthik Ramesh
 
-The scores are one-run observations; they do not establish a causal
-improvement or full-benchmark win. Recovery and matched-repeat results are
-outside the summary below. The [CETUS local-model work](stage2/CETUS_LOCAL.md)
-and the Stage 1 pilot below are preserved as separate historical experiments.
+C0-NC gives a language model the tools and execution loop to solve real terminal tasks: inspect a workspace, edit files, manage commands and decide when its work is complete.
 
-## Latest Netcup results (30 September 2026)
+**The final custom harness solved 50 of 89 tasks, outperforming OpenHands by six tasks.** Its 56.18% pass rate was close to Terminus-2's 58.43%, demonstrating a working custom agent across a broad set of software, systems and data tasks.
 
-### Three full baseline rounds
-
-Each round ran the same 89 tasks once with each harness (178 outcomes per round). Values below are passed / not-passed task counts.
-
-| Round | Terminus-2 | OpenHands |
-| --- | ---: | ---: |
-| A — Original capped | 18 / 89 passed; 71 not passed | 4 / 89 passed; 85 not passed |
-| B — API-troubled | 3 / 89 passed; 86 not passed | 1 / 89 passed; 88 not passed |
-| C — Latest corrected | 52 / 89 passed; 37 not passed | 44 / 89 passed; 45 not passed |
-
-The rounds had different operational settings. A used spending/billing-safety caps; B removed those caps but suffered model-service errors; C added temporary API retry handling and increased response/step allowances while retaining official task limits. Multiple settings changed, so the score differences do not identify a single cause. See the [earlier baseline records](stage2/results/baseline-credit-only-20260922/README.md) and [latest corrected baseline record](stage2/results/baseline-corrected-20260923/README.md).
-
-### C0–C3 custom candidate comparison
-
-These variants were compared on the fixed 20-task development subset:
-
-| Variant | Passed | Not passed | Decision |
-| --- | ---: | ---: | --- |
-| C0 | 15 / 20 | 5 | Selected highest observed score |
-| C1 | 14 / 20 | 6 | Not selected |
-| C2 | 14 / 20 | 6 | Not selected |
-| C3 | 13 / 20 | 7 | Not selected |
-
-The cost tie-break was not used. The [selection record](stage2/results/custom-deadline-20260927/README.md) preserves the decision and qualification history.
-
-### Final custom harness: C0-NC, all 89 tasks
-
-| Scope | Passed | Verified zero-score failures | Setup-only; no verifier outcome |
-| --- | ---: | ---: | ---: |
-| Development subset (20) | 15 | 5 | 0 |
-| Remaining tasks (69) | 35 | 31 | 3 |
-| **Full C0-NC run (89)** | **50** | **36** | **3** |
-
-The three setup-only attempts are missing verifier outcomes, not passes or zero scores. The run was audited, one off-server backup was verified, and its allowlisted result export was published. Reported known cost was **$1.71399138**, but **799 requests had unknown cost**; total cost remains unknown and independent billing receipts were not verified. See the [final C0-NC report](stage2/results/custom-no-cutoff-final-20260928/README.md).
-
-C0's 15/20 development score is not an 89-task result. C0-NC is a later revised harness and must be treated as a separate run. No recovery attempt or matched-repeat baseline is included in these results.
-
-## Historical Stage 1 pilot (preserved)
-
-This repository is a small, honest comparison of three coding-agent harnesses on a fixed 21-task Terminal-Bench 2.1 development subset:
-
-- Mini-SWE-Agent (baseline 1)
-- OpenHands (baseline 2)
-- UTS Qwen custom harness 2.2.0
-
-Each harness runs the same tasks once (`k=1`, concurrency 1, temperature 0) with both locally hosted Q4_K_M models:
-
-- Qwen2.5-Coder-3B-Instruct (`qwen2.5-coder:3b`)
-- Qwen2.5-Coder-7B-Instruct (`qwen2.5-coder:7b`)
-
-The intended matrix is therefore 21 tasks × 3 harnesses × 2 models = **126 trials**. This is deliberately **not** a full 89-task run, an official leaderboard submission, or a statistically representative accuracy estimate.
-
-## Evaluation safeguards
-
-- The task list is frozen in `configs/progress_subset.txt`.
-- Selection uses seed 42 and accepts only tasks whose official Oracle trial produced a valid passing verifier result.
-- Oracle outcomes are selection evidence only and never enter model pass rates.
-- A reward-zero model trial is retained; only unambiguous infrastructure failures may be corrected.
-- Custom harness version 2.2.0 is frozen for every scored custom row.
-- Missing trials remain visible in the 126-row CSV instead of disappearing from the denominator.
-- Raw Harbor jobs and local model weights are ignored because of their size; curated CSV, summaries, manifests, and terminal evidence are committed.
-
-## Reproduce or resume
-
-The project uses local, ignored tool/model directories. See `docs/setup-notes.md` for exact versions and endpoint details.
-
-```bash
-make preflight
-make model-start
-make model-test
-make matrix
-make collect
-make report
-make evidence
-make test
-```
-
-`scripts/run_matrix.py` is resumable: it discovers valid existing trials by task, harness, model, and frozen custom version, then runs only missing cells sequentially.
+[Results](#results) · [Design](#design) · [Getting started](#getting-started) · [Architecture](docs/architecture.md) · [Evaluation](docs/evaluation.md)
 
 ## Results
 
-The completed run artifacts live under `results/progress_smoke_20260831_133343/`. Read `summary.md` for the six-condition comparison, `results.csv` for all intended trial rows, `limitations.md` before interpreting the numbers, and `terminal_evidence/` for per-condition output captures.
+All three harnesses were evaluated on the same 89-task Terminal-Bench 2.1 set with DeepSeek V4 Flash 0731.
 
-Model | Harness | Valid / Intended | Passed | Pass rate | Mean runtime
---- | --- | ---: | ---: | ---: | ---:
-Qwen 3B | Mini-SWE-Agent | 21 / 21 | 0 | 0.0% | 353.5 s
-Qwen 3B | OpenHands | 21 / 21 | 0 | 0.0% | 442.9 s
-Qwen 3B | UTS custom 2.2.0 | 20 / 21 | 0 | 0.0% | 233.2 s
-Qwen 7B | Mini-SWE-Agent | 21 / 21 | 0 | 0.0% | 289.7 s
-Qwen 7B | OpenHands | 21 / 21 | 0 | 0.0% | 515.0 s
-Qwen 7B | UTS custom 2.2.0 | 21 / 21 | 0 | 0.0% | 400.4 s
+| Harness | Passed | Verified failures | Missing outcomes | Pass rate |
+| --- | ---: | ---: | ---: | ---: |
+| **C0-NC custom harness** | **50 / 89** | 39 | 0 | **56.18%** |
+| Terminus-2 | 52 / 89 | 37 | 0 | 58.43% |
+| OpenHands | 44 / 89 | 45 | 0 | 49.44% |
 
-All six conditions scored zero passes, so this run provides no evidence that any harness or model size is more accurate on the subset. The custom harness had the lowest mean runtime with 3B, but one of its 3B trials exceeded the frozen 120-second command limit before verification; that row remains an invalid, non-infrastructure outcome. Runtime alone is not a quality win.
+The custom result includes three separately completed setup-recovery attempts. The original run recorded 50 passes, 36 verified failures and three missing verifier outcomes; recovery produced three verified failures. The combined view covers **89 distinct tasks across 92 attempts**, not one uninterrupted 89-attempt run.
 
-The custom harness is intentionally benchmark-specific rather than a general agent framework. It uses a strict JSON action contract, phase-aware prompting, rolling context, bounded execution, repeat/destructive-command guards, exact artifact checks, and an edit-plus-test completion gate. Its behavior is covered by the repository test suite and frozen at version 2.2.0 for all scored custom rows.
+These are observed results from experiments conducted on separate dates, not proof of general superiority or statistical equivalence.
+
+### Development and remaining tasks
+
+| Harness | Development set | Remaining tasks | Full benchmark |
+| --- | ---: | ---: | ---: |
+| C0-NC | **15 / 20** | 35 / 69 | 50 / 89 |
+| Terminus-2 | 14 / 20 | **38 / 69** | 52 / 89 |
+| OpenHands | 10 / 20 | 34 / 69 | 44 / 89 |
+
+The 20 development tasks are disclosed separately from the other 69. All three setup-recovery tasks belong to the remaining set.
+
+[Explore the task-level results](results/) or reproduce the comparison locally:
+
+```bash
+python3 scripts/report_results.py
+```
+
+## Design
+
+C0-NC is a single-agent harness integrated with Harbor's isolated task environments.
+
+- **Workspace tools** operate inside the task container.
+- **Managed commands** can be started, polled and interrupted through explicit handles.
+- **Deadline-aware execution** follows the official task clock, with no added command-count or completion-repair quotas.
+- **Explicit completion** lets the agent complete or abandon a task; only the official verifier determines success.
+- **Runtime portability** supports images without a suitable Python interpreter through a verified fallback.
+- **Execution records** retain trajectories, timings and available usage for analysis.
+
+```mermaid
+flowchart LR
+    Task[Task instruction] --> Agent[Deep Agents / LangGraph]
+    Agent <--> Model[Pinned model via local gateway]
+    Agent <--> Tools[File and command tools]
+    Tools <--> Sandbox[Harbor task container]
+    Agent --> Verifier[Official verifier]
+```
+
+The model controller, completion contract, portable sandbox and command lifecycle are implemented in [src/uts_harness](src/uts_harness/).
+
+## Getting started
+
+### Inspect the results
+
+The reporting script uses only Python's standard library. No API key, Docker environment or model call is needed.
+
+```bash
+git clone https://github.com/KarthikRamesh9149/UTS-ilab-Group-15-02.git
+cd UTS-ilab-Group-15-02
+python3 scripts/report_results.py
+python3 scripts/report_results.py --json
+```
+
+### Install the harness
+
+Use **Python 3.11 or newer**. Full task execution requires Linux, Docker/Harbor, the pinned portable Python bundle and an explicitly configured local model gateway.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+```
+
+The package exposes `NoCutoffCustomHarborAgent`, `NoCutoffCustomRunner`, `Condition` and `agent_factory`. It is a Harbor adapter, not a standalone paid-benchmark launcher. The client accepts only a per-trial token and a loopback gateway; provider routing and authorisation remain outside the agent.
+
+[Read the architecture and integration requirements](docs/architecture.md).
+
+### Run the offline tests
+
+After installing the package:
+
+```bash
+python scripts/test_offline.py
+```
+
+These tests exercise the implementation and validate the saved results. The test runner clears provider credentials and blocks network connections.
+
+## Evaluation setup
+
+| Setting | Value |
+| --- | --- |
+| Benchmark | Terminal-Bench 2.1 · fixed 89-task set |
+| Model | `deepseek/deepseek-v4-flash-0731` |
+| Access | OpenRouter → DeepInfra FP8 · fallback disabled |
+| Sampling | Temperature 1.0 · top-p 1.0 · high reasoning effort |
+| Host | Native x86-64 Linux on Netcup |
+| Scoring | Official binary verifier reward |
+| Resources | Official per-task deadlines, CPU and memory limits |
+
+[Evaluation methodology](docs/evaluation.md) explains the development split, recovery accounting and interpretation of the comparison. [configs](configs/) contains the saved study settings and task identities.
+
+## Repository layout
+
+```text
+src/uts_harness/   Final custom harness
+tests/            Offline harness and result tests
+configs/          Evaluation settings and fixed task set
+results/          Two baseline runs, custom run and setup recovery
+scripts/          Result validation and reporting
+docs/             Architecture and evaluation methodology
+```
+
+Built for the **UTS iLab Capstone, Group 15-02**.

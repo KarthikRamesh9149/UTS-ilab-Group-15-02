@@ -1,0 +1,20 @@
+{
+  "benchmark": "Terminal-Bench 2.1",
+  "task_set": "tasks.json",
+  "harnesses": ["terminus-2", "openhands", "C0-NC"],
+  "model": "deepseek/deepseek-v4-flash-0731",
+  "provider": "OpenRouter",
+  "endpoint": "deepinfra/fp8",
+  "provider_fallback": false,
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "reasoning_effort": "high",
+  "max_output_tokens": 384000,
+  "host": "native x86-64 Linux on Netcup",
+  "scoring": "official binary verifier reward",
+  "resources": "official per-task deadlines, CPU and memory limits",
+  "custom_agent_version": "stage2-candidate-0.5.0",
+  "custom_parent": "C0",
+  "custom_original_attempts": 89,
+  "custom_setup_recovery_attempts": 3
+}

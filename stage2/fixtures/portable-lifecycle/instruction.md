@@ -1,1 +1,0 @@
-Synthetic infrastructure rehearsal, not a benchmark task. Exercise the supplied file, command and completion tools with the synthetic provider, and leave the fixture marker and background service for the verifier.

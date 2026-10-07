@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uts-terminal-harness"
+version = "0.5.0"
+description = "C0-NC: a deadline-aware Deep Agents harness for Terminal-Bench"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{name = "Karthik Ramesh"}]
+dependencies = [
+    "harbor==0.22.0",
+    "deepagents==0.7.14",
+    "langchain==1.4.0",
+    "langchain-core==1.6.3",
+    "langchain-openai==1.6.2",
+    "langsmith==0.12.5",
+]
+
+[project.urls]
+Repository = "https://github.com/KarthikRamesh9149/UTS-ilab-Group-15-02"
+
+[tool.setuptools.packages.find]
+where = ["src"]

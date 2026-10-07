@@ -1,4 +1,0 @@
-ARG PARENT
-FROM ${PARENT}
-COPY no_cutoff_recovery_gateway.py no_cutoff_recovery_policy.py no_cutoff_recovery_plan.py matched_repeat_schedule.py no_cutoff_recovery_fixture.py /study/stage2/
-ENTRYPOINT ["python", "/study/stage2/no_cutoff_recovery_gateway.py"]

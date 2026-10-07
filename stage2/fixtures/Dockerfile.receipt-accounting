@@ -1,7 +1,0 @@
-# Accounting-only layer over the original netcupv8 qualified gateway.
-# No package resolution, network build step, credential or task data.
-# Required parent: sha256:40a7102083b656f23e7ceeac9a560f2633f529872ebafcd05427c88dfd1ce3bc
-# The build command assigns this local alias to exactly that image ID;
-# qualification independently checks the parent layers and configuration.
-FROM uts-stage2-receipt-base:netcupv8
-COPY budget_ledger.py deferred_billing.py run_baselines.py scored_trial.py receipt_accounting.py collect_deferred_receipts.py receipt_runtime_transition.py scoring_admission.py /study/stage2/

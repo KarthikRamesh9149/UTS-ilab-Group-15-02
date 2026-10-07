@@ -1,19 +1,42 @@
+# Local environments and caches
 .DS_Store
 .tools/
 .cache/
-.runtime/
-.current_run
+.venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.venv/
+*.egg-info/
+build/
+dist/
+
+# Credentials, private traces and generated artifacts
 .env
-
-# Harbor outputs can be large; keep only curated, explicitly forced evidence.
+.env.*
+!.env.example
+.runtime/
+.current_run
+*.pem
+*.key
 jobs/
-results/progress_smoke_*/raw/
-results/progress_smoke_*/trials/
-results/progress_smoke_*/commands.log
+output/
 
-# User-requested code-free deliverables stay local; never push generated ZIPs.
-output/final-evidence/
+# Historical files retained only in the local research checkout
+stage2/
+experiments/
+Makefile
+AGENTS.md
+configs/*
+!configs/evaluation.json
+!configs/tasks.json
+docs/*
+!docs/architecture.md
+!docs/evaluation.md
+scripts/*
+!scripts/report_results.py
+!scripts/test_offline.py
+results/progress_smoke_*/
+results/.gitkeep
+tests/test_custom_harness.py
+tests/test_report_generator.py
+tests/test_result_parser.py
