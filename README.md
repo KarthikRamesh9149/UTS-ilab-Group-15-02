@@ -1,8 +1,8 @@
-# Build a Custom Harness and Beat an Established One on Terminal-Bench
+# Terminal-Bench Custom Harness
 
 **A custom coding-agent harness built with Deep Agents and LangGraph.**
 
-UTS iLab Capstone · Group 15-02 · Developed by Karthik Ramesh
+UTS iLab Capstone · Group 15-02
 
 C0-NC gives a language model the tools and execution loop to solve real terminal tasks: inspect a workspace, edit files, manage commands and decide when its work is complete.
 
