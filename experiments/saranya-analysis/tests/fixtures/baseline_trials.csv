@@ -1,9 +1,0 @@
-trial_id,task_id,harness,reward,agent_error_type,verifier_error_type,setup_seconds,agent_seconds,verifier_seconds,model_requests,accepted_model_responses,http_429_requests,known_cost_usd,total_cost_usd,unknown_cost_requests,known_input_tokens,input_tokens,known_output_tokens,output_tokens
-t-a,task-a,terminus-2,1,,,10.0,100.0,5.0,4,4,0,0.0010,0.0010,0,1000,1000,100,100
-t-b,task-b,terminus-2,0,TimeoutError,,10.0,900.0,5.0,9,5,4,0.0020,,4,2000,,200,
-t-c,task-c,terminus-2,1,TimeoutError,,10.0,900.0,5.0,3,3,0,0.0005,0.0005,0,500,500,50,50
-t-d,task-d,terminus-2,0,,,10.0,200.0,5.0,2,2,0,0.0001,0.0001,0,100,100,10,10
-o-a,task-a,openhands,1,,,10.0,120.0,5.0,5,5,0,0.0011,0.0011,0,1100,1100,110,110
-o-b,task-b,openhands,1,,,10.0,300.0,5.0,6,6,0,0.0012,0.0012,0,1200,1200,120,120
-o-c,task-c,openhands,0,NetworkConnectionError,,10.0,1.0,5.0,0,0,0,0,0,0,0,0,0,0
-o-d,task-d,openhands,0,APIError,,10.0,50.0,5.0,3,1,2,0.0002,,2,200,,20,

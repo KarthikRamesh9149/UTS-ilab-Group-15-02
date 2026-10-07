@@ -1,4 +1,0 @@
-ARG PARENT
-FROM ${PARENT}
-COPY retry_policy.py retry_runtime.py retry_transport.py retry_gateway.py rate_limit_candidate.py retry_runtime_probe.py test_retry_gateway.py test_rate_limit_candidate.py /study/stage2/
-ENTRYPOINT ["python", "/study/stage2/retry_gateway.py"]

@@ -1,7 +1,0 @@
-{
-  "query-optimize": {
-    "reason": "Harbor artifact collection stalled for more than 20 minutes after verifier output; incomplete job preserved and exact container removed.",
-    "classification": "local_infrastructure_unsuitable",
-    "result_path": "results/progress_smoke_20260831_133343/raw/oracle-jobs/oracle-query-optimize"
-  }
-}

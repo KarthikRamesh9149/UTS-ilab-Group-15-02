@@ -1,0 +1,61 @@
+{
+  "benchmark": "Terminal-Bench 2.1",
+  "reporting": "Derived from original records; recovery is not a single 89-attempt run",
+  "baselines": [
+    {
+      "harness": "terminus-2",
+      "tasks": 89,
+      "attempts": 89,
+      "passed": 52,
+      "verified_failures": 37,
+      "missing_outcomes": 0,
+      "pass_rate_percent": 58.43,
+      "development_passed": 14,
+      "remaining_passed": 38
+    },
+    {
+      "harness": "openhands",
+      "tasks": 89,
+      "attempts": 89,
+      "passed": 44,
+      "verified_failures": 45,
+      "missing_outcomes": 0,
+      "pass_rate_percent": 49.44,
+      "development_passed": 10,
+      "remaining_passed": 34
+    }
+  ],
+  "custom_original": {
+    "harness": "C0-NC",
+    "tasks": 89,
+    "attempts": 89,
+    "passed": 50,
+    "verified_failures": 36,
+    "missing_outcomes": 3,
+    "pass_rate_percent": 56.18,
+    "development_passed": 15,
+    "remaining_passed": 35
+  },
+  "custom_recovery": {
+    "harness": "C0-NC recovery",
+    "tasks": 3,
+    "attempts": 3,
+    "passed": 0,
+    "verified_failures": 3,
+    "missing_outcomes": 0,
+    "pass_rate_percent": 0.0,
+    "development_passed": 0,
+    "remaining_passed": 0
+  },
+  "custom_recovery_inclusive": {
+    "harness": "C0-NC",
+    "tasks": 89,
+    "attempts": 92,
+    "passed": 50,
+    "verified_failures": 39,
+    "missing_outcomes": 0,
+    "pass_rate_percent": 56.18,
+    "development_passed": 15,
+    "remaining_passed": 35
+  }
+}
