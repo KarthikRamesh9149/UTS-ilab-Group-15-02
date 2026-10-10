@@ -49,6 +49,9 @@ class GeminiAgent(BaseAgent):
     async def setup(self, environment):
         self.prepared, self.runtime_proof = await prepare_python(environment, self.bundle)
 
+    def make_runner(self, backend, deadline):
+        return GeminiRunner(self.model, backend, deadline)
+
     async def run(self, instruction, environment, context):
         if self.used:
             raise RuntimeError('No replay permitted')
@@ -58,7 +61,7 @@ class GeminiAgent(BaseAgent):
         self.gateway.activate(self.logs_dir.parent.name, deadline.deadline)
         backend = NoCutoffHarborSandbox(self.prepared, identifier=self.logs_dir.parent.name,
             deadline=deadline)
-        self.runner = GeminiRunner(self.model, backend, deadline)
+        self.runner = self.make_runner(backend, deadline)
         if self.callbacks:
             self.runner.graph = self.runner.graph.with_config({'callbacks':[self.callbacks]})
         outcome = None
@@ -71,7 +74,7 @@ class GeminiAgent(BaseAgent):
                 'messages': messages_to_dict((self.runner.state or {}).get('messages', [])),
                 'control_events': self.runner.control.events})
             context.metadata = dict(model_attempts=self.runner.model_limit.attempts,
-                version=VERSION, outcome=outcome)
+                version=self.version(), outcome=outcome)
 
     async def cleanup_after_verification(self):
         if self.runner is not None:
