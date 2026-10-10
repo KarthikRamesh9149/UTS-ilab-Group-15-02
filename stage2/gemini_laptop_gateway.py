@@ -89,6 +89,10 @@ class Gateway:
                 return web.json_response({'error': {'message': 'Trial deadline or study stop'}}, status=403)
             try:
                 credit = await self.credit()
+                # Credit metadata awaits can outlive authorization or deadline.
+                # Recheck before reserving money or issuing a physical POST.
+                if self.active != trial or self.stop_reason or time.monotonic() >= trial[1]:
+                    return web.json_response({'error': {'message': 'Trial deadline or study stop'}}, status=403)
                 row = self.ledger.reserve(trial[0], credit['available_usd'])
             except BudgetStop:
                 self.stop_reason = 'budget_stop'

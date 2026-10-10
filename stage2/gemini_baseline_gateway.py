@@ -3,19 +3,24 @@ import json
 from pathlib import Path
 import time
 from aiohttp import web
-from gemini_baseline_budget import SharedBaselineLedger
+from gemini_baseline_budget import SharedBaselineLedger, ExtendedBaselineLedger
 from gemini_laptop_gateway import Gateway
 from gemini_laptop_policy import atomic_json, wire
 
 
 class BaselineGateway(Gateway):
-    def __init__(self, key, directory, *, prior_path, prior_sha256, cells):
+    def __init__(self, key, directory, *, prior_path, prior_sha256, cells, authorization=None):
         super().__init__(key, directory)
         self.prior_path, self.prior_sha256, self.cells = prior_path, prior_sha256, cells
+        self.authorization = authorization
         self.task_site = None
         self.client_sequence = 0
 
     def create_ledger(self, available):
+        if self.authorization is not None:
+            return ExtendedBaselineLedger(self.directory / 'ledger.json', available,
+                prior_path=self.prior_path, prior_sha256=self.prior_sha256,
+                cells=self.cells, authorization=self.authorization)
         return SharedBaselineLedger(self.directory / 'ledger.json', available,
             prior_path=self.prior_path, prior_sha256=self.prior_sha256, cells=self.cells)
 

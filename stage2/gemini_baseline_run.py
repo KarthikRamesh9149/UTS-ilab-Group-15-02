@@ -77,6 +77,25 @@ def classify(result, stop):
     return 'pass' if reward == 1 else 'verifier_failure'
 
 
+def continuation_inputs(directory, authorization, cells):
+    """Admit only the unstarted suffix of a hash-bound, closed comparison."""
+    prior = directory / 'ledger.json'
+    completed = directory / 'tasks.json'
+    for path, field in ((prior, 'prior_ledger_sha256'), (completed, 'completed_tasks_sha256')):
+        if path.is_symlink() or hashlib.sha256(path.read_bytes()).hexdigest() != authorization[field]:
+            raise ValueError('Closed continuation evidence changed')
+    rows = json.loads(completed.read_text())
+    if len(rows) != authorization['completed_attempts'] or len(rows) != 3:
+        raise ValueError('Expected three closed predecessor attempts')
+    identities = ('order', 'trial_id', 'task_id', 'harness')
+    for row, cell in zip(rows, cells):
+        if any(row.get(k) != cell[k] for k in identities) or not row.get('task_containers_removed'):
+            raise ValueError('Completed prefix or cleanup differs')
+    if len({c['trial_id'] for c in cells}) != 40 or len(cells) != 40:
+        raise ValueError('Exactly forty distinct registered native cells required')
+    return prior, rows, cells[len(rows):]
+
+
 async def run_cell(root, private, gateway, cell, task, protocol_sha, *, fixture=False):
     trial_id = cell['trial_id']
     paths = TrialPaths(private / 'trials' / trial_id)
@@ -193,8 +212,8 @@ def report(public, registration, rows, gateway):
     new = gateway.ledger.data['requests'][len(gateway.ledger.prior['requests']):]
     budget.update(comparison_known_spending_usd=str(sum((money(r['cost_usd']) for r in new if r.get('cost_usd') is not None), Decimal(0))),
         comparison_physical_requests=len(new),
-        remaining_conservative_usd=str(CAP - gateway.ledger.known - gateway.ledger.unresolved))
-    summary = {'experiment': STUDY, 'model': MODEL, 'scope': 'native Gemini baseline comparison; separate from DeepSeek and original custom run',
+        remaining_conservative_usd=str(money(gateway.ledger.data['cap_usd']) - gateway.ledger.known - gateway.ledger.unresolved))
+    summary = {'experiment': registration['experiment'], 'model': MODEL, 'scope': 'native Gemini baseline comparison; separate from DeepSeek and original custom run',
         'by_harness': by_harness, 'budget': budget,
         'stop_reason': gateway.stop_reason or ('forty_attempts_complete' if len(rows) == 40 else 'running'),
         'unstarted_cells': registration['cells'][len(rows):],
@@ -268,6 +287,21 @@ async def run(args):
         raise ValueError('Qualified native bundle differs')
     cells = [{**cell, 'trial_id': f'gemini-native-{cell["order"]:02d}-{cell["harness"]}-{cell["task_id"]}'}
              for cell in proposal['proposed_cells']]
+    all_cells, rows, authorization = cells, [], None
+    study = STUDY
+    prior_sha = proposal['prior_ledger_sha256']
+    authorization_sha = None
+    if bool(args.continuation_root) != bool(args.authorization):
+        raise ValueError('Continuation requires both closed evidence and authorization')
+    if args.continuation_root:
+        authorization = json.loads(args.authorization.read_text())
+        authorization_sha = hashlib.sha256(args.authorization.read_bytes()).hexdigest()
+        prior_path, rows, cells = continuation_inputs(args.continuation_root, authorization, all_cells)
+        prior_sha = authorization['prior_ledger_sha256']
+        study = 'gemini-native-continuation-20261010'
+        protocol_sha = hashlib.sha256(json.dumps({'source': source,
+            'model': proposal['model_protocol'], 'cells': all_cells,
+            'authorization_sha256': authorization_sha}, sort_keys=True).encode()).hexdigest()
     provider = None
     if args.qualify:
         if Path('/run/openrouter-key').exists() or os.getenv('OPENROUTER_API_KEY'):
@@ -277,12 +311,15 @@ async def run(args):
             raise ValueError('Qualification requires only internal networks')
         cells = [{'order': i + 1, 'trial_id': 'launcher-synthetic-' + h,
             'task_id': 'synthetic-lifecycle', 'harness': h} for i, h in enumerate(('terminus-2', 'openhands'))]
+        rows = []
         provider = FakeProvider(private)
         origin = await provider.start()
     else:
         qual = json.loads(args.qualification.read_text())
         if qual.get('passed') is not True or qual['source_hashes'] != source or qual['bundle_sha256'] != BUNDLE_SHA:
             raise ValueError('Successful current-source launcher qualification required')
+        if qual.get('authorization_sha256') != authorization_sha:
+            raise ValueError('Qualification budget amendment differs')
         info = json.loads(docker('info', '--format', '{{json .}}'))
         controller = json.loads(docker('inspect', os.environ['HOSTNAME']))[0]
         limit = controller['HostConfig']['Memory']
@@ -296,22 +333,24 @@ async def run(args):
             'controller_memory_limit_bytes': limit, 'maximum_official_task_memory_bytes': maximum,
             'daemon_memory_margin_bytes': 1024**3, 'other_docker_workloads_running': False}
     gateway = BaselineGateway('synthetic-key' if args.qualify else credential(args.key_file), private,
-        prior_path=prior_path, prior_sha256=proposal['prior_ledger_sha256'],
-        cells={c['trial_id']: c['harness'] for c in cells})
+        prior_path=prior_path, prior_sha256=prior_sha,
+        cells={c['trial_id']: c['harness'] for c in cells}, authorization=authorization)
     if provider:
         gateway.origin = origin
-    rows = []
-    registration = {'experiment': STUDY, 'scope': 'synthetic' if args.qualify else 'paid_native_baselines',
-        'user_authorization': 'Option 2: up to twenty Terminus and twenty OpenHands attempts under original shared US$20 cap',
-        'cells': cells, 'source_hashes': source, 'protocol_sha256': protocol_sha,
+    registration = {'experiment': study, 'scope': 'synthetic' if args.qualify else 'paid_native_baselines',
+        'user_authorization': authorization or 'Option 2: up to twenty Terminus and twenty OpenHands attempts under original shared US$20 cap',
+        'authorization_sha256': authorization_sha,
+        'cells': all_cells if authorization and not args.qualify else cells,
+        'continuation_cells': cells, 'inherited_completed_attempts': len(rows),
+        'source_hashes': source, 'protocol_sha256': protocol_sha,
         'model_protocol': proposal['model_protocol'], 'frozen_dataset': proposal['frozen_dataset'],
-        'prior_ledger_sha256': proposal['prior_ledger_sha256'], 'bundle_sha256': BUNDLE_SHA,
+        'prior_ledger_sha256': prior_sha, 'bundle_sha256': BUNDLE_SHA,
         'controller_image': docker('inspect', os.environ['HOSTNAME'], '--format', '{{.Image}}'),
         'setup_timeout_seconds': 180, 'replays': 0, 'automatic_retries': 0,
         'started_utc': datetime.now(timezone.utc).isoformat()}
     if not args.qualify:
         registration['capacity_admission'] = capacity
-    public = root / 'stage2/results' / STUDY
+    public = root / 'stage2/results' / study
     try:
         registration['initial_credit'] = await gateway.start()
         if not args.qualify:
@@ -324,7 +363,7 @@ async def run(args):
         for cell in cells:
             await gateway.reconcile()
             credit = await gateway.credit()
-            if (gateway.stop_reason or gateway.ledger.known + gateway.ledger.unresolved + RESERVATION > CAP
+            if (gateway.stop_reason or gateway.ledger.known + gateway.ledger.unresolved + RESERVATION > money(gateway.ledger.data['cap_usd'])
                     or gateway.ledger.unresolved + RESERVATION > money(credit['available_usd'])):
                 gateway.stop_reason = gateway.stop_reason or 'budget_stop'
                 break
@@ -353,6 +392,7 @@ async def run(args):
                 'passed': len(rows) == 2 and all(r['classification'] == 'pass' and r.get('model_revoked')
                     and r['task_containers_removed'] and not r.get('trace_errors') and not r.get('gateway_stop') for r in rows),
                 'source_hashes': source, 'bundle_sha256': BUNDLE_SHA,
+                'authorization_sha256': authorization_sha,
                 'controller_image': registration['controller_image'], 'fixture_image': args.fixture_image,
                 'fixtures': [{k: v for k, v in r.items() if k != 'reward'} for r in rows],
                 'inherited_budget_preserved': gateway.ledger.data['requests'][:len(gateway.ledger.prior['requests'])] == gateway.ledger.prior['requests']}
@@ -379,6 +419,8 @@ def main():
     parser.add_argument('--qualification', type=Path)
     parser.add_argument('--key-file', type=Path, default=Path('/run/openrouter-key'))
     parser.add_argument('--qualify', action='store_true')
+    parser.add_argument('--continuation-root', type=Path)
+    parser.add_argument('--authorization', type=Path)
     parser.add_argument('--fixture-image', default='uts-gemini-baseline-task-fixture:20261010')
     args = parser.parse_args()
     os.umask(0o077)

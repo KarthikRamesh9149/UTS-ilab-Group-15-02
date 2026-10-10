@@ -54,3 +54,21 @@ Report attempted/unstarted cells, actual verifier scores, passes, verifier and
 infrastructure failures, budget stops, known spending and unknown reservations
 separately for each native harness. The remaining allowance may censor the
 comparison. Do not infer a full twenty-task superiority claim from partial data.
+
+## Authorized continuation
+
+After three native attempts, the user authorized up to US$30 additional spending,
+raising the total experiment cap to US$50. `gemini_continuation_authorization.json`
+records that instruction and the hashes of the closed ledger and three outcomes.
+The continuation accepts `--continuation-root` and `--authorization`, preserves
+all 1,617 predecessor request records and the unresolved US$1.10 reserve, and
+selects only the 37 unstarted cells. The earlier US$20 results stay unchanged.
+
+The new ledger records the amendment explicitly. Available account credit still
+limits every request; a top-up never authorizes spending beyond US$50. Model,
+provider, native prompts, caching behavior, resources and deadlines stay fixed.
+No completed or budget-stopped attempt is replayed. Recheck authorization and
+deadline after awaited credit metadata, before reserving or posting a request.
+Qualify the current source and amendment with both native fake-model lifecycles
+before paid continuation. Results use `gemini-native-continuation-20261010` and
+distinguish inherited outcomes from new attempts and charges.

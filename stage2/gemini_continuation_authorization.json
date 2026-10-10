@@ -1,0 +1,15 @@
+{
+  "user_answer": "Allow up to US$30 additional, spending as little as possible",
+  "additional_cap_usd": "30",
+  "total_cap_usd": "50",
+  "prior_experiment": "gemini-native-dev20-laptop-20261010",
+  "prior_ledger_sha256": "1090af6976fd9329e195b1d9297c95651aa0631370851cec16e60744ac0668ea",
+  "completed_tasks_sha256": "6fbcad633f25818bad74c81f7430ef876b517d2604a5ccabfd6b41d00958eec4",
+  "completed_attempts": 3,
+  "remaining_attempts": 37,
+  "replays": 0,
+  "request_reservation_usd": "1.10",
+  "prior_known_spending_usd": "17.808674700",
+  "prior_unresolved_reserved_usd": "1.10",
+  "instruction": "Continue only unstarted native attempts, minimize spending, stop at the lower of authorized allowance and available credit. Keep model and official resources/deadlines fixed."
+}

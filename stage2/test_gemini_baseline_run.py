@@ -1,5 +1,6 @@
 """Paid-launcher safety checks with a local fake upstream only."""
 import hashlib
+import asyncio
 import json
 from pathlib import Path
 import tempfile
@@ -76,6 +77,30 @@ class LauncherGatewayTests(unittest.IsolatedAsyncioTestCase):
         original = json.loads(self.prior.read_text())['requests']
         await self.gateway.reconcile()
         self.assertEqual(self.gateway.ledger.data['requests'][:2], original)
+
+    async def delayed_credit_check(self, expire):
+        started, release = asyncio.Event(), asyncio.Event()
+        async def delayed():
+            started.set()
+            await release.wait()
+            return {'available_usd': '100'}
+        self.gateway.credit = delayed
+        pending = asyncio.create_task(self.post())
+        await started.wait()
+        if expire:
+            self.gateway.active = (self.gateway.active[0], time.monotonic() - 1)
+        else:
+            self.gateway.active = None
+        release.set()
+        self.assertEqual(await pending, 403)
+        self.assertEqual(self.provider.calls, 0)
+        self.assertEqual(len(self.gateway.ledger.data['requests']), 2)
+
+    async def test_credit_await_cannot_outlive_revocation(self):
+        await self.delayed_credit_check(False)
+
+    async def test_credit_await_cannot_outlive_deadline(self):
+        await self.delayed_credit_check(True)
 
 
 class ClassificationTests(unittest.TestCase):
