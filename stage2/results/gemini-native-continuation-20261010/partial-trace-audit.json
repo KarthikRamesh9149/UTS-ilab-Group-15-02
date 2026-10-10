@@ -66,8 +66,19 @@
       "known_spending_usd": "0.300671775",
       "model_revoked_before_verifier": true,
       "task_containers_removed": true
+    },
+    {
+      "trial_id": "gemini-native-10-openhands-overfull-hbox",
+      "task_id": "overfull-hbox",
+      "harness": "openhands",
+      "observations": 85,
+      "generation_observations": 72,
+      "known_cost_matches_ledger": true,
+      "known_spending_usd": "0.527323950",
+      "model_revoked_before_verifier": true,
+      "task_containers_removed": true
     }
   ],
   "model_api_calls_for_check": 0,
-  "total_observations": 975
+  "total_observations": 1060
 }

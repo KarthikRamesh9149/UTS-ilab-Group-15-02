@@ -40,9 +40,19 @@
       "terminus_known_spending_usd": "0.263562525",
       "openhands_known_spending_usd": "0.362850675",
       "both_finished_without_budget_stop": true
+    },
+    {
+      "task_id": "overfull-hbox",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.300671775",
+      "openhands_known_spending_usd": "0.527323950",
+      "both_finished_without_budget_stop": true
     }
   ],
-  "native_paired_count": 4,
+  "native_paired_count": 5,
   "three_harness_scored_tasks": [
     {
       "task_id": "mailman",
@@ -71,9 +81,23 @@
       "custom_classification": "pass",
       "custom_known_spending_usd": "0.256287675",
       "all_finished_without_infrastructure_or_budget_stop": true
+    },
+    {
+      "task_id": "overfull-hbox",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.300671775",
+      "openhands_known_spending_usd": "0.527323950",
+      "both_finished_without_budget_stop": true,
+      "custom_reward": 1.0,
+      "custom_classification": "pass",
+      "custom_known_spending_usd": "0.379726875",
+      "all_finished_without_infrastructure_or_budget_stop": true
     }
   ],
-  "three_harness_paired_count": 2,
+  "three_harness_paired_count": 3,
   "limitations": [
     "Two original custom attempts have no score.",
     "Baseline allowance was increased after three native attempts; original custom allowance was US$20.",
