@@ -1,24 +1,24 @@
 {
   "scope": "partial: closed native attempts only; batch still running",
-  "captured_utc": "2026-10-10T10:40:28.859001+00:00",
+  "captured_utc": "2026-10-10T10:48:08.605114+00:00",
   "planned_native_attempts": 40,
-  "closed_native_attempts": 14,
+  "closed_native_attempts": 16,
   "inherited_closed_attempts": 3,
-  "new_closed_attempts": 11,
-  "remaining_attempts_including_any_active": 26,
+  "new_closed_attempts": 13,
+  "remaining_attempts_including_any_active": 24,
   "classifications": {
     "verifier_failure": 3,
-    "pass": 10,
+    "pass": 12,
     "budget_stop": 1
   },
   "new_classifications": {
-    "pass": 9,
+    "pass": 11,
     "verifier_failure": 2
   },
-  "new_completed_attempts_known_spending_usd": "8.539976175",
+  "new_completed_attempts_known_spending_usd": "8.999808225",
   "total_experiment_cap_usd": "50",
   "original_unresolved_reserve_usd": "1.10",
   "paid_source_commit": "880d6cdbf074ca7a46ef96d51035b3f0d70445f3",
   "langfuse": "durable_local_spool_validated; import_after_batch",
-  "completed_tasks_sha256": "898dacdb787e118d85bb05e2f70c6422bb7b06b55b0251ca8f13d1edbf4c5058"
+  "completed_tasks_sha256": "4b705e4cbbcc84917643570cd6d775ed731166f1d833ba8d02a92770c220eb9e"
 }

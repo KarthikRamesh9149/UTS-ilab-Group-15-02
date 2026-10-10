@@ -121,8 +121,30 @@
       "known_spending_usd": "1.638941700",
       "model_revoked_before_verifier": true,
       "task_containers_removed": true
+    },
+    {
+      "trial_id": "gemini-native-15-openhands-openssl-selfsigned-cert",
+      "task_id": "openssl-selfsigned-cert",
+      "harness": "openhands",
+      "observations": 41,
+      "generation_observations": 28,
+      "known_cost_matches_ledger": true,
+      "known_spending_usd": "0.24527925",
+      "model_revoked_before_verifier": true,
+      "task_containers_removed": true
+    },
+    {
+      "trial_id": "gemini-native-16-terminus-2-openssl-selfsigned-cert",
+      "task_id": "openssl-selfsigned-cert",
+      "harness": "terminus-2",
+      "observations": 144,
+      "generation_observations": 35,
+      "known_cost_matches_ledger": true,
+      "known_spending_usd": "0.214552800",
+      "model_revoked_before_verifier": true,
+      "task_containers_removed": true
     }
   ],
   "model_api_calls_for_check": 0,
-  "total_observations": 2288
+  "total_observations": 2473
 }

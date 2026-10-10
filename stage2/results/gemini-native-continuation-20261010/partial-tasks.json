@@ -502,5 +502,77 @@
     "known_spending_usd": "1.638941700",
     "unresolved_requests": 0,
     "gateway_stop": null
+  },
+  {
+    "order": 15,
+    "task_id": "openssl-selfsigned-cert",
+    "harness": "openhands",
+    "trial_id": "gemini-native-15-openhands-openssl-selfsigned-cert",
+    "agent_timeout_seconds": 900.0,
+    "verifier_timeout_seconds": 900.0,
+    "classification": "pass",
+    "environment": {
+      "image_id": "sha256:4c948a4e630af2435ae0a19108fc0814a946ac2fa29a512469e0fc77b38c8c12",
+      "cpus": 1,
+      "memory_mb": 2048,
+      "storage_mb_requested": 10240,
+      "storage_enforcement": "Docker shared disk; no per-container quota",
+      "privileged": false,
+      "controller_key_and_socket_visible": false
+    },
+    "reward": 1.0,
+    "status": "verified",
+    "agent_error_type": null,
+    "verifier_error_type": null,
+    "cleanup_errors": [],
+    "model_revoked": true,
+    "phase_seconds": {
+      "setup": 60.02289587500127,
+      "agent": 147.65072486999998,
+      "verifier": 6.034164868000516
+    },
+    "trace_errors": [],
+    "task_containers_removed": true,
+    "duration_seconds": 229.55481468600192,
+    "physical_requests": 28,
+    "known_spending_usd": "0.24527925",
+    "unresolved_requests": 0,
+    "gateway_stop": null
+  },
+  {
+    "order": 16,
+    "task_id": "openssl-selfsigned-cert",
+    "harness": "terminus-2",
+    "trial_id": "gemini-native-16-terminus-2-openssl-selfsigned-cert",
+    "agent_timeout_seconds": 900.0,
+    "verifier_timeout_seconds": 900.0,
+    "classification": "pass",
+    "environment": {
+      "image_id": "sha256:4c948a4e630af2435ae0a19108fc0814a946ac2fa29a512469e0fc77b38c8c12",
+      "cpus": 1,
+      "memory_mb": 2048,
+      "storage_mb_requested": 10240,
+      "storage_enforcement": "Docker shared disk; no per-container quota",
+      "privileged": false,
+      "controller_key_and_socket_visible": false
+    },
+    "reward": 1.0,
+    "status": "verified",
+    "agent_error_type": null,
+    "verifier_error_type": null,
+    "cleanup_errors": [],
+    "model_revoked": true,
+    "phase_seconds": {
+      "setup": 9.687697634999495,
+      "agent": 231.8032589650029,
+      "verifier": 6.043314665999787
+    },
+    "trace_errors": [],
+    "task_containers_removed": true,
+    "duration_seconds": 261.12291329599975,
+    "physical_requests": 35,
+    "known_spending_usd": "0.214552800",
+    "unresolved_requests": 0,
+    "gateway_stop": null
   }
 ]

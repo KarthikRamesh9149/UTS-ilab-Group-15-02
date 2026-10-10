@@ -70,9 +70,19 @@
       "terminus_known_spending_usd": "1.081624125",
       "openhands_known_spending_usd": "1.638941700",
       "both_finished_without_budget_stop": true
+    },
+    {
+      "task_id": "openssl-selfsigned-cert",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.214552800",
+      "openhands_known_spending_usd": "0.24527925",
+      "both_finished_without_budget_stop": true
     }
   ],
-  "native_paired_count": 7,
+  "native_paired_count": 8,
   "three_harness_scored_tasks": [
     {
       "task_id": "mailman",
@@ -143,9 +153,23 @@
       "custom_classification": "verifier_failure",
       "custom_known_spending_usd": "0.950388225",
       "all_finished_without_infrastructure_or_budget_stop": true
+    },
+    {
+      "task_id": "openssl-selfsigned-cert",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.214552800",
+      "openhands_known_spending_usd": "0.24527925",
+      "both_finished_without_budget_stop": true,
+      "custom_reward": 1.0,
+      "custom_classification": "pass",
+      "custom_known_spending_usd": "0.14902725",
+      "all_finished_without_infrastructure_or_budget_stop": true
     }
   ],
-  "three_harness_paired_count": 5,
+  "three_harness_paired_count": 6,
   "limitations": [
     "Two original custom attempts have no score.",
     "Baseline allowance was increased after three native attempts; original custom allowance was US$20.",
