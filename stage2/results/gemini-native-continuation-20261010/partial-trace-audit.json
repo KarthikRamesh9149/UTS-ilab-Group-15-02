@@ -143,8 +143,19 @@
       "known_spending_usd": "0.214552800",
       "model_revoked_before_verifier": true,
       "task_containers_removed": true
+    },
+    {
+      "trial_id": "gemini-native-17-terminus-2-regex-chess",
+      "task_id": "regex-chess",
+      "harness": "terminus-2",
+      "observations": 714,
+      "generation_observations": 216,
+      "known_cost_matches_ledger": true,
+      "known_spending_usd": "3.165358800",
+      "model_revoked_before_verifier": true,
+      "task_containers_removed": true
     }
   ],
   "model_api_calls_for_check": 0,
-  "total_observations": 2473
+  "total_observations": 3187
 }
