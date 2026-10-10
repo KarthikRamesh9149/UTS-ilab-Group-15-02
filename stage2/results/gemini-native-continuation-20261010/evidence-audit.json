@@ -1,0 +1,14 @@
+{
+  "predecessor_requests_preserved": 1617,
+  "replays": 0,
+  "new_requests": 1393,
+  "new_unresolved_requests": 1,
+  "total_known_usd": "31.490725275",
+  "total_unknown_reserved_usd": "2.20",
+  "authorized_total_cap_usd": "50",
+  "retained_private_files": 10327,
+  "retained_private_bytes": 855412717,
+  "native_windows_hashes_match": true,
+  "controller_exit_code": 0,
+  "controller_oom": false
+}

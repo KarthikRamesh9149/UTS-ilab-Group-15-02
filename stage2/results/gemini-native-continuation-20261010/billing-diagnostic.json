@@ -1,0 +1,17 @@
+{
+  "scope": "post-stop read-only billing metadata lookup; closed ledger unchanged",
+  "paid_generations": 0,
+  "ledger_mutated": false,
+  "checks": [
+    {
+      "sequence": 3009,
+      "trial_id": "gemini-native-18-openhands-regex-chess",
+      "http_status": 404,
+      "cost_confirmed": false,
+      "reserved_usd": "1.10"
+    }
+  ],
+  "total_unresolved_requests": 2,
+  "total_unresolved_reserved_usd": "2.20",
+  "interpretation": "Unknown costs remain reserved; HTTP 404 is not evidence of zero cost. No task or generation replay."
+}

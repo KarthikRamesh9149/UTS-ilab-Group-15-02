@@ -1,0 +1,198 @@
+{
+  "status": "verified_all_observation_ids",
+  "model_api_calls": 0,
+  "experiment": "gemini-native-continuation-20261010",
+  "traces": [
+    {
+      "label": "qualification-launcher-synthetic-openhands",
+      "scope": "synthetic",
+      "observations": 11,
+      "expected_observations": 11,
+      "observed_observations": 11,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "qualification-launcher-synthetic-terminus-2",
+      "scope": "synthetic",
+      "observations": 25,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "qualification-v2-launcher-synthetic-openhands",
+      "scope": "synthetic",
+      "observations": 13,
+      "expected_observations": 13,
+      "observed_observations": 13,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "qualification-v2-launcher-synthetic-terminus-2",
+      "scope": "synthetic",
+      "observations": 25,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-04-terminus-2-build-pov-ray",
+      "scope": "paid",
+      "observations": 122,
+      "expected_observations": 122,
+      "observed_observations": 122,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-05-terminus-2-mailman",
+      "scope": "paid",
+      "observations": 333,
+      "expected_observations": 333,
+      "observed_observations": 333,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-06-openhands-mailman",
+      "scope": "paid",
+      "observations": 229,
+      "expected_observations": 229,
+      "observed_observations": 229,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-07-openhands-constraints-scheduling",
+      "scope": "paid",
+      "observations": 52,
+      "expected_observations": 52,
+      "observed_observations": 52,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-08-terminus-2-constraints-scheduling",
+      "scope": "paid",
+      "observations": 51,
+      "expected_observations": 51,
+      "observed_observations": 51,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-09-terminus-2-overfull-hbox",
+      "scope": "paid",
+      "observations": 188,
+      "expected_observations": 188,
+      "observed_observations": 188,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-10-openhands-overfull-hbox",
+      "scope": "paid",
+      "observations": 85,
+      "expected_observations": 85,
+      "observed_observations": 85,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-11-openhands-reshard-c4-data",
+      "scope": "paid",
+      "observations": 123,
+      "expected_observations": 123,
+      "observed_observations": 123,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-12-terminus-2-reshard-c4-data",
+      "scope": "paid",
+      "observations": 325,
+      "expected_observations": 325,
+      "observed_observations": 325,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-13-terminus-2-install-windows-3.11",
+      "scope": "paid",
+      "observations": 583,
+      "expected_observations": 583,
+      "observed_observations": 583,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-14-openhands-install-windows-3.11",
+      "scope": "paid",
+      "observations": 197,
+      "expected_observations": 197,
+      "observed_observations": 197,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-15-openhands-openssl-selfsigned-cert",
+      "scope": "paid",
+      "observations": 41,
+      "expected_observations": 41,
+      "observed_observations": 41,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-16-terminus-2-openssl-selfsigned-cert",
+      "scope": "paid",
+      "observations": 144,
+      "expected_observations": 144,
+      "observed_observations": 144,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-17-terminus-2-regex-chess",
+      "scope": "paid",
+      "observations": 714,
+      "expected_observations": 714,
+      "observed_observations": 714,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-18-openhands-regex-chess",
+      "scope": "paid",
+      "observations": 119,
+      "expected_observations": 119,
+      "observed_observations": 119,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    }
+  ],
+  "observations": 3380
+}

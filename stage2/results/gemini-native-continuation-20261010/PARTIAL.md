@@ -1,5 +1,7 @@
 # Gemini native continuation — partial snapshot
 
+Historical snapshot. The batch has since stopped; see [the final batch brief](BRIEF.md) and `summary.json` for the terminal results.
+
 Captured 2026-10-10T11:31:45.018319+00:00. **The batch is still running. This is not a final score.**
 
 17 of 40 native attempts are closed: 3 inherited and 14 new attempts.

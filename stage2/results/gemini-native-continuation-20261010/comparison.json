@@ -1,0 +1,204 @@
+{
+  "scope": "actual official rewards; no replay or score imputation",
+  "native_paired_tasks": [
+    {
+      "task_id": "video-processing",
+      "terminus_reward": 0.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "verifier_failure",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "1.846329375",
+      "openhands_known_spending_usd": "4.691091225",
+      "both_finished_without_budget_stop": true
+    },
+    {
+      "task_id": "build-pov-ray",
+      "terminus_reward": 1.0,
+      "openhands_reward": 0.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "budget_stop",
+      "terminus_known_spending_usd": "0.122687325",
+      "openhands_known_spending_usd": "0.04162125",
+      "both_finished_without_budget_stop": false
+    },
+    {
+      "task_id": "mailman",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.613809825",
+      "openhands_known_spending_usd": "2.215848600",
+      "both_finished_without_budget_stop": true
+    },
+    {
+      "task_id": "constraints-scheduling",
+      "terminus_reward": 0.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "verifier_failure",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.263562525",
+      "openhands_known_spending_usd": "0.362850675",
+      "both_finished_without_budget_stop": true
+    },
+    {
+      "task_id": "overfull-hbox",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.300671775",
+      "openhands_known_spending_usd": "0.527323950",
+      "both_finished_without_budget_stop": true
+    },
+    {
+      "task_id": "reshard-c4-data",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.659057775",
+      "openhands_known_spending_usd": "0.753597900",
+      "both_finished_without_budget_stop": true
+    },
+    {
+      "task_id": "install-windows-3.11",
+      "terminus_reward": 1.0,
+      "openhands_reward": 0.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "verifier_failure",
+      "terminus_known_spending_usd": "1.081624125",
+      "openhands_known_spending_usd": "1.638941700",
+      "both_finished_without_budget_stop": true
+    },
+    {
+      "task_id": "openssl-selfsigned-cert",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.214552800",
+      "openhands_known_spending_usd": "0.24527925",
+      "both_finished_without_budget_stop": true
+    },
+    {
+      "task_id": "regex-chess",
+      "terminus_reward": 1.0,
+      "openhands_reward": 0.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "infrastructure_failure",
+      "terminus_known_spending_usd": "3.165358800",
+      "openhands_known_spending_usd": "1.516883550",
+      "both_finished_without_budget_stop": false
+    }
+  ],
+  "native_paired_count": 9,
+  "three_harness_scored_tasks": [
+    {
+      "task_id": "mailman",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.613809825",
+      "openhands_known_spending_usd": "2.215848600",
+      "both_finished_without_budget_stop": true,
+      "custom_reward": 1.0,
+      "custom_classification": "pass",
+      "custom_known_spending_usd": "1.591562250",
+      "all_finished_without_infrastructure_or_budget_stop": true
+    },
+    {
+      "task_id": "constraints-scheduling",
+      "terminus_reward": 0.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "verifier_failure",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.263562525",
+      "openhands_known_spending_usd": "0.362850675",
+      "both_finished_without_budget_stop": true,
+      "custom_reward": 1.0,
+      "custom_classification": "pass",
+      "custom_known_spending_usd": "0.256287675",
+      "all_finished_without_infrastructure_or_budget_stop": true
+    },
+    {
+      "task_id": "overfull-hbox",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.300671775",
+      "openhands_known_spending_usd": "0.527323950",
+      "both_finished_without_budget_stop": true,
+      "custom_reward": 1.0,
+      "custom_classification": "pass",
+      "custom_known_spending_usd": "0.379726875",
+      "all_finished_without_infrastructure_or_budget_stop": true
+    },
+    {
+      "task_id": "reshard-c4-data",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.659057775",
+      "openhands_known_spending_usd": "0.753597900",
+      "both_finished_without_budget_stop": true,
+      "custom_reward": 1.0,
+      "custom_classification": "pass",
+      "custom_known_spending_usd": "0.614004000",
+      "all_finished_without_infrastructure_or_budget_stop": true
+    },
+    {
+      "task_id": "install-windows-3.11",
+      "terminus_reward": 1.0,
+      "openhands_reward": 0.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "verifier_failure",
+      "terminus_known_spending_usd": "1.081624125",
+      "openhands_known_spending_usd": "1.638941700",
+      "both_finished_without_budget_stop": true,
+      "custom_reward": 0.0,
+      "custom_classification": "verifier_failure",
+      "custom_known_spending_usd": "0.950388225",
+      "all_finished_without_infrastructure_or_budget_stop": true
+    },
+    {
+      "task_id": "openssl-selfsigned-cert",
+      "terminus_reward": 1.0,
+      "openhands_reward": 1.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "pass",
+      "terminus_known_spending_usd": "0.214552800",
+      "openhands_known_spending_usd": "0.24527925",
+      "both_finished_without_budget_stop": true,
+      "custom_reward": 1.0,
+      "custom_classification": "pass",
+      "custom_known_spending_usd": "0.14902725",
+      "all_finished_without_infrastructure_or_budget_stop": true
+    },
+    {
+      "task_id": "regex-chess",
+      "terminus_reward": 1.0,
+      "openhands_reward": 0.0,
+      "terminus_classification": "pass",
+      "openhands_classification": "infrastructure_failure",
+      "terminus_known_spending_usd": "3.165358800",
+      "openhands_known_spending_usd": "1.516883550",
+      "both_finished_without_budget_stop": false,
+      "custom_reward": 1.0,
+      "custom_classification": "pass",
+      "custom_known_spending_usd": "1.805196675",
+      "all_finished_without_infrastructure_or_budget_stop": false
+    }
+  ],
+  "three_harness_paired_count": 7,
+  "limitations": [
+    "Two original custom attempts have no score.",
+    "Baseline allowance was increased after three native attempts; original custom allowance was US$20.",
+    "Budget and infrastructure outcomes are identified separately; their rewards do not imply normal completion.",
+    "Unstarted attempts are not imputed as failures. Earlier DeepSeek results remain separate.",
+    "Partial or budget-censored data does not prove full-subset superiority."
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "scope": "completed continuation batch; provider-reported numeric usage only",
+  "physical_requests": 1393,
+  "response_files": 1393,
+  "usage_records": 1392,
+  "cache_usage_records": 1392,
+  "prompt_tokens": 87746506,
+  "completion_tokens": 637601,
+  "cached_input_tokens": 80768641,
+  "cache_write_tokens": 0,
+  "by_trial": {
+    "gemini-native-04-terminus-2-build-pov-ray": {
+      "physical_requests": 18,
+      "response_files": 18,
+      "usage_records": 18,
+      "cache_usage_records": 18,
+      "prompt_tokens": 341536,
+      "completion_tokens": 7255,
+      "cached_input_tokens": 238031,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-05-terminus-2-mailman": {
+      "physical_requests": 98,
+      "response_files": 98,
+      "usage_records": 98,
+      "cache_usage_records": 98,
+      "prompt_tokens": 3088909,
+      "completion_tokens": 26870,
+      "cached_input_tokens": 2672051,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-06-openhands-mailman": {
+      "physical_requests": 216,
+      "response_files": 216,
+      "usage_records": 216,
+      "cache_usage_records": 216,
+      "prompt_tokens": 19459929,
+      "completion_tokens": 57039,
+      "cached_input_tokens": 18656288,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-07-openhands-constraints-scheduling": {
+      "physical_requests": 39,
+      "response_files": 39,
+      "usage_records": 39,
+      "cache_usage_records": 39,
+      "prompt_tokens": 1257246,
+      "completion_tokens": 36667,
+      "cached_input_tokens": 1063089,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-08-terminus-2-constraints-scheduling": {
+      "physical_requests": 7,
+      "response_files": 7,
+      "usage_records": 7,
+      "cache_usage_records": 7,
+      "prompt_tokens": 245250,
+      "completion_tokens": 41112,
+      "cached_input_tokens": 110437,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-09-terminus-2-overfull-hbox": {
+      "physical_requests": 38,
+      "response_files": 38,
+      "usage_records": 38,
+      "cache_usage_records": 38,
+      "prompt_tokens": 1455046,
+      "completion_tokens": 25288,
+      "cached_input_tokens": 1311767,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-10-openhands-overfull-hbox": {
+      "physical_requests": 72,
+      "response_files": 72,
+      "usage_records": 72,
+      "cache_usage_records": 72,
+      "prompt_tokens": 1983768,
+      "completion_tokens": 18126,
+      "cached_input_tokens": 1523666,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-11-openhands-reshard-c4-data": {
+      "physical_requests": 110,
+      "response_files": 110,
+      "usage_records": 110,
+      "cache_usage_records": 110,
+      "prompt_tokens": 4472472,
+      "completion_tokens": 50733,
+      "cached_input_tokens": 4134822,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-12-terminus-2-reshard-c4-data": {
+      "physical_requests": 74,
+      "response_files": 74,
+      "usage_records": 74,
+      "cache_usage_records": 74,
+      "prompt_tokens": 2334914,
+      "completion_tokens": 64809,
+      "cached_input_tokens": 1978017,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-13-terminus-2-install-windows-3.11": {
+      "physical_requests": 152,
+      "response_files": 152,
+      "usage_records": 152,
+      "cache_usage_records": 152,
+      "prompt_tokens": 7066980,
+      "completion_tokens": 41789,
+      "cached_input_tokens": 6481955,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-14-openhands-install-windows-3.11": {
+      "physical_requests": 184,
+      "response_files": 184,
+      "usage_records": 184,
+      "cache_usage_records": 184,
+      "prompt_tokens": 13437530,
+      "completion_tokens": 16900,
+      "cached_input_tokens": 12596416,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-15-openhands-openssl-selfsigned-cert": {
+      "physical_requests": 28,
+      "response_files": 28,
+      "usage_records": 28,
+      "cache_usage_records": 28,
+      "prompt_tokens": 299014,
+      "completion_tokens": 5605,
+      "cached_input_tokens": 0,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-16-terminus-2-openssl-selfsigned-cert": {
+      "physical_requests": 35,
+      "response_files": 35,
+      "usage_records": 35,
+      "cache_usage_records": 35,
+      "prompt_tokens": 352006,
+      "completion_tokens": 13261,
+      "cached_input_tokens": 146934,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-17-terminus-2-regex-chess": {
+      "physical_requests": 216,
+      "response_files": 216,
+      "usage_records": 216,
+      "cache_usage_records": 216,
+      "prompt_tokens": 27728470,
+      "completion_tokens": 148128,
+      "cached_input_tokens": 26942924,
+      "cache_write_tokens": 0
+    },
+    "gemini-native-18-openhands-regex-chess": {
+      "physical_requests": 106,
+      "response_files": 106,
+      "usage_records": 105,
+      "cache_usage_records": 105,
+      "prompt_tokens": 4223436,
+      "completion_tokens": 84019,
+      "cached_input_tokens": 2912244,
+      "cache_write_tokens": 0
+    }
+  },
+  "model_calls_for_audit": 0,
+  "raw_text_exported": false,
+  "limitations": [
+    "Numbers are provider-reported usage; missing responses or usage fields remain missing.",
+    "Cached token counts do not by themselves establish dollar savings or cross-harness superiority.",
+    "Costs remain the authoritative billed amounts in the budget ledger."
+  ]
+}

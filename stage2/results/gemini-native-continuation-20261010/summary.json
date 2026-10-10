@@ -1,0 +1,180 @@
+{
+  "experiment": "gemini-native-continuation-20261010",
+  "model": "google/gemini-3.7-flash",
+  "scope": "native Gemini baseline comparison; separate from DeepSeek and original custom run",
+  "by_harness": {
+    "terminus-2": {
+      "planned": 20,
+      "started": 9,
+      "official_scores": 9,
+      "pass": 7,
+      "verifier_failure": 2,
+      "infrastructure_failure": 0,
+      "budget_stop": 0,
+      "unstarted": 11
+    },
+    "openhands": {
+      "planned": 20,
+      "started": 9,
+      "official_scores": 9,
+      "pass": 6,
+      "verifier_failure": 1,
+      "infrastructure_failure": 1,
+      "budget_stop": 1,
+      "unstarted": 11
+    }
+  },
+  "budget": {
+    "cap_usd": "50",
+    "known_spending_usd": "31.490725275",
+    "unresolved_reserved_usd": "2.20",
+    "unresolved_requests": 2,
+    "physical_requests": 3010,
+    "comparison_known_spending_usd": "13.682050575",
+    "comparison_physical_requests": 1393,
+    "remaining_conservative_usd": "16.309274725"
+  },
+  "stop_reason": "unresolved_charge",
+  "unstarted_cells": [
+    {
+      "order": 19,
+      "task_id": "polyglot-rust-c",
+      "harness": "openhands",
+      "trial_id": "gemini-native-19-openhands-polyglot-rust-c"
+    },
+    {
+      "order": 20,
+      "task_id": "polyglot-rust-c",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-20-terminus-2-polyglot-rust-c"
+    },
+    {
+      "order": 21,
+      "task_id": "adaptive-rejection-sampler",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-21-terminus-2-adaptive-rejection-sampler"
+    },
+    {
+      "order": 22,
+      "task_id": "adaptive-rejection-sampler",
+      "harness": "openhands",
+      "trial_id": "gemini-native-22-openhands-adaptive-rejection-sampler"
+    },
+    {
+      "order": 23,
+      "task_id": "qemu-alpine-ssh",
+      "harness": "openhands",
+      "trial_id": "gemini-native-23-openhands-qemu-alpine-ssh"
+    },
+    {
+      "order": 24,
+      "task_id": "qemu-alpine-ssh",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-24-terminus-2-qemu-alpine-ssh"
+    },
+    {
+      "order": 25,
+      "task_id": "modernize-scientific-stack",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-25-terminus-2-modernize-scientific-stack"
+    },
+    {
+      "order": 26,
+      "task_id": "modernize-scientific-stack",
+      "harness": "openhands",
+      "trial_id": "gemini-native-26-openhands-modernize-scientific-stack"
+    },
+    {
+      "order": 27,
+      "task_id": "distribution-search",
+      "harness": "openhands",
+      "trial_id": "gemini-native-27-openhands-distribution-search"
+    },
+    {
+      "order": 28,
+      "task_id": "distribution-search",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-28-terminus-2-distribution-search"
+    },
+    {
+      "order": 29,
+      "task_id": "merge-diff-arc-agi-task",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-29-terminus-2-merge-diff-arc-agi-task"
+    },
+    {
+      "order": 30,
+      "task_id": "merge-diff-arc-agi-task",
+      "harness": "openhands",
+      "trial_id": "gemini-native-30-openhands-merge-diff-arc-agi-task"
+    },
+    {
+      "order": 31,
+      "task_id": "sqlite-db-truncate",
+      "harness": "openhands",
+      "trial_id": "gemini-native-31-openhands-sqlite-db-truncate"
+    },
+    {
+      "order": 32,
+      "task_id": "sqlite-db-truncate",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-32-terminus-2-sqlite-db-truncate"
+    },
+    {
+      "order": 33,
+      "task_id": "prove-plus-comm",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-33-terminus-2-prove-plus-comm"
+    },
+    {
+      "order": 34,
+      "task_id": "prove-plus-comm",
+      "harness": "openhands",
+      "trial_id": "gemini-native-34-openhands-prove-plus-comm"
+    },
+    {
+      "order": 35,
+      "task_id": "db-wal-recovery",
+      "harness": "openhands",
+      "trial_id": "gemini-native-35-openhands-db-wal-recovery"
+    },
+    {
+      "order": 36,
+      "task_id": "db-wal-recovery",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-36-terminus-2-db-wal-recovery"
+    },
+    {
+      "order": 37,
+      "task_id": "qemu-startup",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-37-terminus-2-qemu-startup"
+    },
+    {
+      "order": 38,
+      "task_id": "qemu-startup",
+      "harness": "openhands",
+      "trial_id": "gemini-native-38-openhands-qemu-startup"
+    },
+    {
+      "order": 39,
+      "task_id": "nginx-request-logging",
+      "harness": "openhands",
+      "trial_id": "gemini-native-39-openhands-nginx-request-logging"
+    },
+    {
+      "order": 40,
+      "task_id": "nginx-request-logging",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-40-terminus-2-nginx-request-logging"
+    }
+  ],
+  "langfuse": {
+    "status": "verified_all_observation_ids",
+    "controller_recorded_status": "private_spool_retained_export_after_batch",
+    "post_batch_report": "langfuse.json",
+    "paid_generation_report": "langfuse-generation-audit.json",
+    "model_api_calls_for_export": 0
+  },
+  "updated_utc": "2026-10-10T11:48:50.299666+00:00"
+}
