@@ -1,0 +1,552 @@
+{
+  "experiment": "gemini-dev20-laptop-20260930",
+  "base_url": "http://127.0.0.1:3300",
+  "model_api_calls": 0,
+  "trials": [
+    {
+      "trial_id": "gemini-01-video-processing",
+      "task_id": "video-processing",
+      "observations": 572,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 341,
+        "generation": 113,
+        "tool": 113,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": null,
+      "classification": "infrastructure_failure",
+      "readback": {
+        "expected_observations": 572,
+        "observed_observations": 572,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-02-build-pov-ray",
+      "task_id": "build-pov-ray",
+      "observations": 139,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 82,
+        "generation": 27,
+        "tool": 26,
+        "agent": 1,
+        "cleanup": 1
+      },
+      "official_reward": null,
+      "classification": "infrastructure_failure",
+      "readback": {
+        "expected_observations": 139,
+        "observed_observations": 139,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-03-mailman",
+      "task_id": "mailman",
+      "observations": 887,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 530,
+        "generation": 176,
+        "tool": 176,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 887,
+        "observed_observations": 887,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-04-constraints-scheduling",
+      "task_id": "constraints-scheduling",
+      "observations": 162,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 96,
+        "generation": 31,
+        "tool": 30,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 162,
+        "observed_observations": 162,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-05-overfull-hbox",
+      "task_id": "overfull-hbox",
+      "observations": 267,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 160,
+        "generation": 52,
+        "tool": 50,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 267,
+        "observed_observations": 267,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-06-reshard-c4-data",
+      "task_id": "reshard-c4-data",
+      "observations": 347,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 206,
+        "generation": 68,
+        "tool": 68,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 347,
+        "observed_observations": 347,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-07-install-windows-3.11",
+      "task_id": "install-windows-3.11",
+      "observations": 576,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 344,
+        "generation": 114,
+        "tool": 113,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 0.0,
+      "classification": "verifier_failure",
+      "readback": {
+        "expected_observations": 576,
+        "observed_observations": 576,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-08-openssl-selfsigned-cert",
+      "task_id": "openssl-selfsigned-cert",
+      "observations": 152,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 89,
+        "generation": 29,
+        "tool": 29,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 152,
+        "observed_observations": 152,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-09-regex-chess",
+      "task_id": "regex-chess",
+      "observations": 632,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 377,
+        "generation": 125,
+        "tool": 125,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 632,
+        "observed_observations": 632,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-10-polyglot-rust-c",
+      "task_id": "polyglot-rust-c",
+      "observations": 122,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 71,
+        "generation": 23,
+        "tool": 23,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 0.0,
+      "classification": "infrastructure_failure",
+      "readback": {
+        "expected_observations": 122,
+        "observed_observations": 122,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-11-adaptive-rejection-sampler",
+      "task_id": "adaptive-rejection-sampler",
+      "observations": 282,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 167,
+        "generation": 55,
+        "tool": 55,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 282,
+        "observed_observations": 282,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-12-qemu-alpine-ssh",
+      "task_id": "qemu-alpine-ssh",
+      "observations": 495,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 295,
+        "generation": 98,
+        "tool": 97,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 0.0,
+      "classification": "verifier_failure",
+      "readback": {
+        "expected_observations": 495,
+        "observed_observations": 495,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-13-modernize-scientific-stack",
+      "task_id": "modernize-scientific-stack",
+      "observations": 139,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 80,
+        "generation": 24,
+        "tool": 30,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 139,
+        "observed_observations": 139,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-14-distribution-search",
+      "task_id": "distribution-search",
+      "observations": 87,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 50,
+        "generation": 16,
+        "tool": 16,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 87,
+        "observed_observations": 87,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-15-merge-diff-arc-agi-task",
+      "task_id": "merge-diff-arc-agi-task",
+      "observations": 332,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 197,
+        "generation": 65,
+        "tool": 65,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 332,
+        "observed_observations": 332,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-16-sqlite-db-truncate",
+      "task_id": "sqlite-db-truncate",
+      "observations": 137,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 80,
+        "generation": 26,
+        "tool": 26,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 137,
+        "observed_observations": 137,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-17-prove-plus-comm",
+      "task_id": "prove-plus-comm",
+      "observations": 97,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 56,
+        "generation": 18,
+        "tool": 18,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 97,
+        "observed_observations": 97,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-18-db-wal-recovery",
+      "task_id": "db-wal-recovery",
+      "observations": 331,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 197,
+        "generation": 65,
+        "tool": 64,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 0.0,
+      "classification": "verifier_failure",
+      "readback": {
+        "expected_observations": 331,
+        "observed_observations": 331,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-19-qemu-startup",
+      "task_id": "qemu-startup",
+      "observations": 331,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 197,
+        "generation": 65,
+        "tool": 64,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 0.0,
+      "classification": "verifier_failure",
+      "readback": {
+        "expected_observations": 331,
+        "observed_observations": 331,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    },
+    {
+      "trial_id": "gemini-20-nginx-request-logging",
+      "task_id": "nginx-request-logging",
+      "observations": 132,
+      "kinds": {
+        "trial": 1,
+        "setup": 1,
+        "graph": 77,
+        "generation": 25,
+        "tool": 25,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "official_reward": 1.0,
+      "classification": "pass",
+      "readback": {
+        "expected_observations": 132,
+        "observed_observations": 132,
+        "missing_observations": 0,
+        "unexpected_observations": 0,
+        "matched": true
+      }
+    }
+  ],
+  "status": "verified_all_observation_ids",
+  "observations": 6219,
+  "verified_utc": "2026-10-10T03:05:44.899818+00:00",
+  "usage_audit": {
+    "expected": {
+      "generations": 1215,
+      "input_tokens": 57848867,
+      "output_tokens": 371020,
+      "charged_nanodollars": 11229632850
+    },
+    "stored": {
+      "generations": 1215,
+      "input_tokens": 57848867,
+      "output_tokens": 371020
+    },
+    "stored_cost_usd": "11.229632850",
+    "stored_models": {
+      "google/gemini-3.7-flash": 1215
+    },
+    "usage_matches": true,
+    "cost_matches": true
+  },
+  "deployment": {
+    "upstream_revision": "eecc7d023b9aa351bb96b3ddd22cf6761a842dd9",
+    "upstream_sha256": "f97798f4164bfd515df1052670cead1ab577989eb86ebde96078b08129c373c3",
+    "changes": [
+      "random private secrets",
+      "localhost-only ports 3300 and 3390",
+      "headless local project initialization",
+      "telemetry and AI agent disabled",
+      "Docker log rotation",
+      "authenticated Redis health check"
+    ],
+    "api_model_calls": 0,
+    "images": {
+      "langfuse-worker": {
+        "image": "docker.langfuse.com/langfuse/langfuse-worker@sha256:3f7571ff3a725ebdcdf4c35e06bdf8c3f8325770691c673793ad61b328265e13",
+        "image_id": "sha256:3f7571ff3a725ebdcdf4c35e06bdf8c3f8325770691c673793ad61b328265e13"
+      },
+      "langfuse-web": {
+        "image": "docker.langfuse.com/langfuse/langfuse@sha256:b1948c7c0931f277975b985e30e73536b1bca5822705ddd9a89ba7c1ed79b3ee",
+        "image_id": "sha256:b1948c7c0931f277975b985e30e73536b1bca5822705ddd9a89ba7c1ed79b3ee"
+      },
+      "clickhouse": {
+        "image": "clickhouse/clickhouse-server@sha256:8a790dd3468db22b1d4e7b18a176f378ff5ff6053b9c48dd4ea1fa71a24c5ba6",
+        "image_id": "sha256:8a790dd3468db22b1d4e7b18a176f378ff5ff6053b9c48dd4ea1fa71a24c5ba6"
+      },
+      "minio": {
+        "image": "cgr.dev/chainguard/minio@sha256:6476f81b9739912fa9f50ceae2bb049a30336527cccd24beccfbeb4145f8f696",
+        "image_id": "sha256:6476f81b9739912fa9f50ceae2bb049a30336527cccd24beccfbeb4145f8f696"
+      },
+      "redis": {
+        "image": "redis@sha256:4fa24486b8bcca8eec45ee0eb166edc674795e53a2b53d1a9ef263eecebaac85",
+        "image_id": "sha256:4fa24486b8bcca8eec45ee0eb166edc674795e53a2b53d1a9ef263eecebaac85"
+      },
+      "postgres": {
+        "image": "postgres@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3",
+        "image_id": "sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3"
+      }
+    }
+  },
+  "offline_checks_passed": 8,
+  "known_spending_usd": "11.229632850",
+  "unresolved_reserved_usd": "1.10",
+  "new_model_spending_usd": "0",
+  "next_paid_run": "not_started_pending_experiment_scope"
+}
