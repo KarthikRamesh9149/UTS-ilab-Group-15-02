@@ -36,7 +36,8 @@ Harness levers (differences from the C0-NC reference agent):
 
 ```powershell
 uv pip install --python "$(uv tool dir)\harbor\Scripts\python.exe" -r experiments/harshini-deepagents/requirements.txt
-# OPENROUTER_API_KEY must be set as a user environment variable
+# OPENROUTER_API_KEY (and optional Langfuse keys): user environment variables, or a
+# git-ignored .env at the repo root (template: experiments/harshini-deepagents/.env.example)
 ```
 
 ## Run

@@ -9,6 +9,7 @@
 Each task is its own Harbor job under jobs/<run-name>/<task>/. Tasks that already
 have a scored result.json are skipped, so an interrupted run can be resumed.
 For paid runs, the OpenRouter key's spend is printed before and after.
+Keys can come from the environment or a git-ignored `.env` at the repo root.
 """
 from __future__ import annotations
 
@@ -33,6 +34,20 @@ AGENTS = {
 def dev20() -> list[str]:
     lines = (HERE / "dev20_tasks.txt").read_text(encoding="utf-8").splitlines()
     return [line.strip() for line in lines if line.strip() and not line.startswith("#")]
+
+
+def load_dotenv(path: Path) -> None:
+    """Read KEY=value lines from the git-ignored repo-root .env; variables already set win."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.removeprefix("export ").split("=", 1)
+        key, value = key.strip(), value.strip().strip('"').strip("'")
+        if key and value and not os.environ.get(key, "").strip():
+            os.environ[key] = value
 
 
 def key_usage() -> float | None:
@@ -67,6 +82,7 @@ def main() -> int:
     parser.add_argument("--dev20", action="store_true", help="run the 20-task dev subset")
     parser.add_argument("--run-name")
     args = parser.parse_args()
+    load_dotenv(ROOT / ".env")
 
     tasks = dev20() if args.dev20 else args.tasks
     if not tasks:
