@@ -110,8 +110,19 @@
       "known_spending_usd": "1.081624125",
       "model_revoked_before_verifier": true,
       "task_containers_removed": true
+    },
+    {
+      "trial_id": "gemini-native-14-openhands-install-windows-3.11",
+      "task_id": "install-windows-3.11",
+      "harness": "openhands",
+      "observations": 197,
+      "generation_observations": 184,
+      "known_cost_matches_ledger": true,
+      "known_spending_usd": "1.638941700",
+      "model_revoked_before_verifier": true,
+      "task_containers_removed": true
     }
   ],
   "model_api_calls_for_check": 0,
-  "total_observations": 2091
+  "total_observations": 2288
 }

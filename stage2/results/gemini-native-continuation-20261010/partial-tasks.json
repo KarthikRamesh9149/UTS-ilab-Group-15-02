@@ -466,5 +466,41 @@
     "known_spending_usd": "1.081624125",
     "unresolved_requests": 0,
     "gateway_stop": null
+  },
+  {
+    "order": 14,
+    "task_id": "install-windows-3.11",
+    "harness": "openhands",
+    "trial_id": "gemini-native-14-openhands-install-windows-3.11",
+    "agent_timeout_seconds": 3600.0,
+    "verifier_timeout_seconds": 3600.0,
+    "classification": "verifier_failure",
+    "environment": {
+      "image_id": "sha256:c6695097316ef8810abce0545e347e65354aef9d51d4f7f662c3242e742f6a3e",
+      "cpus": 2,
+      "memory_mb": 4096,
+      "storage_mb_requested": 10240,
+      "storage_enforcement": "Docker shared disk; no per-container quota",
+      "privileged": false,
+      "controller_key_and_socket_visible": false
+    },
+    "reward": 0.0,
+    "status": "verified",
+    "agent_error_type": null,
+    "verifier_error_type": null,
+    "cleanup_errors": [],
+    "model_revoked": true,
+    "phase_seconds": {
+      "setup": 50.05663037100021,
+      "agent": 1188.6363191060009,
+      "verifier": 38.229126428999734
+    },
+    "trace_errors": [],
+    "task_containers_removed": true,
+    "duration_seconds": 1292.7101241650016,
+    "physical_requests": 184,
+    "known_spending_usd": "1.638941700",
+    "unresolved_requests": 0,
+    "gateway_stop": null
   }
 ]
