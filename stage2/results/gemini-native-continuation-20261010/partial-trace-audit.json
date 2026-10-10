@@ -88,8 +88,19 @@
       "known_spending_usd": "0.753597900",
       "model_revoked_before_verifier": true,
       "task_containers_removed": true
+    },
+    {
+      "trial_id": "gemini-native-12-terminus-2-reshard-c4-data",
+      "task_id": "reshard-c4-data",
+      "harness": "terminus-2",
+      "observations": 325,
+      "generation_observations": 74,
+      "known_cost_matches_ledger": true,
+      "known_spending_usd": "0.659057775",
+      "model_revoked_before_verifier": true,
+      "task_containers_removed": true
     }
   ],
   "model_api_calls_for_check": 0,
-  "total_observations": 1183
+  "total_observations": 1508
 }
