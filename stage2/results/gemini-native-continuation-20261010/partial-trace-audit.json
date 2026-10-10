@@ -99,8 +99,19 @@
       "known_spending_usd": "0.659057775",
       "model_revoked_before_verifier": true,
       "task_containers_removed": true
+    },
+    {
+      "trial_id": "gemini-native-13-terminus-2-install-windows-3.11",
+      "task_id": "install-windows-3.11",
+      "harness": "terminus-2",
+      "observations": 583,
+      "generation_observations": 152,
+      "known_cost_matches_ledger": true,
+      "known_spending_usd": "1.081624125",
+      "model_revoked_before_verifier": true,
+      "task_containers_removed": true
     }
   ],
   "model_api_calls_for_check": 0,
-  "total_observations": 1508
+  "total_observations": 2091
 }

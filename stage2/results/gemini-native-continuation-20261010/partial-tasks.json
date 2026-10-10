@@ -430,5 +430,41 @@
     "known_spending_usd": "0.659057775",
     "unresolved_requests": 0,
     "gateway_stop": null
+  },
+  {
+    "order": 13,
+    "task_id": "install-windows-3.11",
+    "harness": "terminus-2",
+    "trial_id": "gemini-native-13-terminus-2-install-windows-3.11",
+    "agent_timeout_seconds": 3600.0,
+    "verifier_timeout_seconds": 3600.0,
+    "classification": "pass",
+    "environment": {
+      "image_id": "sha256:c6695097316ef8810abce0545e347e65354aef9d51d4f7f662c3242e742f6a3e",
+      "cpus": 2,
+      "memory_mb": 4096,
+      "storage_mb_requested": 10240,
+      "storage_enforcement": "Docker shared disk; no per-container quota",
+      "privileged": false,
+      "controller_key_and_socket_visible": false
+    },
+    "reward": 1.0,
+    "status": "verified",
+    "agent_error_type": null,
+    "verifier_error_type": null,
+    "cleanup_errors": [],
+    "model_revoked": true,
+    "phase_seconds": {
+      "setup": 21.3263614819989,
+      "agent": 970.140574715002,
+      "verifier": 38.17737633499928
+    },
+    "trace_errors": [],
+    "task_containers_removed": true,
+    "duration_seconds": 1042.961213011,
+    "physical_requests": 152,
+    "known_spending_usd": "1.081624125",
+    "unresolved_requests": 0,
+    "gateway_stop": null
   }
 ]
