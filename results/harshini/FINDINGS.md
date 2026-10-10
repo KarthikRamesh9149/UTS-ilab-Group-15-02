@@ -29,9 +29,12 @@ repeat study finished.
    **62** tasks are solved by at least one harness, against **52** for the best single
    one, and **27** are solved by none. The custom harness leads only on dev-20, the set
    it was selected on; on the other 69 tasks Terminus-2 leads (38 vs 35).
-5. Harness bugs found on real tasks, not in offline tests, were the main obstacle early
+5. **The Stage 2 custom harness is the fastest to a solution:** within 5 minutes of agent
+   time it solves 24 of 89 tasks against 15 for Terminus-2 and 17 for OpenHands, and it
+   still leads on the 69 tasks not used to select it (14 vs 9 and 12).
+6. Harness bugs found on real tasks, not in offline tests, were the main obstacle early
    on: an empty model reply ending a run, images without `python3`, and provider
-   overload. Each is fixed and covered by the offline test (10/10 checks).
+   overload. Each is fixed and covered by the offline test (now 12/12 checks).
 
 ## 1. Deep Agents harness on dev-20 (run 1 of the repeat study)
 
@@ -155,6 +158,28 @@ one run each.
   costs are incomplete (hundreds of requests per run have no recorded cost).
 - **Time limits are the main failure mode for every harness:** 20 of Terminus-2's 37
   non-passes, 29 of OpenHands' 45 and 25 of C0-NC's 39 hit the agent time limit.
+
+**Tasks solved within a time budget** (agent time per passed task;
+[`time-to-solve.png`](time-to-solve.png)):
+
+| Solved within | C0-NC (89 / other 69) | Terminus-2 (89 / other 69) | OpenHands (89 / other 69) |
+|---|---:|---:|---:|
+| 5 min | **24** / **14** | 15 / 9 | 17 / 12 |
+| 10 min | **35** / 22 | 30 / 22 | 26 / 18 |
+| 15 min | 41 / 28 | **42** / **30** | 34 / 25 |
+| 30 min | 46 / 32 | **49** / **35** | 41 / 32 |
+
+- **The custom harness reaches solutions fastest.** With a short budget it solves the most
+  tasks, and this holds on the 69 tasks not used to select it (14 vs 9 and 12 within
+  5 minutes). The two are level at 10 minutes; beyond about 15 minutes Terminus-2 leads
+  because it keeps solving long tasks.
+- **Where this matters:** when time or compute per task is limited, the custom harness's
+  short, direct approach is an advantage; under the benchmark's full time limits the
+  final scores are within noise.
+- Caveat: recorded agent time includes waits on rate-limited requests, so this is
+  indicative rather than a controlled speed test.
+
+![Tasks solved within a time budget](time-to-solve.png)
 
 **Head-to-head (per task, 89 tasks; C0-NC's 3 setup failures counted as not passed):**
 

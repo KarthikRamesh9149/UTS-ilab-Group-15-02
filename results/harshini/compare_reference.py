@@ -8,7 +8,8 @@ Reference rows come from these committed Stage 2 files on origin/main:
   stage2/results/custom-no-cutoff-final-20260928/c0-nc/trials.csv (C0-NC, 89 tasks)
   stage2/results/custom-portable-20260926/c0/trials.csv           (C0, dev-20)
 They are reduced to reference/stage2-reference-89.csv (one row per task). The script
-prints the overlap and efficiency figures used in FINDINGS.md and draws dev20-tasks.png.
+prints the overlap and efficiency figures used in FINDINGS.md and draws dev20-tasks.png
+and time-to-solve.png.
 """
 from __future__ import annotations
 
@@ -164,6 +165,46 @@ def plot(ref: list[dict]) -> None:
     print("wrote results/harshini/dev20-tasks.png")
 
 
+def plot_time(ref: list[dict]) -> None:
+    """Tasks solved within t minutes of agent time, all 89 tasks and the 69 not used for selection."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    style = {"c0nc": ("Stage 2 custom (C0-NC)", "#3a7bd5"), "terminus2": ("Terminus-2", "#1f3b5c"),
+             "openhands": ("OpenHands", "#9aa5b1")}
+    limits = list(range(0, 121))
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.8), dpi=160, sharey=False)
+    for ax, (title, rows) in zip(axes, (("All 89 tasks", ref),
+                                        ("69 tasks not used to select the custom harness",
+                                         [r for r in ref if r["dev20"] != "1"]))):
+        for h, (label, colour) in style.items():
+            minutes = sorted(num(r[f"{h}_agent_s"]) / 60 for r in rows
+                             if r[f"{h}_pass"] == "1" and num(r[f"{h}_agent_s"]) is not None)
+            counts = [sum(m <= t for m in minutes) for t in limits]
+            ax.step(limits, counts, where="post", color=colour, linewidth=2.2, label=f"{label} ({len(minutes)})")
+        for t in (5, 10):
+            ax.axvline(t, color="#ccc", linewidth=1, linestyle=":")
+        ax.set_xscale("symlog", linthresh=10)
+        ax.set_xticks([0, 2, 5, 10, 20, 30, 60, 120])
+        ax.set_xticklabels(["0", "2", "5", "10", "20", "30", "60", "120"])
+        ax.set_xlim(0, 120)
+        ax.set_xlabel("Agent time allowed (minutes)")
+        ax.set_title(title, fontsize=11, color="#1f3b5c")
+        ax.grid(axis="y", color="#eee")
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+    axes[0].set_ylabel("Tasks solved")
+    axes[0].legend(loc="upper left", frameon=False, fontsize=9)
+    fig.suptitle("Tasks solved within a time budget — Stage 2 server runs, DeepSeek V4 Flash 0731 (one run each)",
+                 fontsize=12, fontweight="bold", color="#1f3b5c")
+    fig.text(0.01, 0.005, "Agent time per passed task as recorded; it includes waits on rate-limited requests, "
+             "so it is indicative rather than a controlled speed test.", fontsize=8, color="#555")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    fig.savefig(HERE / "time-to-solve.png", facecolor="white")
+    print("wrote results/harshini/time-to-solve.png")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--refresh", action="store_true")
@@ -173,10 +214,16 @@ def main() -> None:
     with REF_CSV.open(encoding="utf-8") as fh:
         ref = list(csv.DictReader(fh))
     report(ref)
+    for budget in (5, 10, 15, 30):
+        for label, rows in (("all 89", ref), ("other 69", [r for r in ref if r["dev20"] != "1"])):
+            counts = {h: sum(r[f"{h}_pass"] == "1" and (num(r[f"{h}_agent_s"]) or 1e9) <= budget * 60 for r in rows)
+                      for h in HARNESSES}
+            print(f"solved within {budget} min ({label}): " + ", ".join(f"{h} {n}" for h, n in counts.items()))
     try:
         plot(ref)
+        plot_time(ref)
     except ImportError:
-        print("matplotlib not installed; skipped dev20-tasks.png")
+        print("matplotlib not installed; skipped the charts")
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ Overview and current status: [branch README](../../README.md).
 | [`deepagents/`](deepagents/) | 3 | One CSV per laptop run (Deep Agents and pinned Terminus-2) |
 | [`progress.png`](progress.png) | 3 | Repeat-study scores next to the Stage 2 server scores ([`plot_progress.py`](plot_progress.py)) |
 | [`dev20-tasks.png`](dev20-tasks.png) | 3 | Per-task grid: laptop runs vs. Stage 2 server runs ([`compare_reference.py`](compare_reference.py)) |
+| [`time-to-solve.png`](time-to-solve.png) | 3 | Stage 2 server runs: tasks solved within each time budget ([`compare_reference.py`](compare_reference.py)) |
 | [`traces/`](traces/) | 3 | Step-by-step task timelines exported from Langfuse ([`export_trace.py`](../../experiments/harshini-deepagents/export_trace.py)) |
 | [`reference/`](reference/) | 3 | Stage 2 server results reduced to one row per task, extracted from `main` |
 | [`oracle-21-final.csv`](oracle-21-final.csv) | 2 | Oracle on the laptop after the timeout multiplier (**21/21**) |
