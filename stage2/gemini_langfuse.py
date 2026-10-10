@@ -35,7 +35,7 @@ def load_events(directory):
     return sorted(events, key=lambda event: event['sequence'])
 
 
-def trial_payload(events, row):
+def trial_payload(events, row, *, experiment='gemini-dev20-laptop-20260930'):
     if not events or {e['trial_id'] for e in events} != {row['trial_id']}:
         raise ValueError('Trial/result mismatch')
     if {e['task_id'] for e in events} != {row['task_id']}:
@@ -47,7 +47,7 @@ def trial_payload(events, row):
         event = event_by_id[span['spanId']]
         attrs = span['attributes']
         for key, value in (
-            ('experiment', 'gemini-dev20-laptop-20260930'),
+            ('experiment', experiment),
             ('classification', row['classification']),
             ('physical_requests', row['physical_requests']),
             ('known_spending_usd', row['known_spending_usd']),
@@ -155,13 +155,14 @@ def main():
     parser.add_argument('--prepare-only', action='store_true')
     parser.add_argument('--readback-only', action='store_true')
     parser.add_argument('--reexport', action='store_true')
+    parser.add_argument('--experiment', default='gemini-dev20-laptop-20260930')
     args = parser.parse_args()
     rows = json.loads((args.results / 'tasks.json').read_text(encoding='utf-8'))
     prepared = []
     for row in rows:
         events = load_events(args.source / row['trial_id'])
-        prepared.append((row, events, trial_payload(events, row)))
-    report = {'experiment': 'gemini-dev20-laptop-20260930', 'base_url': BASE_URL,
+        prepared.append((row, events, trial_payload(events, row, experiment=args.experiment)))
+    report = {'experiment': args.experiment, 'base_url': BASE_URL,
         'model_api_calls': 0, 'trials': [], 'status': 'prepared_metadata_only'}
     client = None
     if not args.prepare_only:

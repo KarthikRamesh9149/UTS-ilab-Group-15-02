@@ -13,6 +13,7 @@ ORIGIN = 'https://openrouter.ai/api/v1'
 class Gateway:
     def __init__(self, key, private_dir):
         self.key, self.directory = key, private_dir
+        self.origin = ORIGIN
         self.token = secrets.token_hex(32)
         self.active = None
         self.pending = set()
@@ -21,7 +22,7 @@ class Gateway:
         self.trace_errors = []
 
     async def get(self, path):
-        async with self.session.get(ORIGIN + path,
+        async with self.session.get(self.origin + path,
                 headers={'Authorization': 'Bearer ' + self.key}, allow_redirects=False) as response:
             if response.status != 200:
                 raise RuntimeError('OpenRouter metadata HTTP ' + str(response.status))
@@ -45,7 +46,7 @@ class Gateway:
                 or SNAPSHOT not in endpoint['name']):
             raise RuntimeError('Model endpoint changed from frozen protocol')
         self.initial_credit = await self.credit()
-        self.ledger = Ledger(self.directory / 'ledger.json', self.initial_credit['available_usd'])
+        self.ledger = self.create_ledger(self.initial_credit['available_usd'])
         app = web.Application(client_max_size=16 * 1024**2)
         app.router.add_post('/v1/chat/completions', self.handle)
         self.runner = web.AppRunner(app, access_log=None)
@@ -55,6 +56,9 @@ class Gateway:
         self.url = 'http://127.0.0.1:' + str(self.site._server.sockets[0].getsockname()[1]) + '/v1'
         self.lock = asyncio.Lock()
         return self.initial_credit
+
+    def create_ledger(self, available):
+        return Ledger(self.directory / 'ledger.json', available)
 
     def activate(self, trial_id, deadline):
         if self.active is not None or self.pending or self.stop_reason:
@@ -98,7 +102,7 @@ class Gateway:
             atomic_json(exchange.with_suffix('.request.json'), payload)
             try:
                 timeout = ClientTimeout(total=max(0.1, min(600, trial[1] - time.monotonic())))
-                async with self.session.post(ORIGIN + '/chat/completions', json=payload,
+                async with self.session.post(self.origin + '/chat/completions', json=payload,
                         headers={'Authorization': 'Bearer ' + self.key}, timeout=timeout,
                         allow_redirects=False) as response:
                     body = await response.json()
