@@ -13,5 +13,13 @@
   ],
   "total_unresolved_requests": 2,
   "total_unresolved_reserved_usd": "2.20",
+  "read_only_recheck": {
+    "checked_utc": "2026-10-10T12:09:37.574577+00:00",
+    "sequence": 3009,
+    "http_status": 404,
+    "cost_confirmed": false,
+    "paid_generations": 0,
+    "ledger_mutated": false
+  },
   "interpretation": "Unknown costs remain reserved; HTTP 404 is not evidence of zero cost. No task or generation replay."
 }

@@ -1,0 +1,173 @@
+{
+  "scope": "preparation_only_not_a_paid_run_authorization",
+  "prepared_utc": "2026-10-10T12:10:51.912879+00:00",
+  "paid_generations": 0,
+  "qualification_status": "not_qualified_for_this_predecessor",
+  "operational_status": "awaiting_direction_after_unresolved_charge_stop",
+  "prior_ledger_sha256": "b9860416fc166e26ab2baefc7f787cb3eb4494d30b57923011bebf207bfde832",
+  "completed_tasks_sha256": "870ea510af960bce58063571d21d4173507a84b398751cfccfca5aa19df6ff3d",
+  "completed_attempts": 18,
+  "inherited_physical_requests": 3010,
+  "inherited_cap_usd": "50",
+  "proposed_total_cap_usd": "50",
+  "additional_allowance_usd": "0",
+  "inherited_known_usd": "31.490725275",
+  "inherited_unresolved_reserved_usd": "2.20",
+  "remaining_conservative_usd": "16.309274725",
+  "live_credit_recheck_required": true,
+  "model_protocol": {
+    "model": "google/gemini-3.7-flash",
+    "expected_snapshot": "google/gemini-3.7-flash-20260813",
+    "provider": "google-ai-studio",
+    "allow_fallbacks": false,
+    "temperature": 1.0,
+    "top_p": 1.0,
+    "reasoning_effort": "high",
+    "max_output_tokens": 65536,
+    "automatic_retries": 0,
+    "text_only": true
+  },
+  "closed_attempt_replays": 0,
+  "remaining_cells": [
+    {
+      "order": 19,
+      "task_id": "polyglot-rust-c",
+      "harness": "openhands",
+      "trial_id": "gemini-native-19-openhands-polyglot-rust-c"
+    },
+    {
+      "order": 20,
+      "task_id": "polyglot-rust-c",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-20-terminus-2-polyglot-rust-c"
+    },
+    {
+      "order": 21,
+      "task_id": "adaptive-rejection-sampler",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-21-terminus-2-adaptive-rejection-sampler"
+    },
+    {
+      "order": 22,
+      "task_id": "adaptive-rejection-sampler",
+      "harness": "openhands",
+      "trial_id": "gemini-native-22-openhands-adaptive-rejection-sampler"
+    },
+    {
+      "order": 23,
+      "task_id": "qemu-alpine-ssh",
+      "harness": "openhands",
+      "trial_id": "gemini-native-23-openhands-qemu-alpine-ssh"
+    },
+    {
+      "order": 24,
+      "task_id": "qemu-alpine-ssh",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-24-terminus-2-qemu-alpine-ssh"
+    },
+    {
+      "order": 25,
+      "task_id": "modernize-scientific-stack",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-25-terminus-2-modernize-scientific-stack"
+    },
+    {
+      "order": 26,
+      "task_id": "modernize-scientific-stack",
+      "harness": "openhands",
+      "trial_id": "gemini-native-26-openhands-modernize-scientific-stack"
+    },
+    {
+      "order": 27,
+      "task_id": "distribution-search",
+      "harness": "openhands",
+      "trial_id": "gemini-native-27-openhands-distribution-search"
+    },
+    {
+      "order": 28,
+      "task_id": "distribution-search",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-28-terminus-2-distribution-search"
+    },
+    {
+      "order": 29,
+      "task_id": "merge-diff-arc-agi-task",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-29-terminus-2-merge-diff-arc-agi-task"
+    },
+    {
+      "order": 30,
+      "task_id": "merge-diff-arc-agi-task",
+      "harness": "openhands",
+      "trial_id": "gemini-native-30-openhands-merge-diff-arc-agi-task"
+    },
+    {
+      "order": 31,
+      "task_id": "sqlite-db-truncate",
+      "harness": "openhands",
+      "trial_id": "gemini-native-31-openhands-sqlite-db-truncate"
+    },
+    {
+      "order": 32,
+      "task_id": "sqlite-db-truncate",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-32-terminus-2-sqlite-db-truncate"
+    },
+    {
+      "order": 33,
+      "task_id": "prove-plus-comm",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-33-terminus-2-prove-plus-comm"
+    },
+    {
+      "order": 34,
+      "task_id": "prove-plus-comm",
+      "harness": "openhands",
+      "trial_id": "gemini-native-34-openhands-prove-plus-comm"
+    },
+    {
+      "order": 35,
+      "task_id": "db-wal-recovery",
+      "harness": "openhands",
+      "trial_id": "gemini-native-35-openhands-db-wal-recovery"
+    },
+    {
+      "order": 36,
+      "task_id": "db-wal-recovery",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-36-terminus-2-db-wal-recovery"
+    },
+    {
+      "order": 37,
+      "task_id": "qemu-startup",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-37-terminus-2-qemu-startup"
+    },
+    {
+      "order": 38,
+      "task_id": "qemu-startup",
+      "harness": "openhands",
+      "trial_id": "gemini-native-38-openhands-qemu-startup"
+    },
+    {
+      "order": 39,
+      "task_id": "nginx-request-logging",
+      "harness": "openhands",
+      "trial_id": "gemini-native-39-openhands-nginx-request-logging"
+    },
+    {
+      "order": 40,
+      "task_id": "nginx-request-logging",
+      "harness": "terminus-2",
+      "trial_id": "gemini-native-40-terminus-2-nginx-request-logging"
+    }
+  ],
+  "admission_changes_required": [
+    "Admit the exact eighteen-attempt closed prefix rather than requiring three.",
+    "Inherit the US50 ledger and its existing authorization without applying another US30 extension.",
+    "Preserve all 3010 predecessor request objects and both unknown reserves unchanged.",
+    "Use a fresh experiment identity and evidence directory; reject duplicate attempts.",
+    "Qualify changed admission code with key-free fake models and the actual Docker lifecycle before paid work.",
+    "Keep the model, provider, agent loops, prompts, official resources, deadlines, and stop guards fixed."
+  ]
+}
