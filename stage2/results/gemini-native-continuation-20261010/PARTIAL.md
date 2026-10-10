@@ -1,12 +1,12 @@
 # Gemini native continuation — partial snapshot
 
-Captured 2026-10-10T09:24:02.978166+00:00. **The batch is still running. This is not a final score.**
+Captured 2026-10-10T09:51:09.890540+00:00. **The batch is still running. This is not a final score.**
 
-10 of 40 native attempts are closed: 3 inherited and 7 new attempts.
-Closed native outcomes: 7 passes, 2 verifier failures, 0 infrastructure failures, and 1 budget stops.
-30 attempts remain, including any active task.
+11 of 40 native attempts are closed: 3 inherited and 8 new attempts.
+Closed native outcomes: 8 passes, 2 verifier failures, 0 infrastructure failures, and 1 budget stops.
+29 attempts remain, including any active task.
 
-Confirmed spending on completed new attempts: US$4.406754675. Active-task spending is excluded.
+Confirmed spending on completed new attempts: US$5.160352575. Active-task spending is excluded.
 
 | Newly closed attempt | Classification | Official reward | Confirmed cost (US$) |
 |---|---|---:|---:|
@@ -17,6 +17,7 @@ Confirmed spending on completed new attempts: US$4.406754675. Active-task spendi
 | terminus-2 / constraints-scheduling | verifier_failure | 0.0 | 0.263562525 |
 | terminus-2 / overfull-hbox | pass | 1.0 | 0.300671775 |
 | openhands / overfull-hbox | pass | 1.0 | 0.527323950 |
+| openhands / reshard-c4-data | pass | 1.0 | 0.753597900 |
 
 ## Tasks with official scores from all three harnesses
 
@@ -29,7 +30,7 @@ Confirmed spending on completed new attempts: US$4.406754675. Active-task spendi
 These observed scores do not establish full-subset superiority. Classifications and budget censoring are retained in partial-comparison.json.
 Two original custom attempts remain unscored; the inherited OpenHands build-pov-ray budget stop is not replayed.
 
-488 generation records and 1060 local metadata observations were validated against completed outcomes and billing costs.
+598 generation records and 1183 local metadata observations were validated against completed outcomes and billing costs.
 Raw exchanges, native tool logs and task artifacts remain private. Local Langfuse is stopped for official task memory capacity; import and readback remain pending until the batch stops.
 
 The same Gemini model/provider/settings, frozen development tasks, official CPU/memory and deadlines continue under the shared US$50 cap and fresh credit checks.

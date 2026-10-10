@@ -77,8 +77,19 @@
       "known_spending_usd": "0.527323950",
       "model_revoked_before_verifier": true,
       "task_containers_removed": true
+    },
+    {
+      "trial_id": "gemini-native-11-openhands-reshard-c4-data",
+      "task_id": "reshard-c4-data",
+      "harness": "openhands",
+      "observations": 123,
+      "generation_observations": 110,
+      "known_cost_matches_ledger": true,
+      "known_spending_usd": "0.753597900",
+      "model_revoked_before_verifier": true,
+      "task_containers_removed": true
     }
   ],
   "model_api_calls_for_check": 0,
-  "total_observations": 1060
+  "total_observations": 1183
 }
