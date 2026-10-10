@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — Langfuse tracing (no change to agent behaviour)
+
+- `harness/tracing.py`: one Langfuse trace per trial when `LANGFUSE_PUBLIC_KEY` and
+  `LANGFUSE_SECRET_KEY` are set. Root observation named after the task, session = run
+  name, tags = harness name and version; every model call and tool call is nested under
+  it through the LangChain callback handler. Without the keys nothing is loaded.
+- Tracing failures never affect a run: errors are recorded in metadata
+  (`langfuse_error`), and the final upload is capped at 30 s.
+- Metadata adds `langfuse_trace_id` and `langfuse_trace_url` when tracing is on.
+- Offline smoke test: 12/12 checks (adds "no tracing without keys" and "unreachable
+  Langfuse server does not affect the run").
+
 ## 0.1.3 — 2026-10-05
 
 - Provider errors are retried inside the task deadline: HTTP 429, 5xx and connection

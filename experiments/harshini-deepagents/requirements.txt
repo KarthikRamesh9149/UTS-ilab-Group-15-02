@@ -3,3 +3,4 @@
 harbor==0.22.0
 deepagents==0.7.14
 langchain-openai==1.6.2
+langfuse==4.17.0

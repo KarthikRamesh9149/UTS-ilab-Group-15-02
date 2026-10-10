@@ -12,6 +12,7 @@ DeepInfra FP8 via OpenRouter). Design levers, relative to the C0-NC reference ag
 - `write_todos` planning stays enabled; sub-agents and summarisation are off.
 - Provider 429/5xx and connection failures are retried with backoff until the
   task deadline, with no count cap.
+- Optional Langfuse trace per trial when LANGFUSE_PUBLIC_KEY/SECRET_KEY are set.
 
 Run with:
     harbor run ... -a harness.agent:DeepAgentsHarness \
@@ -21,6 +22,7 @@ with `experiments/harshini-deepagents` on PYTHONPATH and OPENROUTER_API_KEY set.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 import random
@@ -45,6 +47,7 @@ from langchain_openai import ChatOpenAI
 from langsmith.run_helpers import tracing_context
 
 from harness.backend import Deadline, HarborShellBackend
+from harness.tracing import TrialTrace
 
 PINNED_MODEL = "deepseek/deepseek-v4-flash-0731"
 PROVIDER_ROUTE = {
@@ -220,6 +223,16 @@ class DeepAgentsHarness(BaseAgent):
             ),
         )
 
+    def _trial_names(self) -> tuple[str, str]:
+        """(task name, run name) from the Harbor trial folder: <run>/<task>/<trial>/agent."""
+        try:
+            trial = json.loads((self.logs_dir.parent / "config.json").read_text(encoding="utf-8"))
+            task = trial["task"]["name"].split("/")[-1]
+        except Exception:
+            task = "trial"
+        run = self.logs_dir.parents[2].name if len(self.logs_dir.parents) > 2 else "local"
+        return task, run
+
     def _task_timeout(self) -> tuple[float, str]:
         """Official agent timeout from the task's cached task.toml (Harbor only passes it to Oracle)."""
         if self._timeout_override:
@@ -286,6 +299,17 @@ class DeepAgentsHarness(BaseAgent):
         nudges = 0
         empty_nudges = 0
         error_type = None
+        task_name, run_name = self._trial_names()
+        trace = TrialTrace()
+        trace.start(
+            name=task_name,
+            session_id=run_name,
+            version=self.version(),
+            tags=[self.name(), f"v{self.version()}"],
+            metadata={"run": run_name, "budget_sec": str(int(budget)), "image_has_python3": str(self._has_python3)},
+            input=instruction,
+        )
+        run_config = {"recursion_limit": 10000, "callbacks": trace.callbacks}
 
         def with_message(text: str) -> dict[str, Any]:
             return {**state, "messages": [*state["messages"], HumanMessage(content=text)]}
@@ -294,9 +318,7 @@ class DeepAgentsHarness(BaseAgent):
             with tracing_context(enabled=False):
                 async with asyncio.timeout(max(30.0, budget - 15)):
                     while True:
-                        async for snapshot in graph.astream(
-                            state, config={"recursion_limit": 10000}, stream_mode="values"
-                        ):
+                        async for snapshot in graph.astream(state, config=run_config, stream_mode="values"):
                             state = snapshot
                         last = state["messages"][-1] if state.get("messages") else None
                         if (
@@ -329,8 +351,16 @@ class DeepAgentsHarness(BaseAgent):
             self._record(
                 context, state, backend, budget, budget_source, stop_reason, error_type,
                 finish_nudges=nudges, empty_reply_nudges=empty_nudges, image_has_python3=self._has_python3,
-                **retry.stats(),
+                **retry.stats(), **trace.stats(),
             )
+            trace.end(
+                {key: context.metadata.get(key) for key in (
+                    "stop_reason", "error_type", "model_calls", "model_retries", "finish_nudges", "empty_reply_nudges",
+                )},
+                failed=stop_reason == "error",
+            )
+            with contextlib.suppress(Exception, asyncio.CancelledError):
+                await asyncio.wait_for(asyncio.to_thread(trace.flush), timeout=30)
 
     def _record(self, context, state, backend, budget, budget_source, stop_reason, error_type, **extra) -> None:
         messages = state.get("messages", [])

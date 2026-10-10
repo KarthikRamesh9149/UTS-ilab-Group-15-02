@@ -4,6 +4,7 @@ Scenario 1 (python image): sticky cwd, Deep Agents read_file through the backend
 the per-command kill, and the finish nudge after a failed last command.
 Scenario 2 (image without python3): write_file still works, python-backed file
 tools are hidden from the model, and an empty reply is nudged instead of ending.
+Scenario 3: with Langfuse keys set but the server unreachable, the run is unaffected.
 
     python experiments/harshini-deepagents/tests/smoke_offline.py
 (run with the Python that has Harbor + deepagents installed)
@@ -24,6 +25,8 @@ import openai
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 os.environ.setdefault("OPENROUTER_API_KEY", "offline-test")
+for _key in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST"):
+    os.environ.pop(_key, None)
 
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel  # noqa: E402
 from langchain_core.messages import AIMessage  # noqa: E402
@@ -124,6 +127,21 @@ async def main() -> int:
     checks["write_file without python3"] = note == "written without python\n"
     checks["python file tools hidden"] = bool(offered) and not (PYTHON_FILE_TOOLS & set(offered[-1]))
     checks["empty reply nudged"] = meta["empty_reply_nudges"] == 1 and "written without python" in out[-1]
+    checks["no tracing without Langfuse keys"] = not any(key.startswith("langfuse") for key in meta)
+
+    os.environ.update(LANGFUSE_PUBLIC_KEY="pk-lf-offline", LANGFUSE_SECRET_KEY="sk-lf-offline",
+                      LANGFUSE_HOST="http://127.0.0.1:9")
+    try:
+        _, meta, _, _ = await run_scenario("python:3.12-slim", [
+            call("execute", 1, command="echo traced"),
+            AIMessage(content="Done."),
+        ])
+    finally:
+        for key in ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST"):
+            os.environ.pop(key, None)
+    checks["unreachable Langfuse does not affect the run"] = (
+        meta["stop_reason"] == "model_done" and bool(meta.get("langfuse_trace_id"))
+    )
 
     for name, ok in checks.items():
         print(f"{'PASS' if ok else 'FAIL'}  {name}")

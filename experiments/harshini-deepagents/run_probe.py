@@ -85,6 +85,9 @@ def main() -> int:
     before = key_usage() if paid else None
     if before is not None:
         print(f"OpenRouter key usage before: ${before:.4f}")
+    if args.agent == "custom":
+        tracing = env.get("LANGFUSE_PUBLIC_KEY") and env.get("LANGFUSE_SECRET_KEY")
+        print(f"Langfuse tracing: {'on' if tracing else 'off'}")
 
     for index, task in enumerate(tasks, start=1):
         if scored(run_dir / task):

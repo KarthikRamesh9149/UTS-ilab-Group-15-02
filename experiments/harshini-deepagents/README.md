@@ -8,6 +8,7 @@ baselines **Terminus-2** and **OpenHands**.
 |---|---|
 | Harbor agent + Deep Agents graph | [`harness/agent.py`](harness/agent.py) |
 | Container backend (execute, file tools) | [`harness/backend.py`](harness/backend.py) |
+| Optional Langfuse tracing | [`harness/tracing.py`](harness/tracing.py) |
 | Offline smoke test (fake model + Docker) | [`tests/smoke_offline.py`](tests/smoke_offline.py) |
 | Terminus-2 with the reference model settings | [`harness/terminus_pinned.py`](harness/terminus_pinned.py) |
 | Task runner | [`run_probe.py`](run_probe.py) |
@@ -49,6 +50,15 @@ python experiments/harshini-deepagents/run_probe.py custom openssl-selfsigned-ce
 
 Raw Harbor output goes to `jobs/harshini-deepagents/<run-name>/` (not committed).
 Per-trial trace: `<trial>/agent/deepagents-trajectory.json`.
+
+### Langfuse tracing (optional)
+
+Set `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` as user environment variables
+(and `LANGFUSE_HOST` for a non-EU region). Each trial then appears in Langfuse as one
+trace named after the task, grouped into a session per run name, with every model call
+(tokens, cost, latency) and tool call nested under it. The trace link is stored in the
+trial's metadata as `langfuse_trace_url`. Without the keys, tracing is off and nothing
+is loaded.
 
 ## Repeat study (same host)
 
