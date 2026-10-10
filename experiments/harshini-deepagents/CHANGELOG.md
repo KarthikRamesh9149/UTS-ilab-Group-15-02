@@ -11,6 +11,13 @@
 - Metadata adds `langfuse_trace_id` and `langfuse_trace_url` when tracing is on.
 - Offline smoke test: 12/12 checks (adds "no tracing without keys" and "unreachable
   Langfuse server does not affect the run").
+- Second model for a cross-model check: `MODEL_SETTINGS` in `harness/agent.py` lists the
+  allowed models with their provider route and output cap. DeepSeek V4 Flash 0731
+  (default) keeps the exact reference settings; Claude Haiku 5.5 is routed to Anthropic
+  only, 128k output cap, without `require_parameters` (Anthropic does not list
+  `temperature`). Both harnesses and `run_probe.py --model` use it; `model_study.py`
+  interleaves the two harnesses task by task. Probes on `openssl-selfsigned-cert` with
+  Haiku: this harness 1/1 (US$0.006), Terminus-2 1/1 (US$0.004).
 
 ## 0.1.3 — 2026-10-05
 

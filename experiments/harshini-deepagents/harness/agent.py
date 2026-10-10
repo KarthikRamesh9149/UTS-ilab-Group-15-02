@@ -57,7 +57,26 @@ PROVIDER_ROUTE = {
     "require_parameters": True,
     "quantizations": ["fp8"],
 }
+# DeepSeek is the project model; the others exist only for the cross-model check.
+# Anthropic endpoints do not list `temperature`, so `require_parameters` would block routing.
+MODEL_SETTINGS = {
+    PINNED_MODEL: {"route": PROVIDER_ROUTE, "max_output_tokens": 384000},
+    "anthropic/claude-haiku-5.5": {
+        "route": {"only": ["anthropic"], "order": ["anthropic"], "allow_fallbacks": False},
+        "max_output_tokens": 128000,
+    },
+}
 FALLBACK_TIMEOUT_SEC = 900.0
+
+
+def resolve_model(model_name: str | None) -> tuple[str, dict[str, Any]]:
+    wire = model_name or PINNED_MODEL
+    for prefix in ("openrouter/", "openai/"):
+        if wire.startswith(prefix):
+            wire = wire[len(prefix):]
+    if wire not in MODEL_SETTINGS:
+        raise ValueError(f"model must be one of {sorted(MODEL_SETTINGS)}, got {wire}")
+    return wire, MODEL_SETTINGS[wire]
 
 SYSTEM_PROMPT = """You are an autonomous terminal agent solving a task inside a Linux container. Nobody will answer questions; keep working until the task is complete.
 
@@ -177,19 +196,15 @@ class DeepAgentsHarness(BaseAgent):
         *args: Any,
         temperature: float = 1.0,
         reasoning_effort: str = "high",
-        max_output_tokens: int = 384000,
+        max_output_tokens: int | None = None,
         default_command_timeout: int = 300,
         agent_timeout_sec: float | None = None,
         max_finish_nudges: int = 2,
         **kwargs: Any,
     ) -> None:
         super().__init__(logs_dir, model_name, *args, **kwargs)
-        wire = model_name or PINNED_MODEL
-        for prefix in ("openrouter/", "openai/"):
-            if wire.startswith(prefix):
-                wire = wire[len(prefix):]
-        if wire != PINNED_MODEL:
-            raise ValueError(f"model must be {PINNED_MODEL}, got {wire}")
+        wire, settings = resolve_model(model_name)
+        self._wire = wire
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY is not set")
@@ -198,13 +213,13 @@ class DeepAgentsHarness(BaseAgent):
             base_url=os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
             api_key=api_key,
             temperature=float(temperature),
-            max_tokens=int(max_output_tokens),
+            max_tokens=int(max_output_tokens or settings["max_output_tokens"]),
             max_retries=0,
             timeout=900,
             streaming=False,
             use_responses_api=False,
             extra_body={
-                "provider": PROVIDER_ROUTE,
+                "provider": settings["route"],
                 "reasoning": {"effort": str(reasoning_effort)},
                 "usage": {"include": True},
             },
@@ -216,7 +231,7 @@ class DeepAgentsHarness(BaseAgent):
         self._start_cwd = "/app"
         self._has_python3 = True
         register_harness_profile(
-            "openai:" + PINNED_MODEL,
+            "openai:" + wire,
             HarnessProfile(
                 general_purpose_subagent=GeneralPurposeSubagentProfile(enabled=False),
                 excluded_middleware=frozenset({"SummarizationMiddleware"}),
@@ -305,7 +320,7 @@ class DeepAgentsHarness(BaseAgent):
             name=task_name,
             session_id=run_name,
             version=self.version(),
-            tags=[self.name(), f"v{self.version()}"],
+            tags=[self.name(), f"v{self.version()}", self._wire],
             metadata={"run": run_name, "budget_sec": str(int(budget)), "image_has_python3": str(self._has_python3)},
             input=instruction,
         )
@@ -384,7 +399,7 @@ class DeepAgentsHarness(BaseAgent):
         context.metadata = {
             "harness": self.name(),
             "harness_version": self.version(),
-            "pinned_model": PINNED_MODEL,
+            "pinned_model": self._wire,
             "stop_reason": stop_reason,
             "error_type": error_type,
             "agent_budget_sec": budget,

@@ -14,6 +14,7 @@ baselines **Terminus-2** and **OpenHands**.
 | Terminus-2 with the reference model settings | [`harness/terminus_pinned.py`](harness/terminus_pinned.py) |
 | Task runner | [`run_probe.py`](run_probe.py) |
 | Repeat study runner | [`repeat_study.py`](repeat_study.py) |
+| Cross-model study runner | [`model_study.py`](model_study.py) |
 | Dev subset (20 tasks) | [`dev20_tasks.txt`](dev20_tasks.txt) |
 
 ## Design
@@ -84,6 +85,18 @@ Outputs: `results/harshini/deepagents/dev20-v0.1.3{,-r2,-r3}.csv` and
 
 Result (5–10 October 2026): this harness 10, 8, 11 of 20 (mean 9.7); Terminus-2 11, 12,
 11 (mean 11.3). Details in [`results/harshini/FINDINGS.md`](../../results/harshini/FINDINGS.md).
+
+## Cross-model check
+
+Every result above uses one model. To test whether the harness comparison depends on it,
+[`model_study.py`](model_study.py) runs this harness and Terminus-2 on dev-20 with a
+second model (Claude Haiku 5.5, Anthropic route), interleaved task by task, one run each:
+
+```powershell
+python experiments/harshini-deepagents/model_study.py --model anthropic/claude-haiku-5.5 --tag haiku
+```
+
+Outputs: `results/harshini/deepagents/dev20-haiku-v0.1.3.csv` and `dev20-haiku-terminus2.csv`.
 
 ## Reference scores (Netcup server, same model)
 

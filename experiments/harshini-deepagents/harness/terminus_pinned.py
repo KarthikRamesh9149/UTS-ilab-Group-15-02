@@ -4,6 +4,7 @@ Prompt, tools, context handling and loop are Harbor's own. Only the connection i
 set here, to match the C0 reference runs: DeepSeek V4 Flash 0731 on DeepInfra FP8
 via OpenRouter, temperature 1.0, reasoning effort high, 384k max output tokens, and
 429/5xx/connection failures retried with backoff until Harbor's task deadline.
+Other models from `harness.agent.MODEL_SETTINGS` are allowed for the cross-model check.
 """
 from __future__ import annotations
 
@@ -17,7 +18,7 @@ import litellm
 from harbor.agents.terminus_2.terminus_2 import Terminus2
 from harbor.models.agent.context import AgentContext
 
-from harness.agent import PINNED_MODEL, PROVIDER_ROUTE
+from harness.agent import resolve_model
 
 TRANSIENT_ERRORS = (
     litellm.RateLimitError,
@@ -37,12 +38,8 @@ class PinnedTerminus2(Terminus2):
         return "0.1.0"
 
     def __init__(self, logs_dir: Path, model_name: str | None = None, *args: Any, **kwargs: Any) -> None:
-        wire = model_name or PINNED_MODEL
-        for prefix in ("openrouter/", "openai/"):
-            if wire.startswith(prefix):
-                wire = wire[len(prefix):]
-        if wire != PINNED_MODEL:
-            raise ValueError(f"model must be {PINNED_MODEL}, got {wire}")
+        wire, settings = resolve_model(model_name)
+        self._wire = wire
         api_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY is not set")
@@ -50,15 +47,15 @@ class PinnedTerminus2(Terminus2):
         kwargs.setdefault("reasoning_effort", "high")
         llm_kwargs = {**(kwargs.pop("llm_kwargs", None) or {}), "api_key": api_key}
         llm_call_kwargs = {
-            "max_tokens": 384000,
+            "max_tokens": settings["max_output_tokens"],
             "extra_body": {
-                "provider": PROVIDER_ROUTE,
+                "provider": settings["route"],
                 "reasoning": {"effort": kwargs["reasoning_effort"]},
                 "usage": {"include": True},
             },
         }
         super().__init__(
-            logs_dir, "openrouter/" + PINNED_MODEL, *args,
+            logs_dir, "openrouter/" + wire, *args,
             llm_kwargs=llm_kwargs, llm_call_kwargs=llm_call_kwargs, **kwargs,
         )
         self._model_retries = 0
@@ -84,6 +81,6 @@ class PinnedTerminus2(Terminus2):
                 **(context.metadata or {}),
                 "harness": self.name(),
                 "harness_version": self.version(),
-                "pinned_model": PINNED_MODEL,
+                "pinned_model": self._wire,
                 "model_retries": self._model_retries,
             }

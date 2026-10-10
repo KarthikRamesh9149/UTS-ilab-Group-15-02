@@ -1,0 +1,2 @@
+task,status,reward,stop_reason,agent_min,budget_min,cost_usd,model_calls,harness,harness_version
+openssl-selfsigned-cert,pass,1.0,model_done,0.4,15,0.0060,6,uts-harshini-deepagents,0.1.3

@@ -81,6 +81,8 @@ def main() -> int:
     parser.add_argument("tasks", nargs="*")
     parser.add_argument("--dev20", action="store_true", help="run the 20-task dev subset")
     parser.add_argument("--run-name")
+    parser.add_argument("--model", default=MODEL.removeprefix("openrouter/"),
+                        help="OpenRouter model id (must be listed in harness.agent.MODEL_SETTINGS)")
     args = parser.parse_args()
     load_dotenv(ROOT / ".env")
 
@@ -114,7 +116,7 @@ def main() -> int:
             "harbor", "run", "-d", DATASET, "-i", f"terminal-bench/{task}",
             "-n", "1", "-k", "1", "-o", str(run_dir), "--job-name", task, "--yes",
         ]
-        cmd += ["-a", "oracle"] if args.agent == "oracle" else ["-a", AGENTS[args.agent], "-m", MODEL]
+        cmd += ["-a", "oracle"] if args.agent == "oracle" else ["-a", AGENTS[args.agent], "-m", f"openrouter/{args.model}"]
         subprocess.run(cmd, cwd=ROOT, env=env, check=False)
 
     if before is not None:

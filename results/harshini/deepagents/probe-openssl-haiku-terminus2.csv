@@ -1,0 +1,2 @@
+task,status,reward,stop_reason,agent_min,budget_min,cost_usd,model_calls,harness,harness_version
+openssl-selfsigned-cert,pass,1.0,,0.6,,0.0035,,terminus-2-pinned,0.1.0
