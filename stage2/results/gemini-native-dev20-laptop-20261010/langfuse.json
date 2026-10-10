@@ -1,0 +1,158 @@
+{
+  "experiment": "gemini-native-dev20-laptop-20261010",
+  "status": "verified_all_observation_ids",
+  "model_calls_for_export": 0,
+  "traces": [
+    {
+      "label": "launcher-v1-launcher-synthetic-openhands",
+      "scope": "synthetic",
+      "observations": 13,
+      "kinds": {
+        "trial": 1,
+        "tool": 6,
+        "setup": 1,
+        "generation": 2,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "expected_observations": 13,
+      "observed_observations": 13,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "launcher-v1-launcher-synthetic-terminus-2",
+      "scope": "synthetic",
+      "observations": 25,
+      "kinds": {
+        "trial": 1,
+        "tool": 17,
+        "setup": 1,
+        "generation": 3,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "launcher-v2-launcher-synthetic-openhands",
+      "scope": "synthetic",
+      "observations": 13,
+      "kinds": {
+        "trial": 1,
+        "tool": 6,
+        "setup": 1,
+        "generation": 2,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "expected_observations": 13,
+      "observed_observations": 13,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "launcher-v2-launcher-synthetic-terminus-2",
+      "scope": "synthetic",
+      "observations": 25,
+      "kinds": {
+        "trial": 1,
+        "tool": 17,
+        "setup": 1,
+        "generation": 3,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "offline-checks",
+      "scope": "synthetic",
+      "observations": 2,
+      "kinds": {
+        "trial": 1,
+        "setup": 1
+      },
+      "expected_observations": 2,
+      "observed_observations": 2,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-01-terminus-2-video-processing",
+      "scope": "paid",
+      "observations": 474,
+      "kinds": {
+        "trial": 1,
+        "tool": 330,
+        "setup": 1,
+        "generation": 139,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "expected_observations": 474,
+      "observed_observations": 474,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-02-openhands-video-processing",
+      "scope": "paid",
+      "observations": 269,
+      "kinds": {
+        "trial": 1,
+        "tool": 8,
+        "setup": 1,
+        "generation": 256,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "expected_observations": 269,
+      "observed_observations": 269,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-03-openhands-build-pov-ray",
+      "scope": "paid",
+      "observations": 20,
+      "kinds": {
+        "trial": 1,
+        "tool": 8,
+        "setup": 1,
+        "generation": 7,
+        "agent": 1,
+        "verifier": 1,
+        "cleanup": 1
+      },
+      "expected_observations": 20,
+      "observed_observations": 20,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    }
+  ],
+  "updated_utc": "2026-10-10T06:31:39.780672+00:00",
+  "synthetic_traces": 5,
+  "paid_traces": 3,
+  "observations": 841
+}

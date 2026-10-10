@@ -17,4 +17,6 @@ OpenHands attempts under the original shared US$20 cap.
 These are synthetic marker checks, not benchmark scores. No paid native
 benchmark attempt was used for qualification. Raw logs stay private. Paid
 results are delivered separately under gemini-native-dev20-laptop-20261010.
-Local Langfuse metadata readback is delivered after its services restart.
+Local Langfuse was restored after the paid batch. All observation IDs in the five
+synthetic launcher/check traces were verified; see langfuse.json. Paid benchmark
+results remain in the separate results directory named above.

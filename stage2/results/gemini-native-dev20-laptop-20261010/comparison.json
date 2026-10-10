@@ -1,0 +1,24 @@
+{
+  "scope": "only actual official rewards; no replay or imputation",
+  "native_paired_tasks": [
+    {
+      "task_id": "video-processing",
+      "terminus_reward": 0.0,
+      "openhands_reward": 1.0,
+      "terminus_known_spending_usd": "1.846329375",
+      "openhands_known_spending_usd": "4.691091225",
+      "terminus_agent_seconds": 1123.770331963,
+      "openhands_agent_seconds": 2195.3898722409995,
+      "both_finished_without_budget_stop": true
+    }
+  ],
+  "three_harness_scored_tasks": [],
+  "three_harness_paired_count": 0,
+  "budget_censoring": true,
+  "limitations": [
+    "Original custom run had a fresh US$20 allowance; baselines share only the remainder.",
+    "Infra failures and unstarted tasks are not treated as verifier failures.",
+    "No full-subset superiority claim from partial results.",
+    "Two original custom attempts have no score; earlier DeepSeek results remain separate."
+  ]
+}

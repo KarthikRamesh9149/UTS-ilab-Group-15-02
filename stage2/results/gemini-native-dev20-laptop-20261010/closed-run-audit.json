@@ -1,0 +1,25 @@
+{
+  "scope": "closed_benchmark_metadata_audit_no_task_replay",
+  "model_api_calls_for_audit": 0,
+  "physical_requests": 402,
+  "resolved_models": [
+    "google/gemini-3.7-flash"
+  ],
+  "providers": [
+    "Google AI Studio"
+  ],
+  "all_requests_http_200_and_settled": true,
+  "new_unresolved_requests": 0,
+  "official_image_identities_match": true,
+  "started_cells_match_registered_order": true,
+  "model_revoked_and_task_containers_removed": true,
+  "cleanup_or_trace_errors": 0,
+  "classifications": {
+    "verifier_failure": 1,
+    "pass": 1,
+    "budget_stop": 1
+  },
+  "unstarted_cells": 37,
+  "ledger_and_report_costs_match": true,
+  "original_custom_attempts_replayed": 0
+}
