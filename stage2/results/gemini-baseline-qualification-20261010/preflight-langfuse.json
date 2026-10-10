@@ -1,0 +1,12 @@
+{
+  "scope": "read_only_preflight_no_benchmark_score",
+  "new_model_calls": 0,
+  "proposal_sha256": "12470fce566d124f9a0ec0fb917341096bc84615d9fdf46a8324ec283cc5f3bf",
+  "langfuse_readback": {
+    "expected_observations": 2,
+    "observed_observations": 2,
+    "missing_observations": 0,
+    "unexpected_observations": 0,
+    "matched": true
+  }
+}
