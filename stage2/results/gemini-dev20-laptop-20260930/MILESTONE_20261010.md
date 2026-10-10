@@ -55,8 +55,9 @@ change the original benchmark scores or count as additional paid runs.
 See [the recovery brief](../gemini-recovery-offline-20261010/BRIEF.md).
 
 Delivery branch: `codex/gemini-dev20-results-20261005`.
-Future baseline preparation is retained privately as unqualified work; it has
-not been registered or run against paid inference.
+Subsequent baseline preparation passed offline checks and synthetic Docker
+lifecycles; see [the separate qualification brief](../gemini-baseline-qualification-20261010/BRIEF.md).
+It has not been registered or run against paid inference.
 
 ## Next decision
 

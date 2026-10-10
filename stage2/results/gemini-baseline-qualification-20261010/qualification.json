@@ -1,0 +1,354 @@
+{
+  "scope": "synthetic_native_qualification_not_benchmark",
+  "passed": true,
+  "paid_generations": 0,
+  "new_model_spending_usd": "0",
+  "offline_checks_passed": 49,
+  "qualified_native_fixtures": {
+    "scope": "synthetic_native_qualification_not_benchmark",
+    "paid_generations": 0,
+    "new_model_spending_usd": "0",
+    "source_hashes": {
+      "gemini_baseline_agents.py": "13bcada598745ade640a83d09b19d52e1f8dd3389ff5bf3c05c206f3e09fdc8a",
+      "gemini_baseline_budget.py": "4a2ccdb003249dc9d16297717f950caeab9a4fcfeb8f3e851da6da12af22612c",
+      "gemini_baseline_qualify.py": "4b4235402a62676d93211d2d9ddffbd3bdda18685f54bebf77683d09dbcb8517",
+      "native_agents.py": "8cb6b5843eaf789b6b74f54d69d51354db18d6d27cbaaa5fff3682de4d017951",
+      "gemini_laptop_policy.py": "10cee47eb4d278d22f1f8b6b1b14b9bd3cf304d5f9e50ac877374602ac52c96e",
+      "trial_execution.py": "ea3bbc63513db0a0a1b47c054d81b47a50a7b90fc479f4218653f1582339b924",
+      "gemini_laptop_logs.py": "671505a64e7ce11c16b1d83d4250c146b498a056d218c0b22614134dcb2d1146",
+      "gemini_laptop_run.py": "45336222fbf7ce7fb4c0b389c32b3b23babc2e786a82481e363d1e96dd5f464a",
+      "openhands-requirements.lock": "12a2a0964cf8d2e3d82743a73705eb5d46118cd277bea8b532b99b4d502da151",
+      "Dockerfile.gemini-baselines": "7f5bffeed1543ea61998c64c65b4c55e16fb3d005caa6dc3cfaf100545ab120a"
+    },
+    "bundle_sha256": "d35faf2393bb4f0ee8cc4470c7d7f6b7adb029d843a3b8728e9a8b7ad1126758",
+    "task_image": "uts-gemini-baseline-task-fixture:20261010",
+    "controller_image": "sha256:cbe6cff7af09d55fefe1d17da4b35aeeed97fbbb3c01b38c0f7454f427659580",
+    "fixtures": [
+      {
+        "harness": "terminus-2",
+        "passed": true,
+        "paid_generations": 0,
+        "scope": "synthetic_native_lifecycle_not_benchmark",
+        "scripted_requests": 3,
+        "invalid_requests": 0,
+        "model_revoked": true,
+        "task_containers_removed": true,
+        "internal_network": true,
+        "resource_audit": {
+          "image_id": "sha256:ed18e3bb71d175ef16622ee67edd484cdb09e93e672fb13415f2c8de2cd41cad",
+          "cpus": 1,
+          "memory_mb": 1024,
+          "storage_mb_requested": null,
+          "storage_enforcement": "Docker shared disk; no per-container quota",
+          "privileged": false,
+          "controller_key_and_socket_visible": false
+        },
+        "lifecycle_status": "verified",
+        "agent_error_type": null,
+        "verifier_error_type": null,
+        "cleanup_errors": [],
+        "trace_errors": []
+      },
+      {
+        "harness": "openhands",
+        "passed": true,
+        "paid_generations": 0,
+        "scope": "synthetic_native_lifecycle_not_benchmark",
+        "scripted_requests": 2,
+        "invalid_requests": 0,
+        "model_revoked": true,
+        "task_containers_removed": true,
+        "internal_network": true,
+        "resource_audit": {
+          "image_id": "sha256:ed18e3bb71d175ef16622ee67edd484cdb09e93e672fb13415f2c8de2cd41cad",
+          "cpus": 1,
+          "memory_mb": 2048,
+          "storage_mb_requested": null,
+          "storage_enforcement": "Docker shared disk; no per-container quota",
+          "privileged": false,
+          "controller_key_and_socket_visible": false
+        },
+        "lifecycle_status": "verified",
+        "agent_error_type": null,
+        "verifier_error_type": null,
+        "cleanup_errors": [],
+        "trace_errors": []
+      }
+    ],
+    "passed": true
+  },
+  "earlier_synthetic_rounds": [
+    {
+      "round": 2,
+      "passed": false,
+      "fixtures": [
+        {
+          "harness": "terminus-2",
+          "passed": false,
+          "paid_generations": 0,
+          "scope": "synthetic_native_lifecycle_not_benchmark",
+          "scripted_requests": 0,
+          "invalid_requests": 1,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "internal_network": true,
+          "resource_audit": {
+            "image_id": "sha256:3748776ec6df00be2034142dd92033b0664cec186d9a9e69961d6a2299e16fa5",
+            "cpus": 1,
+            "memory_mb": 1024,
+            "storage_mb_requested": null,
+            "storage_enforcement": "Docker shared disk; no per-container quota",
+            "privileged": false,
+            "controller_key_and_socket_visible": false
+          },
+          "lifecycle_status": "verified",
+          "agent_error_type": "BadRequestError",
+          "verifier_error_type": null,
+          "cleanup_errors": [],
+          "trace_errors": []
+        },
+        {
+          "harness": "openhands",
+          "passed": false,
+          "paid_generations": 0,
+          "scope": "synthetic_native_lifecycle_not_benchmark",
+          "scripted_requests": 0,
+          "invalid_requests": 1,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "internal_network": true,
+          "resource_audit": {
+            "image_id": "sha256:3748776ec6df00be2034142dd92033b0664cec186d9a9e69961d6a2299e16fa5",
+            "cpus": 1,
+            "memory_mb": 2048,
+            "storage_mb_requested": null,
+            "storage_enforcement": "Docker shared disk; no per-container quota",
+            "privileged": false,
+            "controller_key_and_socket_visible": false
+          },
+          "lifecycle_status": "verified",
+          "agent_error_type": null,
+          "verifier_error_type": null,
+          "cleanup_errors": [],
+          "trace_errors": []
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "passed": false,
+      "fixtures": [
+        {
+          "harness": "terminus-2",
+          "passed": true,
+          "paid_generations": 0,
+          "scope": "synthetic_native_lifecycle_not_benchmark",
+          "scripted_requests": 3,
+          "invalid_requests": 0,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "internal_network": true,
+          "resource_audit": {
+            "image_id": "sha256:ed18e3bb71d175ef16622ee67edd484cdb09e93e672fb13415f2c8de2cd41cad",
+            "cpus": 1,
+            "memory_mb": 1024,
+            "storage_mb_requested": null,
+            "storage_enforcement": "Docker shared disk; no per-container quota",
+            "privileged": false,
+            "controller_key_and_socket_visible": false
+          },
+          "lifecycle_status": "verified",
+          "agent_error_type": null,
+          "verifier_error_type": null,
+          "cleanup_errors": [],
+          "trace_errors": []
+        },
+        {
+          "harness": "openhands",
+          "passed": false,
+          "paid_generations": 0,
+          "scope": "synthetic_native_lifecycle_not_benchmark",
+          "scripted_requests": 0,
+          "invalid_requests": 1,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "internal_network": true,
+          "resource_audit": {
+            "image_id": "sha256:ed18e3bb71d175ef16622ee67edd484cdb09e93e672fb13415f2c8de2cd41cad",
+            "cpus": 1,
+            "memory_mb": 2048,
+            "storage_mb_requested": null,
+            "storage_enforcement": "Docker shared disk; no per-container quota",
+            "privileged": false,
+            "controller_key_and_socket_visible": false
+          },
+          "lifecycle_status": "verified",
+          "agent_error_type": null,
+          "verifier_error_type": null,
+          "cleanup_errors": [],
+          "trace_errors": []
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "passed": false,
+      "fixtures": [
+        {
+          "harness": "terminus-2",
+          "passed": true,
+          "paid_generations": 0,
+          "scope": "synthetic_native_lifecycle_not_benchmark",
+          "scripted_requests": 3,
+          "invalid_requests": 0,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "internal_network": true,
+          "resource_audit": {
+            "image_id": "sha256:ed18e3bb71d175ef16622ee67edd484cdb09e93e672fb13415f2c8de2cd41cad",
+            "cpus": 1,
+            "memory_mb": 1024,
+            "storage_mb_requested": null,
+            "storage_enforcement": "Docker shared disk; no per-container quota",
+            "privileged": false,
+            "controller_key_and_socket_visible": false
+          },
+          "lifecycle_status": "verified",
+          "agent_error_type": null,
+          "verifier_error_type": null,
+          "cleanup_errors": [],
+          "trace_errors": []
+        },
+        {
+          "harness": "openhands",
+          "passed": false,
+          "paid_generations": 0,
+          "scope": "synthetic_native_lifecycle_not_benchmark",
+          "scripted_requests": 1,
+          "invalid_requests": 1,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "internal_network": true,
+          "resource_audit": {
+            "image_id": "sha256:ed18e3bb71d175ef16622ee67edd484cdb09e93e672fb13415f2c8de2cd41cad",
+            "cpus": 1,
+            "memory_mb": 2048,
+            "storage_mb_requested": null,
+            "storage_enforcement": "Docker shared disk; no per-container quota",
+            "privileged": false,
+            "controller_key_and_socket_visible": false
+          },
+          "lifecycle_status": "verified",
+          "agent_error_type": null,
+          "verifier_error_type": null,
+          "cleanup_errors": [],
+          "trace_errors": []
+        }
+      ]
+    }
+  ],
+  "initial_topology_failure": {
+    "scope": "synthetic_setup_not_benchmark",
+    "cause": "Docker none network cannot join another network",
+    "task_removed": true
+  },
+  "langfuse_readback": [
+    {
+      "label": "baseline-v2-openhands-synthetic",
+      "fixture_passed": false,
+      "expected_observations": 12,
+      "observed_observations": 12,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "baseline-v2-terminus-2-synthetic",
+      "fixture_passed": false,
+      "expected_observations": 17,
+      "observed_observations": 17,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "baseline-v3-openhands-synthetic",
+      "fixture_passed": false,
+      "expected_observations": 12,
+      "observed_observations": 12,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "baseline-v3-terminus-2-synthetic",
+      "fixture_passed": true,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "baseline-v4-openhands-synthetic",
+      "fixture_passed": false,
+      "expected_observations": 13,
+      "observed_observations": 13,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "baseline-v4-terminus-2-synthetic",
+      "fixture_passed": true,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "baseline-v5-openhands-synthetic",
+      "fixture_passed": true,
+      "expected_observations": 13,
+      "observed_observations": 13,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "baseline-v5-terminus-2-synthetic",
+      "fixture_passed": true,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "baseline-offline-checks-synthetic",
+      "fixture_passed": true,
+      "expected_observations": 2,
+      "observed_observations": 2,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "baseline-v1-topology-failure-synthetic",
+      "fixture_passed": false,
+      "expected_observations": 2,
+      "observed_observations": 2,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    }
+  ],
+  "updated_utc": "2026-10-10T04:57:54.246956+00:00",
+  "original_dev20_replayed": false,
+  "paid_baseline_runs_started": 0,
+  "check_sources": {
+    "test_gemini_baselines.py": "700fb7f584c25b4372605a83eb7541d1c6885d440a236875b71a31c2c4a200ef"
+  },
+  "offline_log_sha256": "e42d85f1ceeba50145ab69e38f540506fe6972f1ec61ade3ae05c3e7f9ecbb42"
+}

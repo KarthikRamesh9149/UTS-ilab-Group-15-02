@@ -48,13 +48,26 @@ def wire(payload):
     """Fail closed on overrides, attachments, plugins, or other billable tools."""
     allowed = {'model', 'messages', 'tools', 'tool_choice', 'parallel_tool_calls',
         'temperature', 'top_p', 'max_tokens', 'max_completion_tokens',
-        'reasoning', 'stream'}
+        'reasoning', 'reasoning_effort', 'stream'}
     if set(payload) - allowed or payload.get('model') != MODEL or payload.get('stream'):
         raise ValueError('Unsupported model request')
+    # Native Harbor clients express this setting as reasoning_effort. The
+    # upstream wire remains the original, fixed OpenRouter reasoning object.
+    if 'reasoning_effort' in payload and payload['reasoning_effort'] != 'high':
+        raise ValueError('Native reasoning effort differs from frozen protocol')
     if not isinstance(payload.get('messages'), list) or not payload['messages']:
         raise ValueError('Messages required')
     for message in payload['messages']:
-        if message.get('content') is not None and not isinstance(message['content'], str):
+        content = message.get('content')
+        text_blocks = (isinstance(content, list) and bool(content) and all(
+            isinstance(block, dict) and set(block) == {'type', 'text'}
+            and block['type'] == 'text' and isinstance(block['text'], str)
+            for block in content))
+        empty_tool_message = (content == [] and message.get('role') == 'assistant'
+            and isinstance(message.get('tool_calls'), list) and bool(message['tool_calls'])
+            and all(isinstance(call, dict) and call.get('type') == 'function'
+                    for call in message['tool_calls']))
+        if content is not None and not isinstance(content, str) and not text_blocks and not empty_tool_message:
             raise ValueError('Text-only request required')
     if any(tool.get('type') != 'function' for tool in payload.get('tools', [])):
         raise ValueError('Only local function tools allowed')

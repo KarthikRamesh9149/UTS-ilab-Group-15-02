@@ -1,0 +1,13 @@
+FROM uts-gemini-controller:20260930 AS task-fixture
+ENV LITELLM_LOCAL_MODEL_COST_MAP=True LANGSMITH_TRACING=false SKIP_VSCODE_BUILD=true
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tmux asciinema curl git build-essential libportaudio2 portaudio19-dev
+RUN mkdir -p /workspace
+WORKDIR /workspace
+FROM task-fixture AS baselines
+COPY stage2/openhands-requirements.lock /tmp/openhands-requirements.lock
+RUN uv python install 3.12.13 --install-dir /opt/uts-openhands-python
+RUN uv venv /opt/openhands-venv --python /opt/uts-openhands-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12 && \
+    uv pip install --python /opt/openhands-venv/bin/python --require-hashes -r /tmp/openhands-requirements.lock
+RUN SKIP_VSCODE_BUILD=true /opt/openhands-venv/bin/python -m openhands.core.main --version
+RUN tar -C /opt -czf /opt/uts-openhands-bundle.tar.gz openhands-venv uts-openhands-python
