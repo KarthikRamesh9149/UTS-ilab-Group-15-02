@@ -11,15 +11,19 @@ agent harness and comparing it with the client baselines on Terminal-Bench 2.1.
 | | |
 |---|---|
 | Harness | Deep Agents, version 0.1.3 |
-| Latest full result | **10/20** on the dev set (`dev20-v0.1.3`, Windows laptop) |
-| Running now | repeat study: 3 dev-set runs each of this harness and Terminus-2 on the same laptop |
-| Same-laptop Terminus-2 | 9 passed of the first 16 tasks (run in progress); this harness passed 8 of those 16 |
-| Reference scores | Terminus-2 14/20 and the Stage 2 custom harness (C0) 15/20, both on the Netcup server |
+| Repeat study (done) | 3 dev-set runs each on the same Windows laptop, harnesses alternated |
+| Deep Agents 0.1.3 | **10, 8, 11** of 20 — mean **9.7** |
+| Terminus-2 (same laptop) | **11, 12, 11** of 20 — mean **11.3** |
+| Reference scores | Terminus-2 14/20 and the Stage 2 custom harness (C0) 15/20, one run each on the Netcup server |
 
 ![Progress chart](results/harshini/progress.png)
 
-**All findings so far:** [`results/harshini/FINDINGS.md`](results/harshini/FINDINGS.md) —
-same-host vs. server comparison, the repeat study, where the Stage 2 harnesses differ,
+Main results: a single dev-set run moves by up to 3 tasks between identical runs;
+Terminus-2 is slightly ahead of this harness on the same host, but within that spread;
+and the laptop host costs Terminus-2 about 3 tasks against the server.
+
+**All findings:** [`results/harshini/FINDINGS.md`](results/harshini/FINDINGS.md) —
+the repeat study, same-host vs. server comparison, where the Stage 2 harnesses differ,
 and the harness bugs found on real tasks.
 
 ## Results by stage
@@ -37,8 +41,11 @@ Runs on the Windows laptop with Harbor and Docker; the model is called through O
 | `dev20-v0.1.2` | 0.1.2 | 3 of 20 | no score | provider overload; all 3 ended on rate-limit errors (retry added in 0.1.3) |
 | [`probe-openssl-terminus2`](results/harshini/deepagents/probe-openssl-terminus2.csv) | Terminus-2 | 1 | **1/1** | Terminus-2 with the reference settings runs on the laptop |
 | [`dev20-v0.1.3`](results/harshini/deepagents/dev20-v0.1.3.csv) | 0.1.3 | 20 | **10/20** | repeat study run 1; both `qemu` tasks fail on this host |
-| [`dev20-terminus2-r1`](results/harshini/deepagents/dev20-terminus2-r1.csv) | Terminus-2 | 16 of 20 so far | **9 passed** | same laptop; also fails both `qemu` tasks (passed on Netcup) |
-| `dev20-v0.1.3-r2`, `-r3`, `dev20-terminus2-r2`, `-r3` | both | 20 each | queued | rest of the repeat study |
+| [`dev20-terminus2-r1`](results/harshini/deepagents/dev20-terminus2-r1.csv) | Terminus-2 | 20 | **11/20** | same laptop; also fails both `qemu` tasks (passed on Netcup) |
+| [`dev20-v0.1.3-r2`](results/harshini/deepagents/dev20-v0.1.3-r2.csv) | 0.1.3 | 20 | **8/20** | 6 tasks lost to provider overload, counted as failed |
+| [`dev20-terminus2-r2`](results/harshini/deepagents/dev20-terminus2-r2.csv) | Terminus-2 | 20 | **12/20** | |
+| [`dev20-v0.1.3-r3`](results/harshini/deepagents/dev20-v0.1.3-r3.csv) | 0.1.3 | 20 | **11/20** | |
+| [`dev20-terminus2-r3`](results/harshini/deepagents/dev20-terminus2-r3.csv) | Terminus-2 | 20 | **11/20** | |
 
 Fixes between versions are listed in the
 [harness changelog](experiments/harshini-deepagents/CHANGELOG.md).
@@ -72,11 +79,12 @@ Archived write-up: [`docs/team-stage1.md`](docs/team-stage1.md).
 
 ## Next
 
-1. Finish the repeat study: how much does a dev-set score move between identical runs,
-   and does this harness differ from Terminus-2 on the same host?
-2. Compare with the reference scores above.
-3. Add Langfuse tracing to the Deep Agents harness.
-4. Run the full 89 tasks if the dev-set score reaches 16/20.
+1. Harness 0.1.4: when retries run out near the deadline, end the run so the grader still
+   checks the task (removes the overload losses seen in run 2).
+2. Single-lever tests (one change at a time, e.g. a file-layout completion check), each
+   with repeated runs, since one run cannot show a 1–2 task effect.
+3. Windows Oracle run of the tasks lost on this host (`qemu-*`, `adaptive-rejection-sampler`).
+4. Add Langfuse tracing to the Deep Agents harness.
 
 ## Where things are
 

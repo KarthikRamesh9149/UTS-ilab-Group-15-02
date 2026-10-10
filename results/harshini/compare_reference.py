@@ -128,13 +128,13 @@ def plot(ref: list[dict]) -> None:
 
     ref_by = {r["task"]: r for r in ref}
     tasks = dev20()
-    columns = [(f"Deep Agents {n.split('-', 1)[1]}\n(laptop)", data) for n in
-               ("dev20-v0.1.3", "dev20-v0.1.3-r2", "dev20-v0.1.3-r3") if (data := run(n))]
-    columns += [(f"Terminus-2 {n.rsplit('-', 1)[1]}\n(laptop)", data) for n in
-                ("dev20-terminus2-r1", "dev20-terminus2-r2", "dev20-terminus2-r3") if (data := run(n))]
+    columns = [(f"Deep Agents\n0.1.3 run {i}\n(laptop)", data) for i, n in
+               enumerate(("dev20-v0.1.3", "dev20-v0.1.3-r2", "dev20-v0.1.3-r3"), 1) if (data := run(n))]
+    columns += [(f"Terminus-2\nrun {i}\n(laptop)", data) for i, n in
+                enumerate(("dev20-terminus2-r1", "dev20-terminus2-r2", "dev20-terminus2-r3"), 1) if (data := run(n))]
     columns += [
-        ("Terminus-2\n(server)", {t: "pass" if ref_by[t]["terminus2_pass"] == "1" else "fail" for t in tasks}),
-        ("Stage 2 C0\n(server)", {t: "pass" if ref_by[t]["c0_pass"] == "1" else "fail" for t in tasks}),
+        ("Terminus-2\nStage 2\n(server)", {t: "pass" if ref_by[t]["terminus2_pass"] == "1" else "fail" for t in tasks}),
+        ("Stage 2\ncustom C0\n(server)", {t: "pass" if ref_by[t]["c0_pass"] == "1" else "fail" for t in tasks}),
     ]
     colours = {"pass": "#2e9e5b", "fail": "#d9534f", "error": "#f0ad4e", "not run": "#d5dbe1"}
     fig = plt.figure(figsize=(3.2 + 1.6 * len(columns), 8.4), dpi=160)
@@ -147,7 +147,7 @@ def plot(ref: list[dict]) -> None:
         ax.text(c + 0.5, -0.3, f"{label}\n{score}/{done}" + ("" if done == len(tasks) else "\n(running)"),
                 ha="center", va="bottom", fontsize=9, fontweight="bold", color="#1f3b5c")
     ax.set_xlim(0, len(columns))
-    ax.set_ylim(len(tasks), -2.8)
+    ax.set_ylim(len(tasks), -3.4)
     ax.set_yticks([r + 0.5 for r in range(len(tasks))])
     ax.set_yticklabels(tasks, fontsize=9)
     ax.set_xticks([])
@@ -157,8 +157,9 @@ def plot(ref: list[dict]) -> None:
     fig.suptitle("dev-20 per task: Deep Agents and Terminus-2 on the laptop vs. Stage 2 server runs",
                  fontsize=12, fontweight="bold", color="#1f3b5c", y=0.99)
     fig.legend(handles=[Patch(color=colours["pass"], label="passed"), Patch(color=colours["fail"], label="failed"),
+                        Patch(color=colours["error"], label="no score: provider overload (counted as failed)"),
                         Patch(color=colours["not run"], label="not run yet")],
-               loc="lower center", ncol=3, frameon=False, fontsize=9, bbox_to_anchor=(0.6, 0.02))
+               loc="lower center", ncol=4, frameon=False, fontsize=9, bbox_to_anchor=(0.6, 0.02))
     fig.savefig(HERE / "dev20-tasks.png", bbox_inches="tight", facecolor="white")
     print("wrote results/harshini/dev20-tasks.png")
 

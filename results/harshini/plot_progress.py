@@ -1,4 +1,5 @@
-"""Draw results/harshini/progress.png from the latest dev-20 CSV in deepagents/.
+"""Draw results/harshini/progress.png: repeat-study runs on the laptop next to the
+Stage 2 server reference scores (dev-20).
 
     uv run --no-project --with matplotlib python results/harshini/plot_progress.py
 """
@@ -10,68 +11,64 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle, Patch
+from matplotlib.lines import Line2D
 
 HERE = Path(__file__).resolve().parent
-BASELINES = [("OpenHands", 10, "#9aa5b1"), ("Terminus-2", 14, "#1f3b5c"), ("Stage 2 custom (C0)", 15, "#3a7bd5")]
+SERVER = [("OpenHands", 10), ("Terminus-2", 14), ("Stage 2 custom (C0)", 15)]
+LAPTOP = [
+    ("Terminus-2", ("dev20-terminus2-r1", "dev20-terminus2-r2", "dev20-terminus2-r3"), "#1f3b5c"),
+    ("Deep Agents 0.1.3", ("dev20-v0.1.3", "dev20-v0.1.3-r2", "dev20-v0.1.3-r3"), "#2e9e5b"),
+]
 TARGET = 16
-COLOURS = {"pass": "#2e9e5b", "fail": "#d9534f", "error": "#f0ad4e", "unscored": "#f0ad4e", "not run": "#d5dbe1"}
 
 
-def version_key(path: Path) -> tuple:
-    tag = path.stem.split("-v", 1)[-1]
-    return tuple(int(p) if p.isdigit() else 0 for p in tag.split("."))
+def score(name: str) -> int | None:
+    path = HERE / "deepagents" / f"{name}.csv"
+    if not path.exists():
+        return None
+    with path.open(encoding="utf-8") as fh:
+        return sum(r["status"] == "pass" for r in csv.DictReader(fh))
 
 
 def main() -> None:
-    latest = max((HERE / "deepagents").glob("dev20-v*.csv"), key=version_key)
-    rows = list(csv.DictReader(latest.open(encoding="utf-8")))
-    passed = sum(r["status"] == "pass" for r in rows)
-    finished = sum(r["status"] != "not run" for r in rows)
-    complete = finished == len(rows)
-    version = latest.stem.split("-v", 1)[-1]
+    rows = [(f"{h}\nNetcup server, 1 run", [s], "#9aa5b1") for h, s in SERVER]
+    for harness, runs, colour in LAPTOP:
+        scores = [s for s in map(score, runs) if s is not None]
+        if scores:
+            rows.append((f"{harness}\nWindows laptop, {len(scores)} runs", scores, colour))
 
-    fig = plt.figure(figsize=(12, 5), dpi=160)
-    fig.suptitle("Deep Agents harness vs. team baselines — DeepSeek V4 Flash, 20-task dev set",
-                 fontsize=13, fontweight="bold", color="#1f3b5c", y=0.99)
-
-    ax = fig.add_axes([0.09, 0.14, 0.47, 0.70])
-    bars = list(BASELINES)
-    if complete:
-        bars.append((f"Deep Agents v{version}", passed, "#2e9e5b"))
-    labels, scores, colours = zip(*bars)
-    drawn = ax.barh(labels, scores, color=colours, height=0.55)
-    for bar, score in zip(drawn, scores):
-        ax.text(score + 0.3, bar.get_y() + bar.get_height() / 2, f"{score}/20",
-                va="center", fontsize=11, fontweight="bold")
-    ax.axvline(TARGET, color="#2e9e5b", linestyle="--", linewidth=2)
-    ax.text(TARGET + 0.2, len(bars) - 0.55, f"target\n{TARGET}/20", color="#2e9e5b", fontsize=9, fontweight="bold")
+    fig, ax = plt.subplots(figsize=(11, 5.2), dpi=160)
+    fig.suptitle("dev-20 tasks passed — DeepSeek V4 Flash 0731, same model and settings everywhere",
+                 fontsize=13, fontweight="bold", color="#1f3b5c")
+    for y, (label, scores, colour) in enumerate(rows):
+        mean = sum(scores) / len(scores)
+        ax.barh(y, mean, color=colour, height=0.55, alpha=0.9)
+        if len(scores) > 1:
+            ax.plot([min(scores), max(scores)], [y, y], color="black", linewidth=1.5)
+            ax.scatter(scores, [y] * len(scores), color="white", edgecolor="black", zorder=3, s=36)
+            text = f"mean {mean:.1f}  (runs: {', '.join(map(str, scores))})"
+        else:
+            text = f"{scores[0]}/20"
+        ax.text(max(scores) + 0.4, y, text, va="center", fontsize=10, fontweight="bold")
+    ax.axhline(len(SERVER) - 0.5, color="#bbb", linewidth=1)
+    ax.axvline(TARGET, color="#2e9e5b", linestyle="--", linewidth=1.5)
+    ax.text(TARGET + 0.15, -0.6, f"target {TARGET}/20", color="#2e9e5b", fontsize=9, fontweight="bold")
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([r[0] for r in rows], fontsize=9)
+    ax.invert_yaxis()
     ax.set_xlim(0, 20)
-    ax.set_xticks([0, 5, 10, 15, 20])
+    ax.set_xticks(range(0, 21, 2))
     ax.set_xlabel("Tasks passed out of 20")
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
-
-    ax2 = fig.add_axes([0.62, 0.14, 0.36, 0.70])
-    ax2.set_xlim(0, 5)
-    ax2.set_ylim(0, 4.6)
-    ax2.set_aspect("equal")
-    ax2.axis("off")
-    state = "complete" if complete else f"{finished} of {len(rows)} tasks finished"
-    ax2.set_title(f"Latest run: v{version} ({state})\n{passed} passed", fontsize=11, color="#1f3b5c", loc="left")
-    for i, row in enumerate(rows):
-        x, y = 0.5 + i % 5, 3.9 - i // 5
-        ax2.add_patch(Circle((x, y), 0.38, color=COLOURS.get(row["status"], "#d5dbe1")))
-        ax2.text(x, y, str(i + 1), ha="center", va="center", fontsize=9,
-                 color="white" if row["status"] != "not run" else "#555")
-    ax2.legend(handles=[Patch(color=COLOURS["pass"], label="passed"), Patch(color=COLOURS["fail"], label="failed"),
-                        Patch(color=COLOURS["not run"], label="not run yet")],
-               loc="lower center", bbox_to_anchor=(0.5, -0.2), ncol=3, frameon=False, fontsize=9)
-
-    fig.text(0.09, 0.02, "Reference scores: Netcup server. Deep Agents: Windows laptop host. "
-             "Circle numbers follow dev20_tasks.txt order.", fontsize=8, color="#555")
-    fig.savefig(HERE / "progress.png", bbox_inches="tight", facecolor="white")
-    print(f"progress.png from {latest.name}: {passed}/{len(rows)} passed, {finished} finished")
+    ax.legend(handles=[Line2D([], [], marker="o", color="black", markerfacecolor="white", label="one run")],
+              loc="lower right", frameon=False, fontsize=9)
+    fig.text(0.01, 0.01, "Server scores: Stage 2 runs (one run each). Laptop: repeat study, harnesses "
+             "alternated run by run. Deep Agents run 2 lost 6 tasks to provider overload (counted as failed).",
+             fontsize=8, color="#555")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    fig.savefig(HERE / "progress.png", facecolor="white")
+    print("wrote results/harshini/progress.png")
 
 
 if __name__ == "__main__":

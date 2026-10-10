@@ -4,9 +4,9 @@ Overview and current status: [branch README](../../README.md).
 
 | Folder / file | Stage | What it is |
 |---|---|---|
-| [`FINDINGS.md`](FINDINGS.md) | 3 | All findings so far |
+| [`FINDINGS.md`](FINDINGS.md) | 3 | All findings |
 | [`deepagents/`](deepagents/) | 3 | One CSV per laptop run (Deep Agents and pinned Terminus-2) |
-| [`progress.png`](progress.png) | 3 | Chart from the latest dev-20 CSV ([`plot_progress.py`](plot_progress.py)) |
+| [`progress.png`](progress.png) | 3 | Repeat-study scores next to the Stage 2 server scores ([`plot_progress.py`](plot_progress.py)) |
 | [`dev20-tasks.png`](dev20-tasks.png) | 3 | Per-task grid: laptop runs vs. Stage 2 server runs ([`compare_reference.py`](compare_reference.py)) |
 | [`reference/`](reference/) | 3 | Stage 2 server results reduced to one row per task, extracted from `main` |
 | [`oracle-21-final.csv`](oracle-21-final.csv) | 2 | Oracle on the laptop after the timeout multiplier (**21/21**) |

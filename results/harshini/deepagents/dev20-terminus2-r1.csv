@@ -15,7 +15,7 @@ polyglot-rust-c,fail,0.0,,15.0,,0.0089,,terminus-2-pinned,0.1.0
 prove-plus-comm,pass,1.0,,1.7,,0.0010,,terminus-2-pinned,0.1.0
 qemu-alpine-ssh,fail,0.0,,15.0,,0.0090,,terminus-2-pinned,0.1.0
 qemu-startup,fail,0.0,,13.4,,0.0114,,terminus-2-pinned,0.1.0
-regex-chess,not run,,,,,,,,
-reshard-c4-data,not run,,,,,,,,
-sqlite-db-truncate,not run,,,,,,,,
-video-processing,not run,,,,,,,,
+regex-chess,fail,0.0,,60.0,,0.0620,,terminus-2-pinned,0.1.0
+reshard-c4-data,pass,1.0,,13.1,,0.0106,,terminus-2-pinned,0.1.0
+sqlite-db-truncate,pass,1.0,,4.7,,0.0063,,terminus-2-pinned,0.1.0
+video-processing,fail,0.0,,60.0,,0.0962,,terminus-2-pinned,0.1.0

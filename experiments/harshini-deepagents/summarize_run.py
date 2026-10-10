@@ -27,11 +27,11 @@ def minutes(span: dict | None) -> str:
     return f"{(end - start).total_seconds() / 60:.1f}"
 
 
-def row_for(task: str, task_dir: Path) -> dict:
+def row_for(task: str, task_dir: Path, attempt: str = "latest") -> dict:
     results = sorted(task_dir.glob("*/result.json"), key=lambda p: p.stat().st_mtime)
     if not results:
         return {"task": task, "status": "not run"}
-    data = json.loads(results[-1].read_text(encoding="utf-8"))
+    data = json.loads(results[0 if attempt == "first" else -1].read_text(encoding="utf-8"))
     agent = data.get("agent_result") or {}
     meta = agent.get("metadata") or {}
     rewards = (data.get("verifier_result") or {}).get("rewards")
@@ -61,6 +61,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("run_name")
     parser.add_argument("--dev20", action="store_true", help="include unrun dev-20 tasks")
+    parser.add_argument("--attempt", choices=("latest", "first"), default="latest",
+                        help="which completed trial to report when a task was run more than once")
+    parser.add_argument("--suffix", default="", help="appended to the output CSV name")
     args = parser.parse_args()
 
     run_dir = ROOT / "jobs" / "harshini-deepagents" / args.run_name
@@ -69,9 +72,9 @@ def main() -> int:
         listed = [t.strip() for t in (HERE / "dev20_tasks.txt").read_text(encoding="utf-8").splitlines()
                   if t.strip() and not t.startswith("#")]
         tasks = listed + [t for t in tasks if t not in listed]
-    rows = [row_for(task, run_dir / task) for task in tasks]
+    rows = [row_for(task, run_dir / task, args.attempt) for task in tasks]
 
-    out = ROOT / "results" / "harshini" / "deepagents" / f"{args.run_name}.csv"
+    out = ROOT / "results" / "harshini" / "deepagents" / f"{args.run_name}{args.suffix}.csv"
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=FIELDS)

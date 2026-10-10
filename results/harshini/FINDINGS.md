@@ -9,18 +9,22 @@ by [`compare_reference.py`](compare_reference.py)).
 
 All runs use the same model and route: DeepSeek V4 Flash 0731 on DeepInfra FP8 via
 OpenRouter, temperature 1.0, reasoning effort high, 384k max output tokens. Every
-result is one run per task unless stated. Last updated 5 October 2026; the repeat
-study is still running.
+result is one run per task unless stated. Last updated 10 October 2026, after the
+repeat study finished.
 
 ## Summary
 
-1. The Deep Agents harness (0.1.3) scored **10/20** on the dev-20 tasks on the Windows
-   laptop, for **US$0.40** in total.
-2. **The host matters.** Terminus-2 with identical settings passed **9 of the first 16**
-   dev-20 tasks on the laptop, against **12 of the same 16** on the server. Both `qemu`
-   tasks fail for both harnesses on the laptop and passed for Terminus-2 on the server.
-3. On the laptop the two harnesses are close so far: on those 16 tasks the Deep Agents
-   harness passed **8** and Terminus-2 **9**.
+1. **Repeat study (3 runs each, same laptop, alternating):** the Deep Agents harness
+   (0.1.3) scored **10, 8 and 11** of 20 (mean 9.7); Terminus-2 scored **11, 12 and 11**
+   (mean 11.3). Terminus-2 is slightly ahead and more consistent, but the gap (1.7 tasks)
+   is about the size of one harness's run-to-run spread (3 tasks).
+2. **A single dev-20 run is not a reliable score.** The same harness, model and settings
+   moved by up to 3 tasks between runs, more than the 1-task differences that separate
+   harnesses in the single-run server results.
+3. **The host matters.** Terminus-2 averaged **11.3** on the laptop against **14** on the
+   server with identical settings. Three tasks it passed on the server
+   (`adaptive-rejection-sampler`, `qemu-alpine-ssh`, `qemu-startup`) failed in all three
+   laptop runs; the two `qemu` tasks also fail for the Deep Agents harness.
 4. In the Stage 2 server runs (89 tasks), the three harnesses solve **different tasks**:
    **62** tasks are solved by at least one harness, against **52** for the best single
    one, and **27** are solved by none. The custom harness leads only on dev-20, the set
@@ -49,36 +53,80 @@ study is still running.
 
 ## 2. Same host vs. server: the host effect
 
-[`deepagents/dev20-terminus2-r1.csv`](deepagents/dev20-terminus2-r1.csv) (in progress) ·
+[`deepagents/dev20-terminus2-r1.csv`](deepagents/dev20-terminus2-r1.csv),
+[`-r2`](deepagents/dev20-terminus2-r2.csv), [`-r3`](deepagents/dev20-terminus2-r3.csv) ·
 chart: [`dev20-tasks.png`](dev20-tasks.png)
 
 Terminus-2 here is Harbor's own agent with only the connection pinned
 ([`harness/terminus_pinned.py`](../../experiments/harshini-deepagents/harness/terminus_pinned.py)).
 
-| Tasks 1–16 of dev-20 | Passed |
+| dev-20 | Passed |
 |---|---:|
-| Terminus-2, server (Stage 2) | 12 |
-| Terminus-2, laptop | 9 |
-| Deep Agents 0.1.3, laptop | 8 |
+| Terminus-2, server (Stage 2, 1 run) | 14 |
+| Terminus-2, laptop (3 runs) | 11, 12, 11 — mean 11.3 |
+| Deep Agents 0.1.3, laptop (3 runs) | 10, 8, 11 — mean 9.7 |
 
-- **`qemu-alpine-ssh` and `qemu-startup`** fail for both harnesses on the laptop. Both
-  boot a virtual machine inside the task container; Terminus-2 passed both on the server.
-  This points to the host, not the harness. A Windows Oracle run of these two tasks would
+- **Lost on the laptop in every run:** `qemu-alpine-ssh` and `qemu-startup` (both boot a
+  virtual machine inside the task container) and `adaptive-rejection-sampler`. Terminus-2
+  passed all three on the server; the Deep Agents harness also fails both `qemu` tasks.
+  This points to the host, not the harness. A Windows Oracle run of these tasks would
   confirm it.
-- Terminus-2 also lost `adaptive-rejection-sampler` and `overfull-hbox` on the laptop and
-  gained `mailman` — swings in both directions, consistent with run-to-run variation.
+- **Gained on the laptop:** Terminus-2 passed `mailman` (2 of 3 runs) and
+  `polyglot-rust-c` (1 of 3), which it failed on the server — swings in both directions.
 - **Implication:** server scores and laptop scores should not be compared directly. The
-  fair comparison for this harness is Terminus-2 on the same laptop.
+  fair comparison for this harness is Terminus-2 on the same laptop (section 3).
 
 ![dev-20 per task](dev20-tasks.png)
 
-## 3. Repeat study (in progress)
+## 3. Repeat study: run-to-run spread and same-host comparison
 
-[`repeat_study.py`](../../experiments/harshini-deepagents/repeat_study.py) runs three
-dev-20 runs of each harness on the laptop, alternating between them, with the harness
-frozen at 0.1.3. Every published score for this model is a single run at temperature
-1.0, so the size of the run-to-run spread is unknown; this study measures it. Results
-will be added here as runs finish (`dev20-v0.1.3-r2/-r3`, `dev20-terminus2-r2/-r3`).
+[`repeat_study.py`](../../experiments/harshini-deepagents/repeat_study.py) ran three
+dev-20 runs of each harness on the laptop, alternating between them (Deep Agents run 1,
+Terminus-2 run 1, Deep Agents run 2, …) from 5 to 10 October, with the harness frozen at
+0.1.3. Every other score for this model is a single run at temperature 1.0, so the size
+of the run-to-run spread was unknown. Chart: [`progress.png`](progress.png).
+
+| Run | Deep Agents 0.1.3 | Terminus-2 |
+|---|---:|---:|
+| 1 | 10 | 11 |
+| 2 | 8 | 12 |
+| 3 | 11 | 11 |
+| **Mean (range)** | **9.7 (8–11)** | **11.3 (11–12)** |
+| Tasks passed at least once | 12 | 13 |
+| Cost per run (US$) | 0.40, 0.31, 0.39 | 0.40, 0.27, 0.28 |
+| Median agent minutes per pass | 5.9, 5.0, 6.8 | 6.2, 9.9, 5.8 |
+
+CSVs: [`dev20-v0.1.3`](deepagents/dev20-v0.1.3.csv),
+[`-r2`](deepagents/dev20-v0.1.3-r2.csv), [`-r3`](deepagents/dev20-v0.1.3-r3.csv);
+Terminus-2 as in section 2.
+
+**Per task** (passes out of 3 runs):
+
+| Group | Tasks |
+|---|---|
+| Both harnesses, every run (6) | `constraints-scheduling`, `distribution-search`, `merge-diff-arc-agi-task`, `modernize-scientific-stack`, `nginx-request-logging`, `reshard-c4-data` |
+| Neither harness, any run (7) | `adaptive-rejection-sampler`, `db-wal-recovery`, `install-windows-3.11`, `qemu-alpine-ssh`, `qemu-startup`, `regex-chess`, `video-processing` |
+| Terminus-2 more often (6) | `build-pov-ray` 2 vs 3, `prove-plus-comm` 2 vs 3, `sqlite-db-truncate` 2 vs 3, `mailman` 1 vs 2, `overfull-hbox` 1 vs 2, `polyglot-rust-c` 0 vs 1 |
+| Deep Agents more often (1) | `openssl-selfsigned-cert` 3 vs 2 |
+
+- **Run-to-run spread is large.** The Deep Agents harness moved by 3 tasks between
+  identical runs; 7 of the 20 tasks flip between pass and fail across runs of at least
+  one harness. Single-run differences of 1–2 tasks (such as 14 vs 15 on the server) are
+  within this spread.
+- **Terminus-2 is slightly ahead on the same host.** It passed more often on 6 tasks and
+  less often on 1. With 3 runs this is not conclusive: a sign test on those 7 tasks gives
+  p ≈ 0.13 (two-sided).
+- **Provider overload affected Deep Agents run 2.** Six tasks ended with rate-limit
+  errors during an overload window on 8–9 October and have no verifier result; they are
+  counted as failed. On the 14 tasks it did not affect, the scores are Deep Agents 9, 8,
+  10 and Terminus-2 10, 10, 10. Two of the six (`prove-plus-comm`, `polyglot-rust-c`)
+  are in the "Terminus-2 more often" group, so part of the gap comes from overload, not
+  from the harness. The queued re-run of these six did not execute (Harbor reused the
+  stored results), so the official scores are the first attempts.
+- **Lesson for the harness:** when retries run out near the deadline, 0.1.3 raises and
+  the task gets no verifier result. Ending the run instead, so the grader checks the
+  current state (as Harbor does on a timeout), is the next fix (0.1.4).
+- **Cost and time are similar:** both harnesses cost about US$0.27–0.40 per 20-task run.
 
 ## 4. Stage 2 server results: where the harnesses differ
 
@@ -164,15 +212,18 @@ Found on real tasks and fixed (see the
 
 | Gap | Status in the project | Covered here? |
 |---|---|---|
-| Run-to-run variation on the same tasks | Never measured; the matched repeat run had not started a scored task | Yes — repeat study (section 3) |
-| Same-host comparison against a baseline | Custom and baseline runs were days apart under different provider load | Yes — Terminus-2 on the same laptop (section 2) |
+| Run-to-run variation on the same tasks | Never measured; the matched repeat run had not started a scored task | Yes — up to 3 tasks on dev-20 (section 3) |
+| Same-host comparison against a baseline | Custom and baseline runs were days apart under different provider load | Yes — Terminus-2 on the same laptop, alternating runs (sections 2–3) |
 | Single-lever tests of the brief's four levers (system prompt, tools, context management, retries) | Only the system prompt was tested as a variant (C1, C2); C3 and C0-NC bundled several changes (`experiments/saranya-changelog/HARNESS_CHANGELOG.md` on `main`) | Next — one change at a time on this harness |
 | Failure analysis from agent logs | Failure categories come from recorded fields only | Partly — near-miss analysis (section 1) |
 | Step-by-step tracing (Langfuse) | Not present on any branch | Planned |
 
 ## Open questions
 
-1. How large is the run-to-run spread on dev-20 (repeat study)?
-2. How much of the laptop–server gap is the host? (Windows Oracle on the `qemu` tasks.)
-3. Does a single change — a file-layout completion check — recover near-misses like
-   `build-pov-ray` without losing other tasks?
+1. How much of the laptop–server gap is the host? (Windows Oracle on the `qemu` tasks
+   and `adaptive-rejection-sampler`.)
+2. Does a single change — a file-layout completion check — recover near-misses like
+   `build-pov-ray` without losing other tasks? Given the spread in section 3, any
+   single-lever test needs repeated runs to show an effect.
+3. Does ending gracefully when retries run out (0.1.4) remove the overload losses seen
+   in Deep Agents run 2?

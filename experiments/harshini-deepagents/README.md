@@ -67,7 +67,11 @@ python experiments/harshini-deepagents/repeat_study.py
 ```
 
 Outputs: `results/harshini/deepagents/dev20-v0.1.3{,-r2,-r3}.csv` and
-`dev20-terminus2-r{1,2,3}.csv`.
+`dev20-terminus2-r{1,2,3}.csv`. Official scores use each task's first attempt
+(`summarize_run.py <run> --dev20 --attempt first`).
+
+Result (5–10 October 2026): this harness 10, 8, 11 of 20 (mean 9.7); Terminus-2 11, 12,
+11 (mean 11.3). Details in [`results/harshini/FINDINGS.md`](../../results/harshini/FINDINGS.md).
 
 ## Reference scores (Netcup server, same model)
 
