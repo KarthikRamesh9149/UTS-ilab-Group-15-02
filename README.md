@@ -40,6 +40,7 @@ Runs on the Windows laptop with Harbor and Docker; the model is called through O
 | [`dev20-v0.1.1`](results/harshini/deepagents/dev20-v0.1.1.csv) | 0.1.1 | 5 of 20 finished | **2 passed** | host went down; 2 failures were harness bugs |
 | `dev20-v0.1.2` | 0.1.2 | 3 of 20 | no score | provider overload; all 3 ended on rate-limit errors (retry added in 0.1.3) |
 | [`probe-openssl-terminus2`](results/harshini/deepagents/probe-openssl-terminus2.csv) | Terminus-2 | 1 | **1/1** | Terminus-2 with the reference settings runs on the laptop |
+| [`trace-openssl-v0.1.3`](results/harshini/deepagents/trace-openssl-v0.1.3.csv) | 0.1.3 | 1 | **1/1** | first Langfuse-traced task ([timeline](results/harshini/traces/trace-openssl-v0.1.3__openssl-selfsigned-cert.md)) |
 | [`dev20-v0.1.3`](results/harshini/deepagents/dev20-v0.1.3.csv) | 0.1.3 | 20 | **10/20** | repeat study run 1; both `qemu` tasks fail on this host |
 | [`dev20-terminus2-r1`](results/harshini/deepagents/dev20-terminus2-r1.csv) | Terminus-2 | 20 | **11/20** | same laptop; also fails both `qemu` tasks (passed on Netcup) |
 | [`dev20-v0.1.3-r2`](results/harshini/deepagents/dev20-v0.1.3-r2.csv) | 0.1.3 | 20 | **8/20** | 6 tasks lost to provider overload, counted as failed |

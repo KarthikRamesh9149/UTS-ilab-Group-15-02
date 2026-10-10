@@ -208,7 +208,26 @@ Found on real tasks and fixed (see the
 - **CETUS (UTS HPC) cannot run Harbor** (no Docker; Stage 2 work, see the
   [results README](README.md)), so the laptop is the run host for this branch.
 
-## 7. Gaps in the project's evidence (review of all branches, 5 October 2026)
+## 7. Step-level tracing (Langfuse)
+
+The harness now sends one Langfuse trace per task (no change to agent behaviour; see the
+[changelog](../../experiments/harshini-deepagents/CHANGELOG.md)). Each trace holds every
+model call (tokens, reasoning tokens, latency) and every tool call (the exact command and
+its output). [`export_trace.py`](../../experiments/harshini-deepagents/export_trace.py)
+turns a trace into a Markdown timeline in [`traces/`](traces/).
+
+First traced task, `openssl-selfsigned-cert` (passed, 2 min, US$0.003):
+[timeline](traces/trace-openssl-v0.1.3__openssl-selfsigned-cert.md).
+
+- 11 model calls and 12 tool calls; **95% of the agent's time was spent waiting on the
+  model**, 5% running commands.
+- The task was solved by step 11 (about 15 s in). The remaining ~60 s went on writing
+  and running a check script and re-verifying, which is where most output tokens went.
+- This is the evidence needed for failure analysis: for tasks that fail at the time
+  limit, the trace shows whether the time went on thinking, on slow commands or on
+  repeated attempts.
+
+## 8. Gaps in the project's evidence (review of all branches, 5 October 2026)
 
 | Gap | Status in the project | Covered here? |
 |---|---|---|
@@ -216,7 +235,7 @@ Found on real tasks and fixed (see the
 | Same-host comparison against a baseline | Custom and baseline runs were days apart under different provider load | Yes — Terminus-2 on the same laptop, alternating runs (sections 2–3) |
 | Single-lever tests of the brief's four levers (system prompt, tools, context management, retries) | Only the system prompt was tested as a variant (C1, C2); C3 and C0-NC bundled several changes (`experiments/saranya-changelog/HARNESS_CHANGELOG.md` on `main`) | Next — one change at a time on this harness |
 | Failure analysis from agent logs | Failure categories come from recorded fields only | Partly — near-miss analysis (section 1) |
-| Step-by-step tracing (Langfuse) | Not present on any branch | Planned |
+| Step-by-step tracing (Langfuse) | Not present on any branch | Yes — one trace per task (section 7) |
 
 ## Open questions
 

@@ -9,6 +9,7 @@ baselines **Terminus-2** and **OpenHands**.
 | Harbor agent + Deep Agents graph | [`harness/agent.py`](harness/agent.py) |
 | Container backend (execute, file tools) | [`harness/backend.py`](harness/backend.py) |
 | Optional Langfuse tracing | [`harness/tracing.py`](harness/tracing.py) |
+| Trace → Markdown timeline | [`export_trace.py`](export_trace.py) |
 | Offline smoke test (fake model + Docker) | [`tests/smoke_offline.py`](tests/smoke_offline.py) |
 | Terminus-2 with the reference model settings | [`harness/terminus_pinned.py`](harness/terminus_pinned.py) |
 | Task runner | [`run_probe.py`](run_probe.py) |
