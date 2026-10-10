@@ -214,5 +214,113 @@
     "known_spending_usd": "2.215848600",
     "unresolved_requests": 0,
     "gateway_stop": null
+  },
+  {
+    "order": 7,
+    "task_id": "constraints-scheduling",
+    "harness": "openhands",
+    "trial_id": "gemini-native-07-openhands-constraints-scheduling",
+    "agent_timeout_seconds": 1200.0,
+    "verifier_timeout_seconds": 1200.0,
+    "classification": "pass",
+    "environment": {
+      "image_id": "sha256:567ce5a189f8d11ac461790876e934cc7af38391baf89a78f95f4dafc1fec3b0",
+      "cpus": 1,
+      "memory_mb": 2048,
+      "storage_mb_requested": 10240,
+      "storage_enforcement": "Docker shared disk; no per-container quota",
+      "privileged": false,
+      "controller_key_and_socket_visible": false
+    },
+    "reward": 1.0,
+    "status": "verified",
+    "agent_error_type": null,
+    "verifier_error_type": null,
+    "cleanup_errors": [],
+    "model_revoked": true,
+    "phase_seconds": {
+      "setup": 109.39208538599996,
+      "agent": 559.034630066999,
+      "verifier": 12.35240770299788
+    },
+    "trace_errors": [],
+    "task_containers_removed": true,
+    "duration_seconds": 696.8014546009981,
+    "physical_requests": 39,
+    "known_spending_usd": "0.362850675",
+    "unresolved_requests": 0,
+    "gateway_stop": null
+  },
+  {
+    "order": 8,
+    "task_id": "constraints-scheduling",
+    "harness": "terminus-2",
+    "trial_id": "gemini-native-08-terminus-2-constraints-scheduling",
+    "agent_timeout_seconds": 1200.0,
+    "verifier_timeout_seconds": 1200.0,
+    "classification": "verifier_failure",
+    "environment": {
+      "image_id": "sha256:567ce5a189f8d11ac461790876e934cc7af38391baf89a78f95f4dafc1fec3b0",
+      "cpus": 1,
+      "memory_mb": 2048,
+      "storage_mb_requested": 10240,
+      "storage_enforcement": "Docker shared disk; no per-container quota",
+      "privileged": false,
+      "controller_key_and_socket_visible": false
+    },
+    "reward": 0.0,
+    "status": "verified",
+    "agent_error_type": null,
+    "verifier_error_type": null,
+    "cleanup_errors": [],
+    "model_revoked": true,
+    "phase_seconds": {
+      "setup": 15.251197148998472,
+      "agent": 369.68066318300043,
+      "verifier": 14.620198569999047
+    },
+    "trace_errors": [],
+    "task_containers_removed": true,
+    "duration_seconds": 412.70212235500003,
+    "physical_requests": 7,
+    "known_spending_usd": "0.263562525",
+    "unresolved_requests": 0,
+    "gateway_stop": null
+  },
+  {
+    "order": 9,
+    "task_id": "overfull-hbox",
+    "harness": "terminus-2",
+    "trial_id": "gemini-native-09-terminus-2-overfull-hbox",
+    "agent_timeout_seconds": 750.0,
+    "verifier_timeout_seconds": 360.0,
+    "classification": "pass",
+    "environment": {
+      "image_id": "sha256:7dca952bb6736194a736b5110945f48842eafa8551e24468f1dddeed0daee799",
+      "cpus": 2,
+      "memory_mb": 4096,
+      "storage_mb_requested": 10240,
+      "storage_enforcement": "Docker shared disk; no per-container quota",
+      "privileged": false,
+      "controller_key_and_socket_visible": false
+    },
+    "reward": 1.0,
+    "status": "verified",
+    "agent_error_type": null,
+    "verifier_error_type": null,
+    "cleanup_errors": [],
+    "model_revoked": true,
+    "phase_seconds": {
+      "setup": 19.84125043500171,
+      "agent": 410.98604815900035,
+      "verifier": 47.976467779000814
+    },
+    "trace_errors": [],
+    "task_containers_removed": true,
+    "duration_seconds": 492.10978168499787,
+    "physical_requests": 38,
+    "known_spending_usd": "0.300671775",
+    "unresolved_requests": 0,
+    "gateway_stop": null
   }
 ]

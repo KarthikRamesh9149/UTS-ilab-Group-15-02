@@ -1,34 +1,35 @@
 # Gemini native continuation — partial snapshot
 
-Captured 2026-10-10T08:45:36.353246+00:00. **The batch is still running. This is not a final score.**
+Captured 2026-10-10T09:14:17.259025+00:00. **The batch is still running. This is not a final score.**
 
-Six of forty native attempts are closed: three inherited attempts and three new
-attempts. Across those six there are four passes, one verifier failure, and one
-inherited budget stop. The other 34 attempts include any currently active task.
-All three new attempts passed, costing US$2.952345750 in confirmed charges.
-This amount covers completed new attempts only; active-task spending is excluded.
+9 of 40 native attempts are closed: 3 inherited and 6 new attempts.
+Closed native outcomes: 6 passes, 2 verifier failures, 0 infrastructure failures, and 1 budget stops.
+31 attempts remain, including any active task.
 
-| Newly completed attempt | Official reward | Confirmed cost (US$) |
-|---|---:|---:|
-| Terminus-2 / build-pov-ray | 1 | 0.122687325 |
-| Terminus-2 / mailman | 1 | 0.613809825 |
-| OpenHands / mailman | 1 | 2.215848600 |
+Confirmed spending on completed new attempts: US$3.879430725. Active-task spending is excluded.
 
-Mailman is the first task with official scores from all three harnesses: custom,
-Terminus-2 and OpenHands all passed. Their observed costs were US$1.591562250,
-US$0.613809825 and US$2.215848600 respectively. This single task does not establish
-full-subset superiority. Two original custom attempts remain unscored; an inherited
-OpenHands build-pov-ray attempt stopped for budget and is not replayed.
+| Newly closed attempt | Classification | Official reward | Confirmed cost (US$) |
+|---|---|---:|---:|
+| terminus-2 / build-pov-ray | pass | 1.0 | 0.122687325 |
+| terminus-2 / mailman | pass | 1.0 | 0.613809825 |
+| openhands / mailman | pass | 1.0 | 2.215848600 |
+| openhands / constraints-scheduling | pass | 1.0 | 0.362850675 |
+| terminus-2 / constraints-scheduling | verifier_failure | 0.0 | 0.263562525 |
+| terminus-2 / overfull-hbox | pass | 1.0 | 0.300671775 |
 
-All 332 generation records and 684 local metadata observations for the three new
-closed attempts were validated; generation costs match their billing ledger.
-All three revoked model access before verification and removed task containers.
-Raw exchanges, native tool logs and task artifacts remain private. Local Langfuse
-is stopped during execution to fit official task memory; metadata import and
-readback remain pending until the batch stops.
+## Tasks with official scores from all three harnesses
 
-The same Gemini model/provider/settings, frozen development tasks, official CPU,
-memory and deadlines continue under a shared US$50 total cap and fresh credit checks.
-The earlier unknown charge retains its US$1.10 reservation. Docker uses shared
-disk; requested disk sizes are recorded without per-container quotas.
+| Task | Custom | Terminus-2 | OpenHands |
+|---|---:|---:|---:|
+| mailman | 1.0 | 1.0 | 1.0 |
+| constraints-scheduling | 1.0 | 0.0 | 1.0 |
+
+These observed scores do not establish full-subset superiority. Classifications and budget censoring are retained in partial-comparison.json.
+Two original custom attempts remain unscored; the inherited OpenHands build-pov-ray budget stop is not replayed.
+
+416 generation records and 975 local metadata observations were validated against completed outcomes and billing costs.
+Raw exchanges, native tool logs and task artifacts remain private. Local Langfuse is stopped for official task memory capacity; import and readback remain pending until the batch stops.
+
+The same Gemini model/provider/settings, frozen development tasks, official CPU/memory and deadlines continue under the shared US$50 cap and fresh credit checks.
+The earlier unknown charge retains its US$1.10 reservation. Requested disk sizes are recorded; Docker uses shared disk without per-container quotas.
 Earlier DeepSeek results are separate. Final results and a brief will follow.
