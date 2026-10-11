@@ -1,6 +1,29 @@
 # Changelog
 
-## Unreleased — Langfuse tracing (no change to agent behaviour)
+## 0.1.4 — 2026-10-11
+
+Fixes for bugs found through Langfuse traces of the Claude Haiku 5.5 run.
+
+- **`read_file` and `edit_file` work.** The backend appended `[cwd=… exit=…]` to every
+  command's output, and Deep Agents parses its read/edit script output as bare JSON, so
+  every call returned "unexpected server response" (0.1.3 dev-20 DeepSeek runs: 81 of 81
+  reads and 26 of 26 edits failed; models fell back to shell commands). The cwd tag is
+  now added only to the model's own `execute` results.
+- **Tool calls of one turn run in issue order.** The tool node starts them concurrently
+  and middleware delays some, so "write file, then run it" raced (`video-processing`
+  on Haiku). `OrderedTools` makes each call wait for its predecessors (5 s safety
+  release).
+- **Unambiguous time note:** "Time left: 59 min 55 s of the 60 min limit (5 s used)"
+  instead of "3595s of 3600s remaining", which Haiku read as 5 seconds left and gave up
+  on all 9 failed tasks.
+- **Retries that run into the deadline end the run cleanly** (`stop_reason` deadline,
+  `error_type` `retries_exhausted:…`) so the grader still checks the task, instead of
+  raising with no verifier result (the 6 lost tasks in DeepSeek run 2).
+- Offline smoke test: 17/17 (adds strict read, read with offset, edit, same-turn order,
+  time note, and clean end on exhausted retries; the old read check passed only because
+  the error message contained the file's first 200 characters).
+
+## Langfuse tracing and second-model option (no change to agent behaviour)
 
 - `harness/tracing.py`: one Langfuse trace per trial when `LANGFUSE_PUBLIC_KEY` and
   `LANGFUSE_SECRET_KEY` are set. Root observation named after the task, session = run

@@ -19,7 +19,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from run_probe import dev20  # noqa: E402
 
-HARNESS_VERSION = "0.1.3"
+HARNESS_VERSION = "0.1.4"
 
 
 def main() -> int:

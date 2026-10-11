@@ -42,7 +42,7 @@ from harbor.agents.base import BaseAgent
 from harbor.environments.base import BaseEnvironment
 from harbor.models.agent.context import AgentContext
 from langchain.agents.middleware import AgentMiddleware
-from langchain_core.messages import AIMessage, HumanMessage, messages_to_dict
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage, messages_to_dict
 from langchain_openai import ChatOpenAI
 from langsmith.run_helpers import tracing_context
 
@@ -96,6 +96,73 @@ How to work:
 PYTHON_FILE_TOOLS = frozenset({"read_file", "edit_file", "ls", "grep", "glob"})
 
 
+def duration(seconds: float) -> str:
+    seconds = max(0, int(seconds))
+    minutes, secs = divmod(seconds, 60)
+    if not minutes:
+        return f"{secs} s"
+    return f"{minutes} min" if not secs else f"{minutes} min {secs} s"
+
+
+class OrderedTools(AgentMiddleware):
+    """Run the tool calls of one model turn one at a time, in the order the model issued
+    them, and tag `execute` results with the working directory.
+
+    The tool node starts a turn's calls concurrently and other middleware delays some of
+    them, so arrival order is not issue order ("write file, then run it" raced). Each
+    call waits for its position in the turn; a missing predecessor releases it after
+    `max_wait` seconds so one dropped call cannot stall the rest."""
+
+    def __init__(self, backend: HarborShellBackend, max_wait: float = 5.0):
+        super().__init__()
+        self.backend = backend
+        self.max_wait = max_wait
+        self.cond = asyncio.Condition()
+        self.turn: tuple | None = None
+        self.next_index = 0
+
+    @staticmethod
+    def _position(request) -> tuple[tuple, int] | None:
+        call_id = request.tool_call.get("id")
+        state = request.state if isinstance(request.state, dict) else {}
+        for message in reversed(state.get("messages") or []):
+            ids = [tc.get("id") for tc in getattr(message, "tool_calls", None) or []]
+            if call_id in ids:
+                return tuple(ids), ids.index(call_id)
+        return None
+
+    async def awrap_tool_call(self, request, handler):
+        position = self._position(request)
+        if position is not None:
+            turn, index = position
+            async with self.cond:
+                if turn != self.turn:
+                    self.turn, self.next_index = turn, 0
+                try:
+                    await asyncio.wait_for(
+                        self.cond.wait_for(lambda: self.turn != turn or self.next_index >= index),
+                        self.max_wait,
+                    )
+                except TimeoutError:
+                    pass
+        try:
+            result = await handler(request)
+        finally:
+            if position is not None:
+                async with self.cond:
+                    if self.turn == position[0]:
+                        self.next_index = max(self.next_index, position[1] + 1)
+                    self.cond.notify_all()
+        if request.tool_call.get("name") == "execute" and isinstance(result, ToolMessage) \
+                and isinstance(result.content, str):
+            result = result.model_copy(update={"content": f"{result.content}\n[cwd={self.backend.cwd}]"})
+        return result
+
+
+class DeadlineReached(Exception):
+    """Provider retries ran into the task deadline; end the run so the grader still runs."""
+
+
 class DeadlineNote(AgentMiddleware):
     """Per model call: append the remaining time as a trailing message (not stored in
     state) and hide tools the task image cannot run."""
@@ -118,15 +185,19 @@ class DeadlineNote(AgentMiddleware):
 
     def _note(self) -> HumanMessage:
         left = self.deadline.remaining()
-        frac = left / self.deadline.budget if self.deadline.budget else 0.0
+        budget = self.deadline.budget
+        frac = left / budget if budget else 0.0
         if frac <= 0.05:
             phase = "Almost out of time: finish the required outputs now; do not start anything new."
         elif frac <= 0.20:
             phase = "Low on time: wrap up and verify the required outputs."
         else:
-            phase = "Continue."
+            phase = "Plenty of time left; continue."
+        # Stated as time left plus time used: "3595s of 3600s remaining" was read by
+        # Claude Haiku as 5 seconds left.
         return HumanMessage(
-            content=f"[harness] {int(left)}s of {int(self.deadline.budget)}s remaining. {phase}"
+            content=f"[harness] Time left: {duration(left)} of the {duration(budget)} limit "
+            f"({duration(budget - left)} used). {phase}"
         )
 
     async def awrap_model_call(self, request, handler):
@@ -159,7 +230,7 @@ class TransientRetry(AgentMiddleware):
             except TRANSIENT_ERRORS as exc:
                 wait = delay * random.uniform(0.8, 1.2)
                 if self.deadline.remaining() < wait + 20:
-                    raise
+                    raise DeadlineReached(type(exc).__name__) from exc
                 self.retries += 1
                 name = type(exc).__name__
                 self.by_type[name] = self.by_type.get(name, 0) + 1
@@ -187,7 +258,7 @@ class DeepAgentsHarness(BaseAgent):
         return "uts-harshini-deepagents"
 
     def version(self) -> str:
-        return "0.1.3"
+        return "0.1.4"
 
     def __init__(
         self,
@@ -290,7 +361,7 @@ class DeepAgentsHarness(BaseAgent):
             tools=[],
             system_prompt=SYSTEM_PROMPT.format(default_timeout=self._default_command_timeout),
             backend=backend,
-            middleware=[retry, DeadlineNote(deadline, hidden_tools)],
+            middleware=[retry, DeadlineNote(deadline, hidden_tools), OrderedTools(backend)],
             subagents=[],
         )
         environment_note = (
@@ -358,6 +429,9 @@ class DeepAgentsHarness(BaseAgent):
                         break
         except TimeoutError:
             stop_reason = "deadline"
+        except DeadlineReached as exc:
+            stop_reason = "deadline"
+            error_type = f"retries_exhausted:{exc}"
         except BaseException as exc:
             stop_reason = "error"
             error_type = type(exc).__name__

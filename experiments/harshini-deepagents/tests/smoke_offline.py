@@ -32,7 +32,8 @@ from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage  # noqa: E402
 from harbor.models.agent.context import AgentContext  # noqa: E402
 
-from harness.agent import PYTHON_FILE_TOOLS, DeepAgentsHarness  # noqa: E402
+from harness.agent import PYTHON_FILE_TOOLS, DeadlineNote, DeepAgentsHarness  # noqa: E402
+from harness.backend import Deadline  # noqa: E402
 
 
 class ScriptedModel(GenericFakeChatModel):
@@ -59,6 +60,11 @@ def call(name: str, idx: int, **args) -> AIMessage:
     return AIMessage(content="", tool_calls=[{"name": name, "args": args, "id": f"c{idx}"}])
 
 
+def together(*messages: AIMessage) -> AIMessage:
+    """One model turn that issues several tool calls at once."""
+    return AIMessage(content="", tool_calls=[tc for m in messages for tc in m.tool_calls])
+
+
 class DockerEnv:
     def __init__(self, container: str):
         self.container = container
@@ -72,14 +78,14 @@ class DockerEnv:
         return SimpleNamespace(stdout=out.decode(), stderr=err.decode(), return_code=proc.returncode)
 
 
-async def run_scenario(image: str, script: list[AIMessage], rate_limits: int = 0):
+async def run_scenario(image: str, script: list[AIMessage], rate_limits: int = 0, timeout_sec: int = 300):
     container = subprocess.check_output(
         ["docker", "run", "-d", "--rm", "-w", "/app", image, "sleep", "600"], text=True
     ).strip()
     try:
         logs = Path(tempfile.mkdtemp()) / "agent"
         agent = DeepAgentsHarness(logs, model_name="openrouter/deepseek/deepseek-v4-flash-0731",
-                                  agent_timeout_sec=300, default_command_timeout=5)
+                                  agent_timeout_sec=timeout_sec, default_command_timeout=5)
         model = ScriptedModel(messages=iter(script))
         model.offered = []
         model.rate_limits = rate_limits
@@ -102,19 +108,30 @@ async def main() -> int:
     checks: dict[str, bool] = {}
 
     out, meta, _, _ = await run_scenario("python:3.12-slim", [
-        call("execute", 1, command="mkdir -p /tmp/w && cd /tmp/w && echo hello > a.txt"),
+        call("execute", 1, command="mkdir -p /tmp/w && cd /tmp/w && echo hello > a.txt && printf 'l1\\nl2\\nl3\\n' > m.txt"),
         call("execute", 2, command="pwd && cat a.txt"),
         call("read_file", 3, file_path="/tmp/w/a.txt"),
-        call("execute", 4, command="sleep 30"),
+        call("read_file", 4, file_path="/tmp/w/m.txt", offset=1, limit=1),
+        call("edit_file", 5, file_path="/tmp/w/a.txt", old_string="hello", new_string="edited"),
+        together(call("write_file", 6, file_path="/tmp/w/b.txt", content="parallel ok\n"),
+                 call("execute", 7, command="cat /tmp/w/b.txt /tmp/w/a.txt")),
+        call("execute", 8, command="sleep 30"),
         AIMessage(content="Done."),
-        call("execute", 5, command="true"),
+        call("execute", 9, command="true"),
         AIMessage(content="Done after nudge."),
     ])
-    checks["sticky cwd"] = "/tmp/w" in out[1] and "hello" in out[1]
-    checks["read_file via backend"] = "hello" in out[2]
-    checks["command killed at cap"] = "killed after" in out[3]
+    errors = [o for o in out if "unexpected server response" in o or o.startswith("Error")]
+    checks["sticky cwd"] = "/tmp/w" in out[1] and "hello" in out[1] and "[cwd=/tmp/w]" in out[1]
+    checks["read_file returns content, no error"] = "hello" in out[2] and not errors
+    checks["read_file with offset"] = "l2" in out[3] and "l1" not in out[3]
+    checks["edit_file applies"] = "edited" in out[6]
+    checks["same-turn tool calls run in order"] = "parallel ok" in out[6]
+    checks["command killed at cap"] = "killed after" in out[7]
     checks["finish nudge fired"] = meta["finish_nudges"] == 1
     checks["stopped by model"] = meta["stop_reason"] == "model_done"
+
+    note = DeadlineNote(Deadline(3600))._note().content
+    checks["time note states time left and used"] = "Time left: 59 min" in note and "used" in note
 
     out, meta, offered, note = await run_scenario("debian:bookworm-slim", [
         call("write_file", 1, file_path="/app/out/note.txt", content="written without python\n"),
@@ -128,6 +145,12 @@ async def main() -> int:
     checks["python file tools hidden"] = bool(offered) and not (PYTHON_FILE_TOOLS & set(offered[-1]))
     checks["empty reply nudged"] = meta["empty_reply_nudges"] == 1 and "written without python" in out[-1]
     checks["no tracing without Langfuse keys"] = not any(key.startswith("langfuse") for key in meta)
+
+    _, meta, _, _ = await run_scenario("python:3.12-slim", [AIMessage(content="Done.")],
+                                       rate_limits=50, timeout_sec=30)
+    checks["retries exhausted at deadline end the run cleanly"] = (
+        meta["stop_reason"] == "deadline" and str(meta["error_type"]).startswith("retries_exhausted")
+    )
 
     os.environ.update(LANGFUSE_PUBLIC_KEY="pk-lf-offline", LANGFUSE_SECRET_KEY="sk-lf-offline",
                       LANGFUSE_HOST="http://127.0.0.1:9")

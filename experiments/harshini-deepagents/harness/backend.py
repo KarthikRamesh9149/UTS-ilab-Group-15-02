@@ -124,11 +124,9 @@ class HarborShellBackend(BaseSandbox):
                 "background (nohup CMD > /tmp/job.log 2>&1 &) and poll the log."
             )
         clipped, truncated = self._clip(output.rstrip())
-        return ExecuteResponse(
-            output=f"{clipped}\n[cwd={self.cwd} exit={code}]",
-            exit_code=code,
-            truncated=truncated,
-        )
+        # No suffix here: Deep Agents parses read/edit script output as bare JSON.
+        # The model-facing `execute` result gets its cwd tag in agent.OrderedTools.
+        return ExecuteResponse(output=clipped, exit_code=code, truncated=truncated)
 
     def execute(self, command: str, *, timeout: int | None = None) -> ExecuteResponse:
         return self._sync(lambda: self.aexecute(command, timeout=timeout))

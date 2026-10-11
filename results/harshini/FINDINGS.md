@@ -223,6 +223,10 @@ Found on real tasks and fixed (see the
 | Some task images have no `python3` | Deep Agents' file tools failed on the R image | Shell-based write preflight; Python-backed tools hidden (0.1.2) |
 | The model can return an empty reply | `build-pov-ray` ended at 14 of 200 minutes | Nudge to continue, up to 3 times (0.1.2) |
 | Provider overload (HTTP 429, `engine_overloaded`) | Three tasks ended with no verifier result | Deadline-bounded retry with backoff, no count cap (0.1.3) |
+| Command-output tag broke Deep Agents' file tools | Every `read_file`/`edit_file` call failed (81 + 26 in three DeepSeek runs) | Tag only the model's `execute` results (0.1.4) |
+| Same-turn tool calls ran concurrently | "Write file, then run it" raced (Haiku) | Calls wait for their predecessors (0.1.4) |
+| Time note "3595s of 3600s remaining" | Haiku read it as 5 s left and quit (9 of 9 failures) | "Time left: 59 min 55 s of the 60 min limit (5 s used)" (0.1.4) |
+| Retries exhausted near the deadline raised an error | Six tasks in DeepSeek run 2 got no verifier result | End the run cleanly so the grader runs (0.1.4) |
 
 ## 6. Infrastructure findings
 
@@ -295,9 +299,15 @@ CSVs: [`dev20-haiku-v0.1.3`](deepagents/dev20-haiku-v0.1.3.csv),
   the same turn exists (`video-processing`); and `read_file` with an offset returned an
   error on `mailman`.
 - **Lesson:** harness details tuned on one model can break on another. The Deep Agents
-  score on Haiku measures these bugs as much as the harness design; a fixed version
-  (unambiguous time note, tool calls run in order) is needed before drawing a model
-  comparison from it.
+  score on Haiku measures these bugs as much as the harness design.
+- **Following the `read_file` error led to a bug that affected every run.** The backend
+  appended a working-directory tag to all command output, which broke Deep Agents'
+  parsing of its own file tools: in the three DeepSeek runs, **all 81 `read_file` and all
+  26 `edit_file` calls failed**, and the model fell back to shell commands. The offline
+  test had missed it because the error message contained the start of the file.
+- **Fixed in 0.1.4** (unambiguous time note, tool calls run in order, working file
+  tools, clean end when retries hit the deadline); the Deep Agents Haiku run is being
+  repeated with 0.1.4 (`dev20-haiku-v0.1.4`).
 
 ## 9. Gaps in the project's evidence (review of all branches, 5 October 2026)
 
