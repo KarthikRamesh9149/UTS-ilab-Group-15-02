@@ -1,0 +1,22 @@
+{
+  "scope": "public endpoint metadata only; no model execution or key",
+  "checked_utc": "2026-10-11T22:11:50.241918+00:00",
+  "model": "google/gemini-3.7-flash",
+  "expected_snapshot": "google/gemini-3.7-flash-20260813",
+  "paid_generations": 0,
+  "endpoints": [
+    {
+      "tag": "google-ai-studio",
+      "name": "Google AI Studio | google/gemini-3.7-flash-20260813",
+      "context_length": 1048576,
+      "max_completion_tokens": 65536,
+      "pricing": {
+        "prompt": "0.00000075",
+        "completion": "0.00000375"
+      },
+      "matches_frozen_metadata": true
+    }
+  ],
+  "http_status": 200,
+  "limitation": "Metadata cannot prove the underlying served model; Google documents generic 3.7 rerouting to 3.8 from October 8."
+}

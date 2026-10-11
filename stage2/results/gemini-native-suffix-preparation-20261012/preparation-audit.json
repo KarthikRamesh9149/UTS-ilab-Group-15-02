@@ -1,0 +1,178 @@
+{
+  "scope": "synthetic_preparation_not_benchmark",
+  "paid_generations": 0,
+  "prepared_utc": "2026-10-11T22:20:29.594148+00:00",
+  "current_source_qualified": false,
+  "qualified_sources_match_git_index": true,
+  "source_files": 277,
+  "offline_checks_passed": 67,
+  "inherited_requests_preserved": 3010,
+  "known_spending_usd": "31.490725275",
+  "unresolved_reserved_usd": "2.20",
+  "total_cap_usd": "50",
+  "paid_execution_enabled": false,
+  "rounds": [
+    {
+      "round": "qualification",
+      "passed": false,
+      "matches_current_git_source": false,
+      "synthetic_requests": 5,
+      "inherited_requests_preserved": 3010,
+      "controller_exit_code": 1,
+      "fixtures": [
+        {
+          "harness": "terminus-2",
+          "classification": "infrastructure_failure",
+          "agent_error_type": null,
+          "verifier_error_type": "RewardFileNotFoundError",
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "physical_requests": 3,
+          "known_spending_usd": "0"
+        },
+        {
+          "harness": "openhands",
+          "classification": "infrastructure_failure",
+          "agent_error_type": null,
+          "verifier_error_type": "RewardFileNotFoundError",
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "physical_requests": 2,
+          "known_spending_usd": "0"
+        }
+      ]
+    },
+    {
+      "round": "qualification-v2",
+      "passed": true,
+      "matches_current_git_source": false,
+      "synthetic_requests": 5,
+      "inherited_requests_preserved": 3010,
+      "controller_exit_code": 0,
+      "fixtures": [
+        {
+          "harness": "terminus-2",
+          "classification": "pass",
+          "agent_error_type": null,
+          "verifier_error_type": null,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "physical_requests": 3,
+          "known_spending_usd": "0"
+        },
+        {
+          "harness": "openhands",
+          "classification": "pass",
+          "agent_error_type": null,
+          "verifier_error_type": null,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "physical_requests": 2,
+          "known_spending_usd": "0"
+        }
+      ]
+    },
+    {
+      "round": "qualification-v3",
+      "passed": false,
+      "matches_current_git_source": true,
+      "synthetic_requests": 3,
+      "inherited_requests_preserved": 3010,
+      "controller_exit_code": 1,
+      "fixtures": [
+        {
+          "harness": "terminus-2",
+          "classification": "pass",
+          "agent_error_type": null,
+          "verifier_error_type": null,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "physical_requests": 3,
+          "known_spending_usd": "0"
+        },
+        {
+          "harness": "openhands",
+          "classification": "infrastructure_failure",
+          "agent_error_type": "NetworkConnectionError",
+          "verifier_error_type": null,
+          "model_revoked": true,
+          "task_containers_removed": true,
+          "physical_requests": 0,
+          "known_spending_usd": "0"
+        }
+      ]
+    }
+  ],
+  "langfuse_status": "verified_all_observation_ids",
+  "observations": 112,
+  "traces": [
+    {
+      "round": "qualification",
+      "trial_id": "launcher-synthetic-openhands",
+      "observations": 13,
+      "synthetic_generation_observations": 2,
+      "expected_observations": 13,
+      "observed_observations": 13,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "round": "qualification",
+      "trial_id": "launcher-synthetic-terminus-2",
+      "observations": 25,
+      "synthetic_generation_observations": 3,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "round": "qualification-v2",
+      "trial_id": "launcher-synthetic-openhands",
+      "observations": 13,
+      "synthetic_generation_observations": 2,
+      "expected_observations": 13,
+      "observed_observations": 13,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "round": "qualification-v2",
+      "trial_id": "launcher-synthetic-terminus-2",
+      "observations": 25,
+      "synthetic_generation_observations": 3,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "round": "qualification-v3",
+      "trial_id": "launcher-synthetic-openhands",
+      "observations": 11,
+      "synthetic_generation_observations": 0,
+      "expected_observations": 11,
+      "observed_observations": 11,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "round": "qualification-v3",
+      "trial_id": "launcher-synthetic-terminus-2",
+      "observations": 25,
+      "synthetic_generation_observations": 3,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    }
+  ],
+  "current_failure": "OpenHands localhost action server was not reachable; zero OpenHands model requests",
+  "remaining_native_attempts": 22
+}

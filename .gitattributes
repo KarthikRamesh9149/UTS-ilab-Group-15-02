@@ -1,0 +1,2 @@
+/stage2/*.py text eol=lf
+/stage2/fixtures/lifecycle/tests/test.sh text eol=lf

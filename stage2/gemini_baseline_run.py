@@ -39,6 +39,12 @@ def source_hashes(root):
         for p in sorted((root / 'stage2').glob('*.py')) if not p.name.startswith('test_')}
 
 
+def fixture_source_hashes(root):
+    directory = root / 'stage2/fixtures/lifecycle'
+    return {p.relative_to(directory).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted(directory.rglob('*')) if p.is_file()}
+
+
 def frozen_inputs(prior_root, proposal):
     prior = prior_root / '.runtime/gemini-dev20-laptop-20260930'
     prep = json.loads((prior / 'preparation.json').read_text())
@@ -275,6 +281,9 @@ class FakeProvider:
 
 
 async def run(args):
+    same_cap_path = getattr(args, 'same_cap_manifest', None)
+    if same_cap_path and (not args.qualify or not args.continuation_root or args.authorization):
+        raise ValueError('Same-cap preparation requires key-free qualification and closed evidence')
     root = Path.cwd()
     private = args.private
     private.mkdir(parents=True, mode=0o700, exist_ok=False)
@@ -291,9 +300,21 @@ async def run(args):
     study = STUDY
     prior_sha = proposal['prior_ledger_sha256']
     authorization_sha = None
-    if bool(args.continuation_root) != bool(args.authorization):
+    same_cap_manifest, same_cap_sha = None, None
+    if same_cap_path:
+        # Preparation is key-free. Do not silently override an unresolved-charge
+        # stop or turn this manifest into a new spending authorization.
+        from gemini_same_cap import suffix_inputs
+        same_cap_manifest = json.loads(same_cap_path.read_text())
+        same_cap_sha = hashlib.sha256(same_cap_path.read_bytes()).hexdigest()
+        prior_path, rows, cells = suffix_inputs(args.continuation_root, same_cap_manifest, all_cells)
+        prior_sha = same_cap_manifest['prior_ledger_sha256']
+        protocol_sha = hashlib.sha256(json.dumps({'source': source,
+            'model': proposal['model_protocol'], 'cells': all_cells,
+            'same_cap_manifest_sha256': same_cap_sha}, sort_keys=True).encode()).hexdigest()
+    elif bool(args.continuation_root) != bool(args.authorization):
         raise ValueError('Continuation requires both closed evidence and authorization')
-    if args.continuation_root:
+    if args.continuation_root and not same_cap_path:
         authorization = json.loads(args.authorization.read_text())
         authorization_sha = hashlib.sha256(args.authorization.read_bytes()).hexdigest()
         prior_path, rows, cells = continuation_inputs(args.continuation_root, authorization, all_cells)
@@ -334,12 +355,14 @@ async def run(args):
             'daemon_memory_margin_bytes': 1024**3, 'other_docker_workloads_running': False}
     gateway = BaselineGateway('synthetic-key' if args.qualify else credential(args.key_file), private,
         prior_path=prior_path, prior_sha256=prior_sha,
-        cells={c['trial_id']: c['harness'] for c in cells}, authorization=authorization)
+        cells={c['trial_id']: c['harness'] for c in cells}, authorization=authorization,
+        same_cap_manifest=same_cap_manifest)
     if provider:
         gateway.origin = origin
     registration = {'experiment': study, 'scope': 'synthetic' if args.qualify else 'paid_native_baselines',
         'user_authorization': authorization or 'Option 2: up to twenty Terminus and twenty OpenHands attempts under original shared US$20 cap',
         'authorization_sha256': authorization_sha,
+        'same_cap_manifest_sha256': same_cap_sha,
         'cells': all_cells if authorization and not args.qualify else cells,
         'continuation_cells': cells, 'inherited_completed_attempts': len(rows),
         'source_hashes': source, 'protocol_sha256': protocol_sha,
@@ -393,6 +416,8 @@ async def run(args):
                     and r['task_containers_removed'] and not r.get('trace_errors') and not r.get('gateway_stop') for r in rows),
                 'source_hashes': source, 'bundle_sha256': BUNDLE_SHA,
                 'authorization_sha256': authorization_sha,
+                'same_cap_manifest_sha256': same_cap_sha,
+                'fixture_source_hashes': fixture_source_hashes(root),
                 'controller_image': registration['controller_image'], 'fixture_image': args.fixture_image,
                 'fixtures': [{k: v for k, v in r.items() if k != 'reward'} for r in rows],
                 'inherited_budget_preserved': gateway.ledger.data['requests'][:len(gateway.ledger.prior['requests'])] == gateway.ledger.prior['requests']}
@@ -421,6 +446,8 @@ def main():
     parser.add_argument('--qualify', action='store_true')
     parser.add_argument('--continuation-root', type=Path)
     parser.add_argument('--authorization', type=Path)
+    parser.add_argument('--same-cap-manifest', type=Path,
+        help='Key-free qualification only: preserve a closed US$50 ledger; cannot start paid work')
     parser.add_argument('--fixture-image', default='uts-gemini-baseline-task-fixture:20261010')
     args = parser.parse_args()
     os.umask(0o077)

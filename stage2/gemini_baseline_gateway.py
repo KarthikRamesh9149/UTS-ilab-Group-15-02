@@ -9,14 +9,23 @@ from gemini_laptop_policy import atomic_json, wire
 
 
 class BaselineGateway(Gateway):
-    def __init__(self, key, directory, *, prior_path, prior_sha256, cells, authorization=None):
+    def __init__(self, key, directory, *, prior_path, prior_sha256, cells, authorization=None,
+                 same_cap_manifest=None):
         super().__init__(key, directory)
         self.prior_path, self.prior_sha256, self.cells = prior_path, prior_sha256, cells
         self.authorization = authorization
+        if authorization is not None and same_cap_manifest is not None:
+            raise ValueError('Budget amendment and same-cap preparation are exclusive')
+        self.same_cap_manifest = same_cap_manifest
         self.task_site = None
         self.client_sequence = 0
 
     def create_ledger(self, available):
+        if self.same_cap_manifest is not None:
+            from gemini_same_cap import SameCapBaselineLedger
+            return SameCapBaselineLedger(self.directory / 'ledger.json', available,
+                prior_path=self.prior_path, prior_sha256=self.prior_sha256,
+                cells=self.cells, manifest=self.same_cap_manifest)
         if self.authorization is not None:
             return ExtendedBaselineLedger(self.directory / 'ledger.json', available,
                 prior_path=self.prior_path, prior_sha256=self.prior_sha256,

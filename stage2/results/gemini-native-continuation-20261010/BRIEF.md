@@ -1,5 +1,7 @@
 # Gemini native continuation — US$50 total cap
 
+Version caveat discovered 12 October: provider metadata recorded the Gemini 3.7 model labels, but Google's 8 October generic-model rerouting notice leaves actual version continuity unresolved. OpenRouter still lists the dated snapshot. See [the follow-up brief](../gemini-native-suffix-preparation-20261012/BRIEF.md); closed outcomes and charges are unchanged.
+
 Stopped: unresolved_charge. Outcomes include three inherited attempts; 15 new attempts completed.
 
 | Harness | Started | Pass | Verifier failure | Infrastructure failure | Budget stop | Unstarted |

@@ -1,5 +1,7 @@
 # Remaining native comparison: preparation only
 
+Update, 12 October: same-cap admission code and synthetic checks are now recorded in [the preparation brief](../gemini-native-suffix-preparation-20261012/BRIEF.md). The canonical source did not pass its OpenHands runtime fixture; paid execution remains disabled. The original manifest below stays unchanged and hash-bound.
+
 No paid calls were made during this preparation. The closed controller remains stopped. The [exact remaining manifest](resume-preparation.json) selects cells 19–40, with eleven Terminus-2 and eleven OpenHands attempts, and binds the private closed ledger and outcomes by SHA-256. It excludes all eighteen completed attempts.
 
 ## Spending and billing
