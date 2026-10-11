@@ -9,8 +9,8 @@ by [`compare_reference.py`](compare_reference.py)).
 
 All runs use the same model and route: DeepSeek V4 Flash 0731 on DeepInfra FP8 via
 OpenRouter, temperature 1.0, reasoning effort high, 384k max output tokens. Every
-result is one run per task unless stated. Last updated 10 October 2026, after the
-repeat study finished.
+result is one run per task unless stated. Section 8 alone uses a second model
+(Claude Haiku 5.5). Last updated 11 October 2026.
 
 ## Summary
 
@@ -32,7 +32,12 @@ repeat study finished.
 5. **The Stage 2 custom harness is the fastest to a solution:** within 5 minutes of agent
    time it solves 24 of 89 tasks against 15 for Terminus-2 and 17 for OpenHands, and it
    still leads on the 69 tasks not used to select it (14 vs 9 and 12).
-6. Harness bugs found on real tasks, not in offline tests, were the main obstacle early
+6. **Second model (Claude Haiku 5.5, one run each):** Terminus-2 14/20, Deep Agents 11/20
+   — the same order as with DeepSeek, at about 1/20 of Terminus-2's cost. The Langfuse
+   trace showed the Deep Agents failures came from Haiku misreading the harness's time
+   note ("3595s of 3600s remaining" read as 5 seconds left), a harness bug invisible with
+   DeepSeek.
+7. Harness bugs found on real tasks, not in offline tests, were the main obstacle early
    on: an empty model reply ending a run, images without `python3`, and provider
    overload. Each is fixed and covered by the offline test (now 12/12 checks).
 
@@ -252,7 +257,49 @@ First traced task, `openssl-selfsigned-cert` (passed, 2 min, US$0.003):
   limit, the trace shows whether the time went on thinking, on slow commands or on
   repeated attempts.
 
-## 8. Gaps in the project's evidence (review of all branches, 5 October 2026)
+## 8. Cross-model check: Claude Haiku 5.5
+
+Every other result uses DeepSeek V4 Flash 0731. To see whether the harness comparison
+depends on the model, both harnesses ran dev-20 once with Claude Haiku 5.5 (Anthropic
+route), interleaved task by task on the laptop (10–11 October,
+[`model_study.py`](../../experiments/harshini-deepagents/model_study.py)).
+
+| Claude Haiku 5.5, laptop, 1 run | Deep Agents 0.1.3 | Terminus-2 |
+|---|---:|---:|
+| Passed | **11/20** | **14/20** |
+| Recorded cost | US$0.26 | US$5.57 (US$5.07 of it on `install-windows-3.11`) |
+| Total agent time | 0.6 h | 2.9 h |
+| Median minutes per pass | 0.6 | 1.6 |
+| Failures that ended with the model declaring it was done | 9 of 9 | 0 of 6 (all time limit or verifier) |
+
+CSVs: [`dev20-haiku-v0.1.3`](deepagents/dev20-haiku-v0.1.3.csv),
+[`dev20-haiku-terminus2`](deepagents/dev20-haiku-terminus2.csv); per-task timelines in
+[`traces/`](traces/) (`dev20-haiku-v0.1.3__*.md`).
+
+- **Same order as with DeepSeek:** Terminus-2 leads (14 vs 11; DeepSeek means 11.3 vs
+  9.7), and every task the Deep Agents harness passed, Terminus-2 also passed. Terminus-2
+  with Haiku matched its DeepSeek server score (14) and passed `regex-chess`, which no
+  laptop run had passed before.
+- **Cost moves the other way:** the Deep Agents harness was about 20× cheaper. Terminus-2
+  resends its full history every turn (108M input tokens, almost all cached), and one long
+  task (`install-windows-3.11`) cost US$5.07 on its own.
+- **The trace explains the Deep Agents failures.** All 9 failures ended within minutes
+  with the model saying it had run out of time. In the `regex-chess` trace, Haiku received
+  `[harness] 3595s of 3600s remaining. Continue.` and answered *"Only about 5 seconds
+  remain"* — it read the time note as time used, then wrote a placeholder and stopped
+  24 seconds into a 60-minute task. The same happened on `mailman` ("I ran out of time"
+  with about 30 minutes left) and in the opening turns of `db-wal-recovery` and
+  `video-processing`. DeepSeek reads the same note correctly.
+- **Two more harness issues surfaced with Haiku**, which often issues several tool calls
+  at once: the calls run concurrently, so a command can run before the file written in
+  the same turn exists (`video-processing`); and `read_file` with an offset returned an
+  error on `mailman`.
+- **Lesson:** harness details tuned on one model can break on another. The Deep Agents
+  score on Haiku measures these bugs as much as the harness design; a fixed version
+  (unambiguous time note, tool calls run in order) is needed before drawing a model
+  comparison from it.
+
+## 9. Gaps in the project's evidence (review of all branches, 5 October 2026)
 
 | Gap | Status in the project | Covered here? |
 |---|---|---|
@@ -261,6 +308,7 @@ First traced task, `openssl-selfsigned-cert` (passed, 2 min, US$0.003):
 | Single-lever tests of the brief's four levers (system prompt, tools, context management, retries) | Only the system prompt was tested as a variant (C1, C2); C3 and C0-NC bundled several changes (`experiments/saranya-changelog/HARNESS_CHANGELOG.md` on `main`) | Next — one change at a time on this harness |
 | Failure analysis from agent logs | Failure categories come from recorded fields only | Partly — near-miss analysis (section 1) |
 | Step-by-step tracing (Langfuse) | Not present on any branch | Yes — one trace per task (section 7) |
+| Results on more than one model | All Stage 2 and 3 comparisons use DeepSeek V4 Flash 0731 | Yes — Claude Haiku 5.5, one run each (section 8) |
 
 ## Open questions
 
@@ -271,3 +319,5 @@ First traced task, `openssl-selfsigned-cert` (passed, 2 min, US$0.003):
    single-lever test needs repeated runs to show an effect.
 3. Does ending gracefully when retries run out (0.1.4) remove the overload losses seen
    in Deep Agents run 2?
+4. With an unambiguous time note and ordered tool calls, how does the Deep Agents harness
+   score on Haiku?

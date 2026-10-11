@@ -16,8 +16,10 @@ from matplotlib.lines import Line2D
 HERE = Path(__file__).resolve().parent
 SERVER = [("OpenHands", 10), ("Terminus-2", 14), ("Stage 2 custom (C0)", 15)]
 LAPTOP = [
-    ("Terminus-2", ("dev20-terminus2-r1", "dev20-terminus2-r2", "dev20-terminus2-r3"), "#1f3b5c"),
-    ("Deep Agents 0.1.3", ("dev20-v0.1.3", "dev20-v0.1.3-r2", "dev20-v0.1.3-r3"), "#2e9e5b"),
+    ("Terminus-2", ("dev20-terminus2-r1", "dev20-terminus2-r2", "dev20-terminus2-r3"), "#1f3b5c", "laptop"),
+    ("Deep Agents 0.1.3", ("dev20-v0.1.3", "dev20-v0.1.3-r2", "dev20-v0.1.3-r3"), "#2e9e5b", "laptop"),
+    ("Terminus-2", ("dev20-haiku-terminus2",), "#7a5195", "Claude Haiku 5.5, laptop"),
+    ("Deep Agents 0.1.3", ("dev20-haiku-v0.1.3",), "#ef8a62", "Claude Haiku 5.5, laptop"),
 ]
 TARGET = 16
 
@@ -32,13 +34,14 @@ def score(name: str) -> int | None:
 
 def main() -> None:
     rows = [(f"{h}\nNetcup server, 1 run", [s], "#9aa5b1") for h, s in SERVER]
-    for harness, runs, colour in LAPTOP:
+    for harness, runs, colour, where in LAPTOP:
         scores = [s for s in map(score, runs) if s is not None]
         if scores:
-            rows.append((f"{harness}\nWindows laptop, {len(scores)} runs", scores, colour))
+            rows.append((f"{harness}\n{where}, {len(scores)} run{'s' if len(scores) > 1 else ''}", scores, colour))
+    separators = [len(SERVER) - 0.5, len(SERVER) + 1.5]
 
-    fig, ax = plt.subplots(figsize=(11, 5.2), dpi=160)
-    fig.suptitle("dev-20 tasks passed — DeepSeek V4 Flash 0731, same model and settings everywhere",
+    fig, ax = plt.subplots(figsize=(11, 6.2), dpi=160)
+    fig.suptitle("dev-20 tasks passed — DeepSeek V4 Flash 0731 unless marked Claude Haiku 5.5",
                  fontsize=13, fontweight="bold", color="#1f3b5c")
     for y, (label, scores, colour) in enumerate(rows):
         mean = sum(scores) / len(scores)
@@ -50,7 +53,8 @@ def main() -> None:
         else:
             text = f"{scores[0]}/20"
         ax.text(max(scores) + 0.4, y, text, va="center", fontsize=10, fontweight="bold")
-    ax.axhline(len(SERVER) - 0.5, color="#bbb", linewidth=1)
+    for y in separators[: 1 + (len(rows) > len(SERVER) + 2)]:
+        ax.axhline(y, color="#bbb", linewidth=1)
     ax.axvline(TARGET, color="#2e9e5b", linestyle="--", linewidth=1.5)
     ax.text(TARGET + 0.15, -0.6, f"target {TARGET}/20", color="#2e9e5b", fontsize=9, fontweight="bold")
     ax.set_yticks(range(len(rows)))
@@ -63,8 +67,9 @@ def main() -> None:
         ax.spines[side].set_visible(False)
     ax.legend(handles=[Line2D([], [], marker="o", color="black", markerfacecolor="white", label="one run")],
               loc="lower right", frameon=False, fontsize=9)
-    fig.text(0.01, 0.01, "Server scores: Stage 2 runs (one run each). Laptop: repeat study, harnesses "
-             "alternated run by run. Deep Agents run 2 lost 6 tasks to provider overload (counted as failed).",
+    fig.text(0.01, 0.01, "Server: Stage 2 runs (one run each). Laptop DeepSeek: repeat study, harnesses alternated "
+             "run by run; Deep Agents run 2 lost 6 tasks to provider overload.\nLaptop Haiku: one run each, "
+             "harnesses interleaved task by task; Deep Agents 0.1.3 misread its time note on this model (FINDINGS §8).",
              fontsize=8, color="#555")
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     fig.savefig(HERE / "progress.png", facecolor="white")

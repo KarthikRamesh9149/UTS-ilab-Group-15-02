@@ -15,12 +15,15 @@ agent harness and comparing it with the client baselines on Terminal-Bench 2.1.
 | Deep Agents 0.1.3 | **10, 8, 11** of 20 — mean **9.7** |
 | Terminus-2 (same laptop) | **11, 12, 11** of 20 — mean **11.3** |
 | Reference scores | Terminus-2 14/20 and the Stage 2 custom harness (C0) 15/20, one run each on the Netcup server |
+| Second model (Claude Haiku 5.5) | Terminus-2 **14/20** (US$5.57), Deep Agents **11/20** (US$0.26), one run each |
 
 ![Progress chart](results/harshini/progress.png)
 
 Main results: a single dev-set run moves by up to 3 tasks between identical runs;
 Terminus-2 is slightly ahead of this harness on the same host, but within that spread;
-and the laptop host costs Terminus-2 about 3 tasks against the server.
+the laptop host costs Terminus-2 about 3 tasks against the server; and on a second model
+(Claude Haiku 5.5) the order is the same, with Langfuse traces showing that this
+harness's failures there came from Haiku misreading its time note.
 
 **All findings:** [`results/harshini/FINDINGS.md`](results/harshini/FINDINGS.md) —
 the repeat study, same-host vs. server comparison, where the Stage 2 harnesses differ,
@@ -41,6 +44,8 @@ Runs on the Windows laptop with Harbor and Docker; the model is called through O
 | `dev20-v0.1.2` | 0.1.2 | 3 of 20 | no score | provider overload; all 3 ended on rate-limit errors (retry added in 0.1.3) |
 | [`probe-openssl-terminus2`](results/harshini/deepagents/probe-openssl-terminus2.csv) | Terminus-2 | 1 | **1/1** | Terminus-2 with the reference settings runs on the laptop |
 | [`trace-openssl-v0.1.3`](results/harshini/deepagents/trace-openssl-v0.1.3.csv) | 0.1.3 | 1 | **1/1** | first Langfuse-traced task ([timeline](results/harshini/traces/trace-openssl-v0.1.3__openssl-selfsigned-cert.md)) |
+| [`dev20-haiku-v0.1.3`](results/harshini/deepagents/dev20-haiku-v0.1.3.csv) | 0.1.3 | 20 | **11/20** | Claude Haiku 5.5; all 9 failures stopped early after misreading the time note |
+| [`dev20-haiku-terminus2`](results/harshini/deepagents/dev20-haiku-terminus2.csv) | Terminus-2 | 20 | **14/20** | Claude Haiku 5.5, interleaved task by task with the run above |
 | [`dev20-v0.1.3`](results/harshini/deepagents/dev20-v0.1.3.csv) | 0.1.3 | 20 | **10/20** | repeat study run 1; both `qemu` tasks fail on this host |
 | [`dev20-terminus2-r1`](results/harshini/deepagents/dev20-terminus2-r1.csv) | Terminus-2 | 20 | **11/20** | same laptop; also fails both `qemu` tasks (passed on Netcup) |
 | [`dev20-v0.1.3-r2`](results/harshini/deepagents/dev20-v0.1.3-r2.csv) | 0.1.3 | 20 | **8/20** | 6 tasks lost to provider overload, counted as failed |
@@ -80,8 +85,8 @@ Archived write-up: [`docs/team-stage1.md`](docs/team-stage1.md).
 
 ## Next
 
-1. Harness 0.1.4: when retries run out near the deadline, end the run so the grader still
-   checks the task (removes the overload losses seen in run 2).
+1. Harness 0.1.4: an unambiguous time note, tool calls run in order, and a graceful end
+   when retries run out near the deadline; then re-run dev-20 on Haiku.
 2. Single-lever tests (one change at a time, e.g. a file-layout completion check), each
    with repeated runs, since one run cannot show a 1–2 task effect.
 3. Windows Oracle run of the tasks lost on this host (`qemu-*`, `adaptive-rejection-sampler`).
