@@ -22,6 +22,9 @@ Fixes for bugs found through Langfuse traces of the Claude Haiku 5.5 run.
 - Offline smoke test: 17/17 (adds strict read, read with offset, edit, same-turn order,
   time note, and clean end on exhausted retries; the old read check passed only because
   the error message contained the file's first 200 characters).
+- Result, dev-20 on Claude Haiku 5.5 (`dev20-haiku-v0.1.4`): **15/20**, up from 11/20
+  with 0.1.3 (gained `adaptive-rejection-sampler`, `db-wal-recovery`, `mailman`,
+  `regex-chess`; none lost), against Terminus-2's 14/20; US$1.20 vs US$5.57.
 
 ## Langfuse tracing and second-model option (no change to agent behaviour)
 

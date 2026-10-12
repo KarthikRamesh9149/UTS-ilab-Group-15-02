@@ -20,6 +20,7 @@ LAPTOP = [
     ("Deep Agents 0.1.3", ("dev20-v0.1.3", "dev20-v0.1.3-r2", "dev20-v0.1.3-r3"), "#2e9e5b", "laptop"),
     ("Terminus-2", ("dev20-haiku-terminus2",), "#7a5195", "Claude Haiku 5.5, laptop"),
     ("Deep Agents 0.1.3", ("dev20-haiku-v0.1.3",), "#ef8a62", "Claude Haiku 5.5, laptop"),
+    ("Deep Agents 0.1.4", ("dev20-haiku-v0.1.4",), "#d4572a", "Claude Haiku 5.5, laptop"),
 ]
 TARGET = 16
 
@@ -69,7 +70,7 @@ def main() -> None:
               loc="lower right", frameon=False, fontsize=9)
     fig.text(0.01, 0.01, "Server: Stage 2 runs (one run each). Laptop DeepSeek: repeat study, harnesses alternated "
              "run by run; Deep Agents run 2 lost 6 tasks to provider overload.\nLaptop Haiku: one run each, "
-             "harnesses interleaved task by task; Deep Agents 0.1.3 misread its time note on this model (FINDINGS §8).",
+             "0.1.3 and Terminus-2 interleaved task by task; 0.1.3 misread its time note on this model, fixed in 0.1.4 (FINDINGS §8).",
              fontsize=8, color="#555")
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     fig.savefig(HERE / "progress.png", facecolor="white")

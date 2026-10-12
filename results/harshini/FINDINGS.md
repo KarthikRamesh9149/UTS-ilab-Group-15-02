@@ -10,7 +10,7 @@ by [`compare_reference.py`](compare_reference.py)).
 All runs use the same model and route: DeepSeek V4 Flash 0731 on DeepInfra FP8 via
 OpenRouter, temperature 1.0, reasoning effort high, 384k max output tokens. Every
 result is one run per task unless stated. Section 8 alone uses a second model
-(Claude Haiku 5.5). Last updated 11 October 2026.
+(Claude Haiku 5.5). Last updated 12 October 2026.
 
 ## Summary
 
@@ -32,14 +32,15 @@ result is one run per task unless stated. Section 8 alone uses a second model
 5. **The Stage 2 custom harness is the fastest to a solution:** within 5 minutes of agent
    time it solves 24 of 89 tasks against 15 for Terminus-2 and 17 for OpenHands, and it
    still leads on the 69 tasks not used to select it (14 vs 9 and 12).
-6. **Second model (Claude Haiku 5.5, one run each):** Terminus-2 14/20, Deep Agents 11/20
-   — the same order as with DeepSeek, at about 1/20 of Terminus-2's cost. The Langfuse
-   trace showed the Deep Agents failures came from Haiku misreading the harness's time
-   note ("3595s of 3600s remaining" read as 5 seconds left), a harness bug invisible with
-   DeepSeek.
+6. **Second model (Claude Haiku 5.5, one run each):** Terminus-2 14/20, Deep Agents 0.1.3
+   11/20. The Langfuse traces showed the Deep Agents failures came from Haiku misreading
+   the harness's time note ("3595s of 3600s remaining" read as 5 seconds left), a harness
+   bug invisible with DeepSeek. With the fixes in 0.1.4 the Deep Agents harness scored
+   **15/20** (4 tasks gained, none lost) at about a fifth of Terminus-2's cost (US$1.20
+   vs US$5.57); 15 vs 14 is within the run-to-run spread.
 7. Harness bugs found on real tasks, not in offline tests, were the main obstacle early
    on: an empty model reply ending a run, images without `python3`, and provider
-   overload. Each is fixed and covered by the offline test (now 12/12 checks).
+   overload. Each is fixed and covered by the offline test (now 17/17 checks).
 
 ## 1. Deep Agents harness on dev-20 (run 1 of the repeat study)
 
@@ -238,7 +239,9 @@ Found on real tasks and fixed (see the
   power button. On 5–6 October the laptop sat in Modern Standby for about 24 h during
   Terminus-2's `regex-chess` (run 1); Harbor's timers paused, and the trial ended with
   24.5 h of recorded agent time. It was the only trial that overlapped standby, and it
-  was set aside to be re-run rather than counted.
+  was set aside to be re-run rather than counted. The same happened on 11–12 October to
+  Haiku `video-processing` (re-run, see section 8) and to the first task of the DeepSeek
+  0.1.4 run (to be re-run at the end).
 - **CETUS (UTS HPC) cannot run Harbor** (no Docker; Stage 2 work, see the
   [results README](README.md)), so the laptop is the run host for this branch.
 
@@ -268,17 +271,18 @@ depends on the model, both harnesses ran dev-20 once with Claude Haiku 5.5 (Anth
 route), interleaved task by task on the laptop (10–11 October,
 [`model_study.py`](../../experiments/harshini-deepagents/model_study.py)).
 
-| Claude Haiku 5.5, laptop, 1 run | Deep Agents 0.1.3 | Terminus-2 |
-|---|---:|---:|
-| Passed | **11/20** | **14/20** |
-| Recorded cost | US$0.26 | US$5.57 (US$5.07 of it on `install-windows-3.11`) |
-| Total agent time | 0.6 h | 2.9 h |
-| Median minutes per pass | 0.6 | 1.6 |
-| Failures that ended with the model declaring it was done | 9 of 9 | 0 of 6 (all time limit or verifier) |
+| Claude Haiku 5.5, laptop, 1 run | Deep Agents 0.1.3 | Deep Agents 0.1.4 | Terminus-2 |
+|---|---:|---:|---:|
+| Passed | **11/20** | **15/20** | **14/20** |
+| Recorded cost | US$0.26 | US$1.20 | US$5.57 (US$5.07 of it on `install-windows-3.11`) |
+| Total agent time | 0.6 h | 2.6 h | 2.9 h |
+| Median minutes per pass | 0.6 | 0.7 | 1.6 |
+| Failures where the model stopped believing time was up | 9 of 9 | 1 of 5 (correctly, 2 min left) | 0 of 6 |
 
 CSVs: [`dev20-haiku-v0.1.3`](deepagents/dev20-haiku-v0.1.3.csv),
+[`dev20-haiku-v0.1.4`](deepagents/dev20-haiku-v0.1.4.csv),
 [`dev20-haiku-terminus2`](deepagents/dev20-haiku-terminus2.csv); per-task timelines in
-[`traces/`](traces/) (`dev20-haiku-v0.1.3__*.md`).
+[`traces/`](traces/) (`dev20-haiku-v0.1.3__*.md`, `dev20-haiku-v0.1.4__*.md`).
 
 - **Same order as with DeepSeek:** Terminus-2 leads (14 vs 11; DeepSeek means 11.3 vs
   9.7), and every task the Deep Agents harness passed, Terminus-2 also passed. Terminus-2
@@ -306,8 +310,29 @@ CSVs: [`dev20-haiku-v0.1.3`](deepagents/dev20-haiku-v0.1.3.csv),
   26 `edit_file` calls failed**, and the model fell back to shell commands. The offline
   test had missed it because the error message contained the start of the file.
 - **Fixed in 0.1.4** (unambiguous time note, tool calls run in order, working file
-  tools, clean end when retries hit the deadline); the Deep Agents Haiku run is being
-  repeated with 0.1.4 (`dev20-haiku-v0.1.4`).
+  tools, clean end when retries hit the deadline) and re-run on Haiku (11–12 October).
+
+**After the fixes (0.1.4):**
+
+- **15/20, up from 11.** Gained `adaptive-rejection-sampler`, `db-wal-recovery`,
+  `mailman` and `regex-chess`; lost none. All four gains were tasks 0.1.3 abandoned
+  early after misreading the time note.
+- **Against Terminus-2 (14/20):** 13 tasks passed by both; only the Deep Agents harness
+  passed `adaptive-rejection-sampler` and `db-wal-recovery` (which no DeepSeek laptop run
+  of either harness passed); only Terminus-2 passed `overfull-hbox`. With one run each and
+  a measured spread of up to 3 tasks, 15 vs 14 is a tie, not a lead.
+- **Still about 5× cheaper** than Terminus-2 (US$1.20 vs US$5.57). The harness now uses
+  its time: total agent time rose from 0.6 h to 2.6 h, close to Terminus-2's 2.9 h.
+- **The five failures** are `install-windows-3.11`, both `qemu` tasks (which fail for
+  every harness on this laptop), `overfull-hbox` (stopped with two warnings left) and
+  `video-processing` (a script that ran but gave the wrong frames). The only "out of
+  time" message (`qemu-alpine-ssh`) came with 2 minutes genuinely left.
+- **Lesson:** on Haiku, the gap to Terminus-2 came from harness bugs, not the harness
+  design; once fixed, the two are level. The DeepSeek re-run with 0.1.4 tests whether the
+  same holds on the project model.
+- `video-processing`'s first attempt overlapped laptop standby (2 h 50 min recorded
+  against a 60-minute limit, no verifier result); it was set aside and re-run on
+  12 October, and the re-run is the counted result.
 
 ## 9. Gaps in the project's evidence (review of all branches, 5 October 2026)
 
@@ -329,5 +354,6 @@ CSVs: [`dev20-haiku-v0.1.3`](deepagents/dev20-haiku-v0.1.3.csv),
    single-lever test needs repeated runs to show an effect.
 3. Does ending gracefully when retries run out (0.1.4) remove the overload losses seen
    in Deep Agents run 2?
-4. With an unambiguous time note and ordered tool calls, how does the Deep Agents harness
-   score on Haiku?
+4. Do the 0.1.4 fixes, which closed the gap to Terminus-2 on Haiku (15 vs 14), change
+   the DeepSeek score (0.1.3 mean 9.7)? The DeepSeek dev-20 re-run with 0.1.4 is in
+   progress.
