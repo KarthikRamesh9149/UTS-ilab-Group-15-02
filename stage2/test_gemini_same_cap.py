@@ -9,8 +9,8 @@ import tempfile
 import unittest
 
 from gemini_baseline_run import run
-from gemini_same_cap import SameCapBaselineLedger, suffix_inputs
-from gemini_laptop_policy import atomic_json, BudgetStop, money
+from gemini_same_cap import SameCapBaselineLedger, suffix_inputs, validate_resume_review
+from gemini_laptop_policy import atomic_json, BudgetStop, money, SNAPSHOT
 
 
 class SameCapTests(unittest.TestCase):
@@ -150,6 +150,19 @@ class SameCapTests(unittest.TestCase):
             continuation_root=Path('closed'), authorization=None)
         with self.assertRaisesRegex(ValueError, 'key-free qualification'):
             asyncio.run(run(args))
+
+    def test_resume_review_preserves_cap_and_binds_exact_evidence(self):
+        review = dict(scope='continue_unstarted_native_suffix',user_message='continue the gemini one',
+            total_cap_usd='50',additional_allowance_usd='0',manifest_sha256='a'*64,
+            prior_ledger_sha256=self.manifest['prior_ledger_sha256'],
+            completed_tasks_sha256=self.manifest['completed_tasks_sha256'],
+            upstream_model=SNAPSHOT,preserve_unresolved_reserves=True,replays=0)
+        self.assertEqual(validate_resume_review(review,self.manifest,'a'*64),review)
+        for field,value in [('total_cap_usd','80'),('additional_allowance_usd','30'),
+                            ('upstream_model','google/gemini-3.8-flash'),
+                            ('preserve_unresolved_reserves',False),('manifest_sha256','b'*64)]:
+            bad=copy.deepcopy(review);bad[field]=value
+            with self.assertRaises(ValueError): validate_resume_review(bad,self.manifest,'a'*64)
 
 
 if __name__ == '__main__':

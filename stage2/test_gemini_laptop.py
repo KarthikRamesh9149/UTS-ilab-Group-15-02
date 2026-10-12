@@ -156,6 +156,30 @@ class GatewayTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(response.status,502)
             self.assertEqual(self.gateway.stop_reason,'routing_mismatch')
 
+    async def test_explicit_snapshot_is_sent_to_upstream(self):
+        self.gateway.upstream_model = SNAPSHOT
+        body = dict(id='synthetic',model=SNAPSHOT,provider='Google AI Studio',usage={'cost':'.01'})
+        with patch.object(self.gateway.session,'post',return_value=Response(body)) as posted:
+            response = await self.gateway.dispatch(wire(dict(model=MODEL,
+                messages=[dict(role='user',content='fixture')])),self.gateway.active)
+        self.assertEqual(response.status,200)
+        self.assertEqual(posted.call_args.kwargs['json']['model'],SNAPSHOT)
+
+    async def test_receipt_model_drift_is_rejected_even_when_body_alias_matches(self):
+        original = self.gateway.get
+        async def metadata(path):
+            if path.startswith('/generation'):
+                return dict(total_cost='.01',model='google/gemini-3.8-flash',provider_name='Google AI Studio')
+            return await original(path)
+        self.gateway.get = metadata
+        with patch.object(self.gateway.session,'post',return_value=Response(
+                dict(id='synthetic',model=MODEL,provider='Google AI Studio',usage={'cost':'.01'}))) as posted:
+            response = await self.gateway.dispatch(wire(dict(model=MODEL,
+                messages=[dict(role='user',content='fixture')])),self.gateway.active)
+        self.assertEqual(response.status,502)
+        self.assertEqual(self.gateway.stop_reason,'routing_mismatch')
+        self.assertEqual(posted.call_count,1)
+
     async def test_transport_failure_retains_reservation_no_retry(self):
         with patch.object(self.gateway.session,'post',side_effect=TimeoutError) as posted:
             await self.gateway.dispatch(wire(dict(model=MODEL,messages=[dict(role='user',content='fixture')])),self.gateway.active)

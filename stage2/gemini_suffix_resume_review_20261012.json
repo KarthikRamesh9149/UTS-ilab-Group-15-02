@@ -1,0 +1,14 @@
+{
+  "scope": "continue_unstarted_native_suffix",
+  "user_message": "continue the gemini one",
+  "recorded_sydney_date": "2026-10-12",
+  "total_cap_usd": "50",
+  "additional_allowance_usd": "0",
+  "manifest_sha256": "699482b2babd7d02907d81e32ff7c26807e25ceed16c72e3a150a73ee9b6042e",
+  "prior_ledger_sha256": "b9860416fc166e26ab2baefc7f787cb3eb4494d30b57923011bebf207bfde832",
+  "completed_tasks_sha256": "870ea510af960bce58063571d21d4173507a84b398751cfccfca5aa19df6ff3d",
+  "upstream_model": "google/gemini-3.7-flash-20260813",
+  "preserve_unresolved_reserves": true,
+  "replays": 0,
+  "instruction": "Continue only the twenty-two unstarted native attempts. Keep all predecessor outcomes and both unknown reserves, use the lower of remaining US50 allowance and available credit, qualify current source before paid work, reject model/provider drift and stop on a new unresolved charge."
+}

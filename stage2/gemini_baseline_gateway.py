@@ -10,8 +10,9 @@ from gemini_laptop_policy import atomic_json, wire
 
 class BaselineGateway(Gateway):
     def __init__(self, key, directory, *, prior_path, prior_sha256, cells, authorization=None,
-                 same_cap_manifest=None):
-        super().__init__(key, directory)
+                 same_cap_manifest=None, upstream_model=None):
+        from gemini_laptop_policy import MODEL
+        super().__init__(key, directory, upstream_model=upstream_model or MODEL)
         self.prior_path, self.prior_sha256, self.cells = prior_path, prior_sha256, cells
         self.authorization = authorization
         if authorization is not None and same_cap_manifest is not None:

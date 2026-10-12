@@ -9,7 +9,7 @@ import unittest
 from aiohttp import ClientSession
 from gemini_baseline_gateway import BaselineGateway
 from gemini_baseline_run import FakeProvider, classify
-from gemini_laptop_policy import MODEL, atomic_json, money
+from gemini_laptop_policy import MODEL, SNAPSHOT, atomic_json, money
 
 
 class LauncherGatewayTests(unittest.IsolatedAsyncioTestCase):
@@ -48,6 +48,12 @@ class LauncherGatewayTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.gateway.ledger.unresolved, money('1.10'))
         self.assertEqual(self.gateway.ledger.data['requests'][-1]['harness'], 'terminus-2')
         self.assertEqual(self.prior.read_bytes(), before)
+
+    async def test_fake_provider_exercises_the_dated_snapshot_route(self):
+        self.gateway.upstream_model = SNAPSHOT
+        self.provider.upstream_model = SNAPSHOT
+        self.assertEqual(await self.post(),200)
+        self.assertEqual(self.provider.calls,1)
 
     async def test_budget_denial_never_reaches_upstream(self):
         row = self.gateway.ledger.reserve('trial', 100)

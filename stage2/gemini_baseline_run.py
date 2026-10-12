@@ -132,6 +132,18 @@ async def run_cell(root, private, gateway, cell, task, protocol_sha, *, fixture=
     async def revoke():
         nonlocal attached
         await gateway.revoke()
+        try:
+            ids = docker('ps', '-q', '--filter', 'label=com.docker.compose.project=' + project).split()
+            if len(ids) == 1:
+                # execute_phases tears down the environment before returning.
+                # Capture counters at revocation while the task still exists.
+                counters = docker('exec', ids[0], 'sh', '-c',
+                    'for f in memory.current memory.peak memory.events memory.max pids.current; do '
+                    'printf "%s\\n" "$f"; cat "/sys/fs/cgroup/$f"; done')
+                atomic_json(paths.trial_dir / 'runtime-resource-audit.json', {'cgroup_counters': counters})
+        except Exception as error:
+            if not (paths.trial_dir / 'runtime-resource-audit.json').exists():
+                atomic_json(paths.trial_dir / 'runtime-resource-audit.json', {'error_type': type(error).__name__})
         async with ClientSession() as client:
             async with client.post(gateway.url + '/chat/completions', json={},
                     headers={'Authorization': 'Bearer ' + gateway.token}) as response:
@@ -157,6 +169,7 @@ async def run_cell(root, private, gateway, cell, task, protocol_sha, *, fixture=
             base = await gateway.attach_interface(address)
         agent = native_agent(cell['harness'], logs_dir=paths.agent_dir, api_base=base,
             token=gateway.token, timeout=task.config.agent.timeout_sec,
+            runtime_cpus=task.config.environment.cpus,
             bundle=Path('/opt/uts-openhands-bundle.tar.gz'), bundle_sha256=BUNDLE_SHA)
         agent = ActivatedBaseline(agent, gateway, trial_id, task.config.agent.timeout_sec)
         result = await execute_phases(agent=agent, environment=TracedEnvironment(
@@ -234,8 +247,11 @@ def report(public, registration, rows, gateway):
 
 class FakeProvider:
     """Local scripted upstream, including metadata/receipts. No outside network."""
-    def __init__(self, private):
+    def __init__(self, private, *, upstream_model=MODEL):
         self.private, self.harness, self.calls = private, None, 0
+        if upstream_model not in {MODEL, SNAPSHOT}:
+            raise ValueError('Frozen fake upstream model required')
+        self.upstream_model = upstream_model
     async def handle(self, request):
         if request.method == 'GET':
             if request.path.endswith('/key'):
@@ -249,7 +265,7 @@ class FakeProvider:
                     max_completion_tokens=MAX_OUTPUT, pricing=dict(prompt=str(INPUT_PRICE), completion=str(OUTPUT_PRICE)), name=SNAPSHOT)]}
             return web.json_response({'data': data})
         body = await request.json()
-        if body['model'] != MODEL or body['provider']['only'] != [PROVIDER] or body['reasoning'] != {'effort': 'high'}:
+        if body['model'] != self.upstream_model or body['provider']['only'] != [PROVIDER] or body['reasoning'] != {'effort': 'high'}:
             raise RuntimeError('Fake upstream route mismatch')
         self.calls += 1
         if self.calls > 8:
@@ -282,7 +298,10 @@ class FakeProvider:
 
 async def run(args):
     same_cap_path = getattr(args, 'same_cap_manifest', None)
-    if same_cap_path and (not args.qualify or not args.continuation_root or args.authorization):
+    resume_path = getattr(args, 'resume_review', None)
+    if resume_path and not same_cap_path:
+        raise ValueError('Resume review requires the same-cap manifest')
+    if same_cap_path and (not args.continuation_root or args.authorization or (not args.qualify and not resume_path)):
         raise ValueError('Same-cap preparation requires key-free qualification and closed evidence')
     root = Path.cwd()
     private = args.private
@@ -301,17 +320,23 @@ async def run(args):
     prior_sha = proposal['prior_ledger_sha256']
     authorization_sha = None
     same_cap_manifest, same_cap_sha = None, None
+    resume_review, resume_sha = None, None
     if same_cap_path:
         # Preparation is key-free. Do not silently override an unresolved-charge
         # stop or turn this manifest into a new spending authorization.
         from gemini_same_cap import suffix_inputs
         same_cap_manifest = json.loads(same_cap_path.read_text())
         same_cap_sha = hashlib.sha256(same_cap_path.read_bytes()).hexdigest()
+        if resume_path:
+            from gemini_same_cap import validate_resume_review
+            resume_review = validate_resume_review(json.loads(resume_path.read_text()), same_cap_manifest, same_cap_sha)
+            resume_sha = hashlib.sha256(resume_path.read_bytes()).hexdigest()
+            study = 'gemini-native-resume-20261012'
         prior_path, rows, cells = suffix_inputs(args.continuation_root, same_cap_manifest, all_cells)
         prior_sha = same_cap_manifest['prior_ledger_sha256']
         protocol_sha = hashlib.sha256(json.dumps({'source': source,
             'model': proposal['model_protocol'], 'cells': all_cells,
-            'same_cap_manifest_sha256': same_cap_sha}, sort_keys=True).encode()).hexdigest()
+            'same_cap_manifest_sha256': same_cap_sha, 'resume_review_sha256': resume_sha}, sort_keys=True).encode()).hexdigest()
     elif bool(args.continuation_root) != bool(args.authorization):
         raise ValueError('Continuation requires both closed evidence and authorization')
     if args.continuation_root and not same_cap_path:
@@ -333,7 +358,7 @@ async def run(args):
         cells = [{'order': i + 1, 'trial_id': 'launcher-synthetic-' + h,
             'task_id': 'synthetic-lifecycle', 'harness': h} for i, h in enumerate(('terminus-2', 'openhands'))]
         rows = []
-        provider = FakeProvider(private)
+        provider = FakeProvider(private, upstream_model=SNAPSHOT if resume_review else MODEL)
         origin = await provider.start()
     else:
         qual = json.loads(args.qualification.read_text())
@@ -341,6 +366,9 @@ async def run(args):
             raise ValueError('Successful current-source launcher qualification required')
         if qual.get('authorization_sha256') != authorization_sha:
             raise ValueError('Qualification budget amendment differs')
+        if (qual.get('same_cap_manifest_sha256') != same_cap_sha
+                or qual.get('resume_review_sha256') != resume_sha):
+            raise ValueError('Qualification continuation evidence or review differs')
         info = json.loads(docker('info', '--format', '{{json .}}'))
         controller = json.loads(docker('inspect', os.environ['HOSTNAME']))[0]
         limit = controller['HostConfig']['Memory']
@@ -356,14 +384,17 @@ async def run(args):
     gateway = BaselineGateway('synthetic-key' if args.qualify else credential(args.key_file), private,
         prior_path=prior_path, prior_sha256=prior_sha,
         cells={c['trial_id']: c['harness'] for c in cells}, authorization=authorization,
-        same_cap_manifest=same_cap_manifest)
+        same_cap_manifest=same_cap_manifest,
+        upstream_model=SNAPSHOT if resume_review else MODEL)
     if provider:
         gateway.origin = origin
     registration = {'experiment': study, 'scope': 'synthetic' if args.qualify else 'paid_native_baselines',
-        'user_authorization': authorization or 'Option 2: up to twenty Terminus and twenty OpenHands attempts under original shared US$20 cap',
+        'user_authorization': resume_review or authorization or 'Option 2: up to twenty Terminus and twenty OpenHands attempts under original shared US$20 cap',
         'authorization_sha256': authorization_sha,
         'same_cap_manifest_sha256': same_cap_sha,
-        'cells': all_cells if authorization and not args.qualify else cells,
+        'resume_review_sha256': resume_sha,
+        'upstream_model': gateway.upstream_model,
+        'cells': all_cells if (authorization or same_cap_path) and not args.qualify else cells,
         'continuation_cells': cells, 'inherited_completed_attempts': len(rows),
         'source_hashes': source, 'protocol_sha256': protocol_sha,
         'model_protocol': proposal['model_protocol'], 'frozen_dataset': proposal['frozen_dataset'],
@@ -417,6 +448,7 @@ async def run(args):
                 'source_hashes': source, 'bundle_sha256': BUNDLE_SHA,
                 'authorization_sha256': authorization_sha,
                 'same_cap_manifest_sha256': same_cap_sha,
+                'resume_review_sha256': resume_sha,
                 'fixture_source_hashes': fixture_source_hashes(root),
                 'controller_image': registration['controller_image'], 'fixture_image': args.fixture_image,
                 'fixtures': [{k: v for k, v in r.items() if k != 'reward'} for r in rows],
@@ -447,7 +479,9 @@ def main():
     parser.add_argument('--continuation-root', type=Path)
     parser.add_argument('--authorization', type=Path)
     parser.add_argument('--same-cap-manifest', type=Path,
-        help='Key-free qualification only: preserve a closed US$50 ledger; cannot start paid work')
+        help='Preserve a closed US$50 ledger; paid execution also requires the explicit resume review')
+    parser.add_argument('--resume-review', type=Path,
+        help='Human continuation request bound to the unchanged cap, evidence and dated Gemini snapshot')
     parser.add_argument('--fixture-image', default='uts-gemini-baseline-task-fixture:20261010')
     args = parser.parse_args()
     os.umask(0o077)

@@ -30,6 +30,11 @@ class CachedOpenHands(CompatibleOpenHands):
     async def exec_as_agent(self, environment, command, env=None, **kwargs):
         if env is not None and 'LLM_MODEL' in env:
             env = {**env, 'LITELLM_LOCAL_MODEL_COST_MAP': 'True', 'SKIP_VSCODE_BUILD': 'true'}
+            for name in ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS',
+                         'NUMEXPR_NUM_THREADS', 'MALLOC_ARENA_MAX'):
+                value = self._get_env(name)
+                if value is not None:
+                    env[name] = value
         return await super().exec_as_agent(environment, command=command, env=env, **kwargs)
 
     async def install(self, environment):
@@ -46,11 +51,15 @@ class CachedOpenHands(CompatibleOpenHands):
             raise RuntimeError('Cached OpenHands installation failed')
 
 
-def native_agent(harness, *, logs_dir, api_base, token, timeout, bundle=None, bundle_sha256=None):
+def native_agent(harness, *, logs_dir, api_base, token, timeout, bundle=None, bundle_sha256=None,
+                 runtime_cpus=None):
     if (type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0):
         raise ValueError('Explicit positive agent deadline required')
     if not isinstance(token, str) or not token:
         raise ValueError('Trial-scoped gateway token required')
+    if runtime_cpus is not None and (type(runtime_cpus) not in (int, float)
+            or not math.isfinite(runtime_cpus) or runtime_cpus <= 0):
+        raise ValueError('Positive official runtime CPU quota required')
     shared = dict(logs_dir=logs_dir, model_name='openai/' + MODEL,
         temperature=1.0, reasoning_effort='high', model_info=dict(MODEL_INFO))
     if harness == 'terminus-2':
@@ -59,10 +68,17 @@ def native_agent(harness, *, logs_dir, api_base, token, timeout, bundle=None, bu
             llm_call_kwargs={'max_tokens': MAX_OUTPUT, 'top_p': 1.0,
                 'extra_body': {'reasoning': {'effort': 'high'}}})
     if harness == 'openhands':
+        runtime_env = {}
+        if runtime_cpus is not None:
+            workers = str(max(1, math.ceil(runtime_cpus)))
+            runtime_env = {name: workers for name in ('OPENBLAS_NUM_THREADS',
+                'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'NUMEXPR_NUM_THREADS')}
+            runtime_env['MALLOC_ARENA_MAX'] = '2'
         return CachedOpenHands(**shared, bundle=bundle, bundle_sha256=bundle_sha256,
             version='0.62.0', python_version='3.12', api_base=api_base, top_p=1.0,
             num_retries=0, max_iterations=1000000,
             extra_env={'LLM_API_KEY': token, 'LLM_TIMEOUT': str(int(min(600, timeout))),
+                **runtime_env,
                 'LLM_COMPLETION_KWARGS': repr({'extra_body': {'reasoning': {'effort': 'high'}}}),
                 'LITELLM_LOCAL_MODEL_COST_MAP': 'True'})
     raise ValueError('Registered native harness required')

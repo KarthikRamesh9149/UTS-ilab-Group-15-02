@@ -40,6 +40,16 @@ class AdapterChecks(unittest.TestCase):
         self.assertEqual(args['extra_env']['LLM_TIMEOUT'], '600')
         self.assertEqual(args['version'], '0.62.0')
 
+    def test_openhands_worker_environment_honors_official_cpu_quota(self):
+        with patch('gemini_baseline_agents.CachedOpenHands') as create:
+            self.settings('openhands',bundle=Path('/tmp/bundle'),bundle_sha256='a'*64,runtime_cpus=2)
+        env=create.call_args.kwargs['extra_env']
+        for name in ('OPENBLAS_NUM_THREADS','OMP_NUM_THREADS','MKL_NUM_THREADS','NUMEXPR_NUM_THREADS'):
+            self.assertEqual(env[name],'2')
+        self.assertEqual(env['MALLOC_ARENA_MAX'],'2')
+        for value in (False,0,-1,float('nan')):
+            with self.assertRaises(ValueError): self.settings('terminus-2',runtime_cpus=value)
+
     def test_unknown_harness_and_invalid_deadlines_fail(self):
         for timeout in (False, 0, -1, float('nan'), float('inf')):
             with self.assertRaises(ValueError):

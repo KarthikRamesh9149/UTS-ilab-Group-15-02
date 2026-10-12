@@ -11,8 +11,11 @@ ORIGIN = 'https://openrouter.ai/api/v1'
 
 
 class Gateway:
-    def __init__(self, key, private_dir):
+    def __init__(self, key, private_dir, *, upstream_model=MODEL):
+        if upstream_model not in {MODEL, SNAPSHOT}:
+            raise ValueError('Only the frozen Gemini model and its dated snapshot are allowed')
         self.key, self.directory = key, private_dir
+        self.upstream_model = upstream_model
         self.origin = ORIGIN
         self.token = secrets.token_hex(32)
         self.active = None
@@ -38,7 +41,7 @@ class Gateway:
 
     async def start(self):
         self.session = ClientSession(timeout=ClientTimeout(total=600))
-        endpoints = (await self.get('/models/' + MODEL + '/endpoints'))['endpoints']
+        endpoints = (await self.get('/models/' + self.upstream_model + '/endpoints'))['endpoints']
         endpoint = next(e for e in endpoints if e['tag'] == PROVIDER)
         if (endpoint['context_length'] != CONTEXT or endpoint['max_completion_tokens'] != MAX_OUTPUT
                 or money(endpoint['pricing']['prompt']) > INPUT_PRICE
@@ -103,6 +106,7 @@ class Gateway:
             row['started_ns'] = time.time_ns()
             self.ledger.save()
             exchange = self.directory / 'exchanges' / ('%06d' % row['sequence'])
+            payload = {**payload, 'model': self.upstream_model}
             atomic_json(exchange.with_suffix('.request.json'), payload)
             try:
                 timeout = ClientTimeout(total=max(0.1, min(600, trial[1] - time.monotonic())))
@@ -133,11 +137,16 @@ class Gateway:
                         # Failed or timed out requests are never blindly retried.
                         self.stop_reason = 'provider_http_' + str(response.status)
                         return web.json_response({'error': {'message': self.stop_reason}}, status=502)
-                    if body.get('model') not in {MODEL, SNAPSHOT} or body.get('provider') not in {'Google AI Studio'}:
+                    if (body.get('model') not in {MODEL, SNAPSHOT}
+                            or body.get('provider') != 'Google AI Studio'
+                            or row.get('resolved_model') not in {None, MODEL, SNAPSHOT}
+                            or row.get('provider') not in {None, 'Google AI Studio'}):
                         self.stop_reason = 'routing_mismatch'
                         return web.json_response({'error': {'message': 'Provider routing mismatch'}}, status=502)
-                    row.setdefault('resolved_model', body['model'])
-                    row.setdefault('provider', body['provider'])
+                    if row.get('resolved_model') is None:
+                        row['resolved_model'] = body['model']
+                    if row.get('provider') is None:
+                        row['provider'] = body['provider']
                     return web.json_response(body)
             except Exception as error:
                 row['error_type'] = type(error).__name__

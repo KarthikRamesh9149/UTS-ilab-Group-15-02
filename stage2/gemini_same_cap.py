@@ -10,7 +10,23 @@ import json
 from pathlib import Path
 
 from gemini_baseline_budget import HARNESSES, SharedBaselineLedger
-from gemini_laptop_policy import Ledger, atomic_json, money
+from gemini_laptop_policy import Ledger, SNAPSHOT, atomic_json, money
+
+
+def validate_resume_review(review, manifest, manifest_sha256):
+    """Bind the human's continuation request to existing money and closed evidence."""
+    if (review.get('user_message') != 'continue the gemini one'
+            or review.get('scope') != 'continue_unstarted_native_suffix'
+            or review.get('total_cap_usd') != '50'
+            or review.get('additional_allowance_usd') != '0'
+            or review.get('manifest_sha256') != manifest_sha256
+            or review.get('prior_ledger_sha256') != manifest['prior_ledger_sha256']
+            or review.get('completed_tasks_sha256') != manifest['completed_tasks_sha256']
+            or review.get('upstream_model') != SNAPSHOT
+            or review.get('replays') != 0
+            or review.get('preserve_unresolved_reserves') is not True):
+        raise ValueError('Exact same-cap continuation review required')
+    return review
 
 
 def suffix_inputs(directory, manifest, cells):

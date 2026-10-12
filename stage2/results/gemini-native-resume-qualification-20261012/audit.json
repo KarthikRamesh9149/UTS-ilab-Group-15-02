@@ -1,0 +1,14 @@
+{
+  "scope": "synthetic_not_benchmark",
+  "offline_checks_passed": 72,
+  "real_paid_generations": 0,
+  "fake_requests": 5,
+  "inherited_requests_preserved": 3010,
+  "source_files": 277,
+  "known_spending_usd": "31.490725275",
+  "unresolved_reserve_usd": "2.20",
+  "authorized_cap_usd": "50",
+  "fresh_qualification_passed": true,
+  "runtime_resources_unchanged": true,
+  "langfuse": "private_metadata_spools_retained_export_after_paid_batch"
+}
