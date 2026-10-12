@@ -1,0 +1,22 @@
+{
+  "predecessor_requests_preserved": 3010,
+  "replays": 0,
+  "new_requests": 11,
+  "new_unresolved_requests": 1,
+  "total_known_usd": "31.571603775",
+  "total_unknown_reserved_usd": "3.30",
+  "authorized_total_cap_usd": "50",
+  "retained_private_files": 118,
+  "retained_private_bytes": 3650524,
+  "native_windows_hashes_match": true,
+  "controller_exit_code": 0,
+  "controller_oom": false,
+  "source_commit": "e73a1be95745aef78eae94162e461857332fd381",
+  "canonical_source_archive_sha256": "1ad220d155596f4d98f4abbc3438a5a363ecae3b94b99e6278944ea47c8f78a3",
+  "closed_ledger_sha256": "9e451a5df326d255f3a6712c8ee153ef9fb1b9f582500835bd30a53b5d6049d7",
+  "closed_tasks_sha256": "f8bf8735dab6d2c4ce86c70e62e0f2e365512b6106bef01912803606237c3b09",
+  "inherited_attempts": 18,
+  "new_attempts": 1,
+  "total_native_attempts": 19,
+  "remaining_unstarted_attempts": 21
+}

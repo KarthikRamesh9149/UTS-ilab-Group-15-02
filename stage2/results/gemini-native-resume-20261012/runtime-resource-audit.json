@@ -1,0 +1,3 @@
+{
+  "cgroup_counters": "memory.current\n1413615616\nmemory.peak\n2147483648\nmemory.events\nlow 0\nhigh 0\nmax 9110\noom 0\noom_kill 0\noom_group_kill 0\nmemory.max\n2147483648\npids.current\n22"
+}

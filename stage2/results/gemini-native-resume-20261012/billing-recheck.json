@@ -1,0 +1,26 @@
+{
+  "paid_generations": 0,
+  "ledger_modified": false,
+  "checks": [
+    {
+      "sequence": 910,
+      "ledger_cost_usd": null,
+      "reserved_usd": "1.10",
+      "status": "no_generation_id"
+    },
+    {
+      "sequence": 3009,
+      "ledger_cost_usd": null,
+      "reserved_usd": "1.10",
+      "status": "receipt_unavailable",
+      "error": "OpenRouter metadata HTTP 404"
+    },
+    {
+      "sequence": 3020,
+      "ledger_cost_usd": null,
+      "reserved_usd": "1.10",
+      "status": "receipt_unavailable",
+      "error": "OpenRouter metadata HTTP 404"
+    }
+  ]
+}

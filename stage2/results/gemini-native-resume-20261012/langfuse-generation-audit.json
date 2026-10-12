@@ -1,0 +1,12 @@
+{
+  "scope": "continuation_paid_generation_metadata_only",
+  "generation_observations": 11,
+  "expected_physical_requests": 11,
+  "known_cost_usd": "0.08087850",
+  "expected_ledger_cost_usd": "0.08087850",
+  "cost_matches_ledger": true,
+  "models": [
+    "google/gemini-3.7-flash"
+  ],
+  "model_api_calls_for_audit": 0
+}

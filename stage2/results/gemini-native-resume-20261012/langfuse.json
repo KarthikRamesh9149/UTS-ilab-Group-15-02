@@ -1,0 +1,68 @@
+{
+  "status": "verified_all_observation_ids",
+  "model_api_calls": 0,
+  "experiment": "gemini-native-resume-20261012",
+  "traces": [
+    {
+      "label": "qualification-launcher-synthetic-terminus-2",
+      "scope": "synthetic",
+      "observations": 17,
+      "expected_observations": 17,
+      "observed_observations": 17,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "qualification-v2-launcher-synthetic-openhands",
+      "scope": "synthetic",
+      "observations": 13,
+      "expected_observations": 13,
+      "observed_observations": 13,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "qualification-v2-launcher-synthetic-terminus-2",
+      "scope": "synthetic",
+      "observations": 25,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "qualification-v3-launcher-synthetic-openhands",
+      "scope": "synthetic",
+      "observations": 13,
+      "expected_observations": 13,
+      "observed_observations": 13,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "qualification-v3-launcher-synthetic-terminus-2",
+      "scope": "synthetic",
+      "observations": 25,
+      "expected_observations": 25,
+      "observed_observations": 25,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    },
+    {
+      "label": "gemini-native-19-openhands-polyglot-rust-c",
+      "scope": "paid",
+      "observations": 24,
+      "expected_observations": 24,
+      "observed_observations": 24,
+      "missing_observations": 0,
+      "unexpected_observations": 0,
+      "matched": true
+    }
+  ],
+  "observations": 117
+}
