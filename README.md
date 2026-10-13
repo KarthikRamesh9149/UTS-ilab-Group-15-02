@@ -10,7 +10,7 @@ agent harness and comparing it with the client baselines on Terminal-Bench 2.1.
 
 | | |
 |---|---|
-| Harness | Deep Agents, version 0.1.4 (repeat study used 0.1.3) |
+| Harness | Deep Agents, version 0.1.5 (repeat study used 0.1.3) |
 | Repeat study (done) | 3 dev-set runs each on the same Windows laptop, harnesses alternated |
 | Deep Agents 0.1.3 | **10, 8, 11** of 20 — mean **9.7** |
 | Terminus-2 (same laptop) | **11, 12, 11** of 20 — mean **11.3** |
@@ -48,6 +48,7 @@ Runs on the Windows laptop with Harbor and Docker; the model is called through O
 | [`dev20-haiku-v0.1.3`](results/harshini/deepagents/dev20-haiku-v0.1.3.csv) | 0.1.3 | 20 | **11/20** | Claude Haiku 5.5; all 9 failures stopped early after misreading the time note |
 | [`dev20-haiku-terminus2`](results/harshini/deepagents/dev20-haiku-terminus2.csv) | Terminus-2 | 20 | **14/20** | Claude Haiku 5.5, interleaved task by task with the run above |
 | [`dev20-haiku-v0.1.4`](results/harshini/deepagents/dev20-haiku-v0.1.4.csv) | 0.1.4 | 20 | **15/20** | Claude Haiku 5.5 after the fixes: 4 tasks gained, none lost; `video-processing` re-run after laptop standby |
+| [`dev20-v0.1.4`](results/harshini/deepagents/dev20-v0.1.4.csv) | 0.1.4 | 20 | not a score (5 passed) | provider overload for most of the run; one task hit an image bug (fixed in 0.1.5) |
 | [`dev20-v0.1.3`](results/harshini/deepagents/dev20-v0.1.3.csv) | 0.1.3 | 20 | **10/20** | repeat study run 1; both `qemu` tasks fail on this host |
 | [`dev20-terminus2-r1`](results/harshini/deepagents/dev20-terminus2-r1.csv) | Terminus-2 | 20 | **11/20** | same laptop; also fails both `qemu` tasks (passed on Netcup) |
 | [`dev20-v0.1.3-r2`](results/harshini/deepagents/dev20-v0.1.3-r2.csv) | 0.1.3 | 20 | **8/20** | 6 tasks lost to provider overload, counted as failed |
@@ -87,8 +88,8 @@ Archived write-up: [`docs/team-stage1.md`](docs/team-stage1.md).
 
 ## Next
 
-1. DeepSeek dev-20 re-run with harness 0.1.4 (in progress), compared with the 0.1.3
-   repeat-study mean of 9.7.
+1. DeepSeek dev-20 run with harness 0.1.5 (in progress; the 0.1.4 run was lost to
+   provider overload), compared with the 0.1.3 repeat-study mean of 9.7.
 2. Single-lever tests (one change at a time, e.g. a file-layout completion check), each
    with repeated runs, since one run cannot show a 1–2 task effect.
 3. Windows Oracle run of the tasks lost on this host (`qemu-*`, `adaptive-rejection-sampler`).

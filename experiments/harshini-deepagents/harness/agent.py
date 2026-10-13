@@ -59,8 +59,12 @@ PROVIDER_ROUTE = {
 }
 # DeepSeek is the project model; the others exist only for the cross-model check.
 # Anthropic endpoints do not list `temperature`, so `require_parameters` would block routing.
+# The DeepSeek route rejects any request containing an image (HTTP 404, "No endpoints found
+# that support image input"); the profile makes Deep Agents replace media that read_file
+# returns with a text note before the request is sent.
+TEXT_ONLY = {"image_inputs": False, "audio_inputs": False, "video_inputs": False, "pdf_inputs": False}
 MODEL_SETTINGS = {
-    PINNED_MODEL: {"route": PROVIDER_ROUTE, "max_output_tokens": 384000},
+    PINNED_MODEL: {"route": PROVIDER_ROUTE, "max_output_tokens": 384000, "profile": TEXT_ONLY},
     "anthropic/claude-haiku-5.5": {
         "route": {"only": ["anthropic"], "order": ["anthropic"], "allow_fallbacks": False},
         "max_output_tokens": 128000,
@@ -258,7 +262,7 @@ class DeepAgentsHarness(BaseAgent):
         return "uts-harshini-deepagents"
 
     def version(self) -> str:
-        return "0.1.4"
+        return "0.1.5"
 
     def __init__(
         self,
@@ -289,6 +293,7 @@ class DeepAgentsHarness(BaseAgent):
             timeout=900,
             streaming=False,
             use_responses_api=False,
+            profile=settings.get("profile"),
             extra_body={
                 "provider": settings["route"],
                 "reasoning": {"effort": str(reasoning_effort)},

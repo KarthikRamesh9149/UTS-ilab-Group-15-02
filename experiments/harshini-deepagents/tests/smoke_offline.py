@@ -4,7 +4,10 @@ Scenario 1 (python image): sticky cwd, Deep Agents read_file through the backend
 the per-command kill, and the finish nudge after a failed last command.
 Scenario 2 (image without python3): write_file still works, python-backed file
 tools are hidden from the model, and an empty reply is nudged instead of ending.
-Scenario 3: with Langfuse keys set but the server unreachable, the run is unaffected.
+Scenario 3: retries that run into the deadline end the run cleanly.
+Scenario 4: an image opened with read_file is replaced by a text note for the
+text-only DeepSeek route.
+Scenario 5: with Langfuse keys set but the server unreachable, the run is unaffected.
 
     python experiments/harshini-deepagents/tests/smoke_offline.py
 (run with the Python that has Harbor + deepagents installed)
@@ -41,6 +44,7 @@ class ScriptedModel(GenericFakeChatModel):
     raise a number of 429 errors before the first reply."""
 
     offered: list = []
+    seen: list = []
     rate_limits: int = 0
 
     def bind_tools(self, tools, **kwargs):
@@ -48,12 +52,13 @@ class ScriptedModel(GenericFakeChatModel):
         self.offered.append(names)
         return self
 
-    def _generate(self, *args, **kwargs):
+    def _generate(self, messages, *args, **kwargs):
+        self.seen.append(list(messages))
         if self.rate_limits > 0:
             self.rate_limits -= 1
             request = httpx.Request("POST", "https://openrouter.ai/api/v1/chat/completions")
             raise openai.RateLimitError("rate-limited upstream", response=httpx.Response(429, request=request), body=None)
-        return super()._generate(*args, **kwargs)
+        return super()._generate(messages, *args, **kwargs)
 
 
 def call(name: str, idx: int, **args) -> AIMessage:
@@ -86,8 +91,9 @@ async def run_scenario(image: str, script: list[AIMessage], rate_limits: int = 0
         logs = Path(tempfile.mkdtemp()) / "agent"
         agent = DeepAgentsHarness(logs, model_name="openrouter/deepseek/deepseek-v4-flash-0731",
                                   agent_timeout_sec=timeout_sec, default_command_timeout=5)
-        model = ScriptedModel(messages=iter(script))
+        model = ScriptedModel(messages=iter(script), profile=agent._model.profile)
         model.offered = []
+        model.seen = []
         model.rate_limits = rate_limits
         agent._model = model
         env = DockerEnv(container)
@@ -99,9 +105,24 @@ async def run_scenario(image: str, script: list[AIMessage], rate_limits: int = 0
         final_file = subprocess.run(
             ["docker", "exec", container, "cat", "/app/out/note.txt"], capture_output=True, text=True
         ).stdout
+        LAST_SEEN[:] = model.seen
         return tool_out, context.metadata, model.offered, final_file
     finally:
         subprocess.run(["docker", "rm", "-f", container], capture_output=True)
+
+
+LAST_SEEN: list = []
+PNG_1PX = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+
+
+def media_blocks(messages) -> int:
+    return sum(
+        1
+        for message in messages
+        if isinstance(message.content, list)
+        for block in message.content
+        if isinstance(block, dict) and block.get("type") in ("image", "image_url", "file", "video", "audio")
+    )
 
 
 async def main() -> int:
@@ -150,6 +171,17 @@ async def main() -> int:
                                        rate_limits=50, timeout_sec=30)
     checks["retries exhausted at deadline end the run cleanly"] = (
         meta["stop_reason"] == "deadline" and str(meta["error_type"]).startswith("retries_exhausted")
+    )
+
+    _, meta, _, _ = await run_scenario("python:3.12-slim", [
+        call("execute", 1, command=f"echo {PNG_1PX} | base64 -d > /tmp/screen.png"),
+        call("read_file", 2, file_path="/tmp/screen.png"),
+        AIMessage(content="Done."),
+    ])
+    last = LAST_SEEN[-1] if LAST_SEEN else []
+    checks["image from read_file not sent to a text-only model"] = (
+        meta["stop_reason"] == "model_done" and media_blocks(last) == 0
+        and any("was not attached" in str(m.content) for m in last)
     )
 
     os.environ.update(LANGFUSE_PUBLIC_KEY="pk-lf-offline", LANGFUSE_SECRET_KEY="sk-lf-offline",

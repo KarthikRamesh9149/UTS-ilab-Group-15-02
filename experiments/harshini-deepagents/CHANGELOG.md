@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.5 — 2026-10-14
+
+- **Images are no longer sent to the DeepSeek route.** With `read_file` working (0.1.4),
+  the model opened a QEMU screenshot it had saved as PNG (`install-windows-3.11`); Deep
+  Agents attached the image, the DeepInfra route has no image input, and OpenRouter
+  answered HTTP 404 "No endpoints found that support image input", ending the trial with
+  no verifier result. `MODEL_SETTINGS` now gives the DeepSeek model a text-only profile
+  (`image_inputs`, `audio_inputs`, `video_inputs`, `pdf_inputs` false), so Deep Agents
+  replaces the media block with a text note ("… was not attached because this model
+  does not support image content") before the request is sent. Haiku keeps image input.
+- Offline smoke test: 18/18 (adds: a PNG read with `read_file` reaches the model as a
+  text note, with no media block). The new check fails without the profile.
+
 ## 0.1.4 — 2026-10-11
 
 Fixes for bugs found through Langfuse traces of the Claude Haiku 5.5 run.
@@ -25,6 +38,11 @@ Fixes for bugs found through Langfuse traces of the Claude Haiku 5.5 run.
 - Result, dev-20 on Claude Haiku 5.5 (`dev20-haiku-v0.1.4`): **15/20**, up from 11/20
   with 0.1.3 (gained `adaptive-rejection-sampler`, `db-wal-recovery`, `mailman`,
   `regex-chess`; none lost), against Terminus-2's 14/20; US$1.20 vs US$5.57.
+- DeepSeek dev-20 (`dev20-v0.1.4`, 12–13 October): not a usable score. DeepInfra was
+  overloaded for most of the run (8 tasks ended with `retries_exhausted:OpenAIRateLimitError`,
+  several more ran to the limit with 0–5 model calls), `adaptive-rejection-sampler`
+  overlapped laptop standby, and `install-windows-3.11` hit the image bug fixed in 0.1.5.
+  The clean end on exhausted retries worked: every overload-hit task was still graded.
 
 ## Langfuse tracing and second-model option (no change to agent behaviour)
 
