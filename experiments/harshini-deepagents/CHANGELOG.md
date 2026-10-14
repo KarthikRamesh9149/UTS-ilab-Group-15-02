@@ -12,6 +12,10 @@
   does not support image content") before the request is sent. Haiku keeps image input.
 - Offline smoke test: 18/18 (adds: a PNG read with `read_file` reaches the model as a
   text note, with no media block). The new check fails without the profile.
+- `export_trace.py` reports failed model requests and the provider's error message, and
+  counts only answered requests as model calls.
+- Result, DeepSeek dev-20 (`dev20-v0.1.5`, 14 October): not a usable score. 572 of 801
+  model requests were rejected (DeepInfra `engine_overloaded`); 6 tasks got no answer.
 
 ## 0.1.4 — 2026-10-11
 

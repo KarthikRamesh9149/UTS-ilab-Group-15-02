@@ -10,7 +10,7 @@ by [`compare_reference.py`](compare_reference.py)).
 All runs use the same model and route: DeepSeek V4 Flash 0731 on DeepInfra FP8 via
 OpenRouter, temperature 1.0, reasoning effort high, 384k max output tokens. Every
 result is one run per task unless stated. Section 8 alone uses a second model
-(Claude Haiku 5.5). Last updated 14 October 2026.
+(Claude Haiku 5.5). Last updated 15 October 2026.
 
 ## Summary
 
@@ -245,13 +245,22 @@ Found on real tasks and fixed (see the
   was set aside to be re-run rather than counted. The same happened on 11–12 October to
   Haiku `video-processing` (re-run, see section 8) and to the first task of the DeepSeek
   0.1.4 run.
-- **Provider overload can void a whole run.** The DeepSeek dev-20 run with 0.1.4
-  (12–13 October, [`dev20-v0.1.4`](deepagents/dev20-v0.1.4.csv)) passed 5 of 20, but
-  DeepInfra was overloaded for most of it: 8 tasks ended with exhausted rate-limit
-  retries and several more reached the time limit after 0–5 model calls (a 1-minute task,
-  `constraints-scheduling`, took 14 minutes). It is recorded but not counted as a score.
-  The 0.1.4 change worked as intended: every overload-hit task ended cleanly and was
-  graded, where 0.1.3 left such tasks with no result.
+- **Provider overload voided two DeepSeek runs in a row.** Both dev-20 runs after the
+  0.1.4 fixes passed 5 of 20, but most model requests were rejected by the provider
+  (counted from the Langfuse traces):
+
+  | Run | Requests answered | Requests rejected (HTTP 429) | Tasks with no answered request |
+  |---|---:|---:|---:|
+  | [`dev20-v0.1.4`](deepagents/dev20-v0.1.4.csv) (12–13 Oct) | 225 | 349 | 8 |
+  | [`dev20-v0.1.5`](deepagents/dev20-v0.1.5.csv) (14 Oct) | 229 | 572 | 6 |
+
+  Every rejection reads "deepseek/deepseek-v4-flash-0731 is temporarily rate-limited
+  upstream" with `provider_name` DeepInfra and `provider_error_code` `engine_overloaded`:
+  the pinned route (DeepInfra FP8, no fallback) shares DeepInfra's capacity with all
+  OpenRouter users, so the limit is upstream, not this key. Neither run is counted as a
+  score. The 0.1.4 change worked as intended: every overload-hit task ended cleanly and
+  was graded, where 0.1.3 left such tasks with no result. Timelines with the failed
+  requests: [`traces/`](traces/) (`dev20-v0.1.4__*.md`, `dev20-v0.1.5__*.md`).
 - **CETUS (UTS HPC) cannot run Harbor** (no Docker; Stage 2 work, see the
   [results README](README.md)), so the laptop is the run host for this branch.
 
@@ -365,5 +374,5 @@ CSVs: [`dev20-haiku-v0.1.3`](deepagents/dev20-haiku-v0.1.3.csv),
 3. Does ending gracefully when retries run out (0.1.4) remove the overload losses seen
    in Deep Agents run 2?
 4. Do the 0.1.4 fixes, which closed the gap to Terminus-2 on Haiku (15 vs 14), change
-   the DeepSeek score (0.1.3 mean 9.7)? The 0.1.4 DeepSeek run was lost to provider
-   overload (section 6); a run with 0.1.5 is in progress.
+   the DeepSeek score (0.1.3 mean 9.7)? Not yet measurable: the 0.1.4 and 0.1.5 DeepSeek
+   runs were both lost to provider overload (section 6).

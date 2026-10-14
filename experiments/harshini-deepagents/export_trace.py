@@ -92,6 +92,11 @@ def render(task: str, run: str, meta: dict, reward, observations: list[dict]) ->
     for o in steps:
         if o["type"] == "TOOL":
             tools[o["name"]] = tools.get(o["name"], 0) + 1
+    failed = [o for o in gens if o.get("level") == "ERROR"]
+    messages: dict[str, int] = {}
+    for o in failed:
+        key = one_line(o.get("statusMessage"), 400)
+        messages[key] = messages.get(key, 0) + 1
 
     lines = [
         f"# Trace: `{task}` ({run})",
@@ -104,7 +109,9 @@ def render(task: str, run: str, meta: dict, reward, observations: list[dict]) ->
         f"| Result | {'passed' if reward == 1 else 'failed' if reward is not None else 'no verifier result'} (reward {reward}) |",
         f"| Harness | {meta.get('harness')} {meta.get('harness_version')} |",
         f"| Stop reason | {meta.get('stop_reason')} |",
-        f"| Model calls | {len(gens)} ({sum(o.get('latency') or 0 for o in gens):.0f} s waiting on the model) |",
+        f"| Model calls | {len(gens) - len(failed)} answered ({sum(o.get('latency') or 0 for o in gens):.0f} s waiting on the model) |",
+        f"| Failed model requests | {len(failed)}"
+        + "".join(f"<br>{count}× {message}" for message, count in messages.items()) + " |",
         f"| Tool calls | {sum(tools.values())} ({', '.join(f'{k} {v}' for k, v in sorted(tools.items()))}; {tool_s:.0f} s) |",
         f"| Output tokens | {output:,} ({reasoning:,} of them reasoning) |",
         f"| Time split | model {model_s / max(model_s + tool_s, 1e-9):.0%}, tools {tool_s / max(model_s + tool_s, 1e-9):.0%} |",
@@ -120,6 +127,8 @@ def render(task: str, run: str, meta: dict, reward, observations: list[dict]) ->
             tokens = f"in {obs.get('inputUsage') or 0:,} · out {obs.get('outputUsage') or 0:,}"
             if usage.get("output_reasoning"):
                 tokens += f" (reasoning {usage['output_reasoning']:,})"
+            if obs.get("level") == "ERROR":
+                tokens = f"failed: {one_line(obs.get('statusMessage'), 80)}"
             lines.append(f"| {index} | {offset:.0f} | model | | {tokens} | {took} |")
         else:
             action, result = tool_detail(obs)
